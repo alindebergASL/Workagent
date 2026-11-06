@@ -1,0 +1,12 @@
+{
+  "backend/tests/test_a05_attachment_contract.py": {
+    "before": "a061efa215d530b9a96345ee44981c10d0d6e3e1f8cb3216410508d167608291",
+    "after": "5f4d662b75825effa1db9a7b831c7166da9813ad2ac27b6848bf39ae0a781fec",
+    "AST_identical": true
+  },
+  "backend/tests/test_a05_attachment_pg.py": {
+    "before": "cce366746916c9c672c5265dbf6a5480a4bd5b229d6512929b4f65a4e8742720",
+    "after": "d0c8e8ab695c3c61efd606980a2d03021f725237b2dbe1c5273a902eee10b8d8",
+    "AST_identical": true
+  }
+}

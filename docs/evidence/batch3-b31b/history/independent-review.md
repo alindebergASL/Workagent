@@ -1,0 +1,20 @@
+**FAIL — material issues in the reviewed B3.1b candidate at `6f5897974b3e50024d46ecf09a053e969ab2cd03` plus the current diff/untracked source.**
+
+1. **P1 — Confirmed forget can leave its payload visible.** [memory-commands.ts:129](/home/ubuntu/workagent-continuation-20261026/web/src/lib/client/memory-commands.ts:129) converts any failed readback into `unverified`, including access denial. [MemoryPanel.tsx:269](/home/ubuntu/workagent-continuation-20261026/web/src/components/MemoryPanel.tsx:269) only purges payloads and fences older list responses for `verified`. Thus a successful forget followed by a failed GET leaves the old content/forms displayed, with changes enabled.
+   **Minimal repair:** purge the item and its forms immediately upon a forgotten receipt, invalidate outstanding reads, and preserve access-denial information from readback. Keep verification pending without retaining erased content.
+
+2. **P1 — Native refresh retains memory after source-access loss or external forget.** [memory_screen.py:106](/home/ubuntu/workagent-continuation-20261026/backend/workagent/tui/memory_screen.py:106) replaces only the list options. Previously inspected content, revision history and `controller.selected` remain. After source revocation, the backend correctly returns an empty filtered list, but the native screen continues displaying the removed memory.
+   **Minimal repair:** reauthorize the selected item during refresh and clear its server-derived payload on denial or forgotten readback. Do not treat absence from a bounded page alone as definitive deletion.
+
+3. **P2 — Reviewing a temporary correction destroys its fallback.** [store.py:110](/home/ubuntu/workagent-continuation-20261026/backend/workagent/memory/store.py:110) clears `exception_to_revision_id` for every mutation, including review. Accepting or disputing “five minutes this week” therefore disconnects the permanent base; after the interval, [retrieval.py:47](/home/ubuntu/workagent-continuation-20261026/backend/workagent/memory/retrieval.py:47) cannot restore it. The SQL transition permits this.
+   **Minimal repair:** preserve the exception’s base through review, with matching SQL guards, or explicitly reject unsupported review transitions. Verify recall before, during and after the interval.
+
+4. **P2 — Web correction drafts silently acquire a newer CAS base.** [MemoryPanel.tsx:205](/home/ubuntu/workagent-continuation-20261026/web/src/components/MemoryPanel.tsx:205) refreshes revisions while retaining forms; [MemoryPanel.tsx:649](/home/ubuntu/workagent-continuation-20261026/web/src/components/MemoryPanel.tsx:649) submits the latest rendered revision rather than the revision against which the correction was authored. An unrelated successful operation can refresh a concurrently edited memory and let an older draft overwrite that newer human correction.
+   **Minimal repair:** store the original revision ID with each correction form. Require explicit reconciliation before adopting a newer base.
+
+5. **P2 — Successful writes discard newer, unsent typing.** Remember and correction fields remain editable during requests. [MemoryPanel.tsx:303](/home/ubuntu/workagent-continuation-20261026/web/src/components/MemoryPanel.tsx:303) unconditionally executes success cleanup, including clearing the remember form and correction form. Text entered after submission disappears when the earlier request completes.
+   **Minimal repair:** clear only the submitted form version, or disable that form through completion/readback.
+
+The supplied [backend-third.log](/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31b/backend-third.log) records **30 PASS**. I inspected the parent HTTP/worker tests; I did not execute tests or make changes. The findings above concern paths not established by that evidence.
+
+**Acceptance remains pending:** production UI validation, actual browser/native journeys, desktop/phone experience and memory usefulness. Synthetic fixtures and controlled-provider results do not establish those outcomes. Full descendant/restoration work remains deferred to B3.5a; this review does not impose per-end-user database-login isolation.

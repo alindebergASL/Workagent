@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-29T15:07:01.363329+00:00",
+  "ports_refused": [
+    18250,
+    13250
+  ],
+  "compute_state": "MainPID=0\nActiveState=inactive\n",
+  "services_started": false,
+  "installed_services_modified": false
+}

@@ -1,0 +1,10 @@
+{
+  "unchanged": true,
+  "candidate_files": 1528,
+  "build_id": "YJ02QDB9HRC2aV6tLomA3",
+  "build_environment": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_PUBLIC_WORKAGENT_API_BASE": "/api/domain",
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "1"
+  }
+}

@@ -7,6 +7,7 @@ import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { scopedHeaders } from "./lib/scope.mjs";
 
 // A piece of work opens on its result; editing is its Edit tab (remembered
 // for that work in the tab). Pages without one are left as they are.
@@ -32,10 +33,10 @@ await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const root = origin + "/api/domain/v1/workspaces";
 const base = root + "/local-workspace";
-const headers = {
+const headers = await scopedHeaders(origin, {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
-};
+});
 async function api(p, body, url = base) {
   const r = await fetch(url + p, {
     method: body ? "POST" : "GET",

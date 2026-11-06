@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/evaluation/run_live_study.py", line 79, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/evaluation/run_live_study.py", line 51, in main
+    require_live_release()  # before authority, credential access or bridge opening
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/evaluation/study_transport.py", line 17, in require_live_release
+    raise RuntimeError('paid_execution_unreleased_t_e07c8870')
+RuntimeError: paid_execution_unreleased_t_e07c8870

@@ -1,0 +1,52 @@
+[
+  {
+    "path": "web/src/app/api/domain/[...path]/route.ts",
+    "before": "c3a11fa36a9e3423ad7caaaea518137afde3888c5fc5999ab3640d584ee539f2",
+    "after": "07d38f4c3f2e0eb9736ae3b5a5ae89c5b6116a427f5e4ea4b75859c8c90f2691"
+  },
+  {
+    "path": "web/src/components/Batch2Controls.tsx",
+    "before": "c6403ceb186f5fef7a9910de553cfccaaf1f01e24753b074eb2cf8ba304db5da",
+    "after": "2c0ff887c6b364adee9b28a8b814b2fbe106f20a7bb37d00b716b7b9160be3f1"
+  },
+  {
+    "path": "web/src/lib/client/batch2-api.ts",
+    "before": "ffd399603bb67873060225713aa1f24897543c6b317c3793992149572a1fc747",
+    "after": "271468653003e82432b23e0a4692e3225915e92070c486570f717ab37ac889c2"
+  },
+  {
+    "path": "web/src/lib/client/documents.ts",
+    "before": "66755619b57cd9eade01757152583ebb0921eefcac86f4f959b0d979416507af",
+    "after": "f6c8d607ea5edf772aeecdda21fc63bf4b12f29a009a63f2d95af6e7aaf6d771"
+  },
+  {
+    "path": "web/src/lib/client/products.ts",
+    "before": "aed3d19c57513035a49f9563b8b1ebe2472fa2ebafb4cc0575064f31e2a8609d",
+    "after": "99611b1c08554fa8869e5b644d9f5e8e073e694aeab6e8d0b9e456a9ff99b9d7"
+  },
+  {
+    "path": "web/src/lib/client/real-api.ts",
+    "before": "29606511b2cbf12ad49ab916d29a576188d854d55bfb872c9bcc8df60b720620",
+    "after": "5f62aa7dbf73ff7270a1ab72fb2ffeafd017f1b2b1d4ee6bdb323e1ab561e916"
+  },
+  {
+    "path": "web/src/lib/client/session-scope.ts",
+    "before": "e1532d71e946cc7239c94dc4a4651bf3039be09296a2eaf0187201472d738001",
+    "after": "afa50119f6d76cafe9d7f97aa889466d6b24844bab17e70da1fd0dab8d4b1cbc"
+  },
+  {
+    "path": "web/src/lib/client/work-state.ts",
+    "before": "6e084df0ddc301bb184e22ccb61043897fe0348c67ad5c8a8b9f81e828dfd5e3",
+    "after": "e6158b2cc12f102e4a9330925b869e5515fdd2d851ec5611888d432c9e777bac"
+  },
+  {
+    "path": "web/src/lib/client/work-stream.ts",
+    "before": "c69ecabb709fa3581d137458a1615fef74a21092e8992d3ea34ca4b5fff0d151",
+    "after": "533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708"
+  },
+  {
+    "path": "web/test/scope-races.test.ts",
+    "before": null,
+    "after": "8f31d61d72a829a8694ce8dacde1078d0b9d71e42007c944b40eaf6ecfe30326"
+  }
+]

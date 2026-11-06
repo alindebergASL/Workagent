@@ -1,0 +1,40 @@
+{
+  "at": "20261029T230951026176Z",
+  "preflight": {
+    "canonical_identity": "workagent_test_47b87fe3b82e|7704275",
+    "competing_grants_and_allocations_unchanged": [
+      "workagent_test_8c78561a8e8d",
+      "workagent_test_942379a11eb1",
+      "workagent_test_cc58a1b9685a"
+    ],
+    "baseline_usd": "99.605960",
+    "baseline_scope": "Known Workagent test-authority lineage; historical other allowances fully retained. Parent notified sole-lane issuance. Not provider-account invoice reconciliation."
+  },
+  "pins": {
+    "evaluation/test_accounting_correction.py": "03c84a36abd3e3fe48f7146d7acb519141ce0239929e4ebfe11c778d036da12c",
+    "evaluation/verify_accounting_correction.py": "51bb63809595530aafd0382fd3850bd0ca6dca593c3d3b9ab8b97eb3994e0b98",
+    "evaluation/accounting_correction.sql": "d141fe3c1dc863a28a9852314f4d676dd9ba01a143734988d391e1b66d968f6e",
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965",
+    ".local/batch3/b35c/accounting-correction/candidate-01.json": "91c3c7d9e2542a7a55bbfd75c1675e556318c5957e279078aeac14ca6700ad37",
+    ".local/batch3/b35c/accounting-correction/primary-before.dump": "c72935850cfef1729ea6a0461030435c203c5f6205abfe370549eb187ee9e60e",
+    ".local/batch3/b35c/accounting-correction/disposable-verification-02.json": "68d5933583faeb23beeed125b8461b00423213547372c22a81a9405e8ce6504a",
+    ".local/batch3/b35c/execution/ledger/current-reconciliation.json": "53306d858e4c04d3eaa64e923a7a72950d44cf681eaab5061025d64d63af4673"
+  },
+  "amounts": {
+    "released_unused_usd": "31.5462600",
+    "retained_existing_allocation_usd": "68.0597000",
+    "issued_certificate_usd": "0",
+    "unallocated_ceiling_usd": "31.9403000",
+    "known_usage_upper_for_released_rows_usd": "6.9408600",
+    "billed_usd": null
+  },
+  "original_tables": 35,
+  "original_rows": 8764,
+  "original_public_rows_unchanged": true,
+  "provider_calls": 0,
+  "certificates": [],
+  "runtime_schema_access": false,
+  "live_release": null,
+  "paid_admission": "not_yet_bound_to_recipient",
+  "source_sql_sha256": "d141fe3c1dc863a28a9852314f4d676dd9ba01a143734988d391e1b66d968f6e"
+}

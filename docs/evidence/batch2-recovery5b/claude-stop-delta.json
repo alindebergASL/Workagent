@@ -1,0 +1,17 @@
+[
+  {
+    "path": "web/test/stop-offered.test.ts",
+    "before": null,
+    "after": "5310a51a78fd22ebc6f9bbd26b3aa67356ad8b454190b0f0a1dc1861d84b0727"
+  },
+  {
+    "path": "web/src/lib/batch2-view.ts",
+    "before": "88e13ca3358a896998a1cb7e33e4c3a80049889ceb4f1e28bcd33e38377e2ff6",
+    "after": "636d779449a582f31cfd8d37c4159219c07d604ba9dc740c141f4ed9f0c4f21a"
+  },
+  {
+    "path": "web/src/app/conversations/[id]/page.tsx",
+    "before": "d9f76b90bc1d078d46b93de3fc8dd7f84c97fb567b505615f30868df1f9dc2b0",
+    "after": "583ba46dd51f0b09a71e0a6265713c94cf3815d6aa50813a7b38eb18d142ef69"
+  }
+]

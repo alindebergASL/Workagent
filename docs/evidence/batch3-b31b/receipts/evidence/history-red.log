@@ -1,0 +1,89 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_native_refresh_reauthorizes_inspected_payload[history_denied] ______
+
+loss = 'history_denied'
+
+    @pytest.mark.parametrize('loss', ['denied', 'forgotten', 'history_denied', 'not_in_page'])
+    def test_native_refresh_reauthorizes_inspected_payload(loss):
+        class Client(MemoryHTTP):
+            changed = False
+            def request(self, path, body=None):
+                if self.changed and body is None:
+                    if '/memory?' in path:
+                        return dict(items=[], has_more=True)
+                    if loss == 'denied':
+                        raise OperatorError('not_found_or_not_authorized')
+                    if loss == 'forgotten':
+                        self.current.update(status='forgotten', content=None, subject_key=None,
+                            predicate_key=None, confidence_basis=None, applicability=None)
+                result = super().request(path, body)
+                if loss == 'history_denied' and not self.changed and 'revisions' in result:
+                    result['revisions'].insert(0, {**self.current, 'revision_id': 'old-work-area-revision',
+                        'content': 'Revocable old project text'})
+                return result
+        async def check():
+            client = Client()
+            screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+            app = App()
+            async with app.run_test(size=(80, 35)) as pilot:
+                app.push_screen(screen)
+                await pilot.pause(.2)
+                screen.query_one('#memory-list', Select).value = 'memory-a'
+                await screen.perform('inspect')
+                assert screen.controller.selected
+                screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+                client.changed = True
+                await screen.perform('refresh')
+                if loss == 'not_in_page':
+                    assert screen.controller.selected['current']['revision_id'] == 'r1'
+                    assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+                else:
+                    assert screen.controller.selected is None
+                    for field in ('content', 'details', 'usage'):
+                        assert screen.query_one('#memory-'+field, TextArea).text == ''
+                    assert screen.query_one('#memory-subject', Input).value == ''
+>       asyncio.run(check())
+
+backend/tests/test_memory_recovery.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client = Client()
+        screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+        app = App()
+        async with app.run_test(size=(80, 35)) as pilot:
+            app.push_screen(screen)
+            await pilot.pause(.2)
+            screen.query_one('#memory-list', Select).value = 'memory-a'
+            await screen.perform('inspect')
+            assert screen.controller.selected
+            screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+            client.changed = True
+            await screen.perform('refresh')
+            if loss == 'not_in_page':
+                assert screen.controller.selected['current']['revision_id'] == 'r1'
+                assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+            else:
+>               assert screen.controller.selected is None
+E               AssertionError: assert {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} is None
+E                +  where {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} = <workagent.tui.memory.MemoryController object at 0x7498b79e1910>.selected
+E                +    where <workagent.tui.memory.MemoryController object at 0x7498b79e1910> = MemoryScreen().controller
+
+backend/tests/test_memory_recovery.py:87: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_recovery.py::test_native_refresh_reauthorizes_inspected_payload[history_denied]
+1 failed, 5 deselected, 1 warning in 1.74s

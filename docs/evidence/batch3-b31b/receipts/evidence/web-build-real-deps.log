@@ -1,0 +1,39 @@
+
+> @workagent/web@0.1.0 build
+> next build
+
+▲ Next.js 16.3.4 (Turbopack)
+✓ Running next.config.ts took 22ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 407ms
+  Running TypeScript ...
+  Finished TypeScript in 7.3s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/7) ...
+  Generating static pages using 3 workers (1/7) 
+  Generating static pages using 3 workers (3/7) 
+  Generating static pages using 3 workers (5/7) 
+✓ Generating static pages using 3 workers (7/7) in 210ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /activity
+├ ƒ /api/domain/[...path]
+├ ƒ /api/mock/[...path]
+├ ƒ /assignments/[id]
+├ ƒ /assignments/[id]/artifacts/[artifactId]
+├ ○ /conversations
+├ ƒ /conversations/[id]
+├ ƒ /conversations/[id]/artifacts/[artifactId]
+├ ○ /icon.svg
+├ ○ /spaces
+├ ƒ /spaces/[spaceId]
+└ ƒ /spaces/[spaceId]/work/[id]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

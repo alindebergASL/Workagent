@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "limitations": [
+    "Working-file result has no WorkCard: citations control absent on both its file editor and artifact page."
+  ],
+  "url": "http://127.0.0.1:13234/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d/artifacts/af15eddc-cb9e-4e39-b010-b380e7e9f7ba?workspace=b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7#proposal-f1592677-cf5d-48e7-934e-43d26c75f6fb"
+}

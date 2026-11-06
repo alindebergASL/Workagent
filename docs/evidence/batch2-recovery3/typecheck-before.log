@@ -1,0 +1,6 @@
+npm notice run @workagent/web@0.1.0 typecheck
+npm notice run tsc --noEmit
+src/components/OperationComposer.tsx(66,47): error TS7006: Parameter 'field' implicitly has an 'any' type.
+src/lib/client/products.ts(7,39): error TS2339: Property 'PostMessage' does not exist on type '{ AcceptProposal: { acknowledge_older_proposal: boolean; acknowledge_removed_content: boolean; command_id: string; expected_current_revision_id: string; request_id: string; schema_version: "workagent/v1"; }; ... 156 more ...; WorkspacePage: { ...; }; }'.
+src/lib/client/real-api.ts(1085,21): error TS2339: Property 'PostMessage' does not exist on type '{ AcceptProposal: { acknowledge_older_proposal: boolean; acknowledge_removed_content: boolean; command_id: string; expected_current_revision_id: string; request_id: string; schema_version: "workagent/v1"; }; ... 156 more ...; WorkspacePage: { ...; }; }'.
+src/lib/client/real-api.ts(1094,40): error TS2339: Property 'PostMessage' does not exist on type '{ AcceptProposal: { acknowledge_older_proposal: boolean; acknowledge_removed_content: boolean; command_id: string; expected_current_revision_id: string; request_id: string; schema_version: "workagent/v1"; }; ... 156 more ...; WorkspacePage: { ...; }; }'.

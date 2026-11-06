@@ -24,6 +24,50 @@ class OperatorError(Exception):
     pass
 
 
+class ReadUnavailable(OperatorError):
+    """Transient GET failure, never a mutation outcome or access denial."""
+
+
+class AccessDenied(OperatorError):
+    """Authorization/resource denial; does not settle an earlier unknown write."""
+
+
+# Deliberately narrow: these domain failures reject the transaction before effects.
+REJECTION_CODES = {'version_conflict', 'source_changed', 'review_required'}
+
+
+def valid_rejection(value, request_id, *, path=None):
+    if not isinstance(value, dict) or set(value) != {'status', 'response'}:
+        return False
+    response = value['response']
+    if (type(value['status']) is not int or
+            not isinstance(response, dict) or set(response) !=
+            {'code', 'message', 'request_id', 'next_action', 'details'} or
+            not isinstance(response.get('code'),str) or
+            response.get('request_id') != request_id):
+        return False
+    code=response['code'];status=value['status']
+    # Endpoint-specific, proven pre-effect failures only. execute() still
+    # refuses to settle any earlier ambiguous POST with a later rejection.
+    allowed=(status==409 and code in REJECTION_CODES)
+    if isinstance(path,str):
+        allowed=allowed or (status==409 and code=='action_unresolved' and
+            re.fullmatch(r'/[^/]+/conversations/[^/]+/stop',path) is not None)
+        allowed=allowed or (status==422 and code=='validation_error' and
+            re.fullmatch(r'/[^/]+/conversations/[^/]+/documents',path) is not None)
+    if not allowed:return False
+    from .models import ErrorEnvelope
+    try: ErrorEnvelope.model_validate(response)
+    except ValueError: return False
+    return True
+
+
+class DomainRejection(OperatorError):
+    def __init__(self, rejection):
+        self.rejection = rejection
+        super().__init__('HTTP '+str(rejection['status'])+': ' + rejection['response']['code'] + '; command rejected')
+
+
 MAX_RECORDS = 256
 MAX_BYTES = 1024 * 1024
 
@@ -72,19 +116,37 @@ class CommandJournal:
             raise OperatorError('Invalid journal command ID')
         return cid + '.json'
 
+    read_limit = 9 * 1024 * 1024
+
+    def record_limit(self,record):
+        # Only the new document command may exceed the historical journal bound.
+        if record.get('format')==4 and record.get('action')=='document':
+            from .document_models import DocumentInput
+            try:DocumentInput.model_validate({k:record['body'][k] for k in ('filename','mime_type','content_base64','sha256')})
+            except (KeyError,TypeError,ValueError):raise OperatorError('Invalid document journal record') from None
+            return self.read_limit
+        return MAX_BYTES
+
     def _read(self, fd, cid):
         file_fd = os.open(self.filename(cid), os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd)
         with os.fdopen(file_fd, 'rb') as file:
             info = os.fstat(file.fileno())
             if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or
-                    stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1 or info.st_size > MAX_BYTES):
+                    stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1 or info.st_size > self.read_limit):
                 raise OperatorError('Unsafe command journal record')
-            data = json.loads(file.read(MAX_BYTES + 1))
+            data = json.loads(file.read(self.read_limit + 1))
         if (not isinstance(data, dict) or set(data) != {'record', 'digest', 'outcome'} or
                 not isinstance(data['record'], dict) or not isinstance(data['outcome'], dict) or
                 digest(data['record']) != data['digest'] or data['record'].get('command_id') != cid or
-                data['outcome'].get('state') not in ('prepared', 'outcome_unknown', 'readback_unknown', 'confirmed')):
+                data['outcome'].get('state') not in ('prepared', 'outcome_unknown', 'readback_unknown', 'confirmed', 'rejected', 'abandoned_rejection')):
             raise OperatorError('Corrupt command journal record; replay refused')
+        if info.st_size>self.record_limit(data['record']):raise OperatorError('Command journal record exceeds scoped storage limit')
+        if data['outcome']['state'] in ('rejected', 'abandoned_rejection'):
+            outcome = data['outcome']
+            body = data['record'].get('body')
+            if (not isinstance(body,dict) or set(outcome) != {'state', 'rejection'} or not valid_rejection(
+                    outcome['rejection'], body.get('request_id'),path=data['record'].get('path'))):
+                raise OperatorError('Corrupt rejection evidence; command remains locked')
         return data
 
     def read(self, cid):
@@ -104,7 +166,7 @@ class CommandJournal:
 
     def _write(self, fd, cid, data, *, exclusive):
         raw = json.dumps(data, ensure_ascii=True).encode()
-        if len(raw) > MAX_BYTES:
+        if len(raw) > self.record_limit(data['record']):
             raise OperatorError('Command journal record exceeds private storage limit')
         temp = '.pending-' + uuid.uuid4().hex
         try:
@@ -136,11 +198,28 @@ class CommandJournal:
             except FileExistsError:
                 raise OperatorError('Command ID already reserved; only explicit replay is allowed') from None
 
-    def outcome(self, cid, state, receipt=None):
+    def outcome(self, cid, state, receipt=None, *, rejection=None):
         with self.directory() as fd:
             data = self._read(fd, cid)
             # Never erase a committed receipt when a later replay/readback fails.
+            if state in ('rejected', 'abandoned_rejection'):
+                evidence = rejection or data['outcome'].get('rejection')
+                if ('receipt' in data['outcome'] or not valid_rejection(
+                        evidence, data['record'].get('body', {}).get('request_id'),path=data['record'].get('path'))):
+                    raise OperatorError('Verified rejection required; command remains locked')
+                data['outcome']['rejection'] = evidence
             data['outcome']['state'] = state
             if receipt is not None:
                 data['outcome']['receipt'] = receipt
             self._write(fd, cid, data, exclusive=False)
+
+    def find(self, cid):
+        """Read or prove absence for a pre-reservation UI marker; unsafe is an error.
+
+        This does not authorize replay and never changes a saved envelope.
+        """
+        with self.directory() as fd:
+            try:
+                return self._read(fd, cid)
+            except FileNotFoundError:
+                return None

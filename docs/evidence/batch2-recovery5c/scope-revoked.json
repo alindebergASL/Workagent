@@ -1,0 +1,38 @@
+{
+  "before": [
+    {
+      "value": {
+        "role": "owner",
+        "active": true,
+        "principal_id": "local-human",
+        "workspace_id": "recovery5c-scope"
+      }
+    },
+    {
+      "value": {
+        "role": "owner",
+        "active": true,
+        "principal_id": "recovery5c-other",
+        "workspace_id": "recovery5c-scope"
+      }
+    }
+  ],
+  "after": [
+    {
+      "value": {
+        "role": "owner",
+        "active": true,
+        "principal_id": "recovery5c-other",
+        "workspace_id": "recovery5c-scope"
+      }
+    },
+    {
+      "value": {
+        "role": "owner",
+        "active": false,
+        "principal_id": "local-human",
+        "workspace_id": "recovery5c-scope"
+      }
+    }
+  ]
+}

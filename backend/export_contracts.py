@@ -20,7 +20,69 @@ def main():
     from workagent.message_models import attachment_contract
     from workagent.composition import AlphaDecision, ContinuityDecision, descriptors
     from workagent.models import ProviderGrant
-    outputs={'provider-grant.schema.json':ProviderGrant.model_json_schema(),
+    from workagent.work_event_fixtures import vectors as work_event_vectors
+    from workagent.retained_results import SustainedDecision
+    from workagent.checkpoint_models import RunCheckpoint, QueuedMessage
+    from workagent.capabilities.models import CapabilityDescriptorV2, ToolGrantV1, ToolCallV1, ToolObservationV1
+    from workagent.capabilities.registry import catalog
+    from workagent.workspace_file_models import WorkspaceFilesContract
+    from workagent.capabilities.file_composition import GatewayFilesDecision
+    from workagent.capabilities.compute_composition import GatewayComputeDecision
+    from workagent.capabilities.compute_adapters import ComputePython, ComputeOutput, ComputeExportManifest
+    from workagent.memory.models import MemoryContract
+    from workagent.memory.runtime import GatewayMemoryDecision
+    from workagent.capabilities.research_composition import GatewayResearchDecision
+    from workagent.workspace_file_models import OfficeContract
+    from workagent.capabilities.office_composition import GatewayOfficeDecision
+    from workagent.capabilities.github_composition import GatewayGitHubDecision
+    from workagent.connectors.base import PublicConnectorConsent
+    from workagent.connectors.models import ConnectorStatus, AuthorizationFlow, StartAuthorization, CompleteAuthorization, RevokeConnector, ConnectorPage
+    from workagent.capabilities.mcp_composition import GatewayMCPDecision
+    from workagent.capabilities.delegation_composition import GatewayDelegationDecision
+    from workagent.capabilities.delegation import ChildOutput, VerificationOutput
+    from workagent.discovery_composition import GatewayDiscoveryDecision
+    from workagent.model_discovery import descriptors as discovery_descriptors
+    from workagent.discovery_composition import SCHEMA as discovery_schema
+    from hashlib import sha256
+    proposal=ROOT/'backend'/'migrations'/'084_model_discovery_v2.sql'
+    if proposal.exists() and sha256(discovery_schema.material).hexdigest() not in proposal.read_text():
+        raise SystemExit('Discovery SQL/schema pin drift')
+    from workagent.current_gateway import GatewayCurrentDecision, CurrentGatewayCatalog, SCHEMA as current_schema
+    current_sql=ROOT/'backend'/'migrations'/'087_current_gateway_contract.sql'
+    if sha256(current_schema.material).hexdigest() not in current_sql.read_text():
+        raise SystemExit('Current gateway SQL/schema pin drift')
+    outputs={'gateway-current-decision.schema.json':GatewayCurrentDecision.model_json_schema(),
+             'gateway-capability-page.schema.json':CurrentGatewayCatalog.model_json_schema(),
+             'gateway-discovery-decision.schema.json':GatewayDiscoveryDecision.model_json_schema(),
+             'model-discovery-capabilities-v2.json':discovery_descriptors(),
+             'connector-status.schema.json':ConnectorStatus.model_json_schema(),
+             'gateway-delegation-decision.schema.json':GatewayDelegationDecision.model_json_schema(),
+             'delegation-child-output.schema.json':ChildOutput.model_json_schema(),
+             'delegation-verification-output.schema.json':VerificationOutput.model_json_schema(),
+             'connector-authorization-flow.schema.json':AuthorizationFlow.model_json_schema(),
+             'gateway-mcp-decision.schema.json':GatewayMCPDecision.model_json_schema(),
+             'gateway-github-decision.schema.json':GatewayGitHubDecision.model_json_schema(),
+             'public-connector-consent.schema.json':PublicConnectorConsent.model_json_schema(),
+             'office-v1.json':OfficeContract.model_json_schema(),
+             'gateway-office-decision.schema.json':GatewayOfficeDecision.model_json_schema(),'gateway-research-decision.schema.json':GatewayResearchDecision.model_json_schema(),
+             'gateway-memory-decision.schema.json':GatewayMemoryDecision.model_json_schema(),
+             'memory-v1.json':MemoryContract.model_json_schema(),
+             'compute-python.schema.json':ComputePython.model_json_schema(),
+             'compute-output.schema.json':ComputeOutput.model_json_schema(),
+             'compute-export-manifest.schema.json':ComputeExportManifest.model_json_schema(),
+             'gateway-compute-decision.schema.json':GatewayComputeDecision.model_json_schema(),
+             'workspace-files-v1.json':WorkspaceFilesContract.model_json_schema(),
+             'gateway-files-decision.schema.json':GatewayFilesDecision.model_json_schema(),
+             'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
+             'tool-grant.schema.json':ToolGrantV1.model_json_schema(),
+             'tool-call.schema.json':ToolCallV1.model_json_schema(),
+             'tool-observation-v1.json':ToolObservationV1.model_json_schema(),
+             'capability-registry-v2.json':[d.model_dump(mode='json') for d in catalog()],
+             'work-events-fixtures.json':work_event_vectors(),
+             'run-checkpoint.schema.json':RunCheckpoint.model_json_schema(),
+             'queued-message.schema.json':QueuedMessage.model_json_schema(),
+             'sustained-decision.schema.json':SustainedDecision.model_json_schema(),
+             'provider-grant.schema.json':ProviderGrant.model_json_schema(),
              'continuity-decision.schema.json':ContinuityDecision.model_json_schema(),
              'alpha-decision.schema.json':AlphaDecision.model_json_schema(),
              'alpha-capability-catalog.json':descriptors(),

@@ -1,0 +1,95 @@
+{"action": "mouse", "x": 60, "y": 2}
+{"action": "capture", "name": "pty-list", "dimensions": "120x50"}
+{"action": "mouse", "x": 41, "y": 8}
+{"action": "capture", "name": "pty-five-conversation", "dimensions": "120x50"}
+{"action": "mouse", "x": 17, "y": 4}
+{"action": "capture", "name": "pty-five-work", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "capture", "name": "pty-five-results", "dimensions": "120x50"}
+{"action": "keys", "keys": ["Down", "Enter"]}
+{"action": "capture", "name": "pty-five-body-top", "dimensions": "120x50"}
+{"action": "mouse", "x": 85, "y": 30}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-five-body-bottom", "dimensions": "120x50"}
+{"action": "mouse", "x": 60, "y": 2}
+{"action": "capture", "name": "pty-switch-ten", "dimensions": "120x50"}
+{"action": "mouse", "x": 41, "y": 7}
+{"action": "capture", "name": "pty-ten-work", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "keys", "keys": ["Down", "Enter"]}
+{"action": "capture", "name": "pty-ten-body-top", "dimensions": "120x50"}
+{"action": "mouse", "x": 85, "y": 30}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-ten-body-bottom", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "mouse", "x": 12, "y": 13}
+{"action": "capture", "name": "pty-ten-selected", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 30}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-ten-scrolled", "dimensions": "120x50"}
+{"action": "mouse", "x": 60, "y": 2}
+{"action": "mouse", "x": 41, "y": 8}
+{"action": "capture", "name": "pty-five-select-reset", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "mouse", "x": 12, "y": 13}
+{"action": "capture", "name": "pty-five-selected", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 30}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-five-scrolled", "dimensions": "120x50"}
+{"action": "mouse", "x": 60, "y": 2}
+{"action": "mouse", "x": 41, "y": 6}
+{"action": "capture", "name": "pty-removals-select", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "mouse", "x": 12, "y": 13}
+{"action": "capture", "name": "pty-removals-current", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 30}
+{"action": "keys", "keys": ["End"]}
+{"action": "capture", "name": "pty-removals-bottom", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 28}
+{"action": "capture", "name": "pty-proposal-options", "dimensions": "120x50"}
+{"action": "mouse", "x": 5, "y": 32}
+{"action": "capture", "name": "pty-review-selected", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 28}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-0", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-1", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-2", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-3", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-4", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-5", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-6", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageDown"]}
+{"action": "capture", "name": "pty-review-page-7", "dimensions": "120x50"}
+{"action": "keys", "keys": ["End"]}
+{"action": "capture", "name": "pty-review-end", "dimensions": "120x50"}
+{"action": "keys", "keys": ["Escape"]}
+{"action": "mouse", "x": 100, "y": 10}
+{"action": "keys", "keys": ["End"]}
+{"action": "capture", "name": "pty-review-counts", "dimensions": "120x50"}
+{"action": "mouse", "x": 3, "y": 38}
+{"action": "capture", "name": "pty-unconsented-noop", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 12}
+{"action": "keys", "keys": ["PageUp"]}
+{"action": "capture", "name": "pty-sample-back-0", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageUp"]}
+{"action": "capture", "name": "pty-sample-back-1", "dimensions": "120x50"}
+{"action": "keys", "keys": ["PageUp"]}
+{"action": "capture", "name": "pty-sample-back-2", "dimensions": "120x50"}
+{"action": "keys", "keys": ["End"]}
+{"action": "mouse", "x": 100, "y": 10}
+{"action": "keys", "keys": ["End"]}
+{"action": "capture", "name": "pty-consent-location", "dimensions": "120x50"}
+{"action": "mouse", "x": 8, "y": 32}
+{"action": "capture", "name": "pty-explicit-consent", "dimensions": "120x50"}
+{"action": "mouse", "x": 3, "y": 38}
+{"action": "capture", "name": "pty-accept-result", "dimensions": "120x50"}
+{"action": "mouse", "x": 100, "y": 10}
+{"action": "keys", "keys": ["Home"]}
+{"action": "capture", "name": "pty-accepted-body", "dimensions": "120x50"}
+{"action": "keys", "keys": ["C-q"]}

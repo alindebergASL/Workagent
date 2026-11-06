@@ -1,0 +1,210 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+____________ test_review_exception_keeps_base_and_interval[accept] _____________
+
+context = (<workagent.service.Service object at 0x74a2c5e8aa80>, Principal(id='local-human', kind='human'), 'test-f92798ca-d0d1-...time.datetime(2026, 10, 28, 22, 9, 9, 639296, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+decision = 'accept'
+
+    @pytest.mark.parametrize('decision', ['accept', 'dispute'])
+    def test_review_exception_keeps_base_and_interval(context, decision):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        start = now() + timedelta(days=1)
+        end = start + timedelta(days=7)
+        base, _ = remember(context, cv, content='Ten minutes', valid_from=now()-timedelta(days=1))
+        exception = s.correct_memory(p, ws, base.memory_id, cmd(CorrectMemory,
+            expected_revision_id=base.revision_id, content='Five minutes', mode='temporary',
+            valid_from=start, valid_until=end))
+        reviewed = s.review_memory(p, ws, base.memory_id, cmd(ReviewMemory,
+            expected_revision_id=exception.revision_id, decision=decision))
+        current = inspect(context, reviewed).current
+>       assert current.exception_to_revision_id == base.revision_id
+E       AssertionError: assert None == '58f5c919-ae49-4ee2-9bf8-002a8af462c7'
+E        +  where None = MemoryRevisionV1(memory_id='65d6575c-18a1-4350-9c02-578fd6442566', revision_id='e77a11d6-ee30-4d5e-ac49-d41259171e0a',...-b98f-78e68a6191d4', exception_to_revision_id=None, contradiction_group_id=None, applicability='', access_generation=1).exception_to_revision_id
+E        +  and   '58f5c919-ae49-4ee2-9bf8-002a8af462c7' = MemoryReceipt(memory_id='65d6575c-18a1-4350-9c02-578fd6442566', revision_id='58f5c919-ae49-4ee2-9bf8-002a8af462c7', status='active').revision_id
+
+backend/tests/test_memory_recovery.py:32: AssertionError
+____________ test_review_exception_keeps_base_and_interval[dispute] ____________
+
+context = (<workagent.service.Service object at 0x74a2c58559a0>, Principal(id='local-human', kind='human'), 'test-ea568b84-c1c5-...time.datetime(2026, 10, 28, 22, 9, 9, 773140, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+decision = 'dispute'
+
+    @pytest.mark.parametrize('decision', ['accept', 'dispute'])
+    def test_review_exception_keeps_base_and_interval(context, decision):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        start = now() + timedelta(days=1)
+        end = start + timedelta(days=7)
+        base, _ = remember(context, cv, content='Ten minutes', valid_from=now()-timedelta(days=1))
+        exception = s.correct_memory(p, ws, base.memory_id, cmd(CorrectMemory,
+            expected_revision_id=base.revision_id, content='Five minutes', mode='temporary',
+            valid_from=start, valid_until=end))
+        reviewed = s.review_memory(p, ws, base.memory_id, cmd(ReviewMemory,
+            expected_revision_id=exception.revision_id, decision=decision))
+        current = inspect(context, reviewed).current
+>       assert current.exception_to_revision_id == base.revision_id
+E       AssertionError: assert None == 'b6b33231-9814-4d39-9271-6f919efe1b99'
+E        +  where None = MemoryRevisionV1(memory_id='15f110a1-da7d-4f53-99fd-67f9425bb729', revision_id='7ac97af6-7896-423a-a927-fb2d4e282a86',...-bdf6-573c90a7d2a3', exception_to_revision_id=None, contradiction_group_id=None, applicability='', access_generation=1).exception_to_revision_id
+E        +  and   'b6b33231-9814-4d39-9271-6f919efe1b99' = MemoryReceipt(memory_id='15f110a1-da7d-4f53-99fd-67f9425bb729', revision_id='b6b33231-9814-4d39-9271-6f919efe1b99', status='active').revision_id
+
+backend/tests/test_memory_recovery.py:32: AssertionError
+__________ test_native_refresh_reauthorizes_inspected_payload[denied] __________
+
+loss = 'denied'
+
+    @pytest.mark.parametrize('loss', ['denied', 'forgotten', 'not_in_page'])
+    def test_native_refresh_reauthorizes_inspected_payload(loss):
+        class Client(MemoryHTTP):
+            changed = False
+            def request(self, path, body=None):
+                if self.changed and body is None:
+                    if '/memory?' in path:
+                        return dict(items=[], has_more=True)
+                    if loss == 'denied':
+                        raise OperatorError('not_found_or_not_authorized')
+                    if loss == 'forgotten':
+                        self.current.update(status='forgotten', content=None, subject_key=None,
+                            predicate_key=None, confidence_basis=None, applicability=None)
+                return super().request(path, body)
+        async def check():
+            client = Client()
+            screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+            app = App()
+            async with app.run_test(size=(80, 35)) as pilot:
+                app.push_screen(screen)
+                await pilot.pause(.2)
+                screen.query_one('#memory-list', Select).value = 'memory-a'
+                await screen.perform('inspect')
+                assert screen.controller.selected
+                screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+                client.changed = True
+                await screen.perform('refresh')
+                if loss == 'not_in_page':
+                    assert screen.controller.selected['current']['revision_id'] == 'r1'
+                    assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+                else:
+                    assert screen.controller.selected is None
+                    for field in ('content', 'details', 'usage'):
+                        assert screen.query_one('#memory-'+field, TextArea).text == ''
+                    assert screen.query_one('#memory-subject', Input).value == ''
+>       asyncio.run(check())
+
+backend/tests/test_memory_recovery.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client = Client()
+        screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+        app = App()
+        async with app.run_test(size=(80, 35)) as pilot:
+            app.push_screen(screen)
+            await pilot.pause(.2)
+            screen.query_one('#memory-list', Select).value = 'memory-a'
+            await screen.perform('inspect')
+            assert screen.controller.selected
+            screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+            client.changed = True
+            await screen.perform('refresh')
+            if loss == 'not_in_page':
+                assert screen.controller.selected['current']['revision_id'] == 'r1'
+                assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+            else:
+>               assert screen.controller.selected is None
+E               AssertionError: assert {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} is None
+E                +  where {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} = <workagent.tui.memory.MemoryController object at 0x74a2c5854c80>.selected
+E                +    where <workagent.tui.memory.MemoryController object at 0x74a2c5854c80> = MemoryScreen().controller
+
+backend/tests/test_memory_recovery.py:83: AssertionError
+________ test_native_refresh_reauthorizes_inspected_payload[forgotten] _________
+
+loss = 'forgotten'
+
+    @pytest.mark.parametrize('loss', ['denied', 'forgotten', 'not_in_page'])
+    def test_native_refresh_reauthorizes_inspected_payload(loss):
+        class Client(MemoryHTTP):
+            changed = False
+            def request(self, path, body=None):
+                if self.changed and body is None:
+                    if '/memory?' in path:
+                        return dict(items=[], has_more=True)
+                    if loss == 'denied':
+                        raise OperatorError('not_found_or_not_authorized')
+                    if loss == 'forgotten':
+                        self.current.update(status='forgotten', content=None, subject_key=None,
+                            predicate_key=None, confidence_basis=None, applicability=None)
+                return super().request(path, body)
+        async def check():
+            client = Client()
+            screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+            app = App()
+            async with app.run_test(size=(80, 35)) as pilot:
+                app.push_screen(screen)
+                await pilot.pause(.2)
+                screen.query_one('#memory-list', Select).value = 'memory-a'
+                await screen.perform('inspect')
+                assert screen.controller.selected
+                screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+                client.changed = True
+                await screen.perform('refresh')
+                if loss == 'not_in_page':
+                    assert screen.controller.selected['current']['revision_id'] == 'r1'
+                    assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+                else:
+                    assert screen.controller.selected is None
+                    for field in ('content', 'details', 'usage'):
+                        assert screen.query_one('#memory-'+field, TextArea).text == ''
+                    assert screen.query_one('#memory-subject', Input).value == ''
+>       asyncio.run(check())
+
+backend/tests/test_memory_recovery.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client = Client()
+        screen = MemoryScreen(client, 'ws-a', 'human-a', 'task-a')
+        app = App()
+        async with app.run_test(size=(80, 35)) as pilot:
+            app.push_screen(screen)
+            await pilot.pause(.2)
+            screen.query_one('#memory-list', Select).value = 'memory-a'
+            await screen.perform('inspect')
+            assert screen.controller.selected
+            screen.query_one('#memory-content', TextArea).load_text('Unsent correction')
+            client.changed = True
+            await screen.perform('refresh')
+            if loss == 'not_in_page':
+                assert screen.controller.selected['current']['revision_id'] == 'r1'
+                assert screen.query_one('#memory-content', TextArea).text == 'Unsent correction'
+            else:
+>               assert screen.controller.selected is None
+E               AssertionError: assert {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} is None
+E                +  where {'current': {'applicability': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', '...y': '', 'confidence_basis': 'Explicit human statement', 'content': 'Use concise headings', 'kind': 'preference', ...}]} = <workagent.tui.memory.MemoryController object at 0x74a2c4b86870>.selected
+E                +    where <workagent.tui.memory.MemoryController object at 0x74a2c4b86870> = MemoryScreen().controller
+
+backend/tests/test_memory_recovery.py:83: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_recovery.py::test_review_exception_keeps_base_and_interval[accept]
+FAILED backend/tests/test_memory_recovery.py::test_review_exception_keeps_base_and_interval[dispute]
+FAILED backend/tests/test_memory_recovery.py::test_native_refresh_reauthorizes_inspected_payload[denied]
+FAILED backend/tests/test_memory_recovery.py::test_native_refresh_reauthorizes_inspected_payload[forgotten]
+4 failed, 1 passed, 1 warning in 4.38s

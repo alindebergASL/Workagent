@@ -1,0 +1,7 @@
+533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708  src/lib/client/work-stream.ts
+861812ec317411eab5ae54e5814b54631acc3dd9f006d395c73d432aecf082a6  test/poll-scope.test.ts
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+exit=124
+attempt2: fixture page lacked required checked_at; ContractError->NeedsReset->reset loop spun without yielding; timeout 100 killed it (exit=124). Invalid red, not product evidence.

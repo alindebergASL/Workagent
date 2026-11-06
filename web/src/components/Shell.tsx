@@ -61,15 +61,29 @@ export function Shell({ children }: { children: ReactNode }) {
   // Activity & details is a secondary destination: ordinary work never
   // needs it, so it lives in the sidebar foot and the phone "More" menu.
   const more = useRef<HTMLDetailsElement>(null);
+  const onConnections = pathname.startsWith("/connections");
   const activityLink = (className: string, onClick?: () => void) => (
-    <Link
-      className={className}
-      href="/activity"
-      aria-current={onActivity ? "page" : undefined}
-      onClick={onClick}
-    >
-      Activity &amp; details
-    </Link>
+    <>
+      <Link
+        className={className}
+        href="/activity"
+        aria-current={onActivity ? "page" : undefined}
+        onClick={onClick}
+      >
+        Activity &amp; details
+      </Link>
+      {/* Synthetic connections are secondary too: optional, never needed. */}
+      {API_MODE === "real" ? (
+        <Link
+          className={className}
+          href="/connections"
+          aria-current={onConnections ? "page" : undefined}
+          onClick={onClick}
+        >
+          Connections
+        </Link>
+      ) : null}
+    </>
   );
 
   const nav = (

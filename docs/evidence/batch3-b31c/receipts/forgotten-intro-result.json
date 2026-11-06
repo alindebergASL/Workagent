@@ -1,0 +1,50 @@
+{
+  "pid": 19713,
+  "process_start": "650444",
+  "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+  "run_id": "0f4c9068-6944-4c74-9591-dfff9fd9bb6a",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "0f4c9068-6944-4c74-9591-dfff9fd9bb6a",
+        "request_id": "0f4c9068-6944-4c74-9591-dfff9fd9bb6a",
+        "attempt_id": "d2f1c015-80b4-4521-bce7-74b56444fa23",
+        "phase": "selection",
+        "request_sha256": "0b08fa3c3868539b8329c3b45da7256503f561c4e36162273f561194815a8d0e",
+        "entries": []
+      },
+      {
+        "run_id": "0f4c9068-6944-4c74-9591-dfff9fd9bb6a",
+        "request_id": "0f4c9068-6944-4c74-9591-dfff9fd9bb6a",
+        "attempt_id": "d2f1c015-80b4-4521-bce7-74b56444fa23",
+        "phase": "final",
+        "request_sha256": "75514508b2866e8c94befa041407737311b5833517b2932d31d2279dca3d5146",
+        "entries": []
+      }
+    ]
+  },
+  "downloads": [],
+  "tool_observations": 0,
+  "calls": [
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ]
+  ],
+  "restart_no_repeat": true,
+  "controlled_transport": true,
+  "paid_calls": 0
+}

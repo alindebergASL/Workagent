@@ -41,6 +41,29 @@ class Broker:
                     'instruction':run.instruction,'goal':a.goal,'completion_criteria':a.completion_criteria}
 
     def call(self, name, arguments):
+        # Existing fixture calls keep their historical catalog. Explicit V2-bound
+        # runs cannot escape their narrowed grant through this older entry point.
+        from .capabilities.broker import CapabilityBroker
+        from .capabilities.models import ToolCallV1
+        from .service import digest, canonical
+        with self._service.db.transaction() as c:
+            _,run,scope=self._service._check_capability(c,self._cap)
+            bound=c.execute('SELECT 1 FROM tool_grants WHERE workspace_id=%s AND run_id=%s',
+                            (run.workspace_id,run.id)).fetchone()
+        if bound:
+            from .capabilities.registry import adapters
+            adapter=adapters().get('legacy.'+name)
+            if adapter is None: raise DomainError('unsupported_operation')
+            result=CapabilityBroker(self._service,self._cap).call(ToolCallV1(
+                call_id=digest({'name':name,'arguments':arguments}),capability_id='legacy.'+name,
+                capability_version=adapter.descriptor.version,arguments=arguments,input_refs=[],expected_work_version=scope.work_version))
+            if result.status!='observed':
+                raise DomainError('action_unresolved')
+            return TOOLS[name][1].model_validate_json(canonical(result.output))
+        return self._call_legacy(name,arguments)
+
+    def _call_legacy(self, name, arguments):
+        """Trusted adapter target; never separately exposed to model/HTTP callers."""
         if name == 'read_scoped_context':
             return self._read_scoped_context(arguments)
         if name not in TOOLS:

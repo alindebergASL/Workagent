@@ -4,6 +4,8 @@ import { ApiError } from "@/lib/contract/errors";
 import { API_MODE } from "./api";
 import { useRef } from "react";
 import { useResource } from "./hooks";
+import { limiter } from "./limit";
+import { assertScope, captureScope } from "./session-scope";
 import { client, command, meta, rawAssignment, unwrap } from "./real-api";
 
 type S = components["schemas"];
@@ -172,8 +174,8 @@ export type HoldEntry =
   | { kind: "denied" }
   | { kind: "unknown"; lastAbsent: boolean };
 
-/** At most this many items are read per list; the rest show their summary. */
-export const HOLD_READ_LIMIT = 20;
+/** Bound transport concurrency, never the number of assignments discovered. */
+const holdRead = limiter(6);
 
 async function readHold(
   ws: string,
@@ -236,12 +238,51 @@ export function useHolds(ws: string | null, ids: string[]) {
  * The same read for work held in several workspaces (Home): each item is
  * read in its own workspace, never another's.
  */
-export function useHoldsIn(refs: HoldRef[]) {
+export function holdRefs(refs: HoldRef[]): HoldRef[] {
   const seen = new Map(refs.map((r) => [`${r.ws}/${r.id}`, r]));
-  const list = [...seen.keys()]
-    .sort()
-    .slice(0, HOLD_READ_LIMIT)
-    .map((k) => seen.get(k)!);
+  return [...seen.keys()].sort().map((k) => seen.get(k)!);
+}
+
+/** All assignments, with scope/cancellation checked before queued work starts. */
+export async function loadHolds(
+  refs: HoldRef[],
+  previous: Record<string, HoldEntry>,
+  signal: AbortSignal,
+): Promise<Record<string, HoldEntry>> {
+  const scope = captureScope();
+  const current = () => {
+    signal.throwIfAborted();
+    assertScope(scope);
+  };
+  current();
+  const entries = await Promise.all(
+    holdRefs(refs).map(({ ws, id }) =>
+      holdRead(async () => {
+        current();
+        const next = await readHold(ws, id, signal);
+        current();
+        const before = previous[id];
+        if (next.kind !== "unknown" || !before) return [id, next] as const;
+        if (before.kind === "ready")
+          return [id, { ...before, stale: true }] as const;
+        if (
+          before.kind === "absent" ||
+          (before.kind === "unknown" && before.lastAbsent)
+        )
+          return [
+            id,
+            { kind: "unknown", lastAbsent: true } as HoldEntry,
+          ] as const;
+        return [id, next] as const;
+      }),
+    ),
+  );
+  current();
+  return Object.fromEntries(entries);
+}
+
+export function useHoldsIn(refs: HoldRef[]) {
+  const list = holdRefs(refs);
   const previous = useRef<Record<string, HoldEntry>>({});
   const key =
     API_MODE === "real" && list.length
@@ -256,26 +297,9 @@ export function useHoldsIn(refs: HoldRef[]) {
   const res = useResource<Record<string, HoldEntry>>(
     key,
     async (signal) => {
-      const entries = await Promise.all(
-        list.map(async ({ ws, id }) => {
-          const next = await readHold(ws, id, signal);
-          const before = previous.current[id];
-          if (next.kind !== "unknown" || !before) return [id, next] as const;
-          if (before.kind === "ready")
-            return [id, { ...before, stale: true }] as const;
-          if (
-            before.kind === "absent" ||
-            (before.kind === "unknown" && before.lastAbsent)
-          )
-            return [
-              id,
-              { kind: "unknown", lastAbsent: true } as HoldEntry,
-            ] as const;
-          return [id, next] as const;
-        }),
-      );
-      const out = Object.fromEntries(entries);
-      previous.current = out;
+      const out = await loadHolds(list, previous.current, signal);
+      // A previous list must never seed stale state for the newly selected list.
+      if (lastKey.current === key) previous.current = out;
       return out;
     },
     {

@@ -1,0 +1,35 @@
+# B3.1a backend interface handoff
+
+This slice adds **real confined Python computation**, not memory or a frontend workflow. It is local-only; do not infer that existing dev runtimes or provider grants have been promoted. The accepted commit is recorded in the task handoff and Git history.
+
+## Consumer contract
+
+- Capability `compute.python`, version `1`, execution profile `python-analysis-v1`, effects `read`, `local_compute`, `draft`; egress `none`. It uses the existing capability broker and tool ledger, never an app-process Python evaluator or a host-shell tool.
+- Opt-in decision `compute_python`: `code` plus `inputs:[{name,ref:{workspace_file_id,version_id,sha256}}]`. Staging names are unique flat ASCII names; `main.py` is reserved. References resolve to exact immutable shared-file versions under the current run, workspace, conversation, owner and grant.
+- Canonical schemas: `contracts/compute-python.schema.json`, `compute-output.schema.json`, `compute-export-manifest.schema.json`, `gateway-compute-decision.schema.json`. Descriptor: `capability-registry-v2.json`. Existing file decision/OpenAPI/TypeScript schemas remain unchanged. `npm run check` in `contracts/` verifies generator, TS drift and typecheck.
+- Worker selection SHA256: `b9f18beb013a8cd3f102959bf15a9fa290fbee43281077edc6e71abc547e5d61`. Current adapter implementation SHA256: `5556a5b91f1f36506dc10c811e90bbf035dd4ee4288fa01b97d081edf9d10093`. Installation/grants must match actual current source; do not rewrite a historical receipt or installed pin to make a changed implementation pass.
+- Run identity, authority, reservation, observation, staged result and checkpoint use the existing gateway/worker path. Missing grants/profile/service do not trigger a host fallback. Controlled-provider worker tests are synthetic, not paid-model usefulness evidence.
+
+## Outputs and display semantics
+
+A successful tool observation contains `output.result`: profile/image/runtime/code/input hashes, stdout/stderr, exit code, status, elapsed milliseconds, resource usage, omissions, cleanup confirmation and generated export manifests. A successful observation of an **unavailable** service is not a successful computation. Likewise `failed`, `wall_limit`, `cpu_limit`, `output_limit`, `cancelled`, `cost_only` and `outcome_unknown` must not appear as completed user work.
+
+Each output manifest has `exporter_version=compute-python-v1`, exact run/tool-attempt/code/profile/input refs, filename/format, generated-blob hash/size/MIME, sandbox original hash and omissions. It is distinct from the frozen B3.0 `ExportManifest`. Nonempty UTF-8 TXT/Markdown/CSV/JSON only. Unsupported/binary/empty files are omitted explicitly. CSV formula escaping can change download bytes: compare `blob.sha256` to downloaded bytes and `sandbox_sha256` to the original sandbox bytes. Generated work is a draft, not independent goal verification or automatic annotation preservation.
+
+Use the existing authenticated `GET /v1/workspaces/{workspace_id}/exports/{export_id}/download`. Supply bearer authentication and `X-Request-Id`, `X-Schema-Version: workagent/v1` as normal. Actual HTTP returns attachment disposition, `nosniff`, `X-Content-SHA256` and global `Cache-Control: no-store`. Downloads recheck current owner/source scope and require the exact observed publication receipt; guessed unsettled/cost-only/unknown export IDs are denied. Revoked workspace membership is denied even after an earlier successful download. No new human arbitrary-code HTTP endpoint was added.
+
+Unknown execution is retained as unknown liability with no observed units; replay returns the same receipt and does not resubmit code. The SQL settled-row zero for unknown units is an existing storage convention, not observed zero use. A post-I/O stale result retains costs, strips publication refs and cannot be downloaded. Do not convert either state into an automatic retry.
+
+## Fixed isolation service and deployment scope
+
+- Actual gVisor `release-20261026.0`, systrap platform, directfs disabled, network none; immutable root-owned snapshot and exact tree/ownership/mode/symlink validation. Runtime lock: `backend/workagent/sandbox/runtime-lock.json`.
+- Fixed image `python@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c`, Python3.12.12 stdlib only, `-I -S -B`; no runtime pip/site packages. Inputs read-only, outputs job-scoped, UID65534 with no capabilities. Subprocesses may run **inside** the confinement; they do not expose a host shell API.
+- Five aggregate host CPU seconds including runtime overhead;30 wall seconds;512MiB job RAM;32 guest processes/128 host cgroup PIDs;32MiB output tmpfs;8MiB `/tmp`;128KiB per stdout/stderr stream;1MiB aggregate inputs and output bytes;8 input/output files;64KiB code. Some small-file attempts encounter gofer FD exhaustion before inode limits. These are a finite stdlib CSV/code profile, not pandas/large-dataset support.
+- Trusted operator installer `backend/install_compute.py` only accepts a new destination and offline runtime/rootfs inputs matching the runtime lock. It neither downloads dependencies nor starts a service. Do not recursively change ownership of existing trees or weaken global host policy.
+- Owned proof unit `workagent-compute-b31a-v3.service`, root snapshot `/run/workagent-compute-b31a-v3`, Unix socket `compute.sock`, pinned profile `69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578`. Service imports match installed reviewed bytes. Its unused installed client is older; the application uses the reviewed corrected transport. No server-tree mutation was necessary. `/run` is disposable, not a durable deployment.
+- To run this exact proof, use only the verified owned unit and source the private disposable PG environment; set `WORKAGENT_COMPUTE_SOCKET`, `WORKAGENT_COMPUTE_PROFILE_SHA256`, `COMPUTE_SYSTEMD_UNIT` and `COMPUTE_EVIDENCE_DIR`. Inspect exact unit/config before a restart. Tests that kill the unit always restart it in `finally` and validate a real profile-bound readiness computation. Avoid overlapping isolation tests.
+- Migration057 was installed only into fresh restricted disposable databases. Original dev runtimes/data were not migrated, restarted or replaced. Final owned proof-service stop and readback are in `runtime-final.json`; root-owned snapshot is preserved. Stopping the transient unit unloaded it (`LoadState=not-found`); a future proof operator must recreate only that owned unit from its saved exact configuration, not blindly call restart.
+
+## Next ownership boundary
+
+Existing `t_b7f7aa98` is B3.1b scoped typed memory; it is not part of this acceptance. Existing `t_5a57eb56` later combines computation and memory. No new graph or broader integration was created here. The separate Claude Cloud branch `origin/claude/workagent-frontend-kyg51x` remains an overlap gate for later web/API/event integration, not this backend-only slice. Preserve both lanes; do not wholesale merge it or claim sole global web ownership. No web files changed here.

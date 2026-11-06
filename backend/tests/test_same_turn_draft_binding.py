@@ -397,7 +397,7 @@ def test_own_draft_does_not_normalize_human_change_to_frozen_old_work(context, t
     assert len(early_rows(s, ws, q.run.id)) == 1
 
 
-@pytest.mark.parametrize('fence', ['cancel', 'revoke', 'expired-lease'])
+@pytest.mark.parametrize('fence', ['cancel', 'revoke', 'generation', 'expired-lease'])
 def test_early_material_replay_keeps_current_authority_fences(context, tmp_path, fence):
     from test_sustained_continuity import Interrupted
     from test_runtime import expire
@@ -427,6 +427,9 @@ def test_early_material_replay_keeps_current_authority_fences(context, tmp_path,
         s.cancel_conversation(p, ws, cv.id, cmd(CancelConversation, expected_work_version=current.work_version))
     elif fence == 'revoke':
         revoke_grant(Database(admin), grant.id)
+    elif fence == 'generation':
+        with Database(admin).transaction() as c:
+            c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
     else:
         expire(context, q.run.id)
     with pytest.raises(DomainError):
@@ -435,7 +438,7 @@ def test_early_material_replay_keeps_current_authority_fences(context, tmp_path,
     assert provider.calls == calls and totals(s, grant) == accounting
 
 
-def test_same_turn_new_draft_revision_is_only_a_proposal(context, tmp_path):
+def test_same_turn_new_draft_revision_advances_agent_owned_preparation(context, tmp_path):
     s, p, ws, _, _ = context
     cv = conversation(context)
     activate_home(context, cv, max_steps=5)
@@ -459,12 +462,21 @@ def test_same_turn_new_draft_revision_is_only_a_proposal(context, tmp_path):
     detail = s.get_conversation(p, ws, cv.id)
     assert len(detail.artifact_ids) == 1
     artifact = s.get_artifact(p, ws, detail.artifact_ids[0])
-    assert target(artifact).model_dump(mode='json') == selected['target']
-    assert artifact.current_revision.body.title == 'Original title'
-    proposals = s.proposals(p, ws, artifact.id).items
-    assert len(proposals) == 1 and proposals[0].status == 'pending'
-    assert proposals[0].base_revision_id == artifact.current_revision_id
-    assert proposals[0].body.title == 'Proposed clarification'
+    assert artifact.current_revision.parent_revision_id == selected['target']['revision_id']
+    assert artifact.current_revision.body.title == 'Proposed clarification'
+    assert not s.proposals(p, ws, artifact.id).items
+    rows = early_rows(s, ws, q.run.id)
+    assert len(rows) == 2 and len({r['artifact_id'] for r in rows}) == 1
+    assert {r['revision_id'] for r in rows} == {selected['target']['revision_id'], artifact.current_revision_id}
+    with s.db.transaction() as c:
+        saved = c.execute("SELECT e.data FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id "
+            "WHERE a.workspace_id=%s AND a.run_id=%s AND e.kind='tool_result' "
+            "AND e.data->'capability_result'->>'capability'='read_saved_work'", (ws,q.run.id)).fetchone()['data']
+    assert saved['capability_result']['result']['target'] == selected['target']
+    assert saved['capability_result']['result']['body']['title'] == 'Original title'
+    assert saved['binding']['base_hash'] == selected['target']['body_hash']
+    old = s.get_artifact(p,ws,artifact.id,selected['target']['revision_id']).requested_revision
+    assert old.body.title == 'Original title' and old.body_hash == selected['target']['body_hash']
     calls = list(provider.calls)
     worker(context, provider, tmp_path).work(p, ws, q.run.id)
-    assert provider.calls == calls and len(s.proposals(p, ws, artifact.id).items) == 1
+    assert provider.calls == calls and early_rows(s, ws, q.run.id) == rows

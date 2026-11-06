@@ -1,0 +1,949 @@
+{
+  "checks": [
+    "Browser reads exact actual TUI-accepted revision/body; zero rows, human note preserved",
+    "five: exact unchanged wire-save/current API readback/reloaded browser editor",
+    "ten: exact unchanged wire-save/current API readback/reloaded browser editor",
+    "Fresh browser/API refuse revoked conversation/snapshot/events; active-midstream receipt remains incomplete after transient fetch error"
+  ],
+  "reads": [
+    {
+      "path": "recovery5c-workspace/artifacts/02e52df5-7ca8-499b-a8eb-a7244d408a86",
+      "status": 200,
+      "body": {
+        "id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+        "current_revision_id": "3db16f03-9f5b-4963-9016-df1a4c48ff9d",
+        "current_revision": {
+          "id": "3db16f03-9f5b-4963-9016-df1a4c48ff9d",
+          "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+          "revision_number": 4,
+          "parent_revision_id": "d6ed1b29-72cd-4e9f-af9c-da53a65146b4",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c removals",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [],
+            "notes": [
+              "Human concurrent correction: keep exact base fence."
+            ]
+          },
+          "body_hash": "bf4a94289ebb234c2e85bd16268bf4e42efeb78620454e379d8e624f41c19aec",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:59:29.861808Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:32.941453Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "current_revision": {
+          "id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 5,
+          "parent_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:03:56.544411Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:39.294352Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+        "current_revision": {
+          "id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 6,
+          "parent_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:04:39.419966Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:39.564094Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "status": 200,
+      "body": {
+        "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+        "current_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+        "current_revision": {
+          "id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+          "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+          "revision_number": 4,
+          "parent_revision_id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c ten",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 ten notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "  duplicate 雪\n\nend\n",
+              "  duplicate 雪\n\nend\n",
+              "n3\n\n  exact ♪\n",
+              "n4\n\n  exact ♪\n",
+              "n5\n\n  exact ♪\n",
+              "n6\n\n  exact ♪\n",
+              "n7\n\n  exact ♪\n",
+              "n8\n\n  exact ♪\n",
+              "n9\n\n  exact ♪\n",
+              "n10\n\n  exact ♪\n"
+            ]
+          },
+          "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:52:30.139898Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:53.071368Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "status": 200,
+      "body": {
+        "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+        "current_revision_id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+        "current_revision": {
+          "id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+          "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+          "revision_number": 5,
+          "parent_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c ten",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 ten notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "  duplicate 雪\n\nend\n",
+              "  duplicate 雪\n\nend\n",
+              "n3\n\n  exact ♪\n",
+              "n4\n\n  exact ♪\n",
+              "n5\n\n  exact ♪\n",
+              "n6\n\n  exact ♪\n",
+              "n7\n\n  exact ♪\n",
+              "n8\n\n  exact ♪\n",
+              "n9\n\n  exact ♪\n",
+              "n10\n\n  exact ♪\n"
+            ]
+          },
+          "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:04:53.161832Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:53.388008Z"
+      }
+    },
+    {
+      "path": "recovery5c-scope/conversations/e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "747e9569-abd7-4431-a889-cd147737374f",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "recovery5c-scope/work-snapshot?conversation_id=e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "754f921d-4889-4633-addf-b154d118cf2b",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "recovery5c-scope/events?conversation_id=e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "112cb07c-3aa0-4096-9b0f-ad5066d9d949",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    }
+  ],
+  "five": {
+    "before": {
+      "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+      "current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+      "current_revision": {
+        "id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "revision_number": 5,
+        "parent_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        },
+        "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T22:03:56.544411Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:04:39.294352Z"
+    },
+    "result": {
+      "status": 200,
+      "payload": {
+        "schema_version": "workagent/v1",
+        "command_id": "97db31fa-2ede-4769-b37b-17d028557386",
+        "request_id": "2bbbed42-612a-4549-ba3e-beb2b01cb985",
+        "expected_current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        }
+      },
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+        "current_revision": {
+          "id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 6,
+          "parent_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:04:39.419966Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:39.428428Z"
+      }
+    },
+    "after": {
+      "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+      "current_revision_id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+      "current_revision": {
+        "id": "75403fb6-9e60-404c-a96e-12ac09e875de",
+        "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "revision_number": 6,
+        "parent_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        },
+        "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T22:04:39.419966Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:04:39.564094Z"
+    },
+    "objects": 5,
+    "lines": 17
+  },
+  "ten": {
+    "before": {
+      "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+      "current_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+      "current_revision": {
+        "id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+        "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+        "revision_number": 4,
+        "parent_revision_id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c ten",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 ten notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "  duplicate 雪\n\nend\n",
+            "  duplicate 雪\n\nend\n",
+            "n3\n\n  exact ♪\n",
+            "n4\n\n  exact ♪\n",
+            "n5\n\n  exact ♪\n",
+            "n6\n\n  exact ♪\n",
+            "n7\n\n  exact ♪\n",
+            "n8\n\n  exact ♪\n",
+            "n9\n\n  exact ♪\n",
+            "n10\n\n  exact ♪\n"
+          ]
+        },
+        "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T21:52:30.139898Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:04:53.071368Z"
+    },
+    "result": {
+      "status": 200,
+      "payload": {
+        "schema_version": "workagent/v1",
+        "command_id": "af9acb50-fca5-4876-92a4-27de2f643928",
+        "request_id": "996c516a-f939-4272-b9f1-f8d4556e50ef",
+        "expected_current_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c ten",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 ten notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "  duplicate 雪\n\nend\n",
+            "  duplicate 雪\n\nend\n",
+            "n3\n\n  exact ♪\n",
+            "n4\n\n  exact ♪\n",
+            "n5\n\n  exact ♪\n",
+            "n6\n\n  exact ♪\n",
+            "n7\n\n  exact ♪\n",
+            "n8\n\n  exact ♪\n",
+            "n9\n\n  exact ♪\n",
+            "n10\n\n  exact ♪\n"
+          ]
+        }
+      },
+      "body": {
+        "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+        "current_revision_id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+        "current_revision": {
+          "id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+          "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+          "revision_number": 5,
+          "parent_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c ten",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 ten notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "  duplicate 雪\n\nend\n",
+              "  duplicate 雪\n\nend\n",
+              "n3\n\n  exact ♪\n",
+              "n4\n\n  exact ♪\n",
+              "n5\n\n  exact ♪\n",
+              "n6\n\n  exact ♪\n",
+              "n7\n\n  exact ♪\n",
+              "n8\n\n  exact ♪\n",
+              "n9\n\n  exact ♪\n",
+              "n10\n\n  exact ♪\n"
+            ]
+          },
+          "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:04:53.161832Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:04:53.168354Z"
+      }
+    },
+    "after": {
+      "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+      "current_revision_id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+      "current_revision": {
+        "id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+        "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+        "revision_number": 5,
+        "parent_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c ten",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 ten notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "  duplicate 雪\n\nend\n",
+            "  duplicate 雪\n\nend\n",
+            "n3\n\n  exact ♪\n",
+            "n4\n\n  exact ♪\n",
+            "n5\n\n  exact ♪\n",
+            "n6\n\n  exact ♪\n",
+            "n7\n\n  exact ♪\n",
+            "n8\n\n  exact ♪\n",
+            "n9\n\n  exact ♪\n",
+            "n10\n\n  exact ♪\n"
+          ]
+        },
+        "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T22:04:53.161832Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:04:53.388008Z"
+    },
+    "objects": 10,
+    "lines": 40
+  },
+  "revoked_body": "workagent\nAgent\nSpaces\nConversations\nActivity & details\n← Back to agent\nThis item isn’t available to you\nIt may have been removed or your access may have changed. Return to Work Home.\nAll spaces\nLocal preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken",
+  "status": "PASS"
+}

@@ -1,0 +1,26 @@
+{
+  "owned_api_web": [
+    {
+      "name": "api",
+      "pid": 1071213,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "port": 18250,
+      "start": "126426516"
+    },
+    {
+      "name": "web",
+      "pid": 1071392,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b34a/web-lane/web",
+      "port": 13250,
+      "start": "126427186"
+    }
+  ],
+  "ports_refused": [
+    18250,
+    13250
+  ],
+  "compute_unit": "workagent-compute-b31a-b35a-final",
+  "compute_state": "MainPID=0\nActiveState=inactive\n",
+  "installed_services_modified": false,
+  "database_cleanup": false
+}

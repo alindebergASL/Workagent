@@ -1,0 +1,154 @@
+{
+  "phase": "notes",
+  "started": "2026-10-26T21:50:31.161Z",
+  "checks": [],
+  "reads": [
+    {
+      "path": "/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "78bbadf2-9db7-4b23-9409-76fb8108b61f",
+        "current_revision": {
+          "id": "78bbadf2-9db7-4b23-9409-76fb8108b61f",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 2,
+          "parent_revision_id": "861f7424-c076-41cf-a456-c0098b222aeb",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "a23c4b884fbcec6abf2d3bd9ef9abde19c0e0b81767d88db555370c9ce2e2cac",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:48:28.374810Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T21:50:39.088490Z"
+      }
+    },
+    {
+      "path": "/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "78bbadf2-9db7-4b23-9409-76fb8108b61f",
+        "current_revision": {
+          "id": "78bbadf2-9db7-4b23-9409-76fb8108b61f",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 2,
+          "parent_revision_id": "861f7424-c076-41cf-a456-c0098b222aeb",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "a23c4b884fbcec6abf2d3bd9ef9abde19c0e0b81767d88db555370c9ce2e2cac",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:48:28.374810Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T21:50:39.506467Z"
+      }
+    }
+  ],
+  "posts": [],
+  "errors": [],
+  "status": "FAIL",
+  "failure": "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 1\n\n@@ -71,9 +71,9 @@\n      \"revision_number\": 2,\n      \"source_dependencies\": Array [],\n    },\n    \"current_revision_id\": \"78bbadf2-9db7-4b23-9409-76fb8108b61f\",\n    \"id\": \"1b37ddff-6107-4ad0-9eba-7a85cc798fb2\",\n-   \"observed_at\": \"2026-10-26T21:50:39.088490Z\",\n+   \"observed_at\": \"2026-10-26T21:50:39.506467Z\",\n    \"requested_revision\": null,\n    \"workspace_id\": \"recovery5c-workspace\",\n  }\n    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)\n    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)\n    at Object.toEqual (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)\n    at /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5c/browser.mjs:31:64",
+  "finished": "2026-10-26T21:50:40.200Z"
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "web/test/document-overflow.test.ts",
+    "before": null,
+    "after": "d625bb9b977abe87507409db579215ae06d97788160f6cdaa7e55a4745521ab6"
+  },
+  {
+    "path": "web/src/components/Batch2Controls.tsx",
+    "before": "c7f567c75f98544b01cb1fbca841b4656d9260856d3c5ee14eb78c5d1f37d916",
+    "after": "c6403ceb186f5fef7a9910de553cfccaaf1f01e24753b074eb2cf8ba304db5da"
+  },
+  {
+    "path": "web/src/styles/agent-first.css",
+    "before": "934ce77c8713da9d4c089924aa57fd1a2d102f067664eb322c7d21830ae663ae",
+    "after": "54387ffc67ee766ebbda0120e5c713970edfff1b04bcad04864f2c3df9cca503"
+  }
+]

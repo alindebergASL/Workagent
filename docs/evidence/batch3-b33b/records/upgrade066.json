@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "runtime_attestation_execute": {
+    "f": false,
+    "r": false
+  },
+  "checksums": [
+    {
+      "name": "060_research_dependency_visibility.sql",
+      "checksum": "4bec30ad96a0f50875ee468fae4edb0e1f33b7d3c0595b2ab2dfa23de4b32dc3"
+    },
+    {
+      "name": "061_office_outputs.sql",
+      "checksum": "b38984f4ab3b145e1eaed906b7ab4fcbae15fc2a286733f0a98653da5892acc0"
+    },
+    {
+      "name": "062_office_bom_inspection.sql",
+      "checksum": "0de42b8740dfa9d2e9c2ea7e0a1a5cb41c3f119496edf8fa552ba98f8b4fff1a"
+    },
+    {
+      "name": "063_github_public.sql",
+      "checksum": "bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9"
+    },
+    {
+      "name": "064_tool_scope_reductions.sql",
+      "checksum": "48af500a6e442b8223852144c0ba45cc3f723a170b316a1d373d61c31611ea0a"
+    },
+    {
+      "name": "065_synthetic_connectors.sql",
+      "checksum": "3cf588e01ea8a450b5eb2d72d2fc47304b8b288a69850a4bcecd6811ce2a79d6"
+    },
+    {
+      "name": "066_connector_evidence_authority.sql",
+      "checksum": "fc1d28ddbe697f2b5e68db07b7a61114e67c1529a0375f84e66cac22a936c616"
+    }
+  ]
+}

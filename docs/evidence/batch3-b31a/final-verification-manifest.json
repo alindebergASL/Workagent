@@ -1,0 +1,276 @@
+{
+  "attack_cases": [
+    {
+      "case": "network-proc-host",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "input-root-symlink-fifo-hardlink",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "ram",
+      "cleanup_verified": true,
+      "status": "failed"
+    },
+    {
+      "case": "cpu-single",
+      "cleanup_verified": true,
+      "status": "failed"
+    },
+    {
+      "case": "disk",
+      "cleanup_verified": true,
+      "status": "failed"
+    },
+    {
+      "case": "inode",
+      "cleanup_verified": true,
+      "status": "failed"
+    },
+    {
+      "case": "file-size",
+      "cleanup_verified": true,
+      "status": "failed"
+    },
+    {
+      "case": "stdout",
+      "cleanup_verified": true,
+      "status": "output_limit"
+    },
+    {
+      "case": "stderr",
+      "cleanup_verified": true,
+      "status": "output_limit"
+    },
+    {
+      "case": "wall",
+      "cleanup_verified": true,
+      "status": "wall_limit"
+    },
+    {
+      "case": "cpu-children-False",
+      "cleanup_verified": true,
+      "status": "cpu_limit"
+    },
+    {
+      "case": "cpu-children-True",
+      "cleanup_verified": true,
+      "status": "cpu_limit"
+    },
+    {
+      "case": "fork-pid-setsid-cleanup",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "output-file-count",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "output-total-bytes",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "no-residual",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "after-cancel",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "after-invalid-request",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    },
+    {
+      "case": "after-service-restart",
+      "cleanup_verified": true,
+      "status": "succeeded"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "backend/tests/test_compute_publication_pg.py",
+        "backend/tests/test_compute_gateway_pg.py",
+        "backend/tests/test_compute_worker_pg.py",
+        "backend/tests/test_compute_http_pg.py",
+        "--basetemp=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/pytest-closure-final-pg",
+        "--junitxml=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/closure-final-pg.xml"
+      ],
+      "elapsed_seconds": 180.26006722450256,
+      "exit": 0,
+      "junit": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 14
+      },
+      "log_sha256": "60016eaaed0085b2ab75963b1e05861c75ee5898c78df625bbd77ad7735668cb",
+      "name": "closure-final-pg",
+      "started_at": 1793215203.5960615
+    },
+    {
+      "command": [
+        "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "backend/tests/test_capability_gateway.py",
+        "backend/tests/test_workspace_file_gateway_pg.py",
+        "backend/tests/test_b30b_final_journeys.py",
+        "--basetemp=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/pytest-closure-compat-verified",
+        "--junitxml=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/closure-compat-verified.xml"
+      ],
+      "elapsed_seconds": 246.06753301620483,
+      "exit": 0,
+      "junit": {
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "tests": 27
+      },
+      "log_sha256": "6cd094930f0f1a4dea43af2a10b444ccd54a606f7387aab6891209b9b942bff4",
+      "name": "closure-compat-verified",
+      "started_at": 1793215650.881577
+    }
+  ],
+  "local_history": [
+    {
+      "bytes": 1945,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/attacks-first.log",
+      "sha256": "37e10b303ea06457510c3f4cb4f63e2a4b43b0d4c5dffe43fb0527c67b847a3b"
+    },
+    {
+      "bytes": 790,
+      "exit_record": "closure-compat-verified-exit.json",
+      "path": ".local/batch3/b31a/closure-compat-verified.log",
+      "sha256": "6cd094930f0f1a4dea43af2a10b444ccd54a606f7387aab6891209b9b942bff4"
+    },
+    {
+      "bytes": 781,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/closure-compat.log",
+      "sha256": "2a7b36592bb1d3e370d8d19c9665d9ddc4c1009d3884dbbeffc25b68c5a8da37"
+    },
+    {
+      "bytes": 2685,
+      "exit_record": "closure-corrections-exit.json",
+      "path": ".local/batch3/b31a/closure-corrections.log",
+      "sha256": "08990d5428caba1851ade7952ae905f01c388f1526e8ac45d48f1f7f732fa9cd"
+    },
+    {
+      "bytes": 783,
+      "exit_record": "closure-final-pg-exit.json",
+      "path": ".local/batch3/b31a/closure-final-pg.log",
+      "sha256": "60016eaaed0085b2ab75963b1e05861c75ee5898c78df625bbd77ad7735668cb"
+    },
+    {
+      "bytes": 4471,
+      "exit_record": "closure-http-corrected-exit.json",
+      "path": ".local/batch3/b31a/closure-http-corrected.log",
+      "sha256": "bf384f46f1ed03d29502ea334c945e7c1e1f862de76ca458d03dbe01f6113809"
+    },
+    {
+      "bytes": 4342,
+      "exit_record": "closure-http-final-exit.json",
+      "path": ".local/batch3/b31a/closure-http-final.log",
+      "sha256": "12cc3f1e3fb78d30e6e382d0cf4b0af70dec956055ab9e6bc6acbcb65de0d1f4"
+    },
+    {
+      "bytes": 776,
+      "exit_record": "closure-http-verified-exit.json",
+      "path": ".local/batch3/b31a/closure-http-verified.log",
+      "sha256": "6d8defe53b1678b9c9da62aef8d5594dbc5efa9f9ba4951c8eb0af7afc67c127"
+    },
+    {
+      "bytes": 5257,
+      "exit_record": "closure-pg-current-exit.json",
+      "path": ".local/batch3/b31a/closure-pg-current.log",
+      "sha256": "be75b71be555127f3de9562a1bd738ad726e2b715a62d029a640e2f5a65ad5d0"
+    },
+    {
+      "bytes": 3055,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/closure-pg.log",
+      "sha256": "8f94dd57a4b8903cbb4ba069ca1c42a4d30c5c9f54fdffc52ae8029c46ad0ca3"
+    },
+    {
+      "bytes": 341,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/contracts-final.log",
+      "sha256": "ce1445ed30294ad7f278dc805f187a5b066795218e9ad38f0d85dcf8dc164088"
+    },
+    {
+      "bytes": 52,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/core-fourth.log",
+      "sha256": "5f30c626fc079063dc4be506b588029134515c2182885c2037e1ac84d91f9fc2"
+    },
+    {
+      "bytes": 12662,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/core-third.log",
+      "sha256": "6eeed8016b749217c9ddb3976698a32cc3f0001f35c66a32ebad73a26e879298"
+    },
+    {
+      "bytes": 2340,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/gateway-first.log",
+      "sha256": "73abcafc3ddd67a47bb0ae1e116d435089d0c7ea3f5777e53f8f1f6060fa99bd"
+    },
+    {
+      "bytes": 674,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/gateway-second.log",
+      "sha256": "eccec7fc76c6095021f24de96c624b00a0768c19999052a4602ead2a7f88260c"
+    },
+    {
+      "bytes": 841,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/http-calculation-verified.log",
+      "sha256": "d4d614f4197ce9887b1479393e1d6c6332e1ddb8db15f193d97a9d2f3fa5b815"
+    },
+    {
+      "bytes": 11969,
+      "exit_record": null,
+      "path": ".local/batch3/b31a/reviewfix.log",
+      "sha256": "f737339b2e4a1b5cd15684784f06299208a28eaf1e6f4a9f68ff72bb5d4c3897"
+    }
+  ],
+  "other_verified_commands": [
+    {
+      "command": "npm run check (contracts/)",
+      "exit": 0,
+      "log": "contracts-final.log"
+    },
+    {
+      "command": "PYTHONPATH=backend:backend/tests backend/.venv/bin/python docs/evidence/batch3-b31a/verify_http_calculation.py",
+      "exit": 0,
+      "log": "http-calculation-verified.log"
+    }
+  ],
+  "qualifications": [
+    "Retained proof4 matches unchanged installed server/profile/protocol; client unknown classification and restart/disconnect checks rerun.",
+    "Inode workload reaches gofer FD exhaustion; inode-limit exhaustion is NOT proven.",
+    "core-fourth.log has dots only, no passing group claim.",
+    "closure-compat.log reached27PASS summary but parent tool timeout prevented exit receipt; closure-compat-verified independently completes27PASS exit0.",
+    "Historical failed fixture assertions and HOLD reports remain intact; no whole-backend green claim.",
+    "Independent rereview is read-only inspection of parent-run evidence, not a second execution campaign."
+  ],
+  "retained_attack_records": 19,
+  "source_manifest": "final-source-manifest.json"
+}

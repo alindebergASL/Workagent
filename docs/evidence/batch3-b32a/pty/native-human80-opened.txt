@@ -1,0 +1,35 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work    ▎▊  Research https://fixture.example/source for the  ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊  east depot capacity. Treat search snippets as       ▎
+ Conversation  Work  Files  Status  Recovery  Details                           
+╸━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Messages 1–6 of 6 · Earlier / Later pages                                      
+                                                                                
+ human: Research https://fixture.example/source for the east depot capacity.    
+ Treat search snippets as discovery only. Save an editable conclusion with      
+ exact captured evidence; do not accept any decision.                           
+                                                                                
+ assistant: Exact captured sources and citations are available in Files and     
+ the saved result. A changed source is a proposal, not permission to replace    
+ your conclusion. Controlled transport and local TLS fixtures; no live          
+ search/model usefulness claim.                                               ▁▁
+                                                                                
+ human: Cite the exact retained source for my current human-edited              
+ conclusion. Keep any all-depots extrapolation explicitly unsupported.          
+                                                                                
+ assistant: Exact captured sources and citations are available in Files and     
+ the saved result. A changed source is a proposal, not permission to replace    
+▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                                                             
+ Earlier    Later                                                               
+▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                                                             
+ Enter adds a line. F5 / Ctrl+Enter sends. Detach leaves server work running.   
+                                                                                
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                            
+    Send · F5       Queue later   Refresh   Detach                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                            
+ ^q Detach  ^⏎ Send  ^r Refresh                                     ▏^p palette 

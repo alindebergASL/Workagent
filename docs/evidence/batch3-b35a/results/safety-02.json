@@ -1,0 +1,55 @@
+{
+  "batch": "safety-02.xml",
+  "sha256": "5ee862d1f646deece9502113d1abce115f34a3b88ff422e904767d64d0cb5ba0",
+  "counts": {
+    "passed": 8,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 8,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-correct]",
+      "status": "passed",
+      "seconds": 3.983
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-forget]",
+      "status": "passed",
+      "seconds": 2.769
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-revoke]",
+      "status": "passed",
+      "seconds": 3.015
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-correct]",
+      "status": "passed",
+      "seconds": 4.704
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-forget]",
+      "status": "passed",
+      "seconds": 3.734
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-revoke]",
+      "status": "passed",
+      "seconds": 3.437
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_queued_context_regenerates_and_published_reply_hidden",
+      "status": "passed",
+      "seconds": 11.248
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_real_backup_restore_current_tombstones_permissions_and_process_readback",
+      "status": "passed",
+      "seconds": 6.55
+    }
+  ],
+  "seconds": 42.45,
+  "timestamp": "2026-10-29T12:51:46.968152+00:00"
+}

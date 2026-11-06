@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "phase": "initial-resume",
+  "fixture": {
+    "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+    "grant_id": "16f11236-23ac-428b-96c2-7bfdd0eb1e14",
+    "projects": {
+      "study": "a2e21877-1eaa-4b7b-ba65-a9f991c3e5ff",
+      "irrelevant": "5e5c6444-5611-4b26-a9e4-5baffa045d22",
+      "confidential": "7ba5a280-30c3-4035-b560-003b9cc327cd"
+    },
+    "first": "8302c41e-ff20-4dca-ad2c-d44b4de4eb1f",
+    "human": {
+      "original": "group,unique_valid_observations,total_seconds,mean_seconds\nNorth,2,240.000,120.000\nSouth,1,240.000,240.000\n\nHuman annotation: South remains provisional; retain this exact wording — reviewed by test operator.\n",
+      "revised": "group,unique_valid_observations,total_seconds,mean_seconds\nNorth,2,240.000,120.000\nSouth,1,240.000,240.000\n\nHuman annotation: South remains provisional; retain this exact wording — reviewed by test operator.\n",
+      "download_sha256": "191b764d57ea2263bc616e5660d5f0f2e9655ac9720b6ede2df925d5be6ae51d"
+    },
+    "memory": {
+      "memory_id": "d541b5e4-2d27-4344-91f1-611e10848b25",
+      "revision_id": "0c419f24-befb-4903-9c92-af79888a3698",
+      "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+      "owner_id": "local-human",
+      "kind": "procedure",
+      "scope_kind": "work_area",
+      "scope_id": "a2e21877-1eaa-4b7b-ba65-a9f991c3e5ff",
+      "subject_key": "for_this_duration_study:_compute_each_group_mean_using_uniqu",
+      "predicate_key": "procedure",
+      "content": "For this duration study: compute each group mean using unique valid observation IDs as the denominator. Missing durations are excluded, not zero. Convert the current input units to seconds before aggregation; never copy prior totals. Recheck renamed columns and duplicates on every new dataset.",
+      "content_sha256": "477f2ac149c7604cb0550a13e4b6dd030dbdaf61b137b8e04b9896bf773a7a03",
+      "status": "active",
+      "origin": "human_reviewed",
+      "source_refs": [],
+      "evidence_ids": [],
+      "proposed_by_run_id": null,
+      "reviewed_by_principal_id": "local-human",
+      "confidence_label": "explicit",
+      "confidence_basis": "Explicit human statement",
+      "valid_from": "2026-10-28T23:35:44.789885Z",
+      "valid_until": null,
+      "recorded_at": "2026-10-28T23:35:44.929137Z",
+      "expires_at": null,
+      "supersedes_revision_id": "96a74017-d168-48ca-874f-fcb04a2b4e1e",
+      "exception_to_revision_id": null,
+      "contradiction_group_id": null,
+      "applicability": "",
+      "access_generation": 1
+    },
+    "lesson": "For this duration study: compute each group mean using unique valid observation IDs as the denominator. Missing durations are excluded, not zero. Convert the current input units to seconds before aggregation; never copy prior totals. Recheck renamed columns and duplicates on every new dataset."
+  }
+}

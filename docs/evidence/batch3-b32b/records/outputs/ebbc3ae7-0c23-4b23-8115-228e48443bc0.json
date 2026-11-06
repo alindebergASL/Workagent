@@ -1,0 +1,38 @@
+{
+  "export_id": "ebbc3ae7-0c23-4b23-8115-228e48443bc0",
+  "workspace_id": "test-3cd19d65-4e99-48f0-887f-b81f31ef1ff0",
+  "conversation_id": "f06e5ea3-09a8-4492-8d10-2d570383e6db",
+  "artifact_id": "5036e26e-7d29-4dfa-9a12-6bf1813bbe50",
+  "revision_id": "4be8702d-a4dc-4ec4-b6d1-717b516527e0",
+  "input_sha256": "470cf060026520e84c999c2a4589dae14391b05414cc17b06bd6be5be5cef035",
+  "workspace_file_id": "5036e26e-7d29-4dfa-9a12-6bf1813bbe50",
+  "source_snapshot_id": null,
+  "format": "xlsx",
+  "filename": "export.xlsx",
+  "blob": {
+    "kind": "generated_blob",
+    "blob_id": "2ad638d0-0254-4ba5-8e99-4cfc4976b815",
+    "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+    "byte_length": 5725,
+    "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "created_at": "2026-10-29T02:46:08.189026Z",
+  "annotations": "explicit_omissions",
+  "omissions": [
+    "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+    "No OCR or vision was performed; PDF imports use only the text layer.",
+    "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+    "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+  ],
+  "tool_attempt_id": null,
+  "exporter_version": "office-exports-v1",
+  "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+  "provenance": {
+    "source_snapshot_id": "37aa707a-46ad-4a1f-bf01-e0e1022ca3b4",
+    "original_sha256": "a51a6b3b4ecd9b9651366fc4584cf04692c83d4351f914fd635755c3d6727e7e",
+    "extraction_sha256": "ae1c1115afbd8b3cb9cddea140ec75d10810e04fe2b8d21629903892403de6fd",
+    "parser_version": "confined-documents-v1",
+    "transformation_version": "office-v1"
+  },
+  "chart": null
+}

@@ -1,0 +1,199 @@
+[
+  {
+    "id": "5a88dca2-fa64-47ce-95e1-db820f43a53a",
+    "capability_id": "connectors.mcp.read",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 1811,
+        "category": "connector",
+        "elapsed_ms": 2125,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "source": "synthetic",
+          "status": "available",
+          "snapshot": {
+            "locator": {
+              "url": "https://synthetic.invalid/catalog/96c4d030-cfd0-436a-95ff-1126562f0bf7/1",
+              "kind": "public_source",
+              "text": "{\"evidence\": {\"structured\": {\"items\": [{\"id\": \"synthetic-1\", \"summary\": \"Invented local evidence for connector lifecycle testing.\", \"title\": \"Synthetic handbook 1\"}], \"next_page\": 2}, \"text\": [\"{\\n  \\\"items\\\": [\\n    {\\n      \\\"id\\\": \\\"synthetic-1\\\",\\n      \\\"title\\\": \\\"Synthetic handbook 1\\\",\\n      \\\"summary\\\": \\\"Invented local evidence for connector lifecycle testing.\\\"\\n    }\\n  ],\\n  \\\"next_page\\\": 2\\n}\"]}, \"source\": \"synthetic\"}",
+              "title": "Synthetic library",
+              "run_id": "0dc5ce7a-7dc0-4eae-891b-b989b3488339",
+              "sha256": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+              "blob_id": "8dd41664-bc06-4c4c-9258-d95ca33cdcb2",
+              "coverage": {
+                "omissions": [
+                  "One bounded synthetic catalog page; no private account."
+                ],
+                "body_complete": true,
+                "text_complete": true
+              },
+              "final_url": "https://synthetic.invalid/catalog/96c4d030-cfd0-436a-95ff-1126562f0bf7/1",
+              "mime_type": "application/json",
+              "redirects": [],
+              "fetched_at": "2026-10-29T07:36:02.537267Z",
+              "status_code": 200,
+              "text_sha256": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+              "browser_used": false,
+              "tool_attempt_id": "5a88dca2-fa64-47ce-95e1-db820f43a53a",
+              "external_version": {
+                "etag": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+                "last_modified": null
+              },
+              "extraction_status": "extracted",
+              "extractor_version": "synthetic-mcp-2026-07-28-v1"
+            },
+            "coverage": {
+              "omissions": [
+                "One bounded synthetic catalog page; no private account."
+              ],
+              "body_complete": true,
+              "text_complete": true
+            },
+            "omissions": [
+              "One bounded synthetic catalog page; no private account."
+            ],
+            "version_at": null,
+            "observed_at": "2026-10-29T07:36:02.744439Z",
+            "snapshot_id": "5a88dca2-fa64-47ce-95e1-db820f43a53a",
+            "trust_label": "untrusted_evidence",
+            "workspace_id": "b33b-9de2d41e-9c7c-4f14-aaea-ab2470e36642",
+            "parser_version": "synthetic-mcp-2026-07-28-v1",
+            "version_number": 1,
+            "conversation_id": "5d5ccc1c-6f17-43a6-9ebd-a604429deeb5",
+            "original_sha256": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+            "extraction_sha256": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+            "extraction_status": "extracted",
+            "workspace_file_id": "9c06ef3c-f8b3-45a6-880f-ad5b7167d281",
+            "parent_snapshot_id": null,
+            "original_byte_length": 438,
+            "extraction_byte_length": 438
+          }
+        },
+        "version": "1",
+        "capability": "mcp_read"
+      },
+      "run_id": "0dc5ce7a-7dc0-4eae-891b-b989b3488339",
+      "status": "observed",
+      "call_id": "selection",
+      "ended_at": "2026-10-29T07:36:02.765392Z",
+      "omissions": [
+        "One bounded synthetic catalog page; no private account."
+      ],
+      "truncated": false,
+      "attempt_id": "5a88dca2-fa64-47ce-95e1-db820f43a53a",
+      "input_refs": [
+        {
+          "id": "0dc5ce7a-7dc0-4eae-891b-b989b3488339",
+          "kind": "run_scope",
+          "sha256": "96abda42e10919d16245e7a9eb5ca5f06d21f8f7abc6a5f1b62c9f6ecf84eae7",
+          "version": "2"
+        }
+      ],
+      "started_at": "2026-10-29T07:36:00.640114Z",
+      "output_refs": [
+        {
+          "id": "9c06ef3c-f8b3-45a6-880f-ad5b7167d281",
+          "kind": "workspace_file",
+          "sha256": "0efef1aabe435aa2fb9101fa7453c9fc953d333e65a9027337a328c157020520",
+          "version": "5a88dca2-fa64-47ce-95e1-db820f43a53a"
+        }
+      ],
+      "source_refs": [
+        {
+          "id": "becacf32bd8260dfb49a7f965333cb9631fb460e363bf9bebf0fce9d54dae630",
+          "kind": "connector",
+          "sha256": "becacf32bd8260dfb49a7f965333cb9631fb460e363bf9bebf0fce9d54dae630",
+          "version": "1"
+        },
+        {
+          "id": "b381d53f32df385d6599bade23bc5ddb9d6af7608e599c00cf6f4aa9c56dfdfb",
+          "kind": "processor",
+          "sha256": "b381d53f32df385d6599bade23bc5ddb9d6af7608e599c00cf6f4aa9c56dfdfb",
+          "version": "1"
+        }
+      ],
+      "capability_id": "connectors.mcp.read",
+      "output_sha256": "5deee3d05024d4d7026237749ee82b37ca3371daa507b3b669d96619f9549bea",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "synthetic-mcp-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "37bbe604e83d1f81e46715c63bd9ad419eb41f03f761922137378e06d7b6755f"
+    }
+  },
+  {
+    "id": "c91c060a-2c02-4aa2-aa39-463aa71e95cf",
+    "capability_id": "files.create_draft",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 779,
+        "category": "local_compute",
+        "elapsed_ms": 934,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "current": {
+            "sha256": "65526c89c9c61170aeb3c903d6a378fd6979310df52ae1edf2f6745002376f83",
+            "version_id": "93760eb3-fc5a-4b15-b87e-f94aab629cb3",
+            "workspace_file_id": "c91c060a-2c02-4aa2-aa39-463aa71e95cf"
+          },
+          "storage": "artifact_revision",
+          "editable": true,
+          "filename": "synthetic-reading-brief.md",
+          "mime_type": "text/markdown",
+          "byte_length": 713,
+          "workspace_id": "b33b-9de2d41e-9c7c-4f14-aaea-ab2470e36642",
+          "conversation_id": "5d5ccc1c-6f17-43a6-9ebd-a604429deeb5",
+          "office_provenance": null,
+          "workspace_file_id": "c91c060a-2c02-4aa2-aa39-463aa71e95cf"
+        },
+        "version": "1",
+        "capability": "files_create_draft"
+      },
+      "run_id": "0dc5ce7a-7dc0-4eae-891b-b989b3488339",
+      "status": "observed",
+      "call_id": "selection_2",
+      "ended_at": "2026-10-29T07:36:14.009911Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "c91c060a-2c02-4aa2-aa39-463aa71e95cf",
+      "input_refs": [
+        {
+          "id": "0dc5ce7a-7dc0-4eae-891b-b989b3488339",
+          "kind": "run_scope",
+          "sha256": "96abda42e10919d16245e7a9eb5ca5f06d21f8f7abc6a5f1b62c9f6ecf84eae7",
+          "version": "2"
+        }
+      ],
+      "started_at": "2026-10-29T07:36:13.075301Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "files.create_draft",
+      "output_sha256": "ce81a66185d691a1bc44c801061e4b0b21d797ae5352286b882cd15cc1e769cb",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-bounded-files-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "3254b5a0a513e292e6192dd3a2ff11c9b270faaa7b3294e40a4d5a2315da9117"
+    }
+  }
+]

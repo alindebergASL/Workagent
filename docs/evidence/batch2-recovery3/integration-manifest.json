@@ -1,0 +1,58 @@
+{
+  "web/src/app/conversations/[id]/page.tsx": {
+    "before": "3075b5437f881340458c14b96392de4184c105daa6f6879022289a91d35fae22",
+    "after": "1af7b07cfd7b8355b53c218c39bf9e7bc23f74f6ac9c8f8dd495d3bfafafdbee"
+  },
+  "web/src/components/Batch2Controls.tsx": {
+    "before": "22704c0514156344d3c2a3ab154a5da2dcf09cb178f0adcec14417ce6a20501e",
+    "after": "c7f567c75f98544b01cb1fbca841b4656d9260856d3c5ee14eb78c5d1f37d916"
+  },
+  "web/src/components/Composer.tsx": {
+    "before": "b9fc231805642a0b8fae01e8dc37493e7f099eac8674cd8860fd3e88c56c4154",
+    "after": "7e16a28d9c718aa9ba692e5fea30c5b129b27c676722c5561803d6df9b763474"
+  },
+  "web/src/lib/batch2-view.ts": {
+    "before": "5eba62a35ebe569e6eadc7bca71d8358f1ad959ddcece0abe9fdddd6927dc7c9",
+    "after": "a8e9aa6fcd4b51145eb93fd2f22b46e381f1fb32c702a875554aa281038f0941"
+  },
+  "web/src/lib/client/conversation-reply.ts": {
+    "before": "0d6ada04c6d05a195ff448fbe43de2c3d7fff209c168819fa2449b0b4870d5bd",
+    "after": "3b0d5fac6aefffacf3e868f3dc74a67eaf99a3f717d668501c96cf6dfb2b985a"
+  },
+  "web/src/lib/client/doc-store.ts": {
+    "before": "712d0bc62b4f410889731f9ee38c16b3599c127930a0366e0073ea71d9f4c981",
+    "after": "6b72392451a1f893884fc1506b7e81e77c596ffe80bbbafd10e291f22f137774"
+  },
+  "web/src/lib/client/documents.ts": {
+    "before": "6f53935e91d5d0f2218a1a8af4bfc94c25aaed3b2feb8896ce4d1ce0d5ee857d",
+    "after": "66755619b57cd9eade01757152583ebb0921eefcac86f4f959b0d979416507af"
+  },
+  "web/src/lib/client/products.ts": {
+    "before": "aed3d19c57513035a49f9563b8b1ebe2472fa2ebafb4cc0575064f31e2a8609d",
+    "after": "aed3d19c57513035a49f9563b8b1ebe2472fa2ebafb4cc0575064f31e2a8609d"
+  },
+  "web/src/lib/client/real-api.ts": {
+    "before": "52d8c1cbe901bfc5acfbb3f5b656b7af3b6e734c8d50b87a71e5adf4c303f16a",
+    "after": "52d8c1cbe901bfc5acfbb3f5b656b7af3b6e734c8d50b87a71e5adf4c303f16a"
+  },
+  "web/src/lib/client/staged-documents.ts": {
+    "before": "211edd9be4d1a1d163b5e95ff719e1d8fd5c9b65bba9a15e57dc710b2d762c95",
+    "after": "8ebb87fa362e1fa63bc0a4513a3a32a3a6b6fdac0a167bb540a78194081eef13"
+  },
+  "web/test/batch2-controls.test.ts": {
+    "before": "61533e813e27b9f992da9c0898884853a62b7319b3ea704fcaa76f871604d35f",
+    "after": "7b23cf4f35d64a131d6db45177e0a133b17bb1320410766415ea5c6ca0c7b611"
+  },
+  "web/src/lib/client/home-start.ts": {
+    "before": null,
+    "after": "f49cbe401654b33150004b3a28c62192d68975ac09034d96c2aaa0ce92da382c"
+  },
+  "web/test/b2-correction.test.ts": {
+    "before": null,
+    "after": "eccca508468857605ca040949721e8e1e2b711a009e1437bc5255a2302e70f7b"
+  },
+  "web/test/post-message-types.test.ts": {
+    "before": "c5e83f0fc8827dc6986ae6d8d5fd22940dc8e31feac1c22da22740385ba4797b",
+    "after": "0b0dbdad97ebd4dd31840c10276b34470aa2a2fb5cf330d3b457c9135309abab"
+  }
+}

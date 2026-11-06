@@ -1,0 +1,4 @@
+local_day,region,mass_kg,notes
+2026-10-27,North,1.650,Retain early observation
+2026-10-28,North,2.585,Human annotation alpha | Decimal precision
+2026-10-28,South,0.450,Human annotation beta

@@ -1,0 +1,17 @@
+▲ Next.js 16.3.4 (webpack)
+✓ Running next.config.ts took 58ms
+
+  Creating an optimized production build ...
+Failed to compile.
+
+./src/lib/mock/fixture.ts
+Module not found: Can't resolve '../../../../fixtures/actor/solo-v0.1/initial_records.json'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/mock/service.ts
+./src/app/api/mock/[...path]/route.ts
+
+
+> Build failed because of webpack errors

@@ -372,6 +372,19 @@ h2 {
   line-height: 1.6;
   max-width: 34em;
 }
+/* The latest recorded note: words from a time, set apart (as
+   a quotation) from the outputs prepared below, which it doesn't describe. */
+.latest-note {
+  border-left: 3px solid var(--line-strong);
+  padding: 2px 0 2px 12px;
+  margin: 4px 0;
+}
+.latest-note .eyebrow {
+  margin: 0 0 2px;
+}
+.latest-note .lede {
+  margin: 0;
+}
 .eyebrow-caps {
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
@@ -1106,6 +1119,19 @@ details.disclosure.card {
 .decision-card .ids-details {
   margin-top: 2px;
 }
+/* A retained document: long names, omissions and read text wrap inside the
+   column instead of widening the page; every character stays visible. */
+.document-row {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.document-read-text {
+  margin: 0;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+}
 .work-row-status {
   display: flex;
   flex-wrap: wrap;
@@ -1246,4 +1272,114 @@ details.disclosure.card {
   border-radius: 8px;
   padding: 2px 6px;
   max-width: 100%;
+}
+
+/* Memory: a remembered value can be one long path or link; it wraps
+   inside its card rather than widening the page. */
+.memory-item {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.memory-item:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+/* A choice's text wraps beside its radio, not below it. */
+.memory-choice {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+.memory-choice > span {
+  min-width: 0;
+}
+
+/* Research sources: captured page text is untrusted, so it sits in its own
+   box, set apart from the app's words; quotes don't eat a phone's width. */
+.research-text {
+  margin: 0;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.research-quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--line-strong);
+}
+.research-context mark {
+  background: var(--surface-2);
+  color: var(--ink);
+  outline: 1px solid var(--line-strong);
+  border-radius: 2px;
+}
+.research-sources li:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Memory's restore step and evidence list take focus while they load, so
+   the keyboard stays in place: no ring for that, a ring for the keyboard. */
+[data-restore-step]:focus:not(:focus-visible),
+[data-testid="memory-evidence-picker"]:focus:not(:focus-visible) {
+  outline: none;
+}
+[data-restore-step]:focus-visible,
+[data-testid="memory-evidence-picker"]:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Receipts: run output and source excerpts scroll inside their own box and
+   can be reached by keyboard; a withdrawn receipt's notice takes focus
+   without a ring. */
+.tool-activity pre[role="region"]:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+.tool-activity [data-testid="receipt-withdrawn"]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Memory's remember form: the kind and scope sit together and wrap on a
+   phone; the select matches the app's inputs, and each scope is a chip. */
+.memory-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-start;
+}
+.memory-select {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 8px 12px;
+  min-height: 40px;
+  max-width: 100%;
+}
+.memory-select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+  border-color: var(--focus);
+}
+.memory-scope {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.memory-scope .chip {
+  font-weight: 400;
+}
+.memory-scope .chip[data-unavailable] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.memory-scope .chip:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }

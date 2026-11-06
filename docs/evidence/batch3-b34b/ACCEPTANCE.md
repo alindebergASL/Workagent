@@ -1,0 +1,24 @@
+# B3.4b acceptance — optional bounded deterministic delegation
+
+**Verified mechanism scope; no paid multi-agent benefit claim.** [Implementation](IMPLEMENTATION.md) defines the local-only opt-in profile and limits. One product worker is still the default.
+
+| Required boundary | Evidence |
+|---|---|
+| Actual children, separate contexts, useful assimilation | Two real gVisor child processes summarize disjoint immutable CSVs; separate parent Fraction checks independently recompute Decimal child results. Actual saved-file readback is West mean120 seconds, East mean180 seconds, difference60 seconds. `parent-worker-False.json`, `OUTPUT_READBACK.json`, downloadable output. |
+| Parent inspects rather than trusts success | Exact child attempt/proposal digest; separately executed verification; unreviewed draft/export refusal; failed check plus explicit discard/corrected sibling; child-to-memory exclusion. |
+| Source/action/effect/processor/grant intersection | Real scoped file reads, processor selector, no sibling-source or host environment, network unavailable, no accept/elevation/nesting fields. Source/processor revocation denies future verification/inspection. |
+| Shared budget and unknown outcomes | Concurrent child reservations compete for one account; two-child run bound; parent-provider account linkage; retained reservations. Actual child completion then injected return-boundary ACK loss yields unknown/no-replay. Separate controlled parent-provider lost response after a child cannot regenerate the provider request or duplicate the child. No real paid child provider is installed. |
+| Cancellation/staleness | Actual running child cancel, grant revoke, generation change, real lease reclaim and source removal yield cost-only output suppression. |
+| Restart | Distinct parent Python processes: exit71 after retained child observation; new PID resumes durable state, exactly two child observations/five total tools, no duplicate on ready revisit. This is controlled termination, not arbitrary SIGKILL/network loss. |
+| Client activity | Existing native Status→Tool activity, ordinary keyboard/mouse full-app PTY120×40 and80×24. Narrow Tab/arrow navigation makes check limitations visible. Two mounted native/live-TCP cases independently verify source-revoke refresh clears output and detail returns404. No web surface was changed. |
+| Independent risk review | `REVIEW_INITIAL.md` and narrow `REVIEW_CLOSURE.md`: R1 compute-export assimilation, R2 discard recovery, R3 nonfinite JSON fixed and regressed. Eight reviewed source hashes still match. |
+
+Final test-04 XML: **43 cases +1 distinct parent-provider control =44**, no failures/errors/skips; machine-deduplicated in TESTS.json. Earlier22 adjacent memory/research/frozen-contract checks pass separately, not included in44. Canonical export check, generated contract/TypeScript check and source diff-check pass. No broad backend-suite claim.
+
+All67 prior migration files and the preexisting untracked contracts lock remain byte-identical. Migration068 was tested only on fresh disposable databases; earlier test01/02/03 state and historical unknowns were not rewritten. No installed-data maintenance or destructive cleanup occurred.
+
+Retained limitations/failures: initial test01 reached real successful child verification/assimilation but failed on a test-only nonexistent memory table name; corrected to memory_items. Early service startup used a nonexistent runtime subdirectory and a too-early readiness probe; the accepted original pinned snapshot subsequently ran successfully. One420-second aggregate test wrapper timed out after26 controls; it is retained, not counted as a completed suite. A45-second diagnostic stack in worker-debug.log is not a failure: that independent earlier worker test completed. Initial narrow mouse-wheel overscroll capture was blank; the stronger ordinary-keyboard PTY proof exposes the actual qualification and is the accepted narrow capture. Earlier evidence remains private/local and hash-bound, not erased.
+
+**Costs/authority:** zero paid product calls; deterministic controlled selection, actual isolated child computation and actual scoped persisted results. Development/review gpt-6-astra/openai-codex is separate from the product ledger; two bounded invocations constitute one initial review plus narrow closure, with no settled-billing claim. No Claude/web invocation, model/profile/config/agent-limit increase, new processor/private access, external business effect, default merge or deployment.
+
+No paid-model usefulness, causal-learning benefit or full Batch3 completion is asserted. Existing successor **B3.5a t_df70d103** owns full correction/forget/revoke/restore safety. Feature publication/exact-head CI and owned-service shutdown are read back in the parent task and PR18; this source-bound package avoids commit self-reference.

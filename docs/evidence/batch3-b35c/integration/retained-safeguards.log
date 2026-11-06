@@ -1,0 +1,69 @@
+FF....                                                                   [100%]
+=================================== FAILURES ===================================
+___________ test_adapter_lost_ack_observes_without_second_subprocess ___________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-152/test_adapter_lost_ack_observes0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x78ae28a64c20>
+
+    def test_adapter_lost_ack_observes_without_second_subprocess(tmp_path, monkeypatch):
+        calls=[]
+        def fake_process(*args, **kwargs):
+            calls.append(kwargs['input'])
+            return SimpleNamespace(returncode=0,stdout='{"diagnostic":true}',stderr='')
+        monkeypatch.setattr(sd.subprocess, 'run', fake_process)
+        payload={'blind_id':'a'*24,'variant':'B1'}
+>       adapter=sd.ProductAdapter(tmp_path,'http://127.0.0.1:1')
+
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:172: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/study_diagnostic.py:85: in __init__
+    validate_environment(self.environment)
+evaluation/study_binding.py:67: in validate_environment
+    require(subprocess.check_output(['uname','-srvm'], text=True).strip() == binding['kernel'], 'kernel_drift')
+/usr/lib/python3.12/subprocess.py:466: in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (['uname', '-srvm'],)
+kwargs = {'check': True, 'stdout': -1, 'text': True, 'timeout': None}
+
+    def fake_process(*args, **kwargs):
+>       calls.append(kwargs['input'])
+E       KeyError: 'input'
+
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:168: KeyError
+____________ test_adapter_failed_child_stays_unknown_without_resend ____________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-152/test_adapter_failed_child_stay0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x78ae283be360>
+
+    def test_adapter_failed_child_stays_unknown_without_resend(tmp_path, monkeypatch):
+        calls=[]
+        def fake_process(*args, **kwargs):
+            calls.append(True)
+            return SimpleNamespace(returncode=1,stdout='',stderr='injected child failure')
+        monkeypatch.setattr(sd.subprocess, 'run', fake_process)
+        payload={'blind_id':'a'*24,'variant':'B1'}
+>       adapter=sd.ProductAdapter(tmp_path,'http://127.0.0.1:1')
+
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+evaluation/study_diagnostic.py:85: in __init__
+    validate_environment(self.environment)
+evaluation/study_binding.py:67: in validate_environment
+    require(subprocess.check_output(['uname','-srvm'], text=True).strip() == binding['kernel'], 'kernel_drift')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+condition = False, reason = 'kernel_drift'
+
+    def require(condition, reason):
+        if not condition:
+            from study_controller import Hold
+>           raise Hold(reason)
+E           study_controller.Hold: kernel_drift
+
+evaluation/study_binding.py:27: Hold
+=========================== short test summary info ============================
+FAILED docs/evidence/batch3-b35c/controller-review/test_scoped_review.py::test_adapter_lost_ack_observes_without_second_subprocess
+FAILED docs/evidence/batch3-b35c/controller-review/test_scoped_review.py::test_adapter_failed_child_stays_unknown_without_resend
+2 failed, 4 passed, 5 deselected in 5.40s

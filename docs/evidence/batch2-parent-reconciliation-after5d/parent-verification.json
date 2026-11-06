@@ -1,0 +1,38 @@
+{
+  "verified_source_files": 611,
+  "frontend_tests": 514,
+  "frontend_failures_errors_skips": [
+    0,
+    0,
+    0
+  ],
+  "review_sha256": "82358ed3b7e8dc86c3b916f76059be11b841a16a3dfbb2a75b3cbd29cf71fb65",
+  "retained_browser_status": "PASS",
+  "current_controlled_browser_status": "PASS",
+  "state_tables_unchanged": 11,
+  "product_calls_added": 0,
+  "closed_scope": [
+    "A14",
+    "A28",
+    "A35"
+  ],
+  "counts": {
+    "PENDING": 23,
+    "PASS": 20
+  },
+  "batch2_complete": false,
+  "publication": "HOLD",
+  "rollup_sha256": "f03258bb6cb58f4fbd98597e24f3095accb5b8a44d56f1ed218ef4398d12508e",
+  "receipt_hashes": {
+    "docs/evidence/batch2-recovery5d/poll-correction/source-manifest.json": "194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07",
+    "docs/evidence/batch2-recovery5d/poll-correction/independent-review.json": "82358ed3b7e8dc86c3b916f76059be11b841a16a3dfbb2a75b3cbd29cf71fb65",
+    "docs/evidence/batch2-recovery5d/verified-browser-report.json": "4eb638c86e694ff4088d233415ec27b775adefee595084a8590ea141f9376cab",
+    "docs/evidence/batch2-recovery5d/poll-correction/verified-browser-report.json": "abd076ac0723e52d01933d2b0afb01298fd05ac0e76428dcfbff20f51dad5a00",
+    "docs/evidence/batch2-recovery5d/a28-a35-narrow-report.json": "10e2596abe6011dc6d31e6b80bf1e72ef802da3b2c31e77e5593a9af77a6eb78",
+    "docs/evidence/batch2-recovery5d/poll-correction/audit-before.json": "62f8df92af153cda07f9e6ffecf27bc8345a6b68c8c8e79c3a48c30b149ebca1",
+    "docs/evidence/batch2-recovery5d/poll-correction/audit-after.json": "8c61d4e4597f4a2a74ebaa816d3130d64de9c47217d7952fae3c197be66b08d1",
+    "docs/evidence/batch2-recovery5d/poll-correction/frontend.xml": "f4cf55a77d4d5be6f97af3e98b17aeeb47fe941412560aaa8fb3de70b69524ab",
+    "docs/evidence/batch2-recovery5c/acceptance-supplement.json": "7a75ff14222d281a1b4bd7f7ee641d5451daab1dc8dedf5dea6f99aa22a0a3aa",
+    "docs/evidence/batch2-recovery5b/acceptance-matrix.json": "12273a50f5268a77ddd6ba843fe4f7744cf0fbad1f5721d4de1669089b74d11c"
+  }
+}

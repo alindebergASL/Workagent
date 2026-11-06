@@ -1,0 +1,26 @@
+[
+  {
+    "vw": 1440,
+    "client": 1425,
+    "pw": 1425,
+    "rows": [
+      "region\tsum\trows\nEast\t0.3\t2\nWest\t1.5\t1"
+    ]
+  },
+  {
+    "vw": 390,
+    "client": 375,
+    "pw": 375,
+    "rows": [
+      "region\tsum\trows\nEast\t0.3\t2\nWest\t1.5\t1"
+    ]
+  },
+  {
+    "vw": 320,
+    "client": 305,
+    "pw": 305,
+    "rows": [
+      "region\tsum\trows\nEast\t0.3\t2\nWest\t1.5\t1"
+    ]
+  }
+]

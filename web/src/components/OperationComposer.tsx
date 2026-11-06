@@ -7,6 +7,7 @@ import {
   type PendingOperation,
 } from "@/lib/client/operation-state";
 import { conversationApi } from "@/lib/client/real-api";
+import { scopedSession } from "@/lib/client/session-scope";
 import { ApiError } from "@/lib/contract/errors";
 
 /** Explicit human operator selection; no frontend execution or inference. */
@@ -51,7 +52,7 @@ function ScopedOperationComposer({
   const inFlight = useRef(false);
   useEffect(() => {
     try {
-      journal.current = operationJournal(sessionStorage, ws, cid);
+      journal.current = operationJournal(scopedSession, ws, cid);
       const saved = journal.current.read();
       setPending(saved);
       if (saved) {

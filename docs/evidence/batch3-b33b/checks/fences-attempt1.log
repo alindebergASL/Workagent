@@ -1,0 +1,70 @@
+/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+FF..                                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_scope_fences_source_context_publication_and_receipts[connector] _____
+
+context = (<workagent.service.Service object at 0x74844e4b5640>, Principal(id='local-human', kind='human'), 'test-faf00af5-3f8d-...time.datetime(2026, 10, 29, 7, 19, 7, 962560, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 24, 10, 170901, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+fence = 'connector'
+
+    @pytest.mark.parametrize('fence',['connector','processor','generation'])
+    def test_scope_fences_source_context_publication_and_receipts(context,connector,fence):
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities import policy,observations
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.db import Database
+        s,p,ws,_,admin=context;cv,q,cap,request=install(context,connector)
+        obs=CapabilityBroker(s,cap).call(request);sid=obs.output['result']['snapshot']['snapshot_id']
+        with s.db.transaction() as c:
+            grant=policy.grant(c,ws,q.run.id)
+            before=c.execute('SELECT data FROM tool_attempt_events WHERE attempt_id=%s ORDER BY created_at',(obs.attempt_id,)).fetchall()
+        if fence=='generation':
+            with Database(admin).transaction() as c:c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
+        else:policy.restrict_resources(Database(admin),grant.id,[r for r in grant.resource_selectors if r.kind==fence])
+        assert s.list_workspace_files(p,ws,cv.id).items==[]
+        for action in [lambda:s.get_source_snapshot(p,ws,sid),lambda:observations.page(s,p,ws,q.run.id),
+                       lambda:CapabilityBroker(s,cap).call(request),lambda:s.conversation_worker_context(cap)]:
+>           with pytest.raises(DomainError):action()
+E           Failed: DID NOT RAISE <class 'workagent.errors.DomainError'>
+
+backend/tests/test_connector_security_pg.py:150: Failed
+_____ test_scope_fences_source_context_publication_and_receipts[processor] _____
+
+context = (<workagent.service.Service object at 0x74844c754830>, Principal(id='local-human', kind='human'), 'test-d665d83c-d933-...ime.datetime(2026, 10, 29, 7, 19, 18, 652787, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 24, 20, 692783, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+fence = 'processor'
+
+    @pytest.mark.parametrize('fence',['connector','processor','generation'])
+    def test_scope_fences_source_context_publication_and_receipts(context,connector,fence):
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities import policy,observations
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.db import Database
+        s,p,ws,_,admin=context;cv,q,cap,request=install(context,connector)
+        obs=CapabilityBroker(s,cap).call(request);sid=obs.output['result']['snapshot']['snapshot_id']
+        with s.db.transaction() as c:
+            grant=policy.grant(c,ws,q.run.id)
+            before=c.execute('SELECT data FROM tool_attempt_events WHERE attempt_id=%s ORDER BY created_at',(obs.attempt_id,)).fetchall()
+        if fence=='generation':
+            with Database(admin).transaction() as c:c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
+        else:policy.restrict_resources(Database(admin),grant.id,[r for r in grant.resource_selectors if r.kind==fence])
+        assert s.list_workspace_files(p,ws,cv.id).items==[]
+        for action in [lambda:s.get_source_snapshot(p,ws,sid),lambda:observations.page(s,p,ws,q.run.id),
+                       lambda:CapabilityBroker(s,cap).call(request),lambda:s.conversation_worker_context(cap)]:
+>           with pytest.raises(DomainError):action()
+E           Failed: DID NOT RAISE <class 'workagent.errors.DomainError'>
+
+backend/tests/test_connector_security_pg.py:150: Failed
+=============================== warnings summary ===============================
+.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_connector_security_pg.py::test_scope_fences_source_context_publication_and_receipts[connector]
+FAILED backend/tests/test_connector_security_pg.py::test_scope_fences_source_context_publication_and_receipts[processor]
+2 failed, 2 passed, 6 deselected, 1 warning in 32.68s

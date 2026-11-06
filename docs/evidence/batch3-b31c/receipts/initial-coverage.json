@@ -1,0 +1,1 @@
+{"excluded": [{"id": "r4", "reason": "missing duration is not zero"}], "reviewed_procedure_revisions": [], "rows_supplied": 4, "spec": {"group": "zone", "id": "observation_id", "seconds_per_unit": "1", "value": "latency_seconds"}}

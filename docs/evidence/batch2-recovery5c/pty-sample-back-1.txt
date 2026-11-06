@@ -1,0 +1,50 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work                ▎▊  Recovery5c removals                                                          ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+ Conversation  Work  Files  Status  Recovery  Details
+━━━━━━━━━━━━━━╸━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Row 21
+ Plant: Plant 20
+ Height: 12.5 cm
+
+ Row 22
+ Plant: Plant 21
+ Height: 12.5 cm
+
+ Row 23
+ Plant: Plant 22
+ Height: 12.5 cm
+
+ Row 24
+ Plant: Plant 23
+ Height: 12.5 cm
+
+ Row 25
+ Plant: Plant 24
+ Height: 12.5 cm
+
+ Row 26
+ Plant: Plant 25
+ Height: 12.5 cm
+ Note: Human concurrent correction: keep exact base fence.
+
+                                                                                                                      ▃▃
+ PROPOSED · Latest candidate · pending · 2026-10-26T21:57:27.324978Z · Synthetic review candidate
+
+ Recovery5c removals                                                                                                  ▄▄
+ Note: Human concurrent correction: keep exact base fence.
+
+
+ Server structural review: 26 total removed/replaced members; 20 displayed samples.
+
+ Select each required acknowledgement for this exact candidate Draft retained; inspect Recovery. No automatic retry.
+
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔
+    Send · F5       Queue later   Refresh   Detach
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁
+ ^q Detach  ^⏎ Send  ^r Refresh                                                                             ▏^p palette

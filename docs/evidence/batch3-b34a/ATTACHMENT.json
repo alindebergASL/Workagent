@@ -1,0 +1,23 @@
+{
+  "attachment_id": 7,
+  "byte_equal_local": true,
+  "bytes": 1822,
+  "crc": "PASS",
+  "filename": "B3.4a-verified-synthetic-outputs.zip",
+  "malformed_history": {
+    "attachment_id": 6,
+    "bytes": 679,
+    "do_not_use": true,
+    "retained": true,
+    "task_id": "t_0ff857b1"
+  },
+  "members": [
+    "README.txt",
+    "current-policy-brief.md",
+    "duration-summary.csv",
+    "independent-verification.json"
+  ],
+  "rejected_submissions_before_success": 2,
+  "sha256": "d42e43b2dd8203cef369372f003f63290688d3648b2d3ae20dfb3c4494ec846e",
+  "task_id": "t_58f29c05"
+}

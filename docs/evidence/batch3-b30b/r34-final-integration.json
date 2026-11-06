@@ -1,0 +1,10 @@
+{
+  "time": 1793209647.4735916,
+  "allowlist": {
+    "web/src/components/WorkspaceFiles.tsx": "1c44d937b798e3b14051cbf3c214fe53748c4cf55f96d21f197c2ba93c63bf22",
+    "web/src/lib/file-draft.ts": "11ea527c7967fc917ba2c376607579aec4c5a7699a112e0615c6ffc3d54f5999",
+    "web/test/workspace-files-races.test.ts": "2c5ffb7c9f5e0fa7605e959359831eb54f18cdbbcdc259367908ffdb95a493b8"
+  },
+  "main_lane_match": true,
+  "prior_checkpoint_match_before": true
+}

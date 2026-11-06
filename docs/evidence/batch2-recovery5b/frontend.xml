@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="473" failures="2" errors="0" time="4.024178782">
+    <testsuite name="test/activity.test.ts" timestamp="2026-10-26T20:59:54.151Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.077300113">
+        <testcase classname="test/activity.test.ts" name="activity from recorded state &gt; merges work and conversations, latest change first" time="0.042545728">
+        </testcase>
+        <testcase classname="test/activity.test.ts" name="activity from recorded state &gt; sends a waiting decision straight to the document" time="0.000923739">
+        </testcase>
+        <testcase classname="test/activity.test.ts" name="activity from recorded state &gt; labels a recorded hand-over truthfully" time="0.00045299">
+        </testcase>
+        <testcase classname="test/activity.test.ts" name="activity from recorded state &gt; never presents a conversation&apos;s start as its latest change" time="0.020950944">
+        </testcase>
+        <testcase classname="test/activity.test.ts" name="activity from recorded state &gt; groups by day in the display zone" time="0.003320826">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/adaptive-presentation.test.ts" timestamp="2026-10-26T20:59:54.193Z" hostname="ip-10-0-3-214" tests="36" failures="0" errors="0" skipped="0" time="0.26250221">
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; reports trusted complete bounded verification without implying approval" time="0.013171646">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; does not complete when automatic passed is false" time="0.006071563">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; does not complete when automatic recognized is false" time="0.003893884">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; does not complete unbound, unpublished, or uncertain output" time="0.001211403">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; treats failed independent checks as obstacles even when model cases passed" time="0.003071105">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; leaves legacy and missing progress unchanged" time="0.000530823">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; separates a saved result from the requested goal" time="0.002535541">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; labels human checks only within their supplied scope" time="0.004593241">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; cancelled takes precedence" time="0.003078566">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; outcome_unknown takes precedence" time="0.000460993">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; outcome_unknown never looks successful" time="0.002026615">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; invalid never looks successful" time="0.000207173">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; outcome_unknown explains the stop, not asking again as the way out" time="0.001710846">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; invalid explains the stop, not asking again as the way out" time="0.000560381">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; keeps step_limit work unpublished" time="0.000337392">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; keeps budget_limit work unpublished" time="0.004527987">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; keeps blocked work unpublished" time="0.000381444">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; keeps waiting_for_user work unpublished" time="0.000217568">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; never says nothing was saved beside work the turn did save" time="0.000862474">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; says a stop after a refused attempt was a refusal, not a limit" time="0.005813827">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; shows a refusal outcome rather than the generic run-stopped line" time="0.050795332">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; does not call several phases a changed approach" time="0.000437489">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; counts a changed operation after a real failure" time="0.000236359">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; only describes an in-flight retry after a later phase is accepted" time="0.00040917">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="honest adaptive presentation &gt; orders every selection phase the service reports, past the fourth" time="0.005437658">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="model examples: none, passed or failed &gt; reads no examples as none, not as a failure" time="0.053793296">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="model examples: none, passed or failed &gt; says passing examples passed, with the count" time="0.011394259">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="model examples: none, passed or failed &gt; says failing examples failed, with the count, and counts the retry" time="0.004223355">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="the trusted outcome under an answer &gt; shows the recorded state of a finished turn as its own line" time="0.01224358">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="the trusted outcome under an answer &gt; says nothing for turns that haven&apos;t finished" time="0.007350047">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="general alpha: answers and retained explanations &gt; keeps a direct answer exactly as recorded, even with an explanation" time="0.023677814">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="general alpha: answers and retained explanations &gt; shows a work result&apos;s retained explanation first, keeping the message" time="0.005033334">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="general alpha: answers and retained explanations &gt; names a capability the step used, as a read, not a permission" time="0.001962287">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="general alpha: answers and retained explanations &gt; names known capabilities in plain words, never their internal names" time="0.017866788">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="lastStopped &gt; is true only when the latest request stopped and is kept as it is" time="0.004491378">
+        </testcase>
+        <testcase classname="test/adaptive-presentation.test.ts" name="lastUnresolved &gt; is true only while the latest request&apos;s outcome is unknown" time="0.00067587">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/assignment-summary.test.ts" timestamp="2026-10-26T20:59:54.357Z" hostname="ip-10-0-3-214" tests="7" failures="0" errors="0" skipped="0" time="0.031322">
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; prepared output and ordinary human save are not approval" time="0.007217262">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; current accepted proposal is an approved revision, not an external effect" time="0.002792804">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; pending review supersedes an earlier approval" time="0.00408314">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; new work and partial work cannot be presented as completed" time="0.001386616">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; projects pause and cancel as steering state the person controls" time="0.004019937">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; a later saved revision invalidates earlier approval attribution" time="0.000468307">
+        </testcase>
+        <testcase classname="test/assignment-summary.test.ts" name="shared authoritative read-model projection &gt; legacy ready rows with actual active revision receipts remain working" time="0.002541936">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/attachment-vectors.test.ts" timestamp="2026-10-26T20:59:54.364Z" hostname="ip-10-0-3-214" tests="23" failures="0" errors="0" skipped="0" time="0.075604552">
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;example.py&quot;" time="0.011134911">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;README.md&quot;" time="0.001210617">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;parser.test.ts&quot;" time="0.001145246">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;data.csv&quot;" time="0.000840479">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;page.html&quot;" time="0.000644122">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;bom-crlf.txt&quot;" time="0.000656845">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;bom.csv&quot;" time="0.001282425">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;only-bom.txt&quot;" time="0.000593725">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.py&quot;" time="0.003361872">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.py&quot;" time="0.00310168">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;../escape.py&quot;" time="0.010127784">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;dir/inner.py&quot;" time="0.00055299">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;.env.txt&quot;" time="0.000427626">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;a..py&quot;" time="0.00058402">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;a b.md&quot;" time="0.000669291">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;tab\tname.py&quot;" time="0.000553403">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;Upper.PY&quot;" time="0.005632181">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;report.xlsx&quot;" time="0.002202768">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;Makefile&quot;" time="0.003703148">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;empty.py&quot;" time="0.000460097">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;nul.txt&quot;" time="0.001654236">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; refuses &quot;invalid.txt&quot;" time="0.003674496">
+        </testcase>
+        <testcase classname="test/attachment-vectors.test.ts" name="attachment admission vectors (published contract) &gt; admits &quot;control.txt&quot;" time="0.00071826">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/b2-correction.test.ts" timestamp="2026-10-26T20:59:54.390Z" hostname="ip-10-0-3-214" tests="34" failures="0" errors="0" skipped="0" time="0.127238449">
+        <testcase classname="test/b2-correction.test.ts" name="R1: upload identity is durable before dispatch &gt; a closed client replays the same command for a restored unknown upload" time="0.018687465">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R1: upload identity is durable before dispatch &gt; refuses to dispatch when the identity can&apos;t be kept" time="0.004504175">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R1: upload identity is durable before dispatch &gt; a lost receipt write still replays the original identity after restart" time="0.009270975">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R1: upload identity is durable before dispatch &gt; an old in-doubt record without identity fails closed until reconciled" time="0.005658819">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R1: upload identity is durable before dispatch &gt; never reuses an identity or ref in a different conversation" time="0.001672119">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R2: late async results stay in their originating scope &gt; a file read finishing after a workspace switch never lands in the new one" time="0.002161453">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R2: late async results stay in their originating scope &gt; a late upload update writes to its original draft, not the shown one" time="0.002071019">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R3: restoration failures block until explicit recovery &gt; a read failure blocks sending and adding; recovery is explicit" time="0.001542554">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R3: restoration failures block until explicit recovery &gt; a damaged copy blocks until it is explicitly discarded" time="0.002129379">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R3: restoration failures block until explicit recovery &gt; nothing can be added while restoring, so a restore can&apos;t erase it" time="0.007697603">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R3: restoration failures block until explicit recovery &gt; a pending Home start detects exactly its expected documents, in any order" time="0.002938876">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R4: a fresh Continue needs a current compatible read &gt; targets the current exact-version snapshot&apos;s run" time="0.00034736">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R4: a fresh Continue needs a current compatible read &gt; a successor run with no newer request is still the latest run" time="0.000216303">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R4: a fresh Continue needs a current compatible read &gt; an older snapshot never overrides a newer conversation" time="0.000196014">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R4: a fresh Continue needs a current compatible read &gt; no current run means no Continue (no fallback to an earlier run)" time="0.000236727">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R4: a fresh Continue needs a current compatible read &gt; withholds on a stale or inaccessible snapshot or a failed checkpoint read" time="0.002778357">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R5: device writes apply in the order they were made &gt; a delayed earlier write can&apos;t resurrect a removed generation" time="0.005830829">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="R5: device writes apply in the order they were made &gt; a delayed earlier write can&apos;t overwrite a later uploaded receipt" time="0.001015913">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; never sends when the send command can&apos;t be kept, and replays it exactly" time="0.001644142">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; after a closed session, an unknown send replays the same command" time="0.001355347">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; B with no saved record: a late A success never settles into B" time="0.001166012">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; B with no saved record: a late A error never settles into B" time="0.000563874">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; B with only an assignment: a late A success never settles into B" time="0.000448058">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; B with only an assignment: a late A error never settles into B" time="0.000425362">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; a start settles only in the selection it began in" time="0.000631358">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; a late A success after Home unmounts never touches UI or navigates" time="0.000912839">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; a late A error after Home unmounts never touches UI or navigates" time="0.000258512">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; a switch invalidates at the commit&apos;s cleanup, before the new selection" time="0.000285489">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; a stale clear never removes a different start&apos;s record" time="0.00035238">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="Home start continuation (runHomeStart, as Composer wires it) &gt; sent documents are cleared from their own draft&apos;s records only" time="0.033099898">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="RR1: checkpoint freshness keyed to the read&apos;s own key &gt; a key change is not current from its first render, with no reset applied" time="0.009880716">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="RR1: checkpoint freshness keyed to the read&apos;s own key &gt; then pending → failed → recovered refresh of the same key" time="0.00131203">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="RR1: checkpoint freshness keyed to the read&apos;s own key &gt; an older superseded read never makes the data current" time="0.000367814">
+        </testcase>
+        <testcase classname="test/b2-correction.test.ts" name="RR1: checkpoint freshness keyed to the read&apos;s own key &gt; no key, an error or reconnecting is never current" time="0.000481199">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/batch2-controls.test.ts" timestamp="2026-10-26T20:59:54.409Z" hostname="ip-10-0-3-214" tests="15" failures="0" errors="0" skipped="0" time="0.417395884">
+        <testcase classname="test/batch2-controls.test.ts" name="exact message payloads &gt; omits document_refs when empty (legacy bytes) and keeps exact refs otherwise" time="0.023815469">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="exact message payloads &gt; Queue later posts the exact PostMessage to queued-messages, not /messages" time="0.156066451">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="exact message payloads &gt; cancel / stop / continue carry exact ids and versions" time="0.011962255">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="exact message payloads &gt; 5xx and network failures are unknown outcomes; 409 is definite" time="0.011748256">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document staging &gt; keeps the exact original: canonical base64 decodes to the same bytes and hash" time="0.02943738">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document staging &gt; refuses names, types, magic and sizes the server would refuse (negative controls)" time="0.043512933">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document upload commands &gt; an unknown upload replays the identical body; nothing is re-sent as new" time="0.033114289">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document upload commands &gt; a definite refusal clears the identity so a new attempt is a new command" time="0.034933334">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document upload commands &gt; a receipt for different bytes is not accepted as an upload" time="0.012904678">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document upload commands &gt; uploads each original once; a later failure keeps earlier confirmed refs" time="0.008330417">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="document upload commands &gt; downloads the exact original and refuses bytes that don&apos;t match its sha256" time="0.024210278">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="views &gt; held queue entries say why and never claim they will rebase" time="0.0029504">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="views &gt; continue only when the server says it is safe; otherwise the reason, no retry" time="0.001871435">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="views &gt; latest checkpoint is chosen by recorded time, not id order" time="0.000402783">
+        </testcase>
+        <testcase classname="test/batch2-controls.test.ts" name="views &gt; coverage lines are counts the server sent, not estimates" time="0.003532126">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/batch2-durable.test.ts" timestamp="2026-10-26T20:59:54.413Z" hostname="ip-10-0-3-214" tests="10" failures="0" errors="0" skipped="0" time="0.069045459">
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; restores exact bytes, hash and upload state after a reload" time="0.011528643">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; is scoped: another workspace, principal or draft sees nothing" time="0.001357567">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; deletes only the exact confirmed generations, keeping later ones" time="0.001646747">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; a corrupted device copy is reported and kept, not silently dropped" time="0.001391102">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; a storage failure is explicit and the entry stays attached" time="0.00206585">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="durable staged documents (store adapter boundary) &gt; sent generations match exact confirmed refs only" time="0.002419585">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="Continue applies only to the latest run&apos;s newest checkpoint &gt; offers the newest checkpoint when it belongs to the latest run" time="0.000627842">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="Continue applies only to the latest run&apos;s newest checkpoint &gt; never falls back to an older safe checkpoint (negative controls)" time="0.000454591">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="message document refs &gt; maps metadata only and never carries extracted text" time="0.001414372">
+        </testcase>
+        <testcase classname="test/batch2-durable.test.ts" name="message document refs &gt; renders filename and truthful status per message" time="0.038147996">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/cell-authors.test.ts" timestamp="2026-10-26T20:59:54.419Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.015146862">
+        <testcase classname="test/cell-authors.test.ts" name="who set each value &gt; is whoever first saved it as it is now" time="0.005130982">
+        </testcase>
+        <testcase classname="test/cell-authors.test.ts" name="who set each value &gt; is unknown when the history doesn&apos;t reach where it started" time="0.001946388">
+        </testcase>
+        <testcase classname="test/cell-authors.test.ts" name="what a proposed table changes &gt; lists each changed value, saved to proposed, by row and field" time="0.001404797">
+        </testcase>
+        <testcase classname="test/cell-authors.test.ts" name="what a proposed table changes &gt; lists nothing when only rows are added" time="0.001024304">
+        </testcase>
+        <testcase classname="test/cell-authors.test.ts" name="what a proposal takes away &gt; counts removed columns and notes, not only additions" time="0.002268403">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/command-cache.test.ts" timestamp="2026-10-26T20:59:54.422Z" hostname="ip-10-0-3-214" tests="2" failures="0" errors="0" skipped="0" time="0.015285957">
+        <testcase classname="test/command-cache.test.ts" name="canonical command metadata across retries &gt; does not rebase an ambiguous retry onto a newer work version" time="0.010061196">
+        </testcase>
+        <testcase classname="test/command-cache.test.ts" name="canonical command metadata across retries &gt; coalesces concurrent metadata construction without automatic HTTP retry" time="0.001714449">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/continuation.test.ts" timestamp="2026-10-26T20:59:54.424Z" hostname="ip-10-0-3-214" tests="11" failures="0" errors="0" skipped="0" time="0.218140132">
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a queued continuation is the runtime&apos;s, anchored to its own request" time="0.039042416">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a responding continuation is the runtime&apos;s, anchored to its own request" time="0.028003654">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a failed continuation is the runtime&apos;s, anchored to its own request" time="0.004561182">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a unavailable continuation is the runtime&apos;s, anchored to its own request" time="0.001112365">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a outcome_unknown continuation is the runtime&apos;s, anchored to its own request" time="0.003082785">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a cancelled continuation is the runtime&apos;s, anchored to its own request" time="0.000767938">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; a replied continuation is the runtime&apos;s, anchored to its own request" time="0.001742329">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="runtime continuation requests (F1) &gt; renders as Workagent&apos;s request, never as &apos;You&apos;" time="0.079192071">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="execution status, claiming no more than recorded (F2) &gt; queued isn&apos;t started; running isn&apos;t done" time="0.007634729">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="execution status, claiming no more than recorded (F2) &gt; settled isn&apos;t accepted or complete; blocked may have done work" time="0.003882792">
+        </testcase>
+        <testcase classname="test/continuation.test.ts" name="execution status, claiming no more than recorded (F2) &gt; not admitted is about now, not a claim it can never run" time="0.002124203">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/conversation-work.test.ts" timestamp="2026-10-26T20:59:54.431Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.235489971">
+        <testcase classname="test/conversation-work.test.ts" name="conversation-owned work on Home and Spaces &gt; reads every page of the summary, then puts decisions first" time="0.027827831">
+        </testcase>
+        <testcase classname="test/conversation-work.test.ts" name="conversation-owned work on Home and Spaces &gt; surfaces real failures instead of hiding them" time="0.035834811">
+        </testcase>
+        <testcase classname="test/conversation-work.test.ts" name="Home&apos;s work across every workspace &gt; joins the work of each workspace, each keeping its own, decisions first" time="0.107037169">
+        </testcase>
+        <testcase classname="test/conversation-work.test.ts" name="Home&apos;s work across every workspace &gt; leaves out a workspace the person can&apos;t see; counts one that can&apos;t be read" time="0.018522693">
+        </testcase>
+        <testcase classname="test/conversation-work.test.ts" name="Home&apos;s work across every workspace &gt; fails as a whole only when no workspace can be read" time="0.0270572">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/conversation.test.ts" timestamp="2026-10-26T20:59:54.434Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.052240228">
+        <testcase classname="test/conversation.test.ts" name="conversation turns, from the persisted run only &gt; maps the generated example: a queued turn is waiting, not replied" time="0.029469427">
+        </testcase>
+        <testcase classname="test/conversation.test.ts" name="conversation turns, from the persisted run only &gt; needs a recorded assistant message before calling a ready turn replied" time="0.001053579">
+        </testcase>
+        <testcase classname="test/conversation.test.ts" name="conversation turns, from the persisted run only &gt; maps queued, running and cancelled exactly" time="0.000436417">
+        </testcase>
+        <testcase classname="test/conversation.test.ts" name="conversation turns, from the persisted run only &gt; orders messages by sequence, not by arrival" time="0.014724985">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/diff.test.ts" timestamp="2026-10-26T20:59:54.437Z" hostname="ip-10-0-3-214" tests="2" failures="0" errors="0" skipped="0" time="0.016952655">
+        <testcase classname="test/diff.test.ts" name="exact changes &gt; treats a checklist item&apos;s done state as a change" time="0.008773521">
+        </testcase>
+        <testcase classname="test/diff.test.ts" name="exact changes &gt; collapses unchanged runs so only the changes are shown" time="0.003477969">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/doc-read.test.ts" timestamp="2026-10-26T20:59:54.438Z" hostname="ip-10-0-3-214" tests="1" failures="0" errors="0" skipped="0" time="0.055866683">
+        <testcase classname="test/doc-read.test.ts" name="reading a saved document &gt; keeps the line breaks a paragraph was saved with, unchanged" time="0.044572092">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/document-overflow.test.ts" timestamp="2026-10-26T20:59:54.439Z" hostname="ip-10-0-3-214" tests="3" failures="0" errors="0" skipped="0" time="0.015213449">
+        <testcase classname="test/document-overflow.test.ts" name="retained document text on narrow screens &gt; wraps read text inside the column without truncating it" time="0.008082002">
+        </testcase>
+        <testcase classname="test/document-overflow.test.ts" name="retained document text on narrow screens &gt; lets the document row shrink and wrap long names" time="0.000882523">
+        </testcase>
+        <testcase classname="test/document-overflow.test.ts" name="retained document text on narrow screens &gt; uses those classes for the documents list" time="0.000559769">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/draft-carry.test.ts" timestamp="2026-10-26T20:59:54.440Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.055966853">
+        <testcase classname="test/draft-carry.test.ts" name="carryDraftHome &gt; moves an unsent message to Home&apos;s composer for the workspace" time="0.028478931">
+        </testcase>
+        <testcase classname="test/draft-carry.test.ts" name="carryDraftHome &gt; never overwrites a draft already waiting on Home" time="0.007009789">
+        </testcase>
+        <testcase classname="test/draft-carry.test.ts" name="carryDraftHome &gt; carries nothing for an empty message" time="0.000981723">
+        </testcase>
+        <testcase classname="test/draft-carry.test.ts" name="carryDraftHome &gt; reports failure when storage is unavailable" time="0.006923742">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/execution-view.test.ts" timestamp="2026-10-26T20:59:54.442Z" hostname="ip-10-0-3-214" tests="11" failures="0" errors="0" skipped="0" time="0.017585717">
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; says nothing without a check" time="0.003361667">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; is not running when there&apos;s no heartbeat, never working" time="0.002281512">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; says why a run stopped, by category" time="0.000779316">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; says the service&apos;s reason and its fixed next step when it gives them" time="0.001228004">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; adds to in-progress wording while waiting on the model or recovering" time="0.00056827">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="a pending turn, as the service checked it &gt; leaves working, completed and other runs alone" time="0.00039401">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="the workspace line &gt; is silent when ready" time="0.000509944">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="the workspace line &gt; says not running, and that reading and editing still work" time="0.000408061">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="the workspace line &gt; says it can&apos;t take new work when blocked, not when another run is" time="0.000988428">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="the workspace line &gt; says when it couldn&apos;t check, and nothing more" time="0.000493917">
+        </testcase>
+        <testcase classname="test/execution-view.test.ts" name="the workspace line &gt; in a conversation, never says it&apos;s working: each request shows its own run" time="0.000869799">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/flexible.test.ts" timestamp="2026-10-26T20:59:54.447Z" hostname="ip-10-0-3-214" tests="24" failures="0" errors="0" skipped="0" time="0.085050798">
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; recognises shapes by what they declare, keeping older kinds apart" time="0.01128366">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; reads cells by field key and type, never by position" time="0.005996945">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; says a long unit once above a phone&apos;s cards, keeping short ones beside the label" time="0.005381274">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; parses typed input with the service&apos;s own bounds" time="0.006182936">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; edits keep row and field identities" time="0.008269265">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; never offers to delete a saved row that has read-only cells" time="0.001784272">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; exports saved cells as CSV without spreadsheet formulas" time="0.003288248">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="self-describing work &gt; refuses an empty note visibly instead of dropping it" time="0.005183014">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="agent-made view actions &gt; builds the request only from the saved view revision" time="0.002610458">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="agent-made view actions &gt; accepts only an empty plain payload" time="0.000661849">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="agent-made view actions &gt; says which bindings are current and rebinds only on request" time="0.003374789">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="row names &gt; prefer an editable text column over a read-only reference" time="0.000616804">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="draft turns &gt; a reply that delivered a draft is a reply, not a failure" time="0.000639027">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="draft turns &gt; anything else keeps the service&apos;s state" time="0.000362123">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="draft turns &gt; a unit already in the label isn&apos;t repeated" time="0.000176604">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="version-pinned views &gt; knows when a view&apos;s own code names the version it reads" time="0.000309172">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="nothing typed is silently dropped &gt; keeps every note; the limit is refused visibly, nothing removed" time="0.000395907">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="proposed views &gt; names changed code and data sources even when the readable text is the same" time="0.000688186">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="long text cells &gt; wrap only text columns whose saved values are long" time="0.002243364">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="values changed since Workagent&apos;s version &gt; names the cells a person changed after Workagent&apos;s latest version" time="0.007618648">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="values changed since Workagent&apos;s version &gt; treats a version made by applying Workagent&apos;s proposal as Workagent&apos;s" time="0.000756643">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="values changed since Workagent&apos;s version &gt; says nothing when Workagent saved last, or no version of its is read" time="0.002996848">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="plainReason &gt; says who prepared a proposal in plain words, keeping the fact" time="0.000335068">
+        </testcase>
+        <testcase classname="test/flexible.test.ts" name="plainReason &gt; shows any other reason as written" time="0.000174028">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/home-destination.test.ts" timestamp="2026-10-26T20:59:54.453Z" hostname="ip-10-0-3-214" tests="7" failures="0" errors="0" skipped="0" time="0.032724378">
+        <testcase classname="test/home-destination.test.ts" name="homeDestination &gt; uses the workspace the address names, not the first one" time="0.00607231">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="homeDestination &gt; prefers the address over a remembered choice" time="0.000604688">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="homeDestination &gt; falls back from a workspace this person can&apos;t open" time="0.000432782">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="homeDestination &gt; defaults to the personal workspace" time="0.000630157">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="homeDestination &gt; is null when nothing can be opened" time="0.00036033">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="limiter &gt; never runs more than its limit at once and keeps every result" time="0.018523113">
+        </testcase>
+        <testcase classname="test/home-destination.test.ts" name="limiter &gt; lets the next read start after a failure" time="0.002829951">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/natural-admission.test.ts" timestamp="2026-10-26T20:59:54.456Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.16089126">
+        <testcase classname="test/natural-admission.test.ts" name="natural admission payload (contract from PR #9) &gt; sends attachments and an exact target, never an operation, and replays byte-identically" time="0.096506758">
+        </testcase>
+        <testcase classname="test/natural-admission.test.ts" name="natural admission payload (contract from PR #9) &gt; leaves the released message shape untouched when not asked for" time="0.00769036">
+        </testcase>
+        <testcase classname="test/natural-admission.test.ts" name="natural admission payload (contract from PR #9) &gt; validates files and totals against the stated limits" time="0.033991024">
+        </testcase>
+        <testcase classname="test/natural-admission.test.ts" name="turn progress on the model path &gt; is read only for model-path turns" time="0.006556853">
+        </testcase>
+        <testcase classname="test/natural-admission.test.ts" name="turn progress on the model path &gt; keeps a retained local result as data, with its exact decimal" time="0.00287608">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/note-authors.test.ts" timestamp="2026-10-26T20:59:54.457Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.022912869">
+        <testcase classname="test/note-authors.test.ts" name="who added a kept note &gt; is whoever first saved it as it reads now, back along its parents" time="0.008459728">
+        </testcase>
+        <testcase classname="test/note-authors.test.ts" name="who added a kept note &gt; a later worker version keeping a person&apos;s note doesn&apos;t take it over" time="0.003810392">
+        </testcase>
+        <testcase classname="test/note-authors.test.ts" name="who added a kept note &gt; rewording a note makes it the rewording author&apos;s" time="0.001128636">
+        </testcase>
+        <testcase classname="test/note-authors.test.ts" name="who added a kept note &gt; is unknown when the history read doesn&apos;t reach where it started" time="0.001398763">
+        </testcase>
+        <testcase classname="test/note-authors.test.ts" name="who added a kept note &gt; shows on the note only, for display" time="0.002731376">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/operation-state.test.ts" timestamp="2026-10-26T20:59:54.459Z" hostname="ip-10-0-3-214" tests="6" failures="0" errors="0" skipped="0" time="0.063054313">
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; reload/navigation keeps exact payload and identity scoped to workspace/conversation until resolved" time="0.021109543">
+        </testcase>
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; late completion cannot clear a newer unresolved attempt or changed payload" time="0.011370344">
+        </testcase>
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; fails closed on corrupt or unavailable retry storage" time="0.009324018">
+        </testcase>
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; older A cannot overwrite newer B even when it completes last" time="0.00393252">
+        </testcase>
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; old completion cannot clear the newer pending read" time="0.001860303">
+        </testcase>
+        <testcase classname="test/operation-state.test.ts" name="operation recovery and attachment generations &gt; operator change/unmount invalidates old success and old error" time="0.000781435">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/outcome-preview.test.ts" timestamp="2026-10-26T20:59:54.462Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.038370579">
+        <testcase classname="test/outcome-preview.test.ts" name="a recorded outcome, concise first &gt; says a short outcome whole" time="0.00392322">
+        </testcase>
+        <testcase classname="test/outcome-preview.test.ts" name="a recorded outcome, concise first &gt; leads a long one with its first sentence, word for word" time="0.000940409">
+        </testcase>
+        <testcase classname="test/outcome-preview.test.ts" name="a recorded outcome, concise first &gt; cuts a very long first sentence at a word, marked as cut" time="0.000753832">
+        </testcase>
+        <testcase classname="test/outcome-preview.test.ts" name="a recorded outcome, concise first &gt; keeps the rest one click away, not dropped" time="0.029546071">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/post-message-types.test.ts" timestamp="2026-10-26T20:59:54.463Z" hostname="ip-10-0-3-214" tests="1" failures="0" errors="0" skipped="0" time="0.014529804">
+        <testcase classname="test/post-message-types.test.ts" name="PostMessage request typing &gt; uses the generated request side for operations and send" time="0.009696705">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/product-summary.test.ts" timestamp="2026-10-26T20:59:54.464Z" hostname="ip-10-0-3-214" tests="8" failures="0" errors="0" skipped="0" time="0.025856664">
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; names the single mismatched row with its exact values" time="0.005350777">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; says plainly when everything matches, and counts several mismatches" time="0.004553889">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; never invents totals from unreadable values or uncalculated rows" time="0.004339451">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; does not present retained calculated columns as checked current results" time="0.003323711">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; labels columns plainly and keeps unknown ones readable" time="0.001091113">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="table summary leads with what the reconciliation found &gt; pairs tool inputs with their labels" time="0.000796198">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="tables that aren&apos;t reconciliations &gt; is generic: every column editable, readable labels, no reconciliation claims" time="0.002038835">
+        </testcase>
+        <testcase classname="test/product-summary.test.ts" name="tables that aren&apos;t reconciliations &gt; keeps the reconciliation behaviour when its inputs are present" time="0.001036824">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/products.test.ts" timestamp="2026-10-26T20:59:54.466Z" hostname="ip-10-0-3-214" tests="23" failures="2" errors="0" skipped="0" time="0.198540774">
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; replays the identical HTTP body after reloading the API module and its command cache" time="0.037307465">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; keeps signed i64 observation 1000000000000000001 exact through HTTP JSON readback" time="0.005254003">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; keeps signed i64 observation -1000000000000000001 exact through HTTP JSON readback" time="0.00188904">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; keeps signed i64 observation 9223372036854775807 exact through HTTP JSON readback" time="0.002379298">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; keeps signed i64 observation -9223372036854775808 exact through HTTP JSON readback" time="0.001734443">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; finds saved verification independently of latest pending_proposal observation" time="0.001481066">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; finds saved verification independently of latest historical observation" time="0.001209413">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; paginates every proposal and history entry, sorting revisions numerically rather than by UUID" time="0.008358903">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; requires exact identity, hash, binding and scope for current verification" time="0.003711155">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; preserves authoritative unavailable/failed reason instead of guessing from queued" time="0.001712634">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; shows provider outcome_unknown without blaming an absent consumer" time="0.000759019">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; shows provider invalid without blaming an absent consumer" time="0.000379495">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; preserves generated synthetic_provider_receipt message provenance" time="0.000429144">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; preserves generated live_provider_receipt message provenance" time="0.000243466">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; exposes generated product references and list preview without turning them into document blocks" time="0.000560009">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; accepts bounded explicit integer form inputs and rejects ambiguous numeric text" time="0.003865194">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="product integration boundaries &gt; rejects oversized and non-UTF8 attachments before admission" time="0.008520744">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="tool download filenames &gt; uses the entrypoint choose rather than an invoice label" time="0.025517672">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="tool download filenames &gt; uses the entrypoint _choose rather than an invoice label" time="0.032200932">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="tool download filenames &gt; uses the entrypoint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa rather than an invoice label" time="0.012203688">
+        </testcase>
+        <testcase classname="test/products.test.ts" name="same-origin download proxy &gt; forwards safe file bytes and digest instead of labelling WAT JSON" time="0.039812136">
+            <failure message="expected 403 to be 200 // Object.is equality" type="AssertionError">
+AssertionError: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ test/products.test.ts:454:29
+            </failure>
+        </testcase>
+        <testcase classname="test/products.test.ts" name="same-origin download proxy &gt; rejects unsafe filenames, MIME and missing digests" time="0.003264828">
+            <failure message="expected 403 to be 502 // Object.is equality" type="AssertionError">
+AssertionError: expected 403 to be 502 // Object.is equality
+
+- Expected
++ Received
+
+- 502
++ 403
+
+ ❯ test/products.test.ts:467:53
+            </failure>
+        </testcase>
+        <testcase classname="test/products.test.ts" name="same-origin download proxy &gt; does not give unauthenticated navigation a bearer-backed download" time="0.00169826">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/proposal-changes.test.ts" timestamp="2026-10-26T20:59:54.474Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.024351995">
+        <testcase classname="test/proposal-changes.test.ts" name="what changed, item by item &gt; reads a replaced part as a rewrite, and lone parts as added or taken out" time="0.012067304">
+        </testcase>
+        <testcase classname="test/proposal-changes.test.ts" name="what changed, item by item &gt; a ticked or unticked item reads as done or not done" time="0.001021402">
+        </testcase>
+        <testcase classname="test/proposal-changes.test.ts" name="what changed, item by item &gt; nothing changed is no items" time="0.002397043">
+        </testcase>
+        <testcase classname="test/proposal-changes.test.ts" name="the person&apos;s own notes &gt; counts only notes the person added, and which are kept word for word" time="0.001124376">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/proposal-review.test.ts" timestamp="2026-10-26T20:59:54.475Z" hostname="ip-10-0-3-214" tests="19" failures="0" errors="0" skipped="0" time="0.033349957">
+        <testcase classname="test/proposal-review.test.ts" name="which proposal is the latest &gt; orders by created_at then id, not by page order or id alone" time="0.008579985">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="which proposal is the latest &gt; breaks a created_at tie by id" time="0.00054833">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="which proposal is the latest &gt; keeps out-of-date and closed proposals out of the candidates" time="0.000751925">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="which proposal is the latest &gt; follows the service&apos;s latest when the candidates agree on it" time="0.000615262">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="an earlier candidate &gt; needs acknowledging, and its removed note is listed" time="0.00224262">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="an earlier candidate &gt; the latest with nothing removed needs no acknowledgement or flags" time="0.00049731">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="an earlier candidate &gt; acknowledgements reset when the candidate&apos;s review changes" time="0.001069516">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="service review and missing metadata &gt; a service saying nothing is removed doesn&apos;t hide a local removal" time="0.000439874">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="service review and missing metadata &gt; counts what the service found beyond the details it listed" time="0.001280454">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="service review and missing metadata &gt; a service that says this isn&apos;t the latest is believed" time="0.000544395">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="which comparison opens &gt; opens the chosen proposal, else the latest, else the first" time="0.000570595">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; reads notes, rows and blocks of any kind of work" time="0.001004424">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; sees a dropped duplicate note, a replaced field and replaced text" time="0.000515242">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; lets only document block text grow; typed values compare exactly" time="0.000494933">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; ignores only the root metadata of its own kind of work" time="0.000690682">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; counts a loss the service and this reading both name once, kept whole" time="0.000604233">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; orders by the instant, across offsets, and never calls an unreadable time latest" time="0.00219509">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; calls a lone candidate the latest, whatever its time says" time="0.000541672">
+        </testcase>
+        <testcase classname="test/proposal-review.test.ts" name="what a proposal takes out &gt; finds nothing when nothing is taken out" time="0.001414179">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/recommendation.test.ts" timestamp="2026-10-26T20:59:54.480Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.022848778">
+        <testcase classname="test/recommendation.test.ts" name="recommendation from the current managed group &gt; reads the initial worker document&apos;s substance, not a placeholder" time="0.011884957">
+        </testcase>
+        <testcase classname="test/recommendation.test.ts" name="recommendation from the current managed group &gt; lets the current group win over earlier managed groups kept in history" time="0.001287311">
+        </testcase>
+        <testcase classname="test/recommendation.test.ts" name="recommendation from the current managed group &gt; only advances after the revision is the saved document" time="0.002550371">
+        </testcase>
+        <testcase classname="test/recommendation.test.ts" name="recommendation from the current managed group &gt; keeps the fixture document fallback for older records" time="0.001029733">
+        </testcase>
+        <testcase classname="test/recommendation.test.ts" name="recommendation from the current managed group &gt; never drops substance when a heading prefix is absent" time="0.000412402">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/responsibility-outputs.test.ts" timestamp="2026-10-26T20:59:54.481Z" hostname="ip-10-0-3-214" tests="9" failures="0" errors="0" skipped="0" time="0.04211436">
+        <testcase classname="test/responsibility-outputs.test.ts" name="responsibilityOutputs &gt; opens a read output at its canonical conversation address" time="0.005757288">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="responsibilityOutputs &gt; links to the artifact&apos;s own conversation when it differs from the projection" time="0.000585485">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="responsibilityOutputs &gt; leaves out assignment-owned work the legacy list already shows" time="0.000652155">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="responsibilityOutputs &gt; claims nothing for a denied or failed read, and nothing while loading" time="0.001003432">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="responsibilityOutputs &gt; is empty without a conversation, and offers only the projected link beyond the read bound" time="0.002250002">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="mergeOutputReads &gt; keeps an earlier read as stale while a re-read fails, never as current" time="0.00050974">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="mergeOutputReads &gt; lets a definite answer replace what was shown" time="0.000515224">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="loadOutputReads &gt; reads titles and canonical owners, bounded, and says denied or unknown truthfully" time="0.002885412">
+        </testcase>
+        <testcase classname="test/responsibility-outputs.test.ts" name="legacy assignment view &gt; shows assignment-owned work and never fails on a projected conversation-owned id" time="0.023869781">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/responsibility-recording.test.ts" timestamp="2026-10-26T20:59:54.484Z" hostname="ip-10-0-3-214" tests="14" failures="0" errors="0" skipped="0" time="0.111601794">
+        <testcase classname="test/responsibility-recording.test.ts" name="recording receipts &gt; keeps the turn&apos;s receipt and each step&apos;s, one per assignment" time="0.013925334">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="recording receipts &gt; is empty without a receipt, and never read from reply text" time="0.004644963">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="recording receipts &gt; lists two different obligations separately" time="0.000831814">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="a recording is not a calculation &gt; a recording-only turn says a responsibility was recorded" time="0.010836905">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="a recording is not a calculation &gt; still says so when the final explanation never arrived" time="0.000961632">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="a recording is not a calculation &gt; a later stop outranks the recording, and the receipt is kept" time="0.008259063">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="a recording is not a calculation &gt; mixed output keeps the product result&apos;s own presentation" time="0.005514263">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; active is held, not running; settled needs review, not done" time="0.009406114">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; says what it waits on, else what comes next, never once closed" time="0.012828468">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; waiting on someone else is kept track of; a blocker or review needs you; closed is closed" time="0.006627143">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; a decision it asks for needs you, even without a review or a blocker" time="0.005975239">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; idle means read now, nothing running and nothing to review" time="0.001999115">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; a canonical pause is the record&apos;s, not the coarse state" time="0.004114777">
+        </testcase>
+        <testcase classname="test/responsibility-recording.test.ts" name="where a hand-over stands, on every list &gt; stale, denied, unknown and absent are said as such" time="0.009593921">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/responsibility-view.test.ts" timestamp="2026-10-26T20:59:54.490Z" hostname="ip-10-0-3-214" tests="6" failures="0" errors="0" skipped="0" time="0.027489069">
+        <testcase classname="test/responsibility-view.test.ts" name="a recorded responsibility, in plain words &gt; never implies work is running while execution isn&apos;t admitted" time="0.008828906">
+        </testcase>
+        <testcase classname="test/responsibility-view.test.ts" name="a recorded responsibility, in plain words &gt; says what it waits on, what changed and what needs review" time="0.000876889">
+        </testcase>
+        <testcase classname="test/responsibility-view.test.ts" name="a recorded responsibility, in plain words &gt; a paused one can resume; a stopped or taken-back one offers nothing" time="0.00600878">
+        </testcase>
+        <testcase classname="test/responsibility-view.test.ts" name="a recorded responsibility, in plain words &gt; a decision it asks for is what it needs from you, said once" time="0.000893225">
+        </testcase>
+        <testcase classname="test/responsibility-view.test.ts" name="a recorded responsibility, in plain words &gt; names a blocker plainly" time="0.000423427">
+        </testcase>
+        <testcase classname="test/responsibility-view.test.ts" name="what it&apos;s doing, in one line &gt; says Workagent is on it only while a run is queued or running" time="0.000708051">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/result-links.test.ts" timestamp="2026-10-26T20:59:54.491Z" hostname="ip-10-0-3-214" tests="8" failures="0" errors="0" skipped="0" time="0.075422927">
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; claim nothing before the work is read" time="0.024981993">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; a pending, current proposal asks for review" time="0.000990777">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; a pending proposal on an older version is out of date" time="0.007162595">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; an applied proposal that is still current says so" time="0.009099356">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; an applied proposal edited since opens that version, with current beside" time="0.001048372">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; a dismissed proposal opens current work, labelled as dismissed" time="0.005228818">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="result links say what the records say now &gt; a saved result changed since opens its own version" time="0.000773849">
+        </testcase>
+        <testcase classname="test/result-links.test.ts" name="version authors come from the records &gt; an applied proposal is Workagent&apos;s change, applied by a person" time="0.004868228">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/rich-text.test.ts" timestamp="2026-10-26T20:59:54.493Z" hostname="ip-10-0-3-214" tests="29" failures="0" errors="0" skipped="0" time="0.025231163">
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; parses emphasis, code and only http(s) links" time="0.008223803">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with username as nonclickable label text" time="0.00100394">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with username and password as nonclickable label text" time="0.00037637">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with password only as nonclickable label text" time="0.000505061">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with encoded username as nonclickable label text" time="0.000378056">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with missing host as nonclickable label text" time="0.000595114">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with invalid host as nonclickable label text" time="0.000448541">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with invalid IPv6 as nonclickable label text" time="0.00039091">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with invalid port as nonclickable label text" time="0.001086939">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with backslash in authority as nonclickable label text" time="0.000468041">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with backslash in path as nonclickable label text" time="0.000379482">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with raw NUL as nonclickable label text" time="0.000354998">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with raw escape as nonclickable label text" time="0.000213092">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with raw DEL as nonclickable label text" time="0.000167195">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps a link with raw C1 control as nonclickable label text" time="0.000160839">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: http://example.test/a" time="0.000420667">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: https://example.test/path?q=one&amp;next=two#section" time="0.000265507">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: HTTPS://EXAMPLE.test:443/a%2fb?q=%41#Section" time="0.000208335">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: http://example.test:8080/path?q=one#section" time="0.000192247">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: https://[2001:db8::1]:8443/path?q=one#section" time="0.000186151">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: http://[::1]/a" time="0.000160671">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the original href of a valid web link: https://example.test/a%5Cb?q=%00" time="0.000202852">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the non-web link fallback: /relative/path" time="0.000258319">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the non-web link fallback: ../relative/path" time="0.000152008">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the non-web link fallback: //example.test/a" time="0.000148688">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the non-web link fallback: mailto:reader@example.test" time="0.00015161">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; preserves the non-web link fallback: ftp://example.test/a" time="0.000148731">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; parses paragraphs, headings, lists, code, quotes and tables" time="0.003536055">
+        </testcase>
+        <testcase classname="test/rich-text.test.ts" name="reading model replies as text, not syntax &gt; keeps plain text as a single paragraph" time="0.000404705">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/sandbox.test.ts" timestamp="2026-10-26T20:59:54.503Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.022559508">
+        <testcase classname="test/sandbox.test.ts" name="agent-created view boundary &gt; puts the no-network policy before any generated markup" time="0.004547314">
+        </testcase>
+        <testcase classname="test/sandbox.test.ts" name="agent-created view boundary &gt; reads only bounded, well-formed messages and always answers requests" time="0.005768925">
+        </testcase>
+        <testcase classname="test/sandbox.test.ts" name="agent-created view boundary &gt; refuses views and data that are too large" time="0.008533363">
+        </testcase>
+        <testcase classname="test/sandbox.test.ts" name="agent-created view boundary &gt; serves the frame policy that stops views navigating away" time="0.000634835">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/scope.test.ts" timestamp="2026-10-26T20:59:54.505Z" hostname="ip-10-0-3-214" tests="8" failures="0" errors="0" skipped="0" time="0.089674556">
+        <testcase classname="test/scope.test.ts" name="a record link names the workspace it lives in &gt; adds the workspace and keeps any other query and the fragment" time="0.011423852">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="a record link names the workspace it lives in &gt; leaves other pages, and an unknown workspace, alone" time="0.004566092">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="a record link names the workspace it lives in &gt; a result link and its current-version link both carry it" time="0.000919247">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="a record link names the workspace it lives in &gt; activity links use each record&apos;s own workspace" time="0.044025043">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="which workspace a record page reads from &gt; the one its address names, whatever order the server lists them in" time="0.00826233">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="which workspace a record page reads from &gt; one this person can&apos;t open is not available, never another instead" time="0.002826027">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="which workspace a record page reads from &gt; an address naming none keeps its earlier meaning" time="0.000612925">
+        </testcase>
+        <testcase classname="test/scope.test.ts" name="which workspace a record page reads from &gt; nothing is decided while loading, and an unreadable list is said so" time="0.002469287">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/send-error.test.ts" timestamp="2026-10-26T20:59:54.507Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.031324039">
+        <testcase classname="test/send-error.test.ts" name="describeSendError &gt; explains a send refused where answers aren&apos;t turned on, keeping the draft" time="0.020800772">
+        </testcase>
+        <testcase classname="test/send-error.test.ts" name="describeSendError &gt; says answers are turned off when the activation was revoked" time="0.001160923">
+        </testcase>
+        <testcase classname="test/send-error.test.ts" name="describeSendError &gt; doesn&apos;t claim answers are off where they&apos;re on" time="0.000380145">
+        </testcase>
+        <testcase classname="test/send-error.test.ts" name="describeSendError &gt; names an unsettled earlier send rather than the raw service text" time="0.000545325">
+        </testcase>
+        <testcase classname="test/send-error.test.ts" name="describeSendError &gt; leaves every other error to the general copy" time="0.000514233">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/service.test.ts" timestamp="2026-10-26T20:59:54.508Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.130727756">
+        <testcase classname="test/service.test.ts" name="mock service semantics &gt; rejects foreign principals and unknown ids identically" time="0.052560177">
+        </testcase>
+        <testcase classname="test/service.test.ts" name="mock service semantics &gt; human save uses CAS and a stale proposal conflicts without losing either body" time="0.048478534">
+        </testcase>
+        <testcase classname="test/service.test.ts" name="mock service semantics &gt; replays identical commands and rejects changed payloads" time="0.014050453">
+        </testcase>
+        <testcase classname="test/service.test.ts" name="mock service semantics &gt; historical reads never move the accepted pointer" time="0.011676951">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/since-you-left.test.ts" timestamp="2026-10-26T20:59:54.510Z" hostname="ip-10-0-3-214" tests="7" failures="0" errors="0" skipped="0" time="0.094186473">
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; says nothing on a first visit" time="0.045551532">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; names a proposal waiting and work Workagent saved, newest first" time="0.010954757">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; leaves out what&apos;s older, the person&apos;s own saves and outdated proposals" time="0.000728277">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; a proposal from before you left is not news, even on work saved since" time="0.000747593">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; marks the newest service time, independent of formatting" time="0.01147732">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; orients in one line from counts, or leaves the greeting alone" time="0.013941778">
+        </testcase>
+        <testcase classname="test/since-you-left.test.ts" name="since you left &gt; picks up the most recently changed work first" time="0.001176906">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/space-view.test.ts" timestamp="2026-10-26T20:59:54.511Z" hostname="ip-10-0-3-214" tests="18" failures="0" errors="0" skipped="0" time="0.064043713">
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; with nothing yet, invites the first request and claims no progress" time="0.023543818">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; a proposed change comes first and links to where it&apos;s reviewed" time="0.007150477">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; a proposal made for an earlier version is outdated, not a change to apply" time="0.004375755">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; responsibilities follow their current lifecycle: a review needs you, waiting and active are held, not running" time="0.003556232">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; an unreadable responsibility is said as such, never as nothing" time="0.000453428">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; a reply in progress needs nothing from the person" time="0.002139324">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; an unconfirmed outcome says it isn’t resent, not to ask again" time="0.000628548">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; a turn that kept a result isn&apos;t called incomplete; one that didn&apos;t is" time="0.000470443">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; a responsibility marked for review needs the person and says so" time="0.001208651">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; while its work is still being read, a project isn&apos;t called empty" time="0.000440435">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; unreadable work is said plainly, not as an empty project" time="0.000338423">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="where a project stands &gt; with saved work and nothing pending, the next step is to continue it" time="0.00033497">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="the work shown first &gt; prefers work with a change to review, then the most recently changed" time="0.000489769">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="the work shown first &gt; names work by its own title and kind" time="0.000623492">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="what a proposed change does &gt; names an added row from the table itself" time="0.000834917">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="what a proposed change does &gt; counts changed and removed rows" time="0.000305897">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="what a proposed change does &gt; describes document changes by part, and says nothing when it can&apos;t" time="0.000422607">
+        </testcase>
+        <testcase classname="test/space-view.test.ts" name="what a reply can name as its subject &gt; accepts the kinds the service targets, never a saved file" time="0.000426935">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/table-notes.test.ts" timestamp="2026-10-26T20:59:54.516Z" hostname="ip-10-0-3-214" tests="11" failures="0" errors="0" skipped="0" time="0.097430425">
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; the five multiline notes are 17 lines joined" time="0.013517667">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; an untouched or retyped note keeps all five strings exactly" time="0.034810917">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; editing one note leaves the others byte-for-byte" time="0.000896394">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; whitespace-only notes are kept (the service accepts them)" time="0.000720213">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; an empty note is refused, not erased" time="0.000674107">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; reorders and removes only the note asked" time="0.011366955">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="table notes round-trip &gt; ten notes are allowed; an eleventh is refused with nothing removed" time="0.007045355">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="notes editor memory across parent updates &gt; discard after a removal clears Undo, so it can&apos;t duplicate a note" time="0.001814684">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="notes editor memory across parent updates &gt; the editor&apos;s own typing keeps identities and Undo" time="0.000988593">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="notes editor memory across parent updates &gt; a fresh empty list each render is not a replacement" time="0.000524002">
+        </testcase>
+        <testcase classname="test/table-notes.test.ts" name="notes editor memory across parent updates &gt; an empty discard still clears a stale Undo" time="0.000449269">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/thread.test.ts" timestamp="2026-10-26T20:59:54.520Z" hostname="ip-10-0-3-214" tests="3" failures="0" errors="0" skipped="0" time="0.031559245">
+        <testcase classname="test/thread.test.ts" name="conversation beside the work, from records only &gt; orders the request, the saved work, edits and asks with their outcomes" time="0.024752347">
+        </testcase>
+        <testcase classname="test/thread.test.ts" name="conversation beside the work, from records only &gt; quotes the person&apos;s own instruction and never invents a reply" time="0.002996161">
+        </testcase>
+        <testcase classname="test/thread.test.ts" name="conversation beside the work, from records only &gt; records a kept version as the person&apos;s decision" time="0.000598555">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/titles.test.ts" timestamp="2026-10-26T20:59:54.521Z" hostname="ip-10-0-3-214" tests="3" failures="0" errors="0" skipped="0" time="0.049559595">
+        <testcase classname="test/titles.test.ts" name="readableTitle &gt; reads identifier-like words as words" time="0.010570314">
+        </testcase>
+        <testcase classname="test/titles.test.ts" name="readableTitle &gt; capitalises an all-lowercase first word only" time="0.000848356">
+        </testcase>
+        <testcase classname="test/titles.test.ts" name="readableTitle &gt; leaves other titles exactly as written" time="0.00066933">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/work-areas.test.ts" timestamp="2026-10-26T20:59:54.522Z" hostname="ip-10-0-3-214" tests="5" failures="0" errors="0" skipped="0" time="0.023765082">
+        <testcase classname="test/work-areas.test.ts" name="uses workspace and canonical conversation identity in a stable URL" time="0.003591072">
+        </testcase>
+        <testcase classname="test/work-areas.test.ts" name="reads back a created Space and preserves command identity" time="0.003545549">
+        </testcase>
+        <testcase classname="test/work-areas.test.ts" name="preserves expected version for human metadata updates" time="0.002945464">
+        </testcase>
+        <testcase classname="test/work-areas.test.ts" name="does not retry an ambiguous mutation or readback" time="0.006265382">
+        </testcase>
+        <testcase classname="test/work-areas.test.ts" name="does not infer a Space from a plain chat title or request" time="0.00236258">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/work-events.test.ts" timestamp="2026-10-26T20:59:54.524Z" hostname="ip-10-0-3-214" tests="29" failures="0" errors="0" skipped="0" time="0.544818216">
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 1), incl. split multibyte" time="0.030573209">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 2), incl. split multibyte" time="0.012268335">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 3), incl. split multibyte" time="0.001383582">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 5), incl. split multibyte" time="0.001051174">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 64), incl. split multibyte" time="0.000646319">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; same frames for any chunking (size 1024), incl. split multibyte" time="0.000419465">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; handles CRLF split across chunks, multi-line data, comments" time="0.000936616">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; does not inherit an id from an earlier frame" time="0.000428619">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; heartbeat-only input yields nothing; unterminated tail is dropped" time="0.001342081">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SSE parser &gt; caps an oversized frame, terminated or not (negative control)" time="0.00235187">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="contract adapter &gt; returns a frozen copy without unknown fields" time="0.000707589">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="contract adapter &gt; rejects wrong schema, unknown state, numeric cursor type" time="0.000894654">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="serial refresh &gt; runs one read at a time and coalesces calls into one more read" time="0.002047795">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="SeenIds &gt; dedupes and stays bounded" time="0.000391834">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; applies each event once across duplicate/replayed delivery and resumes from the exact server id" time="0.015442458">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; ignores events for another conversation (scope negative control)" time="0.004399109">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; snapshot.required re-reads the snapshot and resumes from its cursor" time="0.003416588">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; a malformed event forces a reset instead of inventing state" time="0.245021594">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; falls back to polling on a network outage, same page model" time="0.023928299">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; an oversized frame drops the connection and reconnects from the last applied cursor" time="0.033091708">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; lost access stops the subscription (no retry loop)" time="0.003555711">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="subscribeWork &gt; access_changed with a refused snapshot re-read revokes" time="0.002713173">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="current-state view &gt; queued admission is not an active worker" time="0.000628372">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="current-state view &gt; running without an observed live worker is not shown as working" time="0.000346419">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="current-state view &gt; unknown outcome is prominent and says not to retry blindly" time="0.004112059">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="current-state view &gt; idle shows nothing; no percentages anywhere" time="0.001018992">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="current-state view &gt; responsibility keeps earlier check-in separate from current next action" time="0.001715746">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="CurrentWork render &gt; shows current facts, labelled earlier check-in, review link and exact revision in details" time="0.141258318">
+        </testcase>
+        <testcase classname="test/work-events.test.ts" name="CurrentWork render &gt; revoked hides every earlier fact (negative control)" time="0.000949719">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/work-state.test.ts" timestamp="2026-10-26T20:59:54.533Z" hostname="ip-10-0-3-214" tests="17" failures="0" errors="0" skipped="0" time="0.024973959">
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; keeps prepared work distinct from approved work" time="0.006173803">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; never lets prepared work lose its review route" time="0.001377162">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; puts a waiting proposal ahead of prepared work and links the exact artifact" time="0.000763651">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; does not present in-progress or approved work as a decision" time="0.000736231">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; surfaces blocked work with its recorded next step, never a fabricated one" time="0.000593555">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; describes completed work from saved artifacts when available" time="0.000552507">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="work phases from the authoritative summary &gt; titles work by the first sentence of the request" time="0.00067973">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; uses the run named by latest_run_id, not the last historical entry" time="0.000844325">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; binds the decision to the exact question and artifact" time="0.001800388">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; keeps a stale base a decision without claiming the proposal applies" time="0.000535637">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; never presents an unknown provider outcome as done, failed or actionable" time="0.000722179">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; names waiting blockers and refuses to call unverified work complete" time="0.000613709">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; labels provenance only from the attested evidence origin" time="0.001503391">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="responsibility outcome from the backend projection &gt; falls back to the summary when no projection exists" time="0.00028811">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="paused work &gt; reads as paused, never blocked or done" time="0.000288185">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="paused work &gt; still surfaces a waiting decision" time="0.000201055">
+        </testcase>
+        <testcase classname="test/work-state.test.ts" name="paused work &gt; cancelled is stopped" time="0.000182825">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/worker.test.ts" timestamp="2026-10-26T20:59:54.539Z" hostname="ip-10-0-3-214" tests="4" failures="0" errors="0" skipped="0" time="0.056917559">
+        <testcase classname="test/worker.test.ts" name="intake analysis &gt; counts the union of affected cases once" time="0.018203728">
+        </testcase>
+        <testcase classname="test/worker.test.ts" name="intake analysis &gt; derives the fixture recommendation from the rows, not a constant" time="0.019889091">
+        </testcase>
+        <testcase classname="test/worker.test.ts" name="intake analysis &gt; carries the protected note verbatim when the working plan is selected" time="0.003823106">
+        </testcase>
+        <testcase classname="test/worker.test.ts" name="diffBlocks &gt; marks added and removed blocks" time="0.005503774">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,64 @@
+npm notice run @workagent/web@0.1.0 test
+npm notice run vitest run --maxWorkers=1 --reporter=default --reporter=junit --outputFile.junit=../docs/evidence/batch2-recovery3/final-tests.xml
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+ ✓ test/work-events.test.ts (29 tests) 1045ms
+   ✓ subscribeWork (8)
+     ✓ a malformed event forces a reset instead of inventing state 335ms
+ ✓ test/products.test.ts (23 tests) 668ms
+ ✓ test/batch2-controls.test.ts (15 tests) 283ms
+ ✓ test/b2-correction.test.ts (34 tests) 271ms
+ ✓ test/batch2-durable.test.ts (10 tests) 115ms
+ ✓ test/flexible.test.ts (24 tests) 37ms
+ ✓ test/table-notes.test.ts (11 tests) 28ms
+ ✓ test/since-you-left.test.ts (7 tests) 15ms
+ ✓ test/result-links.test.ts (8 tests) 41ms
+ ✓ test/continuation.test.ts (11 tests) 156ms
+ ✓ test/conversation-work.test.ts (5 tests) 111ms
+ ✓ test/draft-carry.test.ts (4 tests) 14ms
+ ✓ test/service.test.ts (4 tests) 64ms
+ ✓ test/adaptive-presentation.test.ts (36 tests) 679ms
+ ✓ test/proposal-review.test.ts (19 tests) 87ms
+ ✓ test/activity.test.ts (5 tests) 117ms
+ ✓ test/attachment-vectors.test.ts (23 tests) 33ms
+ ✓ test/responsibility-recording.test.ts (14 tests) 24ms
+ ✓ test/responsibility-outputs.test.ts (9 tests) 43ms
+ ✓ test/assignment-summary.test.ts (7 tests) 21ms
+ ✓ test/responsibility-view.test.ts (6 tests) 26ms
+ ✓ test/scope.test.ts (8 tests) 46ms
+ ✓ test/product-summary.test.ts (8 tests) 15ms
+ ✓ test/outcome-preview.test.ts (4 tests) 69ms
+ ✓ test/sandbox.test.ts (4 tests) 22ms
+ ✓ test/send-error.test.ts (5 tests) 12ms
+ ✓ test/operation-state.test.ts (6 tests) 69ms
+ ✓ test/titles.test.ts (3 tests) 11ms
+ ✓ test/natural-admission.test.ts (5 tests) 117ms
+ ✓ test/thread.test.ts (3 tests) 36ms
+ ✓ test/work-state.test.ts (17 tests) 18ms
+ ✓ test/execution-view.test.ts (11 tests) 61ms
+ ✓ test/diff.test.ts (2 tests) 19ms
+ ✓ test/post-message-types.test.ts (1 test) 14ms
+ ✓ test/home-destination.test.ts (7 tests) 34ms
+ ✓ test/space-view.test.ts (18 tests) 99ms
+ ✓ test/rich-text.test.ts (29 tests) 70ms
+ ✓ test/worker.test.ts (4 tests) 78ms
+ ✓ test/doc-read.test.ts (1 test) 33ms
+ ✓ test/recommendation.test.ts (5 tests) 15ms
+ ✓ test/work-areas.test.ts (5 tests) 117ms
+ ✓ test/conversation.test.ts (4 tests) 32ms
+ ✓ test/note-authors.test.ts (5 tests) 9ms
+ ✓ test/proposal-changes.test.ts (4 tests) 22ms
+ ✓ test/command-cache.test.ts (2 tests) 40ms
+ ✓ test/cell-authors.test.ts (5 tests) 32ms
+
+ Test Files  46 passed (46)
+      Tests  470 passed (470)
+   Start at  18:32:10
+   Duration  46.60s (import 46%, transform 27%, tests 23%, worker 4%)
+
+     Import  129 modules were evaluated 201 times · 10.17s total, 46% of tracked time
+             ~3.64s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+
+JUNIT report written to /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery3/final-tests.xml

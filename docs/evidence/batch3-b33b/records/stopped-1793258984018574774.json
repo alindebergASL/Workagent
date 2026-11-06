@@ -1,0 +1,23 @@
+[
+  {
+    "name": "provider",
+    "pid": 436575,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026",
+    "port": 18769,
+    "start": "124014824"
+  },
+  {
+    "name": "api",
+    "pid": 436617,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026",
+    "port": 18239,
+    "start": "124015037"
+  },
+  {
+    "name": "web",
+    "pid": 436682,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/web-lane/web",
+    "port": 13239,
+    "start": "124015298"
+  }
+]

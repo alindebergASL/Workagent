@@ -1,0 +1,14 @@
+[
+  {
+    "name": "api",
+    "pid": 3568,
+    "owned_cwd_verified": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate",
+    "signal": "TERM"
+  },
+  {
+    "name": "web",
+    "pid": 4824,
+    "owned_cwd_verified": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/web",
+    "signal": "TERM"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "batch": "http-fix-03.xml",
+  "sha256": "3a5725b8837b93c121c62b1677ee871461b703cf3c1a6a8e63183838a52e5899",
+  "counts": {
+    "passed": 2,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 2,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_parent_http::test_parent_tcp_remember_review_race_forget_restart",
+      "status": "passed",
+      "seconds": 11.963
+    },
+    {
+      "nodeid": "tests.test_memory_parent_http::test_parent_tcp_scope_noninterference_dispute_and_temporary",
+      "status": "passed",
+      "seconds": 5.142
+    }
+  ],
+  "seconds": 21.448,
+  "timestamp": "2026-10-29T13:59:55.371116+00:00"
+}

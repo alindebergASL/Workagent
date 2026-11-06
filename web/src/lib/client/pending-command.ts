@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { scopedSession } from "./session-scope";
 
 /**
  * A command whose outcome is not yet known, kept for this tab across reloads.
@@ -10,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * exact command (ID and payload) means the only way forward is replaying it,
  * which the server answers with the original result, or a definite refusal
  * that clears it. The stored value holds no credential, only the person's own
- * words and IDs. It is per tab (sessionStorage) and never shared.
+ * words and IDs. It is per tab (scopedSession) and never shared.
  */
 export function usePendingCommand<T>(key: string | null) {
   const ref = useRef<T | null>(null);
@@ -24,7 +25,7 @@ export function usePendingCommand<T>(key: string | null) {
     setRestored(false);
     if (!key) return;
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = scopedSession.getItem(key);
       if (raw) {
         ref.current = JSON.parse(raw) as T;
         persisted.current = true;
@@ -43,9 +44,9 @@ export function usePendingCommand<T>(key: string | null) {
       if (value === null) setRestored(false);
       if (key)
         try {
-          if (value === null) sessionStorage.removeItem(key);
+          if (value === null) scopedSession.removeItem(key);
           else {
-            sessionStorage.setItem(key, JSON.stringify(value));
+            scopedSession.setItem(key, JSON.stringify(value));
             persisted.current = true;
           }
         } catch {
@@ -62,9 +63,9 @@ export function usePendingCommand<T>(key: string | null) {
       if (key)
         try {
           // A completion from an old mount must not erase a newer journal entry.
-          const stored = sessionStorage.getItem(key);
+          const stored = scopedSession.getItem(key);
           if (stored === JSON.stringify(expected))
-            sessionStorage.removeItem(key);
+            scopedSession.removeItem(key);
           else if (stored !== null || persisted.current) return false;
           // A quota-failed write has no stored entry. Resolve only its exact
           // in-memory attempt; a different stored entry always wins.

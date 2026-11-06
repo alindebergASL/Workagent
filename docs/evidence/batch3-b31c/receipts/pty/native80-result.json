@@ -1,0 +1,89 @@
+{
+  "label": "native80",
+  "size": [
+    80,
+    35
+  ],
+  "pid": 19103,
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;5;8M\u001b[<0;5;8m"
+    },
+    {
+      "keys": "\r"
+    },
+    {
+      "keys": "\u001b[<0;5;13M\u001b[<0;5;13m"
+    },
+    {
+      "keys": "\u001b[<0;3;11M\u001b[<0;3;11m"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<0;3;34M\u001b[<0;3;34m"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<0;5;34M\u001b[<0;5;34m"
+    },
+    {
+      "keys": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/native80-download.txt"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<65;76;30M"
+    },
+    {
+      "keys": "\u001b[<0;3;33M\u001b[<0;3;33m"
+    }
+  ],
+  "passed": true,
+  "download_sha256": "191b764d57ea2263bc616e5660d5f0f2e9655ac9720b6ede2df925d5be6ae51d",
+  "download_text": "group,unique_valid_observations,total_seconds,mean_seconds\nNorth,2,240.000,120.000\nSouth,1,240.000,240.000\n\nHuman annotation: South remains provisional; retain this exact wording \u2014 reviewed by test operator.\n",
+  "conversation_id": "8302c41e-ff20-4dca-ad2c-d44b4de4eb1f"
+}

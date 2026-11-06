@@ -1,0 +1,50 @@
+{
+  "pid": 16776,
+  "process_start": "618028",
+  "conversation_id": "01f700fd-1126-45dc-a82a-1fade015e4dd",
+  "run_id": "c1200202-bff2-4b3a-89d2-7b1d7fada6c7",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "c1200202-bff2-4b3a-89d2-7b1d7fada6c7",
+        "request_id": "c1200202-bff2-4b3a-89d2-7b1d7fada6c7",
+        "attempt_id": "8e2f3821-5d0d-41e8-b5c0-1cb2ddd486d1",
+        "phase": "final",
+        "request_sha256": "837b0f78b6c4b1def0cc175b676aee891122ccda68ed03f3ef69559c7d9decee",
+        "entries": []
+      },
+      {
+        "run_id": "c1200202-bff2-4b3a-89d2-7b1d7fada6c7",
+        "request_id": "c1200202-bff2-4b3a-89d2-7b1d7fada6c7",
+        "attempt_id": "8e2f3821-5d0d-41e8-b5c0-1cb2ddd486d1",
+        "phase": "selection",
+        "request_sha256": "df1c3a91605c85f2e2cff2c1462f9119f2669fb2624df9b6e8b6766c9d97f17f",
+        "entries": []
+      }
+    ]
+  },
+  "downloads": [],
+  "tool_observations": 0,
+  "calls": [
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ]
+  ],
+  "restart_no_repeat": true,
+  "controlled_transport": true,
+  "paid_calls": 0
+}

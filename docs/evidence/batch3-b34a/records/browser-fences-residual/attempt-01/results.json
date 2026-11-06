@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "scenarios": [
+    {
+      "name": "same-scope-forget-before-late-list",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_completion_timing": true,
+      "writes": 2,
+      "intended_write": "Correct then Forget dedicated control only",
+      "memory_id": "fa9594cd-73b4-4342-b330-f30a9b17b30e",
+      "late_current_list_contained_forgotten_content": true,
+      "content_reappeared": false,
+      "scope_unchanged": true
+    },
+    {
+      "name": "client-route-replacement-before-late-evidence",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_completion_timing": true,
+      "writes": 0,
+      "same_document": true,
+      "from": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+      "to": "b506e34d-4b3c-41a6-b45c-6617d08e6ed8",
+      "old_evidence_items": 8,
+      "new_route_panel_unchanged": true
+    },
+    {
+      "name": "older-history-after-newer-target-selected",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_completion_timing": true,
+      "writes": 0,
+      "selected_target": {
+        "name": "memory-restore-9027eae7-bf25-4336-bac2-1e2bf84cd5f9",
+        "label": "10/29/2026, 9:51:36 AM · Replaced by a correction\nHuman correction: record the denominator definition in the output."
+      },
+      "newer_choice_survives": true,
+      "restore_not_submitted": true
+    }
+  ],
+  "build_id": "HAEr4yziKBlWBIpt1euzS",
+  "timing": "Real API responses held by a fetch shim with detached cancellation signals. No fabricated response or injected denial; controlled completion order is not natural network latency or server revoke proof."
+}

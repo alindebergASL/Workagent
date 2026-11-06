@@ -1,0 +1,12 @@
+{
+  "all_preexisting_rows_unchanged": true,
+  "tables": 68,
+  "missing_row_hashes": {},
+  "added_rows": {
+    "commands": 3,
+    "memory_items": 1,
+    "memory_revisions": 3,
+    "memory_tombstones": 1
+  },
+  "control_forgotten": true
+}

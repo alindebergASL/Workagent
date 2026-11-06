@@ -1,0 +1,24 @@
+{
+  "owned_processes": [
+    {
+      "name": "api",
+      "pid": 80901,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "port": 18235,
+      "start": "122657190"
+    },
+    {
+      "name": "web",
+      "pid": 80940,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32b/candidate/web",
+      "port": 13235,
+      "start": "122657390"
+    }
+  ],
+  "ports_refused": [
+    18235,
+    13235
+  ],
+  "other_services_untouched": true,
+  "installed_data_maintenance": false
+}

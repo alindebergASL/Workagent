@@ -1,0 +1,59 @@
+{
+  "evidence": "actual PTY + HTTP + restricted PG",
+  "size": [
+    80,
+    35
+  ],
+  "actions": [
+    {
+      "keys": "Unsent native composer pty80 preserve me"
+    },
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\r"
+    },
+    {
+      "keys": "\u001b[<0;5;14M\u001b[<0;5;14m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    },
+    {
+      "keys": "\u001b[<0;4;20M\u001b[<0;4;20m"
+    },
+    {
+      "keys": "\u0005"
+    },
+    {
+      "keys": " corrected by human"
+    },
+    {
+      "keys": "\u001b[<0;34;28M\u001b[<0;34;28m"
+    },
+    {
+      "keys": "\u001b[<65;76;31M"
+    },
+    {
+      "keys": "\u001b[<0;8;33M\u001b[<0;8;33m"
+    },
+    {
+      "keys": "\u001b[<0;28;30M\u001b[<0;28;30m"
+    },
+    {
+      "keys": "\u001b"
+    }
+  ],
+  "pass_": true,
+  "corrected_revision": "8ce9cb1a-44ac-4b52-a8b3-1a1481139995",
+  "forgotten_revision": "99de4232-d30d-4d9d-8420-4d89e42e1a6f",
+  "all_payloads_erased": true,
+  "composer_preserved": true
+}

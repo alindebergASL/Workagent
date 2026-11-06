@@ -38,6 +38,8 @@ jobs:
       - run: npm ci --ignore-scripts
         working-directory: contracts
       - run: pnpm install --frozen-lockfile
+      # Focused layout tests exercise real Chromium as part of pnpm check.
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
       # Production build against the real domain proxy (what scripts/workagent.py serves).
       - run: pnpm build
@@ -48,7 +50,6 @@ jobs:
       - run: pnpm build
         env:
           NEXT_PUBLIC_WORKAGENT_API_BASE: /api/mock
-      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
         if: always()

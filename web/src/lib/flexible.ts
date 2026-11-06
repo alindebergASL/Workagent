@@ -241,6 +241,27 @@ export function rowName(body: StructuredTable, row: S["TableRow"], n: number) {
   return typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : `Row ${n}`;
 }
 
+/**
+ * Which rows a proposed table adds (by id) and which saved rows it takes
+ * out (by name, as the saved table names them).
+ */
+export function rowsAddedRemoved(
+  before: StructuredTable,
+  after: StructuredTable,
+): { added: Set<string>; removed: string[] } {
+  const was = new Set(before.rows.map((r) => r.row_id));
+  const now = new Set(after.rows.map((r) => r.row_id));
+  return {
+    added: new Set(
+      after.rows.filter((r) => !was.has(r.row_id)).map((r) => r.row_id),
+    ),
+    removed: before.rows
+      .map((r, i) => ({ r, i }))
+      .filter(({ r }) => !now.has(r.row_id))
+      .map(({ r, i }) => rowName(before, r, i + 1)),
+  };
+}
+
 /** What changed between two versions of a table, in plain counts. */
 export function tableChanges(before: StructuredTable, after: StructuredTable) {
   const old = new Map(before.rows.map((r) => [r.row_id, r]));

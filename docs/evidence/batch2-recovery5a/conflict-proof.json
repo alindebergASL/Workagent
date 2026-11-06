@@ -1,0 +1,75 @@
+{
+  "draft_sha256": "183544b2c2419bfdf88c76030e6c204df81c8bf42dc536e73c59974e81d122c1",
+  "command": {
+    "record": {
+      "format": 3,
+      "command_id": "22583e81-6e55-4db8-b36d-6138a008d6ed",
+      "base": "http://127.0.0.1:18965",
+      "workspace": "recovery5a-workspace",
+      "principal_id": "local-human",
+      "action": "follow",
+      "args": [
+        "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n"
+      ],
+      "path": "/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/messages",
+      "body": {
+        "schema_version": "workagent/v1",
+        "request_id": "22583e81-6e55-4db8-b36d-6138a008d6ed",
+        "command_id": "22583e81-6e55-4db8-b36d-6138a008d6ed",
+        "expected_work_version": 2,
+        "text": "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n",
+        "target": null,
+        "attachments": []
+      }
+    },
+    "digest": "96bab27f37da4d83b9f6c31422aebdeb2072f6e70d376350fdf9d6263d0cf04b",
+    "outcome": {
+      "state": "rejected",
+      "rejection": {
+        "status": 409,
+        "response": {
+          "code": "version_conflict",
+          "message": "The current version changed.",
+          "request_id": "22583e81-6e55-4db8-b36d-6138a008d6ed",
+          "next_action": "Refresh current work and review a new proposal against that base.",
+          "details": {
+            "current_revision_id": null,
+            "current_version": 3,
+            "proposal_id": null,
+            "fields": []
+          }
+        }
+      }
+    }
+  },
+  "draft": {
+    "conversation": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "text": "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n",
+    "attachments": [],
+    "target": null,
+    "generation": 1,
+    "expected_work_version": 3,
+    "pending": {
+      "command_id": "22583e81-6e55-4db8-b36d-6138a008d6ed",
+      "action": "follow",
+      "generation": 1
+    },
+    "stage": "following",
+    "documents": [],
+    "delivery": {
+      "text": "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n",
+      "attachments": [],
+      "documents": [],
+      "target": null,
+      "generation": 1,
+      "action": "follow",
+      "refs": [],
+      "version": 2
+    },
+    "continuity": {
+      "cursor": "5b73027e-e152-463b-8c1c-7b790c5e9a45.1.WEzeA2wF68U21O3aZpJwYzTDwjXze6AaHxji32x1LZw",
+      "access_generation": 1
+    }
+  }
+}

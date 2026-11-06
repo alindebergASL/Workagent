@@ -1,0 +1,41 @@
+workagent
+More
+← Back to Private fixture workspace
+Conversation
+Keep as a project
+
+You:
+Help me think
+
+Agent:
+
+Local calculation observed. Review the saved product or pending proposal; human notes preserved. No external action was performed.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Saved checkpoint history
+Now
+Checked 3 Nov, 01:44 UTC
+2 changes since you last looked
+Mark as seen
+Details
+Files
+
+No working files in this conversation yet.
+
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+No captured web sources in this conversation.
+
+New file…
+Memory
+Tool activity
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

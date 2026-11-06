@@ -1,0 +1,69 @@
+{
+  "original": {
+    "planned_slots": 72,
+    "trajectories": 12,
+    "counts": {
+      "collected": 29,
+      "not_runnable": 40,
+      "failed_uncollected": 3
+    },
+    "primary_reviews": 29,
+    "content_scores": {
+      "3": 18,
+      "1": 2,
+      "0": 1,
+      "2": 8
+    },
+    "custody_files_verified": 38,
+    "active_human_effort_measured": false,
+    "full_AB_accepted": false
+  },
+  "execution_archive": {
+    "sha256": "cfc75fd5aa829da1338e526606a5a21c1852517ca33518d353b0122b3a9c030a",
+    "payload_hashes_verified": 43,
+    "crc": "PASS"
+  },
+  "integration": {
+    "reviewed_source_bindings_verified": 340,
+    "new_migration": "088_named_office_exports.sql",
+    "migration": {
+      "scope": "owned synthetic disposable fixture only",
+      "migration_sha256": "5247783723868cbfbc1c1cc99ef1800fb5b2839555cdcb85af3e03f3817e53f7",
+      "exact_whole_function_delta": true,
+      "rollback": true,
+      "ordinary_migrate_twice": true,
+      "guard_cases": 12,
+      "forged_worker_attempt_denied": true,
+      "predecessor_drift_denied": true,
+      "preserved_tables": 73,
+      "preserved_rows": 226,
+      "original_stores_touched": false,
+      "provider_calls": 0
+    },
+    "original_store_writes": 0,
+    "provider_calls": 0,
+    "installed_study_release_changes": 0,
+    "canonical_source_integrated": true,
+    "deployed": false,
+    "old_pin_rewrite": false
+  },
+  "verification": {
+    "offline_controls": 158,
+    "web_focused": 93,
+    "web_full_after_formatting": 948,
+    "formatter_only_files": 12,
+    "first_published_CI": "failed:12 prior web files need Prettier; failure retained, fixed by existing web owner",
+    "actual_restricted_PG_TCP_cases": 5,
+    "contract_types": "PASS",
+    "canonical_optimized_webpack_build": "PASS",
+    "web_source_bindings_verified": 295,
+    "narrow_review": "PASS",
+    "browser": "Reused exact filename backend/web source, four prior desktop/phone named downloads; no new browser claim",
+    "previous_failures_preserved": [
+      "offline-01.log",
+      "pg-01.log",
+      "pg-02.log",
+      "pg-debug.log"
+    ]
+  }
+}

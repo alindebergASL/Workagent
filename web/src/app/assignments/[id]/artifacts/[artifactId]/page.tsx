@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { WorkSurface } from "@/components/WorkSurface";
+import { AssignmentArtifactRoute } from "@/components/AssignmentArtifactRoute";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { api, newCommandId } from "@/lib/client/api";
+import { api, API_MODE, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import type { WorkspaceScope } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
@@ -21,6 +22,7 @@ import type {
 } from "@/lib/contract/types";
 import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
+import { scopedSession } from "@/lib/client/session-scope";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
 import { threadFrom } from "@/lib/thread";
@@ -57,7 +59,17 @@ const KIND_LABEL: Record<Artifact["kind"], string> = {
 
 export default function ArtifactPage() {
   return (
-    <ScopedRecord>{(scope) => <ArtifactView scope={scope} />}</ScopedRecord>
+    <ScopedRecord>
+      {(scope) =>
+        API_MODE === "mock" ? (
+          <ArtifactView scope={scope} />
+        ) : (
+          <AssignmentArtifactRoute scope={scope}>
+            <ArtifactView scope={scope} />
+          </AssignmentArtifactRoute>
+        )
+      }
+    </ScopedRecord>
   );
 }
 
@@ -166,7 +178,7 @@ function ArtifactView({ scope }: { scope: WorkspaceScope }) {
   const askKey = `workagent:ask:${artifactId}`;
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem(askKey);
+      const saved = scopedSession.getItem(askKey);
       if (saved) setInstruction((v) => v || saved);
     } catch {
       /* storage unavailable */
@@ -174,8 +186,8 @@ function ArtifactView({ scope }: { scope: WorkspaceScope }) {
   }, [askKey]);
   useEffect(() => {
     try {
-      if (instruction) sessionStorage.setItem(askKey, instruction);
-      else sessionStorage.removeItem(askKey);
+      if (instruction) scopedSession.setItem(askKey, instruction);
+      else scopedSession.removeItem(askKey);
     } catch {
       /* storage unavailable: the in-memory text still exists */
     }

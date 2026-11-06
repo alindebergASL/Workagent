@@ -1,0 +1,8 @@
+{
+  "records_verified": 5,
+  "README_git_blob_verified": "4e5c44555c02f127cd0cca2efa8b22716c78ee23",
+  "README_bytes": 2906,
+  "commit": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+  "repository_public": true,
+  "evidence_class": "evaluator external unauthenticated readback, not adapter self-report"
+}

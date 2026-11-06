@@ -1,0 +1,140 @@
+[
+  {
+    "id": "79ccb056-a00c-4702-8ceb-02fec29c319f",
+    "capability_id": "research.cite",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 602,
+        "category": "extraction",
+        "elapsed_ms": 1072,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "claim": "The source reports 10 units for the synthetic east depot.",
+          "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "claim_id": "79ccb056-a00c-4702-8ceb-02fec29c319f",
+          "evidence": [
+            {
+              "end": 54,
+              "quote": "Current public capacity: 10 units.",
+              "start": 20,
+              "relation": "supports",
+              "snapshot_id": "d5bde35a-86ad-4daf-87a4-d082243d7b2d",
+              "text_sha256": "9363f305ceceef4dbd3e87c9ea8e36b9cc4ebad985f193fdd3b46eff4bc8954d",
+              "workspace_file_id": "97e68878-3d1d-454a-9467-5e1306a2a6f0"
+            }
+          ],
+          "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+          "created_at": "2026-10-29T00:35:34.579375Z",
+          "artifact_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+          "attribution": "exact_quotes_only",
+          "revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+          "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+          "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+          "semantic_status": "not_assessed",
+          "tool_attempt_id": "79ccb056-a00c-4702-8ceb-02fec29c319f"
+        },
+        "version": "1",
+        "capability": "research_cite"
+      },
+      "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+      "status": "observed",
+      "call_id": "selection",
+      "ended_at": "2026-10-29T00:35:35.016820Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "79ccb056-a00c-4702-8ceb-02fec29c319f",
+      "input_refs": [
+        {
+          "id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "kind": "run_scope",
+          "sha256": "6eea9120e79c25d556662ffa2f4b3febce79b7a2846e88a6e8df169b84f8ca8f",
+          "version": "3"
+        }
+      ],
+      "started_at": "2026-10-29T00:35:33.944533Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "research.cite",
+      "output_sha256": "0c78c4beca371a8ee9713fbf392e7af1c6c9e2ca57fce8926ad4f9e4d87adf37",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-grounded-research-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "8b8bc6cdb62c54a9417a29d587095870cbd9afa92437581066697f2bd5e509e1"
+    }
+  },
+  {
+    "id": "1fd06878-f147-43a9-afc6-14703cd58a49",
+    "capability_id": "research.cite",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 734,
+        "category": "extraction",
+        "elapsed_ms": 1097,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "claim": "The entire organization has expanded to 99 units.",
+          "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "claim_id": "1fd06878-f147-43a9-afc6-14703cd58a49",
+          "evidence": [],
+          "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+          "created_at": "2026-10-29T00:35:44.788253Z",
+          "artifact_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+          "attribution": "exact_quotes_only",
+          "revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+          "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+          "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+          "semantic_status": "unsupported",
+          "tool_attempt_id": "1fd06878-f147-43a9-afc6-14703cd58a49"
+        },
+        "version": "1",
+        "capability": "research_cite"
+      },
+      "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+      "status": "observed",
+      "call_id": "selection_2",
+      "ended_at": "2026-10-29T00:35:45.135252Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "1fd06878-f147-43a9-afc6-14703cd58a49",
+      "input_refs": [
+        {
+          "id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "kind": "run_scope",
+          "sha256": "6eea9120e79c25d556662ffa2f4b3febce79b7a2846e88a6e8df169b84f8ca8f",
+          "version": "3"
+        }
+      ],
+      "started_at": "2026-10-29T00:35:44.037239Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "research.cite",
+      "output_sha256": "de7bc1c3bf59f4488c0de4bc64618d3efee55ca67302594449aaddd52c486134",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-grounded-research-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "8b8bc6cdb62c54a9417a29d587095870cbd9afa92437581066697f2bd5e509e1"
+    }
+  }
+]

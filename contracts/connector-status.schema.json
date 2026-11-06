@@ -1,0 +1,96 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "access_generation": {
+      "minimum": 1,
+      "title": "Access Generation",
+      "type": "integer"
+    },
+    "account": {
+      "const": "Synthetic library",
+      "default": "Synthetic library",
+      "title": "Account",
+      "type": "string"
+    },
+    "connector_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Connector Id",
+      "type": "string"
+    },
+    "effects": {
+      "items": {
+        "const": "read",
+        "type": "string"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "title": "Effects",
+      "type": "array"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "processor": {
+      "const": "local-synthetic-mcp",
+      "default": "local-synthetic-mcp",
+      "title": "Processor",
+      "type": "string"
+    },
+    "provider": {
+      "const": "synthetic",
+      "default": "synthetic",
+      "title": "Provider",
+      "type": "string"
+    },
+    "provider_revocation": {
+      "enum": [
+        "not_requested",
+        "pending",
+        "failed",
+        "revoked"
+      ],
+      "title": "Provider Revocation",
+      "type": "string"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reason"
+    },
+    "resource": {
+      "const": "synthetic/catalog",
+      "default": "synthetic/catalog",
+      "title": "Resource",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "connected",
+        "revoked",
+        "expired",
+        "unavailable"
+      ],
+      "title": "State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "connector_id",
+    "state",
+    "access_generation",
+    "expires_at",
+    "provider_revocation"
+  ],
+  "title": "ConnectorStatus",
+  "type": "object"
+}

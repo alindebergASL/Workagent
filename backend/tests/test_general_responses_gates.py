@@ -55,7 +55,8 @@ def test_predispatch_revoke_blocks_send_and_keeps_reservation(context,tmp_path):
     with pytest.raises(Exception):w.work(p,ws,q.run.id)
     assert len(fake.responses)==0 and len(fake.calls)==1
     assert totals(s,g)['request_counts']['dispatch']==1
-    assert totals(s,g)['reserved_input_tokens']==20000
+    # Revocation retains the full current 50k reservation despite no dispatch I/O.
+    assert totals(s,g)['reserved_input_tokens']==50000
     with pytest.raises(Exception):worker(context,fake,tmp_path).work(p,ws,q.run.id)
     assert len(fake.calls)==1
 
@@ -199,7 +200,11 @@ print(json.dumps({'workspace':ws,'artifact_id':artifact.id,'grant_id':historical
     migrate(owner);migrate(owner)
     with Database(runtime).transaction() as c:
         for table in preserved_tables:
-            assert c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()==before[table]
+            # Later migrations may add nullable columns (072 producer_run_id);
+            # preservation is about the historical column set, not SELECT * shape.
+            current=c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()
+            historical=list(before[table][0].keys()) if before[table] else []
+            assert [{k:row[k] for k in historical} for row in current]==before[table]
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()==[
             {'name':path.name,'checksum':hashlib.sha256(path.read_bytes()).hexdigest()} for path in canonical_sql]

@@ -1,0 +1,12 @@
+{
+  "api": {
+    "pid": 2239597,
+    "start": "165143894",
+    "cwd": "/home/ubuntu/workagent-continuation-20261026/backend"
+  },
+  "web": {
+    "pid": 2239771,
+    "start": "165144501",
+    "cwd": "/home/ubuntu/workagent-continuation-20261026/web"
+  }
+}

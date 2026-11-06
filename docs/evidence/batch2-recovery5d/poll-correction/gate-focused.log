@@ -1,0 +1,12 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  23:41:00
+   Duration  4.08s (tests 45%, transform 39%, import 8%, setup 5%, worker 2%)
+
+    Isolate  2 workers spawned · ~740ms startup each (spawn + environment, per file)
+             at least ~740ms faster with isolate: false — reuses workers across files instead of one per file
+

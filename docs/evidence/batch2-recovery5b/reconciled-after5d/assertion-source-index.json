@@ -1,0 +1,1495 @@
+[
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_exact_stop_leaves_open_and_stale_run_cannot_stop_replacement",
+    "line_start": 37,
+    "line_end": 52,
+    "assertions": [
+      "assert stopped.state=='cancelled' and stopped.fence==q.run.fence+1",
+      "assert Service(s.db).stop_conversation_run(p,ws,cv.id,command)==stopped",
+      "assert cv.state=='open'",
+      "assert s.get_run(p,ws,latest.run.id).state=='queued'",
+      "assert len(cps)==1 and cps[0].run_id==q.run.id and cps[0].checkpoint_kind=='stop'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_queue_is_durable_exact_fifo_and_does_not_advance_human_version",
+    "line_start": 55,
+    "line_end": 86,
+    "assertions": [
+      "assert Service(s.db).queue_message(p,ws,cv.id,command)==q",
+      "assert [v.state for v in s.list_queued_messages(p,ws,cv.id).items]==['pending','pending']",
+      "assert fake.calls==calls",
+      "assert a.state=='admitted' and b.state=='pending'",
+      "assert s.list_queued_messages(p,ws,cv.id).items[1].state=='pending'",
+      "assert b.state=='admitted' and b.run_id!=a.run_id",
+      "assert next(m for m in detail.messages if m.run_id==a.run_id and m.author_kind=='human').text==exact",
+      "assert detail.conversation.work_version==cv.work_version",
+      "assert cfg['queued_intent']=={'id':q.id,'command_id':command.command_id}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_queue_human_redirect_holds_and_cancel_lost_ack_is_exact",
+    "line_start": 89,
+    "line_end": 104,
+    "assertions": [
+      "assert held.state=='held' and held.reason=='work_changed' and held.intent==q.intent",
+      "assert cancelled.state=='cancelled'",
+      "assert Service(s.db).cancel_queued_message(p,ws,cv.id,q.id,cancellation)==cancelled"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_queue_cancel_admit_race_has_one_canonical_outcome",
+    "line_start": 107,
+    "line_end": 120,
+    "assertions": [
+      "assert result.state in ('admitted','cancelled')",
+      "assert len(detail.runs)==(1 if result.state=='admitted' else 0)"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_checkpoint_restart_at_canonical_boundary_keeps_hashes_and_effects",
+    "line_start": 124,
+    "line_end": 145,
+    "assertions": [
+      "assert prior",
+      "assert len(detail.artifact_ids)==1",
+      "assert len([m for m in detail.messages if m.author_kind=='assistant'])==1",
+      "assert all(after[k]==v for k,v in prior.items())",
+      "assert settled_checkpoint(s,p,ws,cv.id,q.run.id).data.next_safe_action=='settled'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_explicit_successor_lost_ack_concurrency_original_intent_and_shared_budget",
+    "line_start": 148,
+    "line_end": 176,
+    "assertions": [
+      "assert cp.data.next_safe_action=='continue_slice' and cp.data.waiting=='none'",
+      "assert len({r.id for r in runs})==1 and runs[0].id!=q.run.id",
+      "assert totals(s,g)==before",
+      "assert s.continue_conversation(p,ws,cv.id,command).id==runs[0].id",
+      "assert successor.text==original.text and successor.attachments==original.attachments",
+      "assert cfg['continuation']['intent_message_id']==original.id and cfg['continuation']['intent_sha256']==digest(original)",
+      "assert cfg['grant_id']==g.id",
+      "assert final.contexts[0]['continuation']['checkpoint_id']==cp.checkpoint_id",
+      "assert s.get_conversation(p,ws,cv.id).conversation.work_version==cv.work_version"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_successor_rejects_changed_scope_without_rewriting_saved_work",
+    "line_start": 180,
+    "line_end": 204,
+    "assertions": [
+      "assert not c.execute('SELECT 1 FROM run_successors WHERE workspace_id=%s',(ws,)).fetchone()",
+      "assert c.execute('SELECT checkpoint_hash FROM run_checkpoints WHERE workspace_id=%s AND checkpoint_id=%s',\n            (ws,cp.checkpoint_id)).fetchone()['checkpoint_hash']==cp.checkpoint_hash"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_actual_worker_consumes_retained_tool_page_and_receipt_before_context",
+    "line_start": 207,
+    "line_end": 226,
+    "assertions": [
+      "assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='ready'",
+      "assert fake.calls==calls",
+      "assert page['status']=='available' and 'Retained evidence brief' in page['text']",
+      "assert c.execute('SELECT count(*) n FROM retained_result_reads WHERE workspace_id=%s AND run_id=%s',\n                (ws,q.run.id)).fetchone()['n']==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_dispatcher_successor_retains_same_responsibility_wake_and_changed_deps_block",
+    "line_start": 229,
+    "line_end": 259,
+    "assertions": [
+      "assert len(rows)==2 and totals(s,g)==before",
+      "assert second['config']['responsibility']==first['config']['responsibility']",
+      "assert second['config']['continuation']['checkpoint_id']==cp.checkpoint_id",
+      "assert s.get_responsibility(p,ws,a.id).lifecycle.run_id==second['run_id']",
+      "assert len(admitted(s,ws))==2 and fake.calls==calls",
+      "assert s.get_run(p,ws,second['run_id']).state=='cancelled'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_queue_target_revision_drift_holds_original_bytes",
+    "line_start": 262,
+    "line_end": 276,
+    "assertions": [
+      "assert held.state=='held' and held.reason=='scope_changed' and held.intent==q.intent",
+      "assert held.run_id is None"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_retained_read_reauthorizes_before_any_new_receipt",
+    "line_start": 280,
+    "line_end": 310,
+    "assertions": [
+      "assert fake.calls==before",
+      "assert c.execute('SELECT count(*) n FROM retained_result_reads WHERE workspace_id=%s AND run_id=%s',(ws,q.run.id)).fetchone()['n']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_unknown_send_does_not_create_successor_or_add_provider_dispatch",
+    "line_start": 313,
+    "line_end": 326,
+    "assertions": [
+      "assert w.work(p,ws,q.run.id).state=='running'",
+      "assert fake.calls==before",
+      "assert not c.execute('SELECT 1 FROM run_successors WHERE workspace_id=%s',(ws,)).fetchone()"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_eight_steps_is_per_execution_and_successor_keeps_shared_accounting",
+    "line_start": 329,
+    "line_end": 342,
+    "assertions": [
+      "assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).stop_reason=='step_limit'",
+      "assert len(cp.data.steps)==9",
+      "assert finish_safe_visits(context,worker(context,final,tmp_path),successor.id).state=='ready'",
+      "assert len(s.get_conversation(p,ws,cv.id).artifact_ids)==8",
+      "assert totals(s,g)['request_counts']['dispatch']==11"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_repeated_slice_without_new_material_parks_without_fresh_authority",
+    "line_start": 345,
+    "line_end": 358,
+    "assertions": [
+      "assert second.data.waiting=='blocked' and second.data.next_safe_action=='await_person'",
+      "assert totals(s,g)==before"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_b24_runtime_pg.py",
+      "sha256": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9"
+    },
+    "function": "test_checkpoint_and_read_journals_are_append_only_under_runtime_role",
+    "line_start": 361,
+    "line_end": 381,
+    "assertions": [
+      "assert c.execute('SELECT checkpoint_hash FROM run_checkpoints WHERE workspace_id=%s AND checkpoint_id=%s',\n            (ws,cp.checkpoint_id)).fetchone()['checkpoint_hash']==cp.checkpoint_hash"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_real_jail_blocks_host_files_env_and_network",
+    "line_start": 20,
+    "line_end": 48,
+    "assertions": [
+      "assert code == 0, err.decode(errors='replace')",
+      "assert json.loads(out) == {'confined': True}",
+      "assert not marker.exists() and secret.read_text() == 'private host sentinel'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_real_process_fd_and_memory_limits",
+    "line_start": 51,
+    "line_end": 76,
+    "assertions": [
+      "assert code == 0, err.decode(errors='replace')",
+      "assert json.loads(out)['bounded']"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_real_cpu_bomb_stopped",
+    "line_start": 79,
+    "line_end": 101,
+    "assertions": [
+      "assert limits == {'cpu_limit': [5, 5]}",
+      "assert 4.5 <= consumed['cpu_seconds'] < 5",
+      "assert code in (-signal.SIGKILL, 128 + signal.SIGKILL), err.decode(errors='replace')"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_real_wall_timeout_stopped",
+    "line_start": 121,
+    "line_end": 167,
+    "assertions": [
+      "assert len(trees) == 1",
+      "assert sig == signal.SIGKILL",
+      "assert detached, tree",
+      "assert not survivors",
+      "assert elapsed >= 5"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_real_output_bomb_stopped",
+    "line_start": 170,
+    "line_end": 172,
+    "assertions": [],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_confinement.py",
+      "sha256": "b863a55a014f407782c4e5a61bd76349b7a0662f7d51da7c1d8e2223629560b0"
+    },
+    "function": "test_inheritable_host_descriptor_is_closed",
+    "line_start": 175,
+    "line_end": 194,
+    "assertions": [
+      "assert code==0,err.decode(errors='replace')",
+      "assert out.strip()==b'closed'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_pdf_pages_and_omissions",
+    "line_start": 20,
+    "line_end": 26,
+    "assertions": [
+      "assert 'Distinct retained sentence' in result.text",
+      "assert '[Page 50]' in result.text and '[Page 51]' not in result.text",
+      "assert result.status == 'truncated'",
+      "assert result.coverage.model_dump()['total_pages'] == 52",
+      "assert result.coverage.model_dump()['covered_pages'] == 50 and result.coverage.model_dump()['omitted_pages'] == 2"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_docx_order_and_whitespace",
+    "line_start": 29,
+    "line_end": 32,
+    "assertions": [
+      "assert result.text.index('  Original whitespace  ') < result.text.index('Cell A\\tCell B') < result.text.index('After table')",
+      "assert 'headers' in result.coverage.model_dump()['omissions'] and 'tracked changes' in result.coverage.model_dump()['omissions']"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_xlsx_inert_formula_and_cached_value",
+    "line_start": 35,
+    "line_end": 39,
+    "assertions": [
+      "assert 'Synthetic cell' in result.text and 'A2: inert formula =SUM(B1,2); cached=5' in result.text",
+      "assert result.coverage.model_dump()['sheets'][0]['merged_ranges'] == ['A1']",
+      "assert result.coverage.model_dump()['sheets'][0]['state'] == 'visible'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_zip_preflight_rejects_unsafe_content",
+    "line_start": 42,
+    "line_end": 69,
+    "assertions": [
+      "assert result.status in ('unsupported','encrypted','failed'), result.reason",
+      "assert not result.text",
+      "assert result.reason != 'confinement_unavailable'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_malformed_and_mismatched_container",
+    "line_start": 72,
+    "line_end": 75,
+    "assertions": [
+      "assert result.status in ('failed','unsupported') and not result.text"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_text_bound",
+    "line_start": 78,
+    "line_end": 82,
+    "assertions": [
+      "assert result.status == 'truncated' and len(result.text.encode()) <= MAX_TEXT"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_encrypted_pdf_and_empty_page_keep_honest_status",
+    "line_start": 96,
+    "line_end": 106,
+    "assertions": [
+      "assert result.status == ('encrypted' if encrypted else 'needs_ocr'), result.reason",
+      "assert result.text == ''",
+      "assert result.coverage.covered_pages == 1",
+      "assert result.coverage.empty_pages_needing_ocr == [1]"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_sheet_limit_hidden_metadata_and_row_limit",
+    "line_start": 109,
+    "line_end": 132,
+    "assertions": [
+      "assert result.status == 'truncated' and result.coverage.total_sheets == 12",
+      "assert result.coverage.covered_sheets == 10 and result.coverage.omitted_sheets == 2",
+      "assert result.coverage.sheets[1].state == 'hidden'",
+      "assert result.status == 'truncated'",
+      "assert result.coverage.covered_rows == 1000",
+      "assert result.coverage.sheets[0].omitted_rows == 2",
+      "assert 'A1000: Row 1000' in result.text and 'A1001:' not in result.text"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_document_parser.py",
+      "sha256": "8ef3ebf06df6c41325af996a95395ee4b728c9c3dbc8c8f01e18a8e1b15662c9"
+    },
+    "function": "test_real_zip_total_expansion_limit",
+    "line_start": 135,
+    "line_end": 139,
+    "assertions": [
+      "assert result.status == 'unsupported' and result.reason == 'zip_expansion_limit'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_retrieval_80_cancel_zero_sql_and_application",
+    "line_start": 25,
+    "line_end": 45,
+    "assertions": [
+      "assert totals(s,g)['request_counts']['read']==80",
+      "assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='ready'",
+      "assert len(fake.calls)==4"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_predispatch_revoke_blocks_send_and_keeps_reservation",
+    "line_start": 48,
+    "line_end": 61,
+    "assertions": [
+      "assert len(fake.responses)==0 and len(fake.calls)==1",
+      "assert totals(s,g)['request_counts']['dispatch']==1",
+      "assert totals(s,g)['reserved_input_tokens']==50000",
+      "assert len(fake.calls)==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_versioned_expiry_and_raw_grant_guards",
+    "line_start": 64,
+    "line_end": 80,
+    "assertions": [
+      "assert historical.expires_at is not None"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_raw_immutable_attachments_and_forged_observation",
+    "line_start": 83,
+    "line_end": 97,
+    "assertions": [
+      "assert w.work(p,ws,q.run.id).state=='ready'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_general_cli_admission_is_prompt_attachment_no_operator",
+    "line_start": 100,
+    "line_end": 111,
+    "assertions": [
+      "assert process.returncode==0,process.stderr",
+      "assert len(detail.messages)==1 and detail.runs[0].profile=='general-responses-v1'",
+      "assert detail.messages[0].operation is None and detail.messages[0].attachments[0].content==path.read_text()",
+      "assert detail.turns[0].provider_observation=='not_observed'",
+      "assert worker(context,Provider(),tmp_path).work(p,ws,detail.runs[0].id).state=='ready'",
+      "assert c.execute('SELECT count(*) n FROM provider_attempts WHERE workspace_id=%s',(ws,)).fetchone()['n']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_general_http_payload_and_honest_projection",
+    "line_start": 114,
+    "line_end": 133,
+    "assertions": [
+      "assert client.post(path,headers=headers,json=forged).status_code==422",
+      "assert accepted.status_code==202,accepted.text",
+      "assert receipt['run']['profile']=='general-responses-v1'",
+      "assert receipt['conversation']['model_activation']=='active'",
+      "assert detail['turns'][0]['provider_observation']=='received'",
+      "assert detail['messages'][-1]['evidence_origin']=='synthetic_provider_receipt'",
+      "assert detail['messages'][-1]['model_receipt']"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_exact_010_upgrade_preserves_records_hashes_and_minimal_acl",
+    "line_start": 136,
+    "line_end": 213,
+    "assertions": [
+      "assert len(historical_sql)==10",
+      "assert [(p.name,p.read_bytes()) for p in historical_sql]==[(p.name,p.read_bytes()) for p in canonical_sql[:10]]",
+      "assert child.returncode==0,'historical provisioning failed (details withheld to protect credentials)'",
+      "assert '/workagent_test_' in owner and '/workagent_test_' in runtime",
+      "assert child.returncode==0,'historical fixture failed (details withheld to protect credentials)'",
+      "assert after.current_revision.body_hash==snapshot['body_hash']",
+      "assert after.current_revision.body.model_dump(mode='json')==snapshot['body']",
+      "assert c.execute('SELECT count(*) n FROM schema_migrations').fetchone()['n']==10",
+      "assert all(before.values())",
+      "assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations",
+      "assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()==[\n            {'name':path.name,'checksum':hashlib.sha256(path.read_bytes()).hexdigest()} for path in canonical_sql]",
+      "assert c.execute(\"SELECT has_table_privilege(current_user,'responses_budget_carry','SELECT') s,has_table_privilege(current_user,'responses_budget_carry','INSERT') i,has_table_privilege(current_user,'responses_budget_carry','UPDATE') u,has_table_privilege(current_user,'responses_budget_carry','DELETE') d\").fetchone()=={'s':True,'i':False,'u':False,'d':False}",
+      "assert c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()==before[table]",
+      "assert c.execute(\"SELECT has_table_privilege(current_user,%s,'INSERT') i,has_table_privilege(current_user,%s,'UPDATE') u,has_table_privilege(current_user,%s,'DELETE') d\",(table,table,table)).fetchone()=={'i':True,'u':False,'d':False}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_raw_sql_publication_rechecks_authority",
+    "line_start": 217,
+    "line_end": 237,
+    "assertions": [
+      "assert c.execute(\"SELECT count(*) n FROM conversation_messages WHERE run_id=%s AND author_kind='assistant'\",(q.run.id,)).fetchone()['n']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_legacy_post_command_hash_and_replay_unchanged",
+    "line_start": 240,
+    "line_end": 250,
+    "assertions": [
+      "assert restarted.post_message(p,ws,cv.id,command.model_copy(update={'request_id':new_id()})).run.id==result.run.id",
+      "assert c.execute('SELECT payload_hash FROM commands WHERE workspace_id=%s AND command_id=%s',(ws,command.command_id)).fetchone()['payload_hash']==old_hash"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_general_closed_schema_denies_untrusted_authority_and_repair",
+    "line_start": 260,
+    "line_end": 262,
+    "assertions": [],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_general_responses_gates.py",
+      "sha256": "852762f5afff69fbabe743c857dc51ae3e2d05aa7bad1ad16660de8533b61860"
+    },
+    "function": "test_grant_draft_pins_and_exclusive_cli_write_without_credentials",
+    "line_start": 265,
+    "line_end": 282,
+    "assertions": [
+      "assert grant.consumer_sha256==consumer_hash() and grant.expires_at is None and grant.max_runs==4",
+      "assert result.returncode==0 and 'no grant installed' in result.stdout",
+      "assert ProviderGrant.model_validate_json(output.read_text())==grant and output.stat().st_mode & 0o777==0o600",
+      "assert subprocess.run(command,env=env,capture_output=True,timeout=20).returncode==2"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_admission.py",
+      "sha256": "c257480062ea1f0de3f68d4d49f46036a52b0449b241a3c72015a2dc5735dab0"
+    },
+    "function": "test_deferred_reservation_preserves_full_budget_and_prior_guards",
+    "line_start": 32,
+    "line_end": 47,
+    "assertions": [
+      "assert totals(context[0], grant) == before",
+      "assert 'dispatch' not in ledger.snapshot('selection', cap)[1]",
+      "assert context[0].get_provider_attempt(context[1], context[2], queued.run.id).state == 'prepared'",
+      "assert committed['request_counts']['dispatch'] == 1",
+      "assert caught.value.code.value == 'action_unresolved'",
+      "assert totals(context[0], grant) == committed and len(fake.calls) == 1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_admission.py",
+      "sha256": "c257480062ea1f0de3f68d4d49f46036a52b0449b241a3c72015a2dc5735dab0"
+    },
+    "function": "test_postcommit_revocation_diagnostic_contains_only_safe_metadata",
+    "line_start": 50,
+    "line_end": 63,
+    "assertions": [
+      "assert len(records) == 1",
+      "assert records[0] == {'event': 'provider_io_not_started', 'run_id': queued.run.id,\n        'attempt_id': worker.state.load(context[2], queued.run.id)['receipt']['attempt_id'],\n        'phase': 'selection', 'operation': 'dispatch', 'reason': 'authority_changed',\n        'reservation_committed': True}",
+      "assert len(fake.calls) == 1",
+      "assert totals(context[0], grant)['request_counts']['dispatch'] == 1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_admission.py",
+      "sha256": "c257480062ea1f0de3f68d4d49f46036a52b0449b241a3c72015a2dc5735dab0"
+    },
+    "function": "test_real_advisory_lock_wait_can_roll_back_without_io",
+    "line_start": 66,
+    "line_end": 101,
+    "assertions": [
+      "assert waited and waited[0] >= 0.3",
+      "assert totals(context[0], grant) == before and len(fake.calls) == 1",
+      "assert 'dispatch' not in ledger.snapshot('selection', cap)[1]",
+      "assert held.wait(10)",
+      "assert entering.wait(10)"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_http_admission_uses_configured_phase_timeouts",
+    "line_start": 47,
+    "line_end": 53,
+    "assertions": [
+      "assert w._http_ready(None, module.time.monotonic() + 90) is allowed"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_reservation_delay_rolls_back_unsent_slot",
+    "line_start": 58,
+    "line_end": 86,
+    "assertions": [
+      "assert counts == {'count_send': int(operation == 'dispatch'), 'dispatch': 0, 'read': 0, 'cancel': 0}",
+      "assert len(fake.calls) == int(operation == 'dispatch')",
+      "assert attempt['state'] == 'prepared', 'Rollback must also undo the dispatched attempt transition'",
+      "assert context[0].get_run(context[1], context[2], queued.run.id).state in ('ready', 'partial')",
+      "assert totals(context[0], grant)['request_counts']['count_send'] == 2"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_window_closing_after_commit_is_logged_without_retry",
+    "line_start": 90,
+    "line_end": 113,
+    "assertions": [
+      "assert len(messages) == 1",
+      "assert messages[0] == {'event': 'provider_io_not_started', 'run_id': queued.run.id,\n                           'attempt_id': phases.state.load(context[2], queued.run.id)['receipt']['attempt_id'],\n                           'phase': 'selection', 'operation': 'dispatch', 'reason': 'http_window_closed',\n                           'reservation_committed': True}",
+      "assert before['request_counts'] == {'count_send': 1, 'dispatch': 1, 'read': 0, 'cancel': 0}",
+      "assert len(fake.calls) == 1",
+      "assert totals(context[0], grant) == before and len(fake.calls) == 1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_reservation_delay_rolls_back_observation_slot",
+    "line_start": 117,
+    "line_end": 167,
+    "assertions": [
+      "assert w.run(context[2], queued.run.id) == 'provider_pending'",
+      "assert totals(context[0], grant) == before and fake.calls == calls",
+      "assert retained == events['identity']",
+      "assert caught.value.code.value == 'action_unresolved'",
+      "assert w.run(context[2], queued.run.id) == 'provider_pending'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_short_lease_does_not_reserve_cancel",
+    "line_start": 204,
+    "line_end": 227,
+    "assertions": [
+      "assert w.run(context[2], queued.run.id) == 'provider_pending'",
+      "assert caught.value.code.value == 'action_unresolved'",
+      "assert totals(context[0], grant) == before",
+      "assert len(fake.calls) == calls"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_short_saved_lease_defers_without_reserving_and_reclaims",
+    "line_start": 231,
+    "line_end": 259,
+    "assertions": [
+      "assert len(fake.calls) == calls, 'A fresh visit must not outlive its saved lease'",
+      "assert totals(s, grant) == before, 'Deferral must not create an ambiguous send slot'",
+      "assert s.get_run(p, ws, queued.run.id).fence == old.fence",
+      "assert s.get_run(p, ws, queued.run.id).fence == old.fence + 1",
+      "assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')",
+      "assert totals(s, grant)['request_counts']['count_send'] == 2"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_receiptless_interrupted_claim_uses_existing_claim_authority",
+    "line_start": 263,
+    "line_end": 274,
+    "assertions": [
+      "assert s.get_run(p, ws, queued.run.id).fence == cap.fence + 1",
+      "assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_short_lease_before_first_count_does_not_spend",
+    "line_start": 278,
+    "line_end": 286,
+    "assertions": [
+      "assert fake.calls == []",
+      "assert totals(s, grant)['request_counts'] == {'count_send': 0, 'dispatch': 0, 'read': 0, 'cancel': 0}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_reclaim_without_receipt_cannot_replace_prepared_attempt",
+    "line_start": 290,
+    "line_end": 307,
+    "assertions": [
+      "assert caught.value.code.value == 'action_unresolved'",
+      "assert len(fake.calls) == 1",
+      "assert totals(context[0], grant) == before"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_final_delivered_after_lease_expiry_is_retained_not_regenerated",
+    "line_start": 311,
+    "line_end": 340,
+    "assertions": [
+      "assert first['results'] == [{'run_id': queued.run.id, 'status': 'denied_or_deferred',\n                                'reason': 'action_unresolved'}]",
+      "assert {'identity', 'result'} <= {row['kind'] for row in retained}",
+      "assert dispatcher.once()['results'] == [{'run_id': queued.run.id, 'status': 'completed'}]",
+      "assert s.get_run(p, ws, queued.run.id).state == 'ready'",
+      "assert len(fake.calls) == before",
+      "assert totals(s, grant)['request_counts'] == {'count_send': 2, 'dispatch': 2, 'read': 0, 'cancel': 0}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_in_visit_elapsed_http_time_stops_before_next_reservation",
+    "line_start": 344,
+    "line_end": 369,
+    "assertions": [
+      "assert len(fake.calls) == 2",
+      "assert totals(context[0], grant)['request_counts'] == {\n        'count_send': 1, 'dispatch': 1, 'read': 0, 'cancel': 0}",
+      "assert context[0].get_run(context[1], context[2], queued.run.id).state == 'running'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_leases.py",
+      "sha256": "3f41eca76e9ac629272939a03614a60245cf10473e454c5fb6ca5e68b38587a8"
+    },
+    "function": "test_dispatcher_recovers_known_final_and_progresses_beside_unknown",
+    "line_start": 372,
+    "line_end": 427,
+    "assertions": [
+      "assert first == {known_id: 'internal_error', unknown_id: 'outcome_unknown'}",
+      "assert {r['run_id']: r['status'] for r in dispatcher.once()['results']} == {\n        known_id: 'provider_pending', unknown_id: 'outcome_unknown'}",
+      "assert len(fake.calls) == before",
+      "assert {r['run_id']: r['status'] for r in dispatcher.once()['results']} == {\n        known_id: 'completed', unknown_id: 'outcome_unknown'}",
+      "assert fake.calls[before:] == [('GET', '/v1/responses/' + identity['response_id'])]",
+      "assert totals(s, grant)['request_counts'] == {'count_send': 3, 'dispatch': 3, 'read': 1, 'cancel': 0}",
+      "assert len(s.get_conversation(p, ws, cvs[0].id).messages) == 2",
+      "assert {r['run_id']: r['status'] for r in dispatcher.once()['results']} == {\n        next_turn.run.id: 'completed', unknown_id: 'outcome_unknown'}",
+      "assert totals(s, grant)['request_counts'] == {'count_send': 5, 'dispatch': 5, 'read': 1, 'cancel': 0}",
+      "assert totals(s, grant)['unknown_usage_steps'] == 1",
+      "assert len(s.get_conversation(p, ws, cvs[0].id).messages) == 4",
+      "assert len(s.get_conversation(p, ws, cvs[1].id).messages) == 1",
+      "assert dispatcher.once()['results'] == [{'run_id': unknown_id, 'status': 'outcome_unknown'}]",
+      "assert len(fake.calls) == before + 5",
+      "assert {r['run_id'] for r in rows if r['acknowledged_at']} == {known_id, next_turn.run.id}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_current_parser_final_optional_cipher_actual_worker",
+    "line_start": 77,
+    "line_end": 81,
+    "assertions": [
+      "assert worker.run(context[2],q.run.id)=='completed'",
+      "assert totals(context[0],g)['request_counts']=={'count_send':2,'dispatch':2,'read':0,'cancel':0}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_same_id_recovery_and_remaining_revision_share_root_budget",
+    "line_start": 84,
+    "line_end": 122,
+    "assertions": [
+      "assert old_result['data']['state']=='malformed'",
+      "assert old_result['data']['output_items']=='[]'",
+      "assert worker.run(ws,q.run.id,reconcile_only=True)=='completed'",
+      "assert after=={**before,'request_counts':{**before['request_counts'],'read':1}}",
+      "assert all(e in current for e in original)",
+      "assert len(corrected)==1",
+      "assert correction['response_id']==old_result['data']['response_id']",
+      "assert correction['original_result_sha256']==digest(old_result['data'])",
+      "assert correction['original_consumer_sha256']==OLD",
+      "assert correction['actual_consumer_sha256']==a.successor_consumer_sha256",
+      "assert wire.calls[-1]==('GET','/v1/responses/'+correction['response_id'])",
+      "assert worker.run(ws,q.run.id,reconcile_only=True)=='reconciled'",
+      "assert len(wire.calls)==n",
+      "assert assignment.responsibility.runs[-1].outcome_gate=='passed'",
+      "assert worker.run(ws,revision.run.id)=='completed'",
+      "assert totals(s,g)['request_counts']=={'count_send':4,'dispatch':4,'read':1,'cancel':0}",
+      "assert c.execute('SELECT data FROM provider_grants WHERE id=%s',(g.id,)).fetchone()['data']==g.model_dump(mode='json')",
+      "assert len(configs)==2 and all(x['data']['consumer_sha256']==OLD for x in configs)",
+      "assert len(uses)==2 and all(x['original_consumer_sha256']==OLD and x['actual_consumer_sha256']==consumer_hash() for x in uses)"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_no_successor_approval_fails_closed",
+    "line_start": 125,
+    "line_end": 129,
+    "assertions": [
+      "assert len(wire.calls)==n and totals(context[0],g)['request_counts']['dispatch']==2"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_successor_cannot_approve_runtime_or_reset_or_reopen_unknown",
+    "line_start": 132,
+    "line_end": 144,
+    "assertions": [
+      "assert worker.run(context[2],q.run.id,reconcile_only=True)=='outcome_unknown'",
+      "assert worker.run(context[2],q.run.id)=='outcome_unknown'",
+      "assert len(wire.calls)==n",
+      "assert totals(context[0],g)['request_counts']['dispatch']==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_readback_mismatch_never_corrects_or_publishes",
+    "line_start": 148,
+    "line_end": 169,
+    "assertions": [
+      "assert all(e in current for e in original)",
+      "assert not any(e['kind']=='corrected_readback' for e in current)",
+      "assert s.get_assignment(p,ws,q.assignment.id).artifact_ids==[]",
+      "assert totals(s,g)['request_counts']=={'count_send':2,'dispatch':2,'read':1,'cancel':0}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_recovery_publication_requires_current_source_rights",
+    "line_start": 173,
+    "line_end": 189,
+    "assertions": [
+      "assert c.execute('SELECT count(*) AS n FROM run_publications WHERE run_id=%s',(q.run.id,)).fetchone()['n']==0",
+      "assert len(wire.calls)==n"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_expired_original_grant_and_lease_recover_with_explicit_successor",
+    "line_start": 192,
+    "line_end": 205,
+    "assertions": [
+      "assert len(wire.calls)==n",
+      "assert worker.run(context[2],q.run.id,reconcile_only=True)=='completed'",
+      "assert totals(context[0],g)['request_counts']=={'count_send':2,'dispatch':2,'read':1,'cancel':0}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_revoked_grant_cannot_be_restored_by_successor",
+    "line_start": 208,
+    "line_end": 217,
+    "assertions": [
+      "assert len(wire.calls)==n"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_operator_exact_hash_binding_not_an_allowlist",
+    "line_start": 221,
+    "line_end": 227,
+    "assertions": [
+      "assert not c.execute('SELECT 1 FROM provider_consumer_successors WHERE grant_id=%s',(g.id,)).fetchone()"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_correction_ledger_rejects_changed_parsed_binding",
+    "line_start": 231,
+    "line_end": 243,
+    "assertions": [
+      "assert not any(e['kind']=='corrected_readback' for e in events(context,q.run.id))"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_corrected_observation_restart_no_receipt_overwrite_or_network",
+    "line_start": 246,
+    "line_end": 258,
+    "assertions": [
+      "assert worker.run(context[2],q.run.id,reconcile_only=True)=='completed'",
+      "assert len(wire.calls)==n",
+      "assert final.result_hash==saved.result_hash and final.result==saved.result",
+      "assert sum(e['kind']=='corrected_readback' for e in events(context,q.run.id))==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_reconcile_only_never_dispatches_unsent_or_imports_receipt",
+    "line_start": 261,
+    "line_end": 272,
+    "assertions": [
+      "assert wire.calls==[]",
+      "assert worker.run(context[2],q.run.id,reconcile_only=True)=='deferred'",
+      "assert len(wire.calls)==n and totals(context[0],g)['request_counts']['dispatch']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_recovery.py",
+      "sha256": "31d9c0c342f692fafdb109c34fdbd98e89399e770ee5f2a8e1b9ee4ad387ae83"
+    },
+    "function": "test_operator_cli_install_readback_no_credential_or_provider_access",
+    "line_start": 275,
+    "line_end": 307,
+    "assertions": [
+      "assert result=={'status':'operator_successor_installed','approval':a.model_dump(mode='json')}",
+      "assert failure.value.code==2",
+      "assert c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(g.id,)).fetchone()['data']==result['approval']",
+      "assert c.execute('SELECT data FROM provider_grants WHERE id=%s',(g.id,)).fetchone()['data']==g.model_dump(mode='json')"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_slow_count_hands_off_and_reuses_exact_count",
+    "line_start": 12,
+    "line_end": 76,
+    "assertions": [
+      "assert parked.state=='running' and parked.lease_expires_at<=current()",
+      "assert totals(s,g)['request_counts']=={'count_send':1,'dispatch':0,'read':0,'cancel':0}",
+      "assert resumed.fence==old.fence+1 and resumed.lease_expires_at>current()",
+      "assert phases.state.load(ws,q.run.id)['receipt']==saved['receipt']",
+      "assert retained()==(request,count_event)",
+      "assert len(created)==1 and created[0][0].sha256==request['request_sha256']",
+      "assert created[0][0].body.decode()==request['request_bytes']",
+      "assert created[0][0].count_body().decode()==request['count_bytes']",
+      "assert created[0][1].request_sha256==count_event['data']['request_sha256']",
+      "assert created[0][1].count_sha256==count_event['data']['count_sha256']",
+      "assert created[0][1].input_tokens==count_event['data']['input_tokens']",
+      "assert len(fake.calls)==2",
+      "assert counts['request_counts']=={'count_send':1,'dispatch':1,'read':0,'cancel':0}",
+      "assert counts['reserved_input_tokens']==RESERVED_INPUT",
+      "assert counts['reserved_output_tokens']==RESERVED_OUTPUT",
+      "assert counts['reserved_cost_usd']==str(RESERVED_COST)",
+      "assert c.execute(\"SELECT count(*) n FROM audit WHERE workspace_id=%s AND object_id=%s AND operation='yield_settled_responses_lease'\",(ws,q.run.id)).fetchone()['n']==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_count_handoff_keeps_unsettled_or_unauthorized_lease",
+    "line_start": 81,
+    "line_end": 110,
+    "assertions": [
+      "assert ('count_result' in events)==(fault!='unknown_count')",
+      "assert s.get_run(p,ws,q.run.id)==before and before.lease_expires_at>now()",
+      "assert totals(s,g)==counts and fake.calls==calls",
+      "assert phases._yield_if_settled(ws,q.run.id) is False",
+      "assert s.yield_settled_responses_lease(cap,receipt) is False"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_settled_phase_handoff_resumes_without_waiting_or_resending",
+    "line_start": 114,
+    "line_end": 135,
+    "assertions": [
+      "assert parked.state=='running' and parked.lease_expires_at<=now()",
+      "assert before['count_send']==before['dispatch']==1",
+      "assert final.state in ('ready','partial') and final.fence==parked.fence+1",
+      "assert totals(s,grant)['request_counts']=={'count_send':2,'dispatch':2,'read':0,'cancel':0}",
+      "assert c.execute(\"SELECT count(*) n FROM provider_attempts WHERE workspace_id=%s AND run_id=%s\",(ws,queued.run.id)).fetchone()['n']==1",
+      "assert c.execute(\"SELECT count(*) n FROM audit WHERE workspace_id=%s AND object_id=%s AND operation='yield_settled_responses_lease'\",(ws,queued.run.id)).fetchone()['n']==1"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_final_handoff_distinguishes_known_pending_from_unsettled",
+    "line_start": 139,
+    "line_end": 189,
+    "assertions": [
+      "assert w.work(p,ws,q.run.id).state=='running'",
+      "assert s.yield_settled_responses_lease(cap,receipt) is False",
+      "assert w.phases._yield_if_settled(ws,q.run.id) is False",
+      "assert s.get_run(p,ws,q.run.id)==before and before.lease_expires_at>now()",
+      "assert fake.calls==calls and totals(s,g)==counts",
+      "assert s.yield_settled_responses_lease(cap,receipt) is True",
+      "assert fake.calls==calls and totals(s,g)==counts",
+      "assert w.work(p,ws,q.run.id).state=='ready'",
+      "assert fake.calls[len(calls):]==[('GET','/v1/responses/'+identity['response_id'])]",
+      "assert totals(s,g)['request_counts']==dict(counts['request_counts'],read=1)",
+      "assert s.get_run(p,ws,q.run.id).fence==cap.fence+1",
+      "assert [row['id'] for row in rows]==[receipt.attempt_id]"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_handoff_rechecks_exact_current_authority",
+    "line_start": 193,
+    "line_end": 221,
+    "assertions": [
+      "assert c.execute('SELECT data,lease_hash FROM runs WHERE workspace_id=%s AND id=%s',(ws,q.run.id)).fetchone()==before"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_crash_after_response_never_runs_handoff",
+    "line_start": 225,
+    "line_end": 233,
+    "assertions": [
+      "assert s.get_run(p,ws,q.run.id).lease_expires_at>now()",
+      "assert c.execute(\"SELECT count(*) n FROM audit WHERE workspace_id=%s AND object_id=%s AND operation='yield_settled_responses_lease'\",(ws,q.run.id)).fetchone()['n']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_handoff_uses_actual_reservation_margin",
+    "line_start": 236,
+    "line_end": 253,
+    "assertions": [
+      "assert phases._http_window(run,time.monotonic()+90)",
+      "assert not phases._http_window(run,time.monotonic()+90,handoff=True)",
+      "assert phases._yield_if_settled(ws,q.run.id) is True",
+      "assert s.get_run(p,ws,q.run.id).lease_expires_at<=now()"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_responses_settled_handoff.py",
+      "sha256": "8b0ed136b4808a4ee4f5878ac37badfc39a4df7f12c43d9a1684027f65687412"
+    },
+    "function": "test_workspace_lock_serializes_operator_revocation",
+    "line_start": 256,
+    "line_end": 287,
+    "assertions": [
+      "assert s.get_run(p,ws,q.run.id)==before",
+      "assert started.wait(3)",
+      "assert blocked and not future.done()"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_canonical_producers_snapshot_and_exact_seen_replay",
+    "line_start": 26,
+    "line_end": 45,
+    "assertions": [
+      "assert {e.type for e in page.events} >= {'artifact.changed', 'revision.created'}",
+      "assert restarted.page(p,ws,cv.id,before.snapshot_cursor).events==page.events",
+      "assert snapshot.artifacts[0].current_revision_id == rev.id",
+      "assert 'PRIVATE_BODY' not in snapshot.model_dump_json()",
+      "assert events.page(p, ws, cv.id, snapshot.snapshot_cursor).events == []",
+      "assert events.seen(p, ws, seen.model_copy(update={'request_id':'replay'})) == receipt",
+      "assert not events.attention(p, ws, cv.id).facts"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_runtime_cannot_forge_log_or_head_and_rollback_is_invisible",
+    "line_start": 48,
+    "line_end": 61,
+    "assertions": [
+      "assert events.page(p, ws, cv.id, before.snapshot_cursor).events == []"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_cursor_scope_generation_expiry_and_no_get_writes",
+    "line_start": 64,
+    "line_end": 78,
+    "assertions": [
+      "assert events.page(p,ws,cv.id,snapshot.snapshot_cursor).reset_required",
+      "assert events.page(p,ws,cv.id,snapshot.snapshot_cursor).reset_required"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_commit_prefix_waits_for_delayed_transaction_and_does_not_skip",
+    "line_start": 81,
+    "line_end": 122,
+    "assertions": [
+      "assert len(page.events)==1 and page.has_more",
+      "assert len(following.events)==1 and not following.has_more",
+      "assert page.events[0].event_id != following.events[0].event_id",
+      "assert 'delayed-a-' in rows[0]['material_key'] and 'delayed-b-' in rows[1]['material_key']",
+      "assert acquired.wait(10)",
+      "assert release.wait(10)",
+      "assert acquired.wait(10) and second_started.wait(10)",
+      "assert not b.done()",
+      "assert events.page(p,ws,cv.id,before.snapshot_cursor).events == []"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_snapshot_watermark_is_atomic_with_concurrent_human_save",
+    "line_start": 125,
+    "line_end": 152,
+    "assertions": [
+      "assert snapshot.artifacts[0].current_revision_id==revision.id",
+      "assert any(e.type=='revision.created' for e in page.events)",
+      "assert read(events,p,ws,cv.id).artifacts[0].current_revision_id==saved.current_revision_id",
+      "assert release.wait(10)",
+      "assert reached.wait(10)"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_authorized_lookahead_does_not_count_hidden_proposals",
+    "line_start": 155,
+    "line_end": 177,
+    "assertions": [
+      "assert [e.proposal_id for e in page.events]==[visible.id]",
+      "assert not page.has_more"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_reads_have_no_mutations_and_heartbeat_has_no_event",
+    "line_start": 180,
+    "line_end": 204,
+    "assertions": [
+      "assert events.page(p,ws,cv.id,before.snapshot_cursor).events==[]",
+      "assert set(statements) <= {'SET','SELECT'}"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_real_trigger_coverage_minimal_privileges_and_no_forged_temporary_trigger",
+    "line_start": 207,
+    "line_end": 221,
+    "assertions": [
+      "assert {r['relname'] for r in rows}==expected",
+      "assert all(r['tgdeferrable'] and r['tginitdeferred'] for r in rows)",
+      "assert c.execute(\"\"\"SELECT count(*) AS n FROM pg_constraint\n            WHERE contype='f' AND conrelid IN ('work_events'::regclass,'work_event_heads'::regclass,\n              'work_run_chronology'::regclass,'work_event_projection'::regclass,\n              'work_responsibility_observations'::regclass)\"\"\").fetchone()['n']==0"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_late_cancelled_receipt_is_visible_without_publication",
+    "line_start": 224,
+    "line_end": 237,
+    "assertions": [
+      "assert any(e.reason_code=='cancelled_unapplied' and e.run_id==case.rid for e in page.events)",
+      "assert all(e.type=='receipt.recorded' for e in page.events if e.reason_code=='cancelled_unapplied')",
+      "assert 'request_bytes' not in text and 'response_id' not in text and 'usage' not in text"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_http_identity_scope_bounds_and_seen_replay",
+    "line_start": 240,
+    "line_end": 261,
+    "assertions": [
+      "assert client.get('/v1/identity').status_code==401",
+      "assert client.get('/v1/identity',headers=headers).json()=={'principal_id':p.id}",
+      "assert response.status_code==200 and response.headers['cache-control']=='no-store'",
+      "assert snapshot['schema_version']=='workagent/work-v1'",
+      "assert client.get(base+'/events',params={'conversation_id':cv.id,'after':'bad'},headers=headers).status_code==404",
+      "assert first.status_code==200",
+      "assert client.post(base+'/attention/seen',json=body,headers=headers).json()==first.json()",
+      "assert client.get(base+'/events',params=query,headers=headers).status_code==422"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_current_run_uses_admission_order_not_latest_observed_at",
+    "line_start": 264,
+    "line_end": 276,
+    "assertions": [
+      "assert snapshot.execution.run_id==second.run.id and snapshot.execution.state=='queued'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_attention_is_monotonic_and_replays_do_not_duplicate_facts",
+    "line_start": 279,
+    "line_end": 298,
+    "assertions": [
+      "assert len(first.facts)==1 and first.facts[0].type=='revision.created'",
+      "assert len(next_page.facts)==1",
+      "assert events.seen(p,ws,old_seen)==old_receipt",
+      "assert not events.attention(p,ws,cv.id).facts",
+      "assert receipt==newest and not events.attention(p,ws,cv.id).facts",
+      "assert s.get_artifact(p,ws,aid).current_revision_id==saved.current_revision_id"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_saved_current_revision_and_historical_responsibility_are_separate",
+    "line_start": 301,
+    "line_end": 319,
+    "assertions": [
+      "assert current.current_revision_id==saved.current_revision_id",
+      "assert current.title=='Current human work'",
+      "assert after.responsibility[0].historical_observation==old_observation",
+      "assert after.execution.state!='completed'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_stream_revocation_between_batches_uses_current_pg_authority",
+    "line_start": 323,
+    "line_end": 345,
+    "assertions": [
+      "assert len(initial.events)>1",
+      "assert (await anext(iterator)).startswith('id: ')",
+      "assert frame=='event: snapshot.required\\ndata: {\"reason\":\"access_changed\"}\\n\\n'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_snapshot_query_cost_is_batched_and_recorded",
+    "line_start": 348,
+    "line_end": 375,
+    "assertions": [
+      "assert len(snapshot.artifacts)==12",
+      "assert len(queries)<=10"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  },
+  {
+    "source": {
+      "path": "backend/tests/test_work_events_pg.py",
+      "sha256": "c3690f4dd96bb20aba1f6d72031c67283347a9e2520b0ad54d13afa5f08c1db4"
+    },
+    "function": "test_pending_review_same_base_and_acceptance_readback",
+    "line_start": 378,
+    "line_end": 397,
+    "assertions": [
+      "assert not review[stale.id].fresh and not review[stale.id].is_latest",
+      "assert review[candidate.id].fresh and review[candidate.id].is_latest",
+      "assert after.artifacts[0].current_revision_id==accepted.current_revision_id",
+      "assert candidate.id not in {r.proposal_id for r in after.pending_proposals}",
+      "assert after.execution.state=='idle'"
+    ],
+    "warning": "Source excerpt only; execution attribution must come from a bound XML report. A function name containing restart/crash is not proof of OS process death."
+  }
+]

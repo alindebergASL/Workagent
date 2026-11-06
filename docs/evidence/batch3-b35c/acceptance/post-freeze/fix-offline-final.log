@@ -1,0 +1,9 @@
+........................................................................ [ 92%]
+......                                                                   [100%]
+=============================== warnings summary ===============================
+backend/tests/test_post_freeze_terminal.py::test_targeted_invalid_create_exact_retain_branch[None]
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+78 passed, 1 warning in 4.40s

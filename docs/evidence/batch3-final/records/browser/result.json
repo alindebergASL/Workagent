@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "layouts": [
+    {
+      "label": "conversations",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "conversations",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "label": "conversations",
+      "width": 320,
+      "scroll": 320
+    },
+    {
+      "label": "artifact-page",
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "label": "artifact-page",
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "label": "artifact-page",
+      "width": 320,
+      "scroll": 320
+    }
+  ],
+  "errors": [],
+  "checks": [
+    {
+      "conversation_renders": true
+    },
+    {
+      "p5_artifact_page_renders": true
+    },
+    {
+      "human_edit_visible": true
+    }
+  ]
+}

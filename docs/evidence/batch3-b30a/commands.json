@@ -1,0 +1,122 @@
+[
+  {
+    "name": "domain",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_domain.py::test_stale_proposal_preserves_both_and_resolution_rechecks",
+      "backend/tests/test_domain.py::test_fence_lease_and_revocation_at_commit",
+      "backend/tests/test_domain.py::test_partial_pause_resume_cancel_and_budget",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-domain"
+    ],
+    "exit": 0,
+    "selected_tests": [
+      "backend/tests/test_domain.py::test_stale_proposal_preserves_both_and_resolution_rechecks",
+      "backend/tests/test_domain.py::test_fence_lease_and_revocation_at_commit",
+      "backend/tests/test_domain.py::test_partial_pause_resume_cancel_and_budget"
+    ]
+  },
+  {
+    "name": "retrieval",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[127.0.0.1]",
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[10.0.0.1]",
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[172.16.0.1]",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-retrieval"
+    ],
+    "exit": 0,
+    "selected_tests": [
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[127.0.0.1]",
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[10.0.0.1]",
+      "backend/tests/test_public_retrieval.py::test_reserved_private_and_transition_addresses_rejected[172.16.0.1]"
+    ]
+  },
+  {
+    "name": "json",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_composes_with_optional_guidance_and_reply[False]",
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_composes_with_optional_guidance_and_reply[True]",
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_then_existing_draft_publication",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-json"
+    ],
+    "exit": 0,
+    "selected_tests": [
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_composes_with_optional_guidance_and_reply[False]",
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_composes_with_optional_guidance_and_reply[True]",
+      "backend/tests/test_json_inspection_runtime.py::test_inspection_then_existing_draft_publication"
+    ]
+  },
+  {
+    "name": "products",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_general_products.py::test_csv_persist_replay_cells_notes_and_exact_proposal",
+      "backend/tests/test_general_products.py::test_wasm_actual_shipping_change_preserves_human_notes",
+      "backend/tests/test_general_products.py::test_observations_immutable_not_human_forged_or_carried_to_new_revision",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-products"
+    ],
+    "exit": 0,
+    "selected_tests": [
+      "backend/tests/test_general_products.py::test_csv_persist_replay_cells_notes_and_exact_proposal",
+      "backend/tests/test_general_products.py::test_wasm_actual_shipping_change_preserves_human_notes",
+      "backend/tests/test_general_products.py::test_observations_immutable_not_human_forged_or_carried_to_new_revision"
+    ]
+  },
+  {
+    "name": "receipts",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_exact_receipt_observation.py::test_exact_receipt_only_restart_no_publication",
+      "backend/tests/test_exact_receipt_observation.py::test_cross_binding_install_denied[wrong_id]",
+      "backend/tests/test_exact_receipt_observation.py::test_cross_binding_install_denied[wrong_hash]",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-receipts"
+    ],
+    "exit": 0,
+    "selected_tests": [
+      "backend/tests/test_exact_receipt_observation.py::test_exact_receipt_only_restart_no_publication",
+      "backend/tests/test_exact_receipt_observation.py::test_cross_binding_install_denied[wrong_id]",
+      "backend/tests/test_exact_receipt_observation.py::test_cross_binding_install_denied[wrong_hash]"
+    ]
+  },
+  {
+    "name": "summary",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-False]",
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-True]",
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[True-False]",
+      "-q",
+      "--tb=short",
+      "--basetemp=.local/batch3/b30a/focused-summary"
+    ],
+    "exit": 1,
+    "selected_tests": [
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-False]",
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-True]",
+      "backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[True-False]"
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "actual_socket_proxy": true,
+  "warmup_posts": 1,
+  "faulted_initial_posts": 1,
+  "explicit_replay_posts": 1,
+  "automatic_resends": 0,
+  "request_response_bytes_match": true,
+  "conversation_unchanged": true,
+  "cursor_unchanged": true,
+  "queue_checkpoints_unchanged": true,
+  "api_pids": [
+    3826719,
+    3850164
+  ]
+}

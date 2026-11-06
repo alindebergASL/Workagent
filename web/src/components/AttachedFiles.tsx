@@ -1,5 +1,11 @@
 "use client";
-import { ATTACH_ACCEPT, type MessageAttachment } from "@/lib/contract/natural";
+import {
+  ATTACH_ACCEPT,
+  ATTACHMENT_LIMITS,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
+import type { AttachmentContextView } from "@/lib/contract/types";
+import { contextNote } from "@/lib/attachment-context";
 
 /**
  * A file name that keeps its extension when it has to be shortened, so two
@@ -54,7 +60,7 @@ export function AttachedFiles({
       ))}
       <label
         className="chip-toggle file-pick"
-        data-disabled={locked || files.length >= 2}
+        data-disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
       >
         Attach a file
         <input
@@ -62,7 +68,7 @@ export function AttachedFiles({
           className="sr-only"
           accept={ATTACH_ACCEPT}
           multiple
-          disabled={locked || files.length >= 2}
+          disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
           onChange={(e) => {
             onAdd(e.target.files);
             e.target.value = "";
@@ -93,6 +99,37 @@ export function SentFiles({
       {files.map((f) => (
         <li key={f.sha256 + f.filename} title={`SHA-256 ${f.sha256}`}>
           {f.filename} · {size(f.byte_length)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * For each file omitted from the turn's bounded attachment context: that the
+ * original is kept, and the exact byte ranges range receipts confirm were
+ * read back. Files the bounded context held, and turns with no frozen
+ * record, say nothing.
+ */
+export function FileContext({ items }: { items: AttachmentContextView[] }) {
+  const notes = items.flatMap((a) => {
+    const text = contextNote(a);
+    return text ? [{ a, text }] : [];
+  });
+  if (!notes.length) return null;
+  return (
+    <ul
+      className="sent-files small muted"
+      aria-label="What Workagent read of attached files"
+      data-testid="file-context"
+    >
+      {notes.map(({ a, text }) => (
+        <li
+          key={`${a.run_id}:${a.ref}`}
+          title={`SHA-256 ${a.sha256}`}
+          data-ranges={a.ranges.length || undefined}
+        >
+          <FileName name={a.filename} />: {text}
         </li>
       ))}
     </ul>

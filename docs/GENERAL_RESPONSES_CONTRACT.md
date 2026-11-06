@@ -57,7 +57,7 @@ Recovery uses the **same run/attempt/private state directory**. A known response
 
 ### Limits, decisions and transport replay
 
-- At most two attachments, aggregate 200000 UTF-8 bytes; nonempty `.csv`/`text/csv` or `.txt`/`text/plain`, filename regex `^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|txt)$`; NUL rejected. No paths, arbitrary upload URLs or client-supplied receipt/hash fields.
+- At most three attachments, aggregate 200000 UTF-8 bytes; nonempty `.csv`/`text/csv` or `.txt`/`text/plain`, filename regex `^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|txt)$`; NUL rejected. No paths, arbitrary upload URLs or client-supplied receipt/hash fields.
 - POST returns **202** `{conversation,message,run}`. Read the conversation again for current `work_version`; completion does not equal proposal acceptance.
 - Preserve the entire original payload, `command_id` and `expected_work_version` only for replay of the same ambiguous transport attempt. New intent / changed attachments / changed target / editing after a definite refusal requires a new command ID. Do not silently replace the payload of an uncertain command. Old commands without attachment/target remain replay-compatible.
 - Wrong current revision/hash fails `version_conflict`; wrong conversation/workspace ownership is concealed as `not_found_or_not_authorized`; malformed closed input fails validation (HTTP422). Error JSON is a top-level `ErrorEnvelope` with `code`, not `{error:{code}}`.

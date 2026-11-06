@@ -1,0 +1,72 @@
+{
+  "same-scope-forget-before-late-list": {
+    "held_payload_sha256": [
+      "2c5eab7605650f1aa61cc0ee6871acea76ff41d988cb1f8b2900bb8e73fd184d"
+    ],
+    "releases": [
+      {
+        "sequence": 119,
+        "kind": "release",
+        "id": 55,
+        "index": 0,
+        "at": 6171.799999952316
+      }
+    ],
+    "purge": {
+      "sequence": 113,
+      "kind": "forget-receipt-and-purge-visible",
+      "at": 5621.200000047684
+    }
+  },
+  "client-route-replacement-before-late-evidence": {
+    "held_payload_sha256": [
+      "a554f59d63bd1eb9d85149473a1215142420e3a53104e15604a5d3e93e009f94"
+    ],
+    "releases": [
+      {
+        "sequence": 150,
+        "kind": "release",
+        "id": 53,
+        "index": 0,
+        "at": 7064.200000047684
+      }
+    ],
+    "new_route_ready": {
+      "sequence": 149,
+      "kind": "new-route-panel-loaded",
+      "at": 6436.400000095367,
+      "conversation_id": "b506e34d-4b3c-41a6-b45c-6617d08e6ed8"
+    }
+  },
+  "older-history-after-newer-target-selected": {
+    "held_payload_sha256": [
+      "e8c6e1023ec8b53bdf3ec993292fb1705ed2803b4242548611111923375fe755",
+      "e8c6e1023ec8b53bdf3ec993292fb1705ed2803b4242548611111923375fe755"
+    ],
+    "releases": [
+      {
+        "sequence": 109,
+        "kind": "release",
+        "id": 54,
+        "index": 1,
+        "at": 3427.300000190735
+      },
+      {
+        "sequence": 111,
+        "kind": "release",
+        "id": 53,
+        "index": 0,
+        "at": 5364.100000143051
+      }
+    ],
+    "new_selection": {
+      "sequence": 110,
+      "kind": "newer-target-selected",
+      "at": 4002.7000000476837,
+      "name": "memory-restore-9027eae7-bf25-4336-bac2-1e2bf84cd5f9",
+      "label": "10/29/2026, 9:51:36 AM \u00b7 Replaced by a correction\nHuman correction: record the denominator definition in the output."
+    },
+    "selected_revision_id": "10d35e93-86a2-420f-a5d7-6e8ba274a474",
+    "memory_id": "5707807c-0cef-4d3f-aca8-98d576a68d49"
+  }
+}

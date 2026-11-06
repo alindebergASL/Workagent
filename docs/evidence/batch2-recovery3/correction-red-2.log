@@ -1,0 +1,58 @@
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'vitest' run test/b2-correction.test.ts -t R5
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/recovery3/claude/web
+
+ ❯ test/b2-correction.test.ts (16 tests | 2 failed | 14 skipped) 315ms
+   ❯ R5: device writes apply in the order they were made (2)
+     × a delayed earlier write can't resurrect a removed generation 232ms
+     × a delayed earlier write can't overwrite a later uploaded receipt 66ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/b2-correction.test.ts > R5: device writes apply in the order they were made > a delayed earlier write can't resurrect a removed generation
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ test/b2-correction.test.ts:378:32
+    376|     await writing;
+    377|     await removing;
+    378|     expect(inner.records.size).toBe(0);
+       |                                ^
+    379|   });
+    380|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/b2-correction.test.ts > R5: device writes apply in the order they were made > a delayed earlier write can't overwrite a later uploaded receipt
+AssertionError: expected [ 'uploading' ] to deeply equal [ 'uploaded' ]
+
+- Expected
++ Received
+
+  [
+-   "uploaded",
++   "uploading",
+  ]
+
+ ❯ test/b2-correction.test.ts:391:61
+    389|     gate.resolve();
+    390|     await Promise.all([first, second]);
+    391|     expect([...inner.records.values()].map((r) => r.state)).toEqual([
+       |                                                             ^
+    392|       "uploaded",
+    393|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 14 skipped (16)
+   Start at  18:07:47
+   Duration  3.40s (transform 67%, import 18%, tests 13%, worker 1%)
+

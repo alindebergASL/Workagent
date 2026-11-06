@@ -1,0 +1,1282 @@
+{
+  "source_matrix": "docs/evidence/batch2-recovery5b/reconciled-after5d/acceptance-matrix.json",
+  "sha256": "93f5ddc388081b35332dadab220a5d2478aea1c9670366e7a6a9940402ec8c98",
+  "classification": "INHERITED; no new product tests or browser proof",
+  "counts": {
+    "PENDING": 23,
+    "PASS": 20
+  },
+  "rows": [
+    {
+      "id": "A01",
+      "case": "Ordinary source-free question from empty home",
+      "required": "Useful conversation without project/IDs/operator setup; one admitted message.",
+      "evidence_required": "TUI capture + API receipt/readback; later live synthetic question if authorized.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 258,
+        "verbatim": "| A01 | Ordinary source-free question from empty home | Useful conversation without project/IDs/operator setup; one admitted message. | TUI capture + API receipt/readback; later live synthetic question if authorized. |",
+        "fields": [
+          "Ordinary source-free question from empty home",
+          "Useful conversation without project/IDs/operator setup; one admitted message.",
+          "TUI capture + API receipt/readback; later live synthetic question if authorized."
+        ]
+      },
+      "assessment": "Controlled CLI/Home-recipe admission is retained, not a current empty-Home paired useful-answer trial.",
+      "remaining_gap": "Record empty Home creation and one admission in TUI/browser with no project/IDs; separately grade an authorized live source-free answer.",
+      "proof_groups": [
+        "interaction",
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Current-candidate empty-Home paired TUI/browser useful live question not run; existing controlled service evidence is not that journey."
+    },
+    {
+      "id": "A02",
+      "case": "Compare two unfamiliar vendor/options CSV/text files",
+      "required": "Real table/document/result links; hashes exact; no special domain handler.",
+      "evidence_required": "Controlled tool trace + canonical artifact; live task-quality rubric separately.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 259,
+        "verbatim": "| A02 | Compare two unfamiliar vendor/options CSV/text files | Real table/document/result links; hashes exact; no special domain handler. | Controlled tool trace + canonical artifact; live task-quality rubric separately. |",
+        "fields": [
+          "Compare two unfamiliar vendor/options CSV/text files",
+          "Real table/document/result links; hashes exact; no special domain handler.",
+          "Controlled tool trace + canonical artifact; live task-quality rubric separately."
+        ]
+      },
+      "assessment": "Shared garden table proves ordinary artifact plumbing, not an unfamiliar two-file comparison or evidence-grounded usefulness.",
+      "remaining_gap": "Compare two unfamiliar synthetic files through both clients; retain original hashes, context/tool trace and linked result, then independently grade live task quality.",
+      "proof_groups": [
+        "interaction",
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Unfamiliar multi-file comparison and live task-quality rubric on this candidate are absent."
+    },
+    {
+      "id": "A03",
+      "case": "Draft/edit brief with human notes",
+      "required": "Human revision preserved; proposed changes separate; note removal visibly acknowledged, never autoaccepted.",
+      "evidence_required": "Before/after body hashes + proposal/review/accept receipts, TUI/web.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 260,
+        "verbatim": "| A03 | Draft/edit brief with human notes | Human revision preserved; proposed changes separate; note removal visibly acknowledged, never autoaccepted. | Before/after body hashes + proposal/review/accept receipts, TUI/web. |",
+        "fields": [
+          "Draft/edit brief with human notes",
+          "Human revision preserved; proposed changes separate; note removal visibly acknowledged, never autoaccepted.",
+          "Before/after body hashes + proposal/review/accept receipts, TUI/web."
+        ]
+      },
+      "assessment": "Actual browser revision and explicit title-removal acceptance preserve exact human notes/cells; actual terminal accepted/current-body readback complements immutable API history.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "None for the synthetic note-preservation/explicit-consent mechanism; not a live quality grade."
+    },
+    {
+      "id": "A04",
+      "case": "Analyze attached code/log as evidence",
+      "required": "Exact bytes incl. BOM/CRLF; code never runs; no shell escape or terminal OSC action.",
+      "evidence_required": "No marker file/process effect; terminal sanitize vectors; retained hash.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 261,
+        "verbatim": "| A04 | Analyze attached code/log as evidence | Exact bytes incl. BOM/CRLF; code never runs; no shell escape or terminal OSC action. | No marker file/process effect; terminal sanitize vectors; retained hash. |",
+        "fields": [
+          "Analyze attached code/log as evidence",
+          "Exact bytes incl. BOM/CRLF; code never runs; no shell escape or terminal OSC action.",
+          "No marker file/process effect; terminal sanitize vectors; retained hash."
+        ]
+      },
+      "assessment": "Exact BOM/CRLF/file-snapshot and sanitizer tests support inert attachment handling; no matched hostile-code/OSC terminal no-effect receipt is bound.",
+      "remaining_gap": "Stage synthetic code/log with BOM, CRLF, ANSI/OSC and harmless execution sentinel; prove exact retained bytes, escaped display, no marker/process action and no shell interpretation.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Hostile code/log actual terminal no-marker/process-side-effect journey not newly recorded; sanitizer and retained-byte tests are supporting only."
+    },
+    {
+      "id": "A05",
+      "case": "File within ingestion limit but beyond inline context",
+      "required": "Inline omission explained; scoped range read supplies actual evidence without resupply.",
+      "evidence_required": "Read-attachment receipts/chunk refs, context manifest and result attribution.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 262,
+        "verbatim": "| A05 | File within ingestion limit but beyond inline context | Inline omission explained; scoped range read supplies actual evidence without resupply. | Read-attachment receipts/chunk refs, context manifest and result attribution. |",
+        "fields": [
+          "File within ingestion limit but beyond inline context",
+          "Inline omission explained; scoped range read supplies actual evidence without resupply.",
+          "Read-attachment receipts/chunk refs, context manifest and result attribution."
+        ]
+      },
+      "assessment": "Retained-tool-page and fixed input-budget tests are supporting mechanisms, not a bound beyond-inline upload with attributable range results.",
+      "remaining_gap": "Bind existing retained-read assertions to an over-inline/under-ingestion fixture, then record scoped chunk references/context omission/result attribution without resupply.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Need matched over-inline-limit file journey with chunk/range receipts, context manifest and result attribution; normal PDF extraction is not this case."
+    },
+    {
+      "id": "A06",
+      "case": "Unsupported binary/ZIP/PDF in text-first batch",
+      "required": "Clear supported-format refusal; no parsing/execution/partial send; draft retained.",
+      "evidence_required": "Zero POST/provider actions; UX capture.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 263,
+        "verbatim": "| A06 | Unsupported binary/ZIP/PDF in text-first batch | Clear supported-format refusal; no parsing/execution/partial send; draft retained. | Zero POST/provider actions; UX capture. |",
+        "fields": [
+          "Unsupported binary/ZIP/PDF in text-first batch",
+          "Clear supported-format refusal; no parsing/execution/partial send; draft retained.",
+          "Zero POST/provider actions; UX capture."
+        ]
+      },
+      "assessment": "B2.5 explicitly makes PDF/DOCX/XLSX supported. Refusing PDF would violate the controlling expansion; unsupported ZIP/legacy binary remains a valid negative case.",
+      "remaining_gap": "Use unsupported ZIP or legacy binary in real TUI/browser; assert zero upload/message/provider POST, honest refusal and unchanged draft/staged supported files.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "PDF is supported by controlling B2.5 expansion, not a valid refusal target. Unsupported format zero-POST browser/TUI draft-retention journey still needed."
+    },
+    {
+      "id": "A07",
+      "case": "Long task exceeds one tool slice",
+      "required": "Safe checkpoint + at most one successor; objective retained and useful work continues.",
+      "evidence_required": "Run/link/checkpoint rows, tool receipts, shared budget conservation.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 264,
+        "verbatim": "| A07 | Long task exceeds one tool slice | Safe checkpoint + at most one successor; objective retained and useful work continues. | Run/link/checkpoint rows, tool receipts, shared budget conservation. |",
+        "fields": [
+          "Long task exceeds one tool slice",
+          "Safe checkpoint + at most one successor; objective retained and useful work continues.",
+          "Run/link/checkpoint rows, tool receipts, shared budget conservation."
+        ]
+      },
+      "assessment": "Synthetic PG successor race, exact original intent, checkpoint link and shared accounting pass; original full-exit usefulness requirement still needs live continuity.",
+      "remaining_gap": "Run one authorized useful task across a real slice boundary, bind at-most-one successor and conserved budget to useful subsequent output; no extra lifetime authority.",
+      "proof_groups": [
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Deterministic successor/shared accounting checks pass; useful live task continuing across a real slice boundary is unavailable."
+    },
+    {
+      "id": "A08",
+      "case": "Changed source and human correction between unattended waves",
+      "required": "Next run binds latest permitted versions; older results/history retained, no repeated request for already-supported evidence.",
+      "evidence_required": "Ordered DB timestamps and run-context refs across two waves.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 265,
+        "verbatim": "| A08 | Changed source and human correction between unattended waves | Next run binds latest permitted versions; older results/history retained, no repeated request for already-supported evidence. | Ordered DB timestamps and run-context refs across two waves. |",
+        "fields": [
+          "Changed source and human correction between unattended waves",
+          "Next run binds latest permitted versions; older results/history retained, no repeated request for already-supported evidence.",
+          "Ordered DB timestamps and run-context refs across two waves."
+        ]
+      },
+      "assessment": "Actual dependency edit blocks stale work and preserves historical observations. It does not demonstrate two unattended provider waves using latest context.",
+      "remaining_gap": "Two authorized unattended waves separated by a source change and human correction, with ordered timestamps/context hashes, retained history, useful output and no resupply.",
+      "proof_groups": [
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Actual human correction/historical truth verified; two unattended provider waves with context bindings and useful output remain absent."
+    },
+    {
+      "id": "A09",
+      "case": "Two independent responsibilities; one provider slow",
+      "required": "Other progresses; waits are explicit; no starvation/hot-loop spending.",
+      "evidence_required": "Dispatcher visit times, outbox/run records, bounded request counts.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 266,
+        "verbatim": "| A09 | Two independent responsibilities; one provider slow | Other progresses; waits are explicit; no starvation/hot-loop spending. | Dispatcher visit times, outbox/run records, bounded request counts. |",
+        "fields": [
+          "Two independent responsibilities; one provider slow",
+          "Other progresses; waits are explicit; no starvation/hot-loop spending.",
+          "Dispatcher visit times, outbox/run records, bounded request counts."
+        ]
+      },
+      "assessment": "Queue isolation and bounded worker visits are supporting evidence; no row-bound two-responsibility slow-provider timing/counter trace is established.",
+      "remaining_gap": "First bind any retained dispatcher fairness trace; otherwise run two synthetic responsibilities with one deliberately slow provider and prove second progress, visit intervals, bounded calls and no hot loop.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Isolated queue mechanics tested; two independent responsibilities with slow-provider fairness/visit-time trajectory not established."
+    },
+    {
+      "id": "A10",
+      "case": "Scheduled check-in while all UIs closed",
+      "required": "Server continues within authority; return shows actual new output/next action or honest blocker.",
+      "evidence_required": "Worker-only interval; later TUI/web snapshots/events matching DB.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 267,
+        "verbatim": "| A10 | Scheduled check-in while all UIs closed | Server continues within authority; return shows actual new output/next action or honest blocker. | Worker-only interval; later TUI/web snapshots/events matching DB. |",
+        "fields": [
+          "Scheduled check-in while all UIs closed",
+          "Server continues within authority; return shows actual new output/next action or honest blocker.",
+          "Worker-only interval; later TUI/web snapshots/events matching DB."
+        ]
+      },
+      "assessment": "Historical installed planning/editorial unattended trials are replay for this candidate; current queued/stopped readbacks are not worker-only execution.",
+      "remaining_gap": "Record a current authorized scheduled check-in during a real all-UI-closed interval and later paired current-state/output readback; distinguish waiting from completion.",
+      "proof_groups": [
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "replay",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Closed-UI worker-only scheduled check-in on this candidate not performed. Historical STATUS trajectories are replay evidence only."
+    },
+    {
+      "id": "A11",
+      "case": "TUI close/reopen during progress and with unsent draft",
+      "required": "Work persists independently; same draft bytes restored; closing does not cancel.",
+      "evidence_required": "Process boundary + canonical run and local draft hashes.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 268,
+        "verbatim": "| A11 | TUI close/reopen during progress and with unsent draft | Work persists independently; same draft bytes restored; closing does not cancel. | Process boundary + canonical run and local draft hashes. |",
+        "fields": [
+          "TUI close/reopen during progress and with unsent draft",
+          "Work persists independently; same draft bytes restored; closing does not cancel.",
+          "Process boundary + canonical run and local draft hashes."
+        ]
+      },
+      "assessment": "Predecessor actual Textual process exit/restart and width changes preserve Unicode multiline draft bytes; canonical queued run persists independently. TUI source remains byte-identical.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Actual TUI process boundary and retained queued server work demonstrated; no productive unattended-model claim."
+    },
+    {
+      "id": "A12",
+      "case": "API restart and stream reconnect",
+      "required": "Last applied cursor resumes without lost/duplicate meaningful transitions.",
+      "evidence_required": "Event IDs/cursors and reducer state; reconnect trace.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 269,
+        "verbatim": "| A12 | API restart and stream reconnect | Last applied cursor resumes without lost/duplicate meaningful transitions. | Event IDs/cursors and reducer state; reconnect trace. |",
+        "fields": [
+          "API restart and stream reconnect",
+          "Last applied cursor resumes without lost/duplicate meaningful transitions.",
+          "Event IDs/cursors and reducer state; reconnect trace."
+        ]
+      },
+      "assessment": "Actual API PID restart with open browser retains unsent/unknown state and applied cursor, SSE/poll reconnection; current actual-module parser/reducer tests preserve dedupe/scope fencing.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Real API restart/SSE→poll→SSE reconnect retains exact cursor and drafts; deterministic event reducers cover duplicates/versions."
+    },
+    {
+      "id": "A13",
+      "case": "Delayed commit A / earlier commit B / rollback",
+      "required": "Commit-safe cursor cannot skip A; rollback emits nothing; no sequence-hole shortcut.",
+      "evidence_required": "Two-process PG barrier test.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 270,
+        "verbatim": "| A13 | Delayed commit A / earlier commit B / rollback | Commit-safe cursor cannot skip A; rollback emits nothing; no sequence-hole shortcut. | Two-process PG barrier test. |",
+        "fields": [
+          "Delayed commit A / earlier commit B / rollback",
+          "Commit-safe cursor cannot skip A; rollback emits nothing; no sequence-hole shortcut.",
+          "Two-process PG barrier test."
+        ]
+      },
+      "assessment": "Retained test uses ThreadPoolExecutor and independent real PG connections, with delayed commit and rollback assertions. This is sound concurrent PG mechanism evidence, but not the explicitly required two-client-process barrier receipt.",
+      "remaining_gap": "Repeat only the commit-prefix/rollback barrier using independently identified client processes (and PG backend identities), retaining cursor/event order and rollback absence. No provider needed.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Real restricted-PG commit/rollback/barrier mechanism evidence reused; backend hashes unchanged."
+    },
+    {
+      "id": "A14",
+      "case": "Cursor expired / wrong principal / changed access generation",
+      "required": "Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure.",
+      "evidence_required": "HTTP statuses/error DTOs and sanitized cache behavior.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 271,
+        "verbatim": "| A14 | Cursor expired / wrong principal / changed access generation | Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure. | HTTP statuses/error DTOs and sanitized cache behavior. |",
+        "fields": [
+          "Cursor expired / wrong principal / changed access generation",
+          "Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure.",
+          "HTTP statuses/error DTOs and sanitized cache behavior."
+        ]
+      },
+      "assessment": "Reuse parent-qualified actual principal-only/endpoint-only switches and actual midstream membership revocation. Current delayed-poll controlled session-loss smoke and actual-module deferred-body probes close late application; neither is relabelled actual principal revocation.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "PASS scoped mechanism: actual principal-only and endpoint-only switches, original-scope draft/byte recovery and active-midstream revocation from retained exact-source browser receipts, plus the corrected late-poll actual-module probes and current-build controlled session-loss smoke. Controlled smoke is not relabeled as a new actual membership/principal change. Same-principal unsent text may remain explicitly read-only/not-sent; no foreign local draft exposure or stale dispatch. Old red and held reviews retained."
+    },
+    {
+      "id": "A15",
+      "case": "Stream data split at arbitrary bytes, duplicates, out-of-order, oversized frame",
+      "required": "Bounded parser; exact logical events; stale versions ignored; safe reconnect.",
+      "evidence_required": "Property/fixture tests with max-buffer assertions.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 272,
+        "verbatim": "| A15 | Stream data split at arbitrary bytes, duplicates, out-of-order, oversized frame | Bounded parser; exact logical events; stale versions ignored; safe reconnect. | Property/fixture tests with max-buffer assertions. |",
+        "fields": [
+          "Stream data split at arbitrary bytes, duplicates, out-of-order, oversized frame",
+          "Bounded parser; exact logical events; stale versions ignored; safe reconnect.",
+          "Property/fixture tests with max-buffer assertions."
+        ]
+      },
+      "assessment": "Actual SSE parser tests split UTF-8 at six chunk sizes, bound oversize terminated/unterminated frames, and bound dedupe; current 514-test report includes parser/stream freshness and new post-body scope fences.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Current deterministic parser/reducer fixtures cover bounded frame and stale versions; not live provider evidence."
+    },
+    {
+      "id": "A16",
+      "case": "Lost ACK after command commit, duplicate clicks, CAS drift",
+      "required": "Same exact command preserved; explicit replay dedupes; payload change rejected; no refreshed hidden CAS.",
+      "evidence_required": "Journal records + command/message/side-effect counts.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 273,
+        "verbatim": "| A16 | Lost ACK after command commit, duplicate clicks, CAS drift | Same exact command preserved; explicit replay dedupes; payload change rejected; no refreshed hidden CAS. | Journal records + command/message/side-effect counts. |",
+        "fields": [
+          "Lost ACK after command commit, duplicate clicks, CAS drift",
+          "Same exact command preserved; explicit replay dedupes; payload change rejected; no refreshed hidden CAS.",
+          "Journal records + command/message/side-effect counts."
+        ]
+      },
+      "assessment": "Real socket committed-202 ACK loss followed by API/TUI restart preserves exact command/response and count; CAS conflict keeps original draft. Browser binary replay preserves exact request and semantic receipt, not JSON response byte order.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Actual socket message lost ACK, exact command replay/counts and conflict-preserved draft in predecessor; actual browser upload replay complements this, not a claim of Home message-ACK testing."
+    },
+    {
+      "id": "A17",
+      "case": "File changes/deletes after journal reservation",
+      "required": "Replay uses retained bytes; no filesystem reread or hash drift.",
+      "evidence_required": "Journal/payload/retained attachment hashes.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 274,
+        "verbatim": "| A17 | File changes/deletes after journal reservation | Replay uses retained bytes; no filesystem reread or hash drift. | Journal/payload/retained attachment hashes. |",
+        "fields": [
+          "File changes/deletes after journal reservation",
+          "Replay uses retained bytes; no filesystem reread or hash drift.",
+          "Journal/payload/retained attachment hashes."
+        ]
+      },
+      "assessment": "Predecessor actual retained-file replay after filesystem deletion and browser IndexedDB ArrayBuffer/hash/process-reopen proof bind exact retained bytes, not mutable original paths.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "True retained-file replay after original deletion in predecessor; actual browser ArrayBuffer hashes survive process/API restart."
+    },
+    {
+      "id": "A18",
+      "case": "Send while running; queued send while running",
+      "required": "Superseding send and queue are distinct, visible and server-owned; queue doesn't steal authority.",
+      "evidence_required": "Fences, intent/message links and both UIs.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 275,
+        "verbatim": "| A18 | Send while running; queued send while running | Superseding send and queue are distinct, visible and server-owned; queue doesn't steal authority. | Fences, intent/message links and both UIs. |",
+        "fields": [
+          "Send while running; queued send while running",
+          "Superseding send and queue are distinct, visible and server-owned; queue doesn't steal authority.",
+          "Fences, intent/message links and both UIs."
+        ]
+      },
+      "assessment": "Real TUI/API redirects and browser exact-whitespace queue/send demonstrate distinct server intent, no run from queue, and canonical superseding behavior; current mutation paths retain reviewed semantics.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Exact browser queue creates no run; normal new message supersedes earlier queued run. Current backend fences unchanged."
+    },
+    {
+      "id": "A19",
+      "case": "Cancel queued intent at same time worker admits it",
+      "required": "One atomic valid result; no hidden second run; user sees final receipt.",
+      "evidence_required": "Concurrent PG race test.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 276,
+        "verbatim": "| A19 | Cancel queued intent at same time worker admits it | One atomic valid result; no hidden second run; user sees final receipt. | Concurrent PG race test. |",
+        "fields": [
+          "Cancel queued intent at same time worker admits it",
+          "One atomic valid result; no hidden second run; user sees final receipt.",
+          "Concurrent PG race test."
+        ]
+      },
+      "assessment": "Restricted PG concurrent queue cancel/admit test asserts one outcome; real browser explicit cancellation receipt and separate STOP behavior complement it. Not a manual simultaneous-click claim.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Actual restricted-PG cancel/admit race plus explicit browser cancel readback; no manual simultaneous click claim."
+    },
+    {
+      "id": "A20",
+      "case": "Stop one run / pause / resume / takeover / conversation cancel",
+      "required": "Distinct effects, no unintended auto-restart, no stale worker publication; readback proves state.",
+      "evidence_required": "Commands/fences/lifecycle/receipt rows + UI labels.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 277,
+        "verbatim": "| A20 | Stop one run / pause / resume / takeover / conversation cancel | Distinct effects, no unintended auto-restart, no stale worker publication; readback proves state. | Commands/fences/lifecycle/receipt rows + UI labels. |",
+        "fields": [
+          "Stop one run / pause / resume / takeover / conversation cancel",
+          "Distinct effects, no unintended auto-restart, no stale worker publication; readback proves state.",
+          "Commands/fences/lifecycle/receipt rows + UI labels."
+        ]
+      },
+      "assessment": "Real STOP and separate queue/conversation state pass. Existing lifecycle assertions need row-specific binding; paired pause/resume/takeover/conversation-cancel labels and effect matrix are not all present.",
+      "remaining_gap": "Bind existing lifecycle tests, then exercise only missing pause/resume/takeover/cancel controls through both clients with fences, retained work, no unintended restart and final readbacks.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "STOP/queue/conversation-open separation proven; complete pause/resume/takeover/conversation-cancel paired lifecycle matrix not reconciled."
+    },
+    {
+      "id": "A21",
+      "case": "Crash before send; after dispatch before known identity",
+      "required": "First can safely admit if proven unsent; second quarantines unknown with reservation retained, zero auto-resend.",
+      "evidence_required": "Controlled transport call counters and persisted ledger before/after restart.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 278,
+        "verbatim": "| A21 | Crash before send; after dispatch before known identity | First can safely admit if proven unsent; second quarantines unknown with reservation retained, zero auto-resend. | Controlled transport call counters and persisted ledger before/after restart. |",
+        "fields": [
+          "Crash before send; after dispatch before known identity",
+          "First can safely admit if proven unsent; second quarantines unknown with reservation retained, zero auto-resend.",
+          "Controlled transport call counters and persisted ledger before/after restart."
+        ]
+      },
+      "assessment": "Synthetic transport unknown-send test preserves fake.calls over three successor/revisit attempts. Hook-raised Python exceptions do not prove hard-kill persistence at every required cutpoint.",
+      "remaining_gap": "Hard-kill separate worker before proven-unsent dispatch and after dispatch before durable identity; restart and assert retained accounting, zero automatic resend, correct quarantine and no successor.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Deterministic ledger counters exist; all controlling hard-kill provider boundaries with persisted ledger before/after restart not explicitly bound."
+    },
+    {
+      "id": "A22",
+      "case": "Known provider identity; worker kill before result",
+      "required": "Bounded exact-ID GET observations recover; no new provider create.",
+      "evidence_required": "Same identity, read reservations, result receipt; create count unchanged.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 279,
+        "verbatim": "| A22 | Known provider identity; worker kill before result | Bounded exact-ID GET observations recover; no new provider create. | Same identity, read reservations, result receipt; create count unchanged. |",
+        "fields": [
+          "Known provider identity; worker kill before result",
+          "Bounded exact-ID GET observations recover; no new provider create.",
+          "Same identity, read reservations, result receipt; create count unchanged."
+        ]
+      },
+      "assessment": "Existing recovery asserts same response ID, one GET, unchanged original records and root budget. It is an in-process historical parser-recovery fixture, not a killed-worker/current-general-profile proof.",
+      "remaining_gap": "Kill worker after durable provider identity, restart against controlled provider, prove only exact-ID bounded GETs/read reservations and unchanged create count, then canonical receipt.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Exact-known-provider-ID worker-kill recovery with unchanged create count/read reservations still needs explicit current-candidate proof."
+    },
+    {
+      "id": "A23",
+      "case": "Effect committed before tool ACK/history save",
+      "required": "Exact receipt consumed once, no duplicate effect; checkpoint isn't source of truth.",
+      "evidence_required": "Operation hash/unique effect/result rows.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 280,
+        "verbatim": "| A23 | Effect committed before tool ACK/history save | Exact receipt consumed once, no duplicate effect; checkpoint isn't source of truth. | Operation hash/unique effect/result rows. |",
+        "fields": [
+          "Effect committed before tool ACK/history save",
+          "Exact receipt consumed once, no duplicate effect; checkpoint isn't source of truth.",
+          "Operation hash/unique effect/result rows."
+        ]
+      },
+      "assessment": "Canonical-boundary test raises Interrupted, reconstructs worker in the same process and asserts one artifact/assistant message and stable checkpoint hashes. This does not establish OS hard-kill commit-to-ACK persistence.",
+      "remaining_gap": "Hard-kill after synthetic effect commit before ACK/history persistence; restart and prove same operation hash/one unique effect and receipt consumed once without trusting checkpoint as canonical effect truth.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Retained receipt mechanics tested; effect-commit→ACK/history hard-kill cutpoint and unique effect count not newly bound."
+    },
+    {
+      "id": "A24",
+      "case": "Cancelled run gets late trusted response",
+      "required": "Remains cancelled; unapplied receipt retained; only NEW normal admission may unblock.",
+      "evidence_required": "Migration046 regression plus canonical history immutability.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 281,
+        "verbatim": "| A24 | Cancelled run gets late trusted response | Remains cancelled; unapplied receipt retained; only NEW normal admission may unblock. | Migration046 regression plus canonical history immutability. |",
+        "fields": [
+          "Cancelled run gets late trusted response",
+          "Remains cancelled; unapplied receipt retained; only NEW normal admission may unblock.",
+          "Migration046 regression plus canonical history immutability."
+        ]
+      },
+      "assessment": "Unchanged migration046/cancelled-response implementation and retained exact-source integration tests preserve cancelled state, unapplied late trusted receipt and new-normal-admission requirement; no external effect claim.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Deterministic cancelled-run trusted-receipt retention/no-publication mechanics; no real business effect."
+    },
+    {
+      "id": "A25",
+      "case": "Lease expires; old worker returns after replacement",
+      "required": "Old fence rejected for publication; allowed receipt retention only.",
+      "evidence_required": "Cross-process stale capability assertions.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 282,
+        "verbatim": "| A25 | Lease expires; old worker returns after replacement | Old fence rejected for publication; allowed receipt retention only. | Cross-process stale capability assertions. |",
+        "fields": [
+          "Lease expires; old worker returns after replacement",
+          "Old fence rejected for publication; allowed receipt retention only.",
+          "Cross-process stale capability assertions."
+        ]
+      },
+      "assessment": "Lease tests use fresh worker objects and synthetic time/expiry; stale capabilities are rejected. Explicit independently identified replacement/old-worker process evidence is not established.",
+      "remaining_gap": "Two separate workers: expire/replace lease, release old worker late, assert fence-denied publication and only permitted receipt retention; bind both PID identities and canonical rows.",
+      "proof_groups": [
+        "faults"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Lease/STOP fence tests pass; explicit cross-process replacement/late capability evidence for full row needs reconciliation, not inferred from names."
+    },
+    {
+      "id": "A26",
+      "case": "Budget/authority expires at admission, dispatch or successor boundary",
+      "required": "Correct blocked reason; no new spend/grant/reset; saved output still scoped-readable.",
+      "evidence_required": "Exact accounting/authority snapshots and zero forbidden calls.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 283,
+        "verbatim": "| A26 | Budget/authority expires at admission, dispatch or successor boundary | Correct blocked reason; no new spend/grant/reset; saved output still scoped-readable. | Exact accounting/authority snapshots and zero forbidden calls. |",
+        "fields": [
+          "Budget/authority expires at admission, dispatch or successor boundary",
+          "Correct blocked reason; no new spend/grant/reset; saved output still scoped-readable.",
+          "Exact accounting/authority snapshots and zero forbidden calls."
+        ]
+      },
+      "assessment": "Inspected predispatch revoke test has one earlier synthetic count call, zero generated responses and full reservation retained. Do not label this zero total calls or all-boundary expiry coverage. Successor code checks effective expiry/budget, but source inspection is not execution.",
+      "remaining_gap": "Bind admission/budget tests and execute missing expiry/exhaustion cases independently at admission, post-reservation dispatch and successor; assert specific reason, no forbidden incremental calls/reservations/grant reset and saved-output readability.",
+      "proof_groups": [
+        "gates"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Supporting deterministic refusal tests retained; enumerate admission+dispatch+successor expiry boundaries with zero-call/accounting assertions before closing full row."
+    },
+    {
+      "id": "A27",
+      "case": "No progress repeated / malformed output / persistent tool rejection",
+      "required": "Bounded park with actionable diagnosis, not infinite spend or false completion.",
+      "evidence_required": "Threshold/circuit-breaker trace and useful UI next action.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 284,
+        "verbatim": "| A27 | No progress repeated / malformed output / persistent tool rejection | Bounded park with actionable diagnosis, not infinite spend or false completion. | Threshold/circuit-breaker trace and useful UI next action. |",
+        "fields": [
+          "No progress repeated / malformed output / persistent tool rejection",
+          "Bounded park with actionable diagnosis, not infinite spend or false completion.",
+          "Threshold/circuit-breaker trace and useful UI next action."
+        ]
+      },
+      "assessment": "Repeated-slice test proves blocked/await_person and unchanged budget on another Continue. Malformed-output/persistent-tool-rejection threshold traces and useful displayed next action remain unbound.",
+      "remaining_gap": "Bind retained malformed/rejection assertions if adequate; otherwise controlled repeated failures with exact threshold/counters, durable actionable park and corresponding client presentation.",
+      "proof_groups": [
+        "gates",
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "No-progress park mechanics present; complete malformed/persistent-rejection trace plus useful UI next action not bound."
+    },
+    {
+      "id": "A28",
+      "case": "Proposal current/older/removes >20 entries/stale base",
+      "required": "Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags.",
+      "evidence_required": "Server regression + TUI and web acceptance/readback.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 285,
+        "verbatim": "| A28 | Proposal current/older/removes >20 entries/stale base | Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags. | Server regression + TUI and web acceptance/readback. |",
+        "fields": [
+          "Proposal current/older/removes >20 entries/stale base",
+          "Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags.",
+          "Server regression + TUI and web acceptance/readback."
+        ]
+      },
+      "assessment": "Parent verified 26 removals/20 samples, actual focus-refresh newer-candidate consent reset, stale-base409 despite consent and TUI explicit acceptance/readback. Focus-refresh is not continuous polling; automatic-reset red remains preserved.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "26 total/20 samples; actual browser focus-refresh resets consent on newer candidate, consent-bearing stale base409; TUI no-consent refusal then exact fresh accept; browser/HTTP readback. Focus-refresh, not continuous polling; retained automatic-reset red. Prior older regression evidence reused. Current authenticated scoped-proxy stale-base409 probe passes; acceptance paths unchanged by final two-file polling correction."
+    },
+    {
+      "id": "A29",
+      "case": "Event replay/duplicate wake/return in second UI",
+      "required": "One attention fact/bell per material transition; seen shared, decision not autoaccepted.",
+      "evidence_required": "Attention unique keys + cross-UI capture.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 286,
+        "verbatim": "| A29 | Event replay/duplicate wake/return in second UI | One attention fact/bell per material transition; seen shared, decision not autoaccepted. | Attention unique keys + cross-UI capture. |",
+        "fields": [
+          "Event replay/duplicate wake/return in second UI",
+          "One attention fact/bell per material transition; seen shared, decision not autoaccepted.",
+          "Attention unique keys + cross-UI capture."
+        ]
+      },
+      "assessment": "Browser Mark seen plus terminal zero-attention and still-pending proposals are canonical cross-UI evidence; unchanged unique/monotonic-seen backend tests cover event replay.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Browser Mark seen, terminal0attention, pending proposals remain; deterministic replay uniqueness tests complement actual readback."
+    },
+    {
+      "id": "A30",
+      "case": "Long transcript + slow/erroring API during typing",
+      "required": "Composer/selection/scroll stable; no interleaved writes; freshness truthful.",
+      "evidence_required": "Pilot tests, real terminal capture, measured key/render and query timings.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 287,
+        "verbatim": "| A30 | Long transcript + slow/erroring API during typing | Composer/selection/scroll stable; no interleaved writes; freshness truthful. | Pilot tests, real terminal capture, measured key/render and query timings. |",
+        "fields": [
+          "Long transcript + slow/erroring API during typing",
+          "Composer/selection/scroll stable; no interleaved writes; freshness truthful.",
+          "Pilot tests, real terminal capture, measured key/render and query timings."
+        ]
+      },
+      "assessment": "Actual API outage retains browser/TUI draft; existing Pilot/query-cost tests are not a measured long-transcript key/render/selection benchmark.",
+      "remaining_gap": "Bounded long transcript under delayed/erroring read API, capture typing/selection/scroll and freshness, record key-to-render/query timings and mutation counts at terminal sizes and browser widths.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Slow/erroring API draft preservation shown; long-transcript key/render/selection/query matched latency benchmark still absent."
+    },
+    {
+      "id": "A31",
+      "case": "Simple deliverable finished vs proposal accepted vs objective finished",
+      "required": "Separate state axes; no global Done from a single ready run/accepted draft.",
+      "evidence_required": "Golden status vectors + completion evidence where supported.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 288,
+        "verbatim": "| A31 | Simple deliverable finished vs proposal accepted vs objective finished | Separate state axes; no global Done from a single ready run/accepted draft. | Golden status vectors + completion evidence where supported. |",
+        "fields": [
+          "Simple deliverable finished vs proposal accepted vs objective finished",
+          "Separate state axes; no global Done from a single ready run/accepted draft.",
+          "Golden status vectors + completion evidence where supported."
+        ]
+      },
+      "assessment": "Actual accepted revision remains separate from stopped execution, blocked responsibility and dated unverified earlier check-in; golden status fixtures support state-axis projection.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Accepted current version and stopped execution remain distinct from blocked responsibility and timestamped unverified earlier observation."
+    },
+    {
+      "id": "A32",
+      "case": "Cross-UI journey: begin TUI, edit web, return TUI",
+      "required": "Canonical work/target/current revisions consistent; drafts safe, stale target explicit.",
+      "evidence_required": "Paired UI evidence + exact IDs/versions/readbacks.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 289,
+        "verbatim": "| A32 | Cross-UI journey: begin TUI, edit web, return TUI | Canonical work/target/current revisions consistent; drafts safe, stale target explicit. | Paired UI evidence + exact IDs/versions/readbacks. |",
+        "fields": [
+          "Cross-UI journey: begin TUI, edit web, return TUI",
+          "Canonical work/target/current revisions consistent; drafts safe, stale target explicit.",
+          "Paired UI evidence + exact IDs/versions/readbacks."
+        ]
+      },
+      "assessment": "Same conversation/artifact was begun in terminal, edited/accepted in browser and full current revision7 body/notes reread in executable TUI. Draft/CAS evidence is retained; current scope additions independently tested.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Same-work current revision7 accepted in browser is reread in actual terminal with identical cell/notes, status and attention; independent prior draft/conflict target safety evidence retained."
+    },
+    {
+      "id": "A33",
+      "case": "Incompatible checkpoint after runtime upgrade",
+      "required": "Blocks with explicit compatibility reason, no old request rebound to new prompts/grant.",
+      "evidence_required": "Upgrade fixture, pinned hashes and zero I/O.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 290,
+        "verbatim": "| A33 | Incompatible checkpoint after runtime upgrade | Blocks with explicit compatibility reason, no old request rebound to new prompts/grant. | Upgrade fixture, pinned hashes and zero I/O. |",
+        "fields": [
+          "Incompatible checkpoint after runtime upgrade",
+          "Blocks with explicit compatibility reason, no old request rebound to new prompts/grant.",
+          "Upgrade fixture, pinned hashes and zero I/O."
+        ]
+      },
+      "assessment": "Existing successor rejection parameters are hash, human intent, generation, principal and revision, not incompatible runtime. run_successors.py checks pinned configuration/runtime hashes and unsupported_operation, but no upgrade-fixture zero-I/O assertion is bound.",
+      "remaining_gap": "Create settled synthetic checkpoint under pinned old runtime/config, change compatibility in isolated fixture, assert explicit unsupported_operation, zero new I/O/successor/reservation and immutable old intent/grant/checkpoint.",
+      "proof_groups": [
+        "gates"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Hash/scope/checkpoint refusals supported; explicit incompatible-runtime-upgrade fixture with pinned hashes/zero I/O needs binding."
+    },
+    {
+      "id": "A34",
+      "case": "Migration/new event schema over retained history",
+      "required": "Prefix checks pass, repeated application no-op, old receipts/work/budget unchanged; rollback feature flags preserve canonical records.",
+      "evidence_required": "Disposable before/after hashes and migration journal.",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 291,
+        "verbatim": "| A34 | Migration/new event schema over retained history | Prefix checks pass, repeated application no-op, old receipts/work/budget unchanged; rollback feature flags preserve canonical records. | Disposable before/after hashes and migration journal. |",
+        "fields": [
+          "Migration/new event schema over retained history",
+          "Prefix checks pass, repeated application no-op, old receipts/work/budget unchanged; rollback feature flags preserve canonical records.",
+          "Disposable before/after hashes and migration journal."
+        ]
+      },
+      "assessment": "49 migration checksums, additive prefix/no-op and retained records have evidence. Full event-feature rollback equivalence of old work/receipts/budget is not established by schema checks alone.",
+      "remaining_gap": "Bind existing before/after migration assertions; on disposable snapshot only disable new feature paths and verify canonical work/receipt/accounting hashes unchanged and old clients still read records.",
+      "proof_groups": [
+        "gates"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "49checksum/additive/no-op migration evidence retained; full feature-flag rollback old-work/budget hash equivalence not demonstrated."
+    },
+    {
+      "id": "A35",
+      "case": "Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content",
+      "required": "Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS.",
+      "evidence_required": "Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI.",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+          "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+        },
+        "line": 292,
+        "verbatim": "| A35 | Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content | Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS. | Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI. |",
+        "fields": [
+          "Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content",
+          "Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS.",
+          "Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI."
+        ]
+      },
+      "assessment": "Exact five/17-line and ten/40-line note parity is parent-verified through actual TUI/current API and scoped browser cell-save/readback. Unchanged UI no-op and separately exercised unchanged wire-save are distinct proofs.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "5 objects/17 lines and10 objects/40 lines; exact duplicates/blank/trailing bytes. Browser cell saves, unchanged UI no-op, separately real unchanged browser wire-save; Textual full-body captures and final actual terminal executable/current API hashes. Current scoped UI five/ten note saves/readbacks also pass; final polling correction leaves editor/acceptance paths unchanged."
+    },
+    {
+      "id": "P1",
+      "case": "Separate Claude candidate reconciled with review-safety runtime",
+      "required": "Exact merged feature candidate; generated contract and desktop/mobile tests retained",
+      "evidence_required": "",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 173,
+        "verbatim": "| P1 | Separate Claude candidate reconciled with review-safety runtime | Exact merged feature candidate; generated contract and desktop/mobile tests retained |",
+        "fields": [
+          "Separate Claude candidate reconciled with review-safety runtime",
+          "Exact merged feature candidate; generated contract and desktop/mobile tests retained"
+        ]
+      },
+      "assessment": "Current 611-file manifest binds intentional dirty integration, generated session contract and 514 frontend gates. Reviewed additive backend session fence and scoped web deltas qualify reuse of unaffected backend/TUI/earlier journeys; no claim of publication/install.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Exact dirty feature candidate bound by602hashes; unchanged canonical/generated contracts reused. Not committed/published or installed."
+    },
+    {
+      "id": "P2",
+      "case": "Acceptance updates current facts, not historical prose",
+      "required": "Current revision visible; old observation timestamped; unresolved goal still open",
+      "evidence_required": "",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 174,
+        "verbatim": "| P2 | Acceptance updates current facts, not historical prose | Current revision visible; old observation timestamped; unresolved goal still open |",
+        "fields": [
+          "Acceptance updates current facts, not historical prose",
+          "Current revision visible; old observation timestamped; unresolved goal still open"
+        ]
+      },
+      "assessment": "Real accepted browser revision and TUI current body differ from timestamped historical outcome; responsibility remains blocked rather than falsely complete.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Browser accepted current facts; earlier observation timestamp and unresolved goal preserved."
+    },
+    {
+      "id": "P3",
+      "case": "PDF/DOCX/XLSX content retained and reread after restart",
+      "required": "Original/extraction hashes and source locators match; no resupply",
+      "evidence_required": "",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 175,
+        "verbatim": "| P3 | PDF/DOCX/XLSX content retained and reread after restart | Original/extraction hashes and source locators match; no resupply |",
+        "fields": [
+          "PDF/DOCX/XLSX content retained and reread after restart",
+          "Original/extraction hashes and source locators match; no resupply"
+        ]
+      },
+      "assessment": "Real confined PDF/DOCX/XLSX extraction/original hashes and locators survive actual API restart; browser rereads same work and exact PDF upload replays after full Chromium/API restart without resupply.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "All3 originals/extractions retained across predecessor API restart and browser readback; subsequent current API/browser restart exact PDF replay, no resupply."
+    },
+    {
+      "id": "P4",
+      "case": "Scanned/image/unsupported sections are honest",
+      "required": "Visible coverage/limitations; no claimed reading of missing text",
+      "evidence_required": "",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 176,
+        "verbatim": "| P4 | Scanned/image/unsupported sections are honest | Visible coverage/limitations; no claimed reading of missing text |",
+        "fields": [
+          "Scanned/image/unsupported sections are honest",
+          "Visible coverage/limitations; no claimed reading of missing text"
+        ]
+      },
+      "assessment": "Expanded real document views disclose DOCX/PDF/XLSX omitted features, formulas/cache not recalculation. Parser empty-page/encrypted/scanned limitations alone do not establish current scanned/image-only UI presentation.",
+      "remaining_gap": "Upload synthetic scanned/image-only PDF in supported confined path, inspect both client limitations/no-text coverage and preserve original; assert no confident read/summary claim or provider call.",
+      "proof_groups": [
+        "interaction"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Actual XLSX unsupported-format/formula omissions visible; scanned/image-only current browser/TUI limitations journey still absent."
+    },
+    {
+      "id": "P5",
+      "case": "Parser bombs, external links and escape attempts",
+      "required": "Actual confined process failure/resource evidence; no network/host-secret access",
+      "evidence_required": "",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 177,
+        "verbatim": "| P5 | Parser bombs, external links and escape attempts | Actual confined process failure/resource evidence; no network/host-secret access |",
+        "fields": [
+          "Parser bombs, external links and escape attempts",
+          "Actual confined process failure/resource evidence; no network/host-secret access"
+        ]
+      },
+      "assessment": "Actual sandbox process probes assert host secret/env/network denial, memory/fd/process bounds, CPU SIGKILL with CPU-time evidence, wall kill with no detached survivors and bounded output; parser external-link/ZIP tests retained on unchanged source.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Current backend unchanged: isolated CPU/wall/network/escape/parser tests retained. No arbitrary upload was executed in browser."
+    },
+    {
+      "id": "P6",
+      "case": "Initial inferior planning candidate remains graded",
+      "required": "Preserved failure record, review warning and protected human notes in accepted candidate",
+      "evidence_required": "",
+      "status": "PASS",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 178,
+        "verbatim": "| P6 | Initial inferior planning candidate remains graded | Preserved failure record, review warning and protected human notes in accepted candidate |",
+        "fields": [
+          "Initial inferior planning candidate remains graded",
+          "Preserved failure record, review warning and protected human notes in accepted candidate"
+        ]
+      },
+      "assessment": "Literal obligation is preservation of the initial inferior planning grade, not a new live planning rerun. Historical evaluation explicitly retains omitted-note candidate, repair intervention and PARTIAL quality grade; current review warnings/consent and protected accepted notes pass A03/A28/A35. Historical live evaluation is replay for this candidate, never fresh usefulness evidence.",
+      "remaining_gap": "",
+      "proof_groups": [],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "replay"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Inferior synthetic proposal retained and not accepted; historical planning negative grade preserved. Current live planning-quality rerun/grade not supplied."
+    },
+    {
+      "id": "P7",
+      "case": "Turn-limit boundary has real ownership",
+      "required": "Verified admitted successor or explicit durable stop reason; never an ownerless spinner",
+      "evidence_required": "",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 179,
+        "verbatim": "| P7 | Turn-limit boundary has real ownership | Verified admitted successor or explicit durable stop reason; never an ownerless spinner |",
+        "fields": [
+          "Turn-limit boundary has real ownership",
+          "Verified admitted successor or explicit durable stop reason; never an ownerless spinner"
+        ]
+      },
+      "assessment": "Synthetic slice/successor ownership is verified and stopped work has an explicit durable reason. Full current live turn-boundary ownership/usefulness remains distinct from testing manual STOP.",
+      "remaining_gap": "In the A07 authorized live trial capture the actual boundary successor or durable actionable stop and both-client state, never an unowned progress spinner.",
+      "proof_groups": [
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "STOP is explicit durable state; positive real turn-limit trajectory with admitted successor or evidence-backed boundary stop remains unproven live."
+    },
+    {
+      "id": "P8",
+      "case": "Latency and friction regression measured",
+      "required": "Phase timing and human interventions on matched tasks, including negative results",
+      "evidence_required": "",
+      "status": "PENDING",
+      "controlling_requirement": {
+        "source": {
+          "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+          "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+        },
+        "line": 180,
+        "verbatim": "| P8 | Latency and friction regression measured | Phase timing and human interventions on matched tasks, including negative results |",
+        "fields": [
+          "Latency and friction regression measured",
+          "Phase timing and human interventions on matched tasks, including negative results"
+        ]
+      },
+      "assessment": "Prior 505.73-second versus 296.80-second negative timing and human interventions remain historical replay. Current matched-task phase/friction results are absent.",
+      "remaining_gap": "Use matched authorized live tasks and record admission/provider/tool/persistence/render phases plus every human intervention; retain regressions and compare to cited historical baseline without speed claims.",
+      "proof_groups": [
+        "live"
+      ],
+      "evidence_levels": [
+        "deterministic_synthetic",
+        "replay",
+        "unavailable"
+      ],
+      "source_reuse_qualification": "See source-reuse.json: exact origin manifests/deltas; unaffected evidence reused, changed scope paths covered by 5d. Not a new whole-candidate execution.",
+      "parent_qualification_retained": "Prior negative timing retained as historical replay; current matched phase timing and human intervention comparison missing."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "classification": "Controlled connector, actual DB/HTTP/web/native; no public fetch or model call",
+  "statuses": [
+    {
+      "status": "rate_limited",
+      "rendered": "GitHub rate limit reached — nothing was read\n\nGitHub asked to wait 9s before retrying.\n\nPublic, unauthenticated discovery. Deterministic fixture — not live GitHub"
+    },
+    {
+      "status": "denied",
+      "rendered": "Refused — nothing was read\n\nPublic, unauthenticated discovery. Deterministic fixture — not live GitHub"
+    },
+    {
+      "status": "unavailable",
+      "rendered": "GitHub unavailable — nothing was read\n\nPublic, unauthenticated discovery. Deterministic fixture — not live GitHub"
+    },
+    {
+      "status": "available",
+      "rendered": "Public GitHub source read — octocat/Hello-World\n\nPublic, unauthenticated read. Deterministic fixture — not live GitHub\n\nIssue #1\n\nSaved as source version 1 in Files.\n\nProvenance\nSource excerpt (untrusted text)"
+    },
+    {
+      "status": "changed_source",
+      "rendered": "Source changed from the expected version — current copy retained, not the one expected — octocat/Hello-World\n\nThe fetched response hash differs from the version this call expected.\n\nPublic, unauthenticated read. Deterministic fixture — not live GitHub\n\nIssue #1\n\nSaved as source version 2 in Files.\n\nProvenance\nSource excerpt (untrusted text)"
+    }
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:13238/api/domain/v1/workspaces/test-4824c11a-f879-43a2-b97e-e03d622e8bb5/runs/982cebc0-865a-4a1a-a716-195b35e4309d/tool-attempts",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13238/api/domain/v1/workspaces/test-4824c11a-f879-43a2-b97e-e03d622e8bb5/runs/982cebc0-865a-4a1a-a716-195b35e4309d/tool-attempts",
+      "status": 404
+    }
+  ],
+  "denial": "Tool activity\n\nRecorded tool calls for the latest run, as the tool adapter observed them. This lists what actually ran and what it cost — it isn’t a claim about anything else the model did.\n\nThis item isn’t available to you. It may have been removed or your access may have changed. Return to Work Home.\n\nRefresh"
+}

@@ -1,0 +1,149 @@
+{
+  "pid": 19992,
+  "process_start": "650990",
+  "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+  "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "selection",
+        "request_sha256": "4108831662d6b4a51770233959ae2bfe54d666f0539ee15a727fba68454852bc",
+        "entries": []
+      },
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "selection_2",
+        "request_sha256": "07fedac8af69ab55d651c4d00f72dad359ad2e739954fcdf6c6c267f452ea499",
+        "entries": []
+      },
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "selection_3",
+        "request_sha256": "97d08d12803022e6bb21320b245ce8aa4c775004fcc9da0e31b69bc81cee2318",
+        "entries": []
+      },
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "selection_4",
+        "request_sha256": "9b978da999f3345df0664aec7d61e995d7a32f609fdab5fb267547c7e7998a24",
+        "entries": []
+      },
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "selection_5",
+        "request_sha256": "f16ab6186b92a6ead2043570f1c74a4a3a8f94d2f35eb8f5890078b2bd46413f",
+        "entries": []
+      },
+      {
+        "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "request_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+        "attempt_id": "6b721359-dc31-4e98-a3a8-6ee2b0b2c3a7",
+        "phase": "final",
+        "request_sha256": "4788946e451f23fbcfe79cfa6bbddb2fa65c78fa416d8168ed817dc8ded8e816",
+        "entries": []
+      }
+    ]
+  },
+  "downloads": [
+    {
+      "export_id": "08accbdb-37fe-4279-90c9-b93384a4e7f2",
+      "filename": "coverage.json",
+      "sha256": "6049ed1c84eed327b3c9f5bfe7a7c1a5f8677f103069a1d32238fa1e645c84b3",
+      "headers": {
+        "date": "Wed, 28 Oct 2026 23:41:49 GMT",
+        "server": "uvicorn",
+        "content-disposition": "attachment; filename=\"coverage.json\"",
+        "x-content-type-options": "nosniff",
+        "x-content-sha256": "6049ed1c84eed327b3c9f5bfe7a7c1a5f8677f103069a1d32238fa1e645c84b3",
+        "cache-control": "no-store",
+        "content-length": "277",
+        "content-type": "application/json",
+        "x-request-id": "796d5120-983f-4513-b362-e2dc5be51b6c",
+        "x-workagent-principal": "local-human"
+      }
+    },
+    {
+      "export_id": "c59123b8-896d-4d3d-864e-77a20fc5dd85",
+      "filename": "summary.csv",
+      "sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+      "headers": {
+        "date": "Wed, 28 Oct 2026 23:41:49 GMT",
+        "server": "uvicorn",
+        "content-disposition": "attachment; filename=\"summary.csv\"",
+        "x-content-type-options": "nosniff",
+        "x-content-sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+        "cache-control": "no-store",
+        "content-length": "107",
+        "content-type": "text/csv; charset=utf-8",
+        "x-request-id": "32942b83-0da6-4b97-8db0-e82bb0ee37bf",
+        "x-workagent-principal": "local-human"
+      }
+    }
+  ],
+  "tool_observations": 4,
+  "calls": [
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ]
+  ],
+  "restart_no_repeat": true,
+  "controlled_transport": true,
+  "paid_calls": 0
+}

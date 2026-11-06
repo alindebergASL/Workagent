@@ -20,6 +20,9 @@ import {useHolds} from '@/lib/client/responsibility';
 import {adaptivePresentation} from '@/lib/adaptive-presentation';
 import {turnProgress} from '@/lib/contract/natural';
 import fixture from '${path.join(web, "test/fixtures/recording-turn.json")}';
+import {bindMockIdentity} from '@/lib/client/session-scope';
+// No ScopeGate in the fixture: bind the demo scope before the first render.
+bindMockIdentity();
 window.mode='absent';window.calls=[];window.scope={ws:'w',ids:['a']};
 window.space={ws:'w',id:'c',artifactIds:['a']};window.searchParams='work=a';
 window.spaceDetail=()=>({conversation:{id:window.space.id,title:'Synthetic project',state:'open',work_version:1,work_area:{title:'Synthetic project',goal:'Synthetic goal',kind:'project',origin:'human'}},messages:[],turns:[],artifact_ids:window.space.artifactIds,assignment_ids:[]});

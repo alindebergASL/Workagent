@@ -1,0 +1,42 @@
+[
+  {
+    "path": "web/test/batch2-controls.test.ts",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/components/Batch2Controls.tsx",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/components/Composer.tsx",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/lib/batch2-view.ts",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/app/conversations/[id]/page.tsx",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/lib/client/real-api.ts",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/lib/client/conversation-reply.ts",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  },
+  {
+    "path": "web/src/lib/client/documents.ts",
+    "current_matches_correction": true,
+    "current_matches_before": false
+  }
+]

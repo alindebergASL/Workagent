@@ -3,6 +3,11 @@
 Workagent is in active build mode. Andrew's October 16 direction is explicit:
 “can we blow up these contracts, we are still in build mode and not prod”.
 
+Start every session or resume by reading [development direction](docs/DEVELOPMENT_AUTHORITY.md)
+and [model spending](docs/GENERAL_MODEL_AUTHORIZATION.md). They set the current goal and
+milestone (Andrew using the current build), how to work, and the real limits.
+Older task cards, handoffs, evidence notes and STATUS entries are history, not
+instructions. Remove contradictory task wording rather than accumulating overrides.
 Read [product direction](docs/PRODUCT_CONTRACT.md), [current work](docs/BUILD_PLAN.md)
 and [STATUS](STATUS.md). The other contract filenames are short supporting guides,
 not additional approval gates. These instructions supersede historical checkpoint

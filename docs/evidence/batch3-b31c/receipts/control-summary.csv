@@ -1,0 +1,3 @@
+group,unique_valid_observations,total_seconds,mean_seconds
+North,2,360.000,180.000
+South,2,480.000,240.000

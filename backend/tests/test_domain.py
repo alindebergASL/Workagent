@@ -1,8 +1,10 @@
 import json
 import os
 import secrets
+import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import psycopg
 import pytest
@@ -26,15 +28,60 @@ class PrivateDsn(str):
         return "<disposable database DSN redacted>"
 
 
+def fixture_database_urls(env):
+    """Validate before any I/O, including admin seed; errors never include DSNs.
+
+    Bind WORKAGENT_TEST_DATABASE to the exact disposable database in the owned
+    test environment (not an owner-approval gate). The existing native projection
+    fixture's exact binding is also accepted. A prefix, generated role names or
+    LOCAL_TEST_MODE alone cannot distinguish retained study stores from fixtures.
+    No hardcoded fixture allowlist/denylist or mandatory random suffix is used.
+    """
+    if env.get('LOCAL_TEST_MODE') != 'true':
+        raise RuntimeError('Fixture requires LOCAL_TEST_MODE=true')
+    # These libpq environment options can redirect an otherwise explicit URI or
+    # change its session authority. Do not let ambient service files supply it.
+    if any(env.get(k) for k in ('PGHOSTADDR', 'PGSERVICE', 'PGSERVICEFILE', 'PGOPTIONS', 'PGPORT')):
+        raise RuntimeError('Fixture refuses ambient libpq routing/session overrides')
+
+    def identity(value):
+        try:
+            if not isinstance(value, str) or any(c.isspace() or ord(c) < 32 for c in value):
+                raise ValueError
+            parsed = urlsplit(value)
+            database = unquote(parsed.path[1:], errors='strict')
+            user = unquote(parsed.username or '', errors='strict')
+            port = parsed.port if parsed.port is not None else 5432
+            if (parsed.scheme not in ('postgres', 'postgresql') or parsed.query or parsed.fragment
+                    or parsed.hostname not in ('localhost', '127.0.0.1', '::1')
+                    or not 1 <= port <= 65535 or not parsed.path.startswith('/')
+                    or not re.fullmatch(r'workagent_test_[A-Za-z0-9_]+', database)
+                    or len(database) > 63 or not user or '\x00' in user):
+                raise ValueError
+            return parsed.hostname, port, database, user
+        except (ValueError, TypeError, UnicodeError):
+            raise RuntimeError('Fixture requires explicit local disposable PostgreSQL URLs') from None
+
+    dsn = PrivateDsn(env.get('DATABASE_URL', ''))
+    admin = PrivateDsn(env.get('MIGRATION_DATABASE_URL', ''))
+    runtime_id, admin_id = identity(dsn), identity(admin)
+    if runtime_id[:3] != admin_id[:3] or runtime_id[3] == admin_id[3]:
+        raise RuntimeError('Fixture requires the same exact host/port/database and distinct roles')
+    bindings = [env[k] for k in ('WORKAGENT_TEST_DATABASE', 'WORKAGENT_NATIVE_PROJECTION_TEST_DATABASE') if k in env]
+    if not bindings or any(value != runtime_id[2] for value in bindings):
+        raise RuntimeError('Set WORKAGENT_TEST_DATABASE to the exact owned disposable fixture database')
+    return dsn, admin
+
+
 @pytest.fixture
 def context():
-    # A missing real PostgreSQL environment is a FAIL, never a skip/pass.
-    dsn=PrivateDsn(os.environ['DATABASE_URL']); admin=PrivateDsn(os.environ['MIGRATION_DATABASE_URL'])
-    assert '/workagent_test_' in dsn, 'Tests only run against disposable workagent_test_* databases'
+    # Missing/mismatched PostgreSQL scope is a FAIL, never a skip/pass. Explicit
+    # exceptions (not assert) keep this pre-seed protection under python -O.
+    dsn,admin=fixture_database_urls(os.environ)
+    service=Service(Database(dsn)); service.db.check_runtime_role()
     ws='test-'+new_id(); p=Principal('local-human')
     records=json.loads(ACTOR.read_text())
     seed(admin,records,ws,p.id)
-    service=Service(Database(dsn)); service.db.check_runtime_role()
     refs=[SourceRef(source_id=s.id,external_version=s.external_version,observed_at=s.observed_at) for s in service.list_sources(p,ws).items]
     return service,p,ws,refs,admin
 

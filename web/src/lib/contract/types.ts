@@ -393,18 +393,52 @@ export interface ChatMessage {
   responsibility_origin?: ResponsibilityOrigin | null;
   /** Files sent with the message, as the service recorded them. */
   attachments?: { filename: string; byte_length: number; sha256: string }[];
+  /**
+   * PDF/DOCX/XLSX documents the message referenced (B2.5): the admission
+   * snapshot's metadata only. Extracted text is never carried here.
+   */
+  documents?: {
+    document_id: string;
+    sha256: string;
+    filename: string;
+    byte_length: number;
+    status: import("./batch2").ExtractionStatus;
+  }[];
 }
 
 export interface ChatTurn {
   run_id: string;
   state: TurnState;
   reason?: string;
+  /** The run's recorded stop reason, when it stopped short. */
+  stop_reason?:
+    "budget_limit" | "blocked" | "waiting_for_user" | "step_limit" | null;
   /** The message that started this turn: the person's, or a runtime request. */
   message_id: string | null;
   /** Set when the runtime started this turn for a recorded hand-over. */
   responsibility_origin?: ResponsibilityOrigin | null;
   /** Model-path progress, when the backend reports it. */
   progress?: import("./natural").TurnProgress;
+}
+
+/**
+ * A file in the latest run's frozen bounded attachment context (A05):
+ * whether it was omitted from that bounded context (not from every provider
+ * request), and the byte ranges of the original confirmed by range receipts.
+ * Omission stays true after ranges are read; ranges never claim the whole
+ * file was recovered.
+ */
+export interface AttachmentContextView {
+  run_id: string;
+  /** The message that carried the file (may be earlier than the run). */
+  message_id: string;
+  ref: string;
+  sha256: string;
+  filename: string;
+  body_omitted: boolean;
+  omission_reason: string | null;
+  /** Half-open [offset, next_offset) byte ranges of the original file. */
+  ranges: { offset: number; next_offset: number; chunk_sha256: string }[];
 }
 
 export interface ConversationDetailView {
@@ -414,4 +448,6 @@ export interface ConversationDetailView {
   assignment_ids: string[];
   /** Products this conversation owns (not inferred from messages). */
   artifact_ids: string[];
+  /** Empty or absent when no frozen file context was recorded: no claim. */
+  attachment_context?: AttachmentContextView[];
 }

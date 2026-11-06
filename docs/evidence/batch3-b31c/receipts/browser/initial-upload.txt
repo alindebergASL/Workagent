@@ -1,0 +1,49 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Confidential synthetic project
+Plant inventory
+Duration study
+B
+A
+Memory pty80
+Activity & details
+← Back to Private fixture workspace
+Summarize duration by group in seconds, excluding missing values
+Waiting for a reply
+Keep as a project
+
+You:
+Summarize duration by group in seconds, excluding missing values. Column mapping: {"id":"observation_id","group":"zone","value":"latency_seconds","seconds_per_unit":"1"}
+
+observations.csv · 84 bytes
+Workagent isn’t running right now. Your message is kept and is answered once it’s back.
+Stop this run…
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Queued
+Checked 28 Oct, 23:29 UTC
+
+Accepted and waiting for a worker. Nothing has started yet. Last progress recorded 28 Oct, 23:29 UTC.
+
+Details
+Files
+New file…
+Memory
+Tool activity
+Continue the conversation
+Attach a file
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Sending now replaces the reply in progress; your earlier messages stay.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

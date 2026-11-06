@@ -1,0 +1,183 @@
+workagent
+More
+← Back to agent
+Prepare an editable east-depot assessment document; we will capture the public evidence separately
+Keep as a project
+
+You:
+Prepare an editable east-depot assessment document; we will capture the public evidence separately. Do not assert an organization-wide conclusion.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Synthetic current work
+Document
+
+Synthetic east-depot assessment. Evidence will be captured separately; no organization-wide conclusion.
+
+Sources for this version · 4 cited claims1 may be out of date
+Refresh citations Re-reads saved records; nothing new is fetched from the web.
+
+Exact quotes verify attribution, not claim truth.
+
+The synthetic east-depot source reports: Current public capacity: 12 units.
+
+Sources current
+Not checked for meaning — the quotes are exact, the claim is not verified by them
+
+Cited as support
+
+Current public capacity: 12 units.
+
+Characters 20–54 of snapshot 4b9fee47-9100-4a78-9289-d710d153c554 · text SHA-256 ae916256563b…
+
+Matches the capture exactly: …Capacity bulletin B
+Current public capacity: 12 units.
+
+Source note: values apply to the synthetic east depot only.
+
+UNTRUSTED INJECTI…
+
+Cited capture
+
+Original capture: Capacity bulletin B · captured 10/29/2026, 1:12:20 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+Claim record
+
+The entire organization has expanded to 99 units.
+
+Sources current
+No supporting quote recorded for this claim
+
+No quote is attached to this claim.
+
+Claim record
+
+The source reports 10 units for the synthetic east depot.
+
+Source may have changed
+Not checked for meaning — the quotes are exact, the claim is not verified by them
+
+A newer capture of a cited source exists. Review it before relying on this claim. Your saved work and this citation have not been changed, and the original capture stays available below.
+
+Newer capture 4b9fee47-9100-4a78-9289-d710d153c554
+
+Newer capture: Capacity bulletin B · captured 10/29/2026, 1:12:20 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+
+Cited as support
+
+Current public capacity: 10 units.
+
+Characters 20–54 of snapshot 81ba1403-31d9-415d-bd0f-051f150bbd26 · text SHA-256 9363f305cece…
+
+Check against the capture
+Claim record
+
+The entire organization has expanded to 99 units.
+
+Sources current
+No supporting quote recorded for this claim
+
+No quote is attached to this claim.
+
+Claim record
+Open document
+Details
+
+You:
+Capture https://fixture.example/source as untrusted primary source evidence.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Cite the exact current saved document; keep the 99-unit all-depots claim unsupported.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Refresh the source after its capacity change; preserve the exact saved document.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Cite the newest 12-unit source against this exact saved document, keeping unsupported extrapolations explicit.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 01:18 UTC
+New version saved
+Mark as seen
+Details
+Files
+public-source.txt
+text/plain · 217 bytes · read-only evidence
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+Capacity bulletin B · captured 10/29/2026, 1:12:20 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+
+Capacity bulletin A · captured 10/29/2026, 1:05:04 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+New file…
+Memory
+Tool activity
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

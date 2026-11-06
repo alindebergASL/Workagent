@@ -1,0 +1,100 @@
+{
+  "$defs": {
+    "InputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "InputRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "arguments": {
+      "additionalProperties": true,
+      "title": "Arguments",
+      "type": "object"
+    },
+    "call_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Call Id",
+      "type": "string"
+    },
+    "capability_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "title": "Capability Id",
+      "type": "string"
+    },
+    "capability_version": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Capability Version",
+      "type": "string"
+    },
+    "expected_work_version": {
+      "minimum": 1,
+      "title": "Expected Work Version",
+      "type": "integer"
+    },
+    "input_refs": {
+      "items": {
+        "$ref": "#/$defs/InputRef"
+      },
+      "maxItems": 100,
+      "title": "Input Refs",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "tool-call/v1",
+      "default": "tool-call/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "call_id",
+    "capability_id",
+    "capability_version",
+    "arguments",
+    "input_refs",
+    "expected_work_version"
+  ],
+  "title": "ToolCallV1",
+  "type": "object"
+}

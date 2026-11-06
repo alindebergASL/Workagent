@@ -1,0 +1,7 @@
+{
+  "files_scanned": 48,
+  "hits": [],
+  "known_secret_values": 16,
+  "pattern_positive_control": true,
+  "scope": "bounded exact fixture credentials + credential-shaped strings; synthetic-only reviewed outputs/captures; not a universal secret detector"
+}

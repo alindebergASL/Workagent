@@ -1,0 +1,43 @@
+{
+  "evidence": "actual PTY + HTTP + restricted PG",
+  "size": [
+    100,
+    45
+  ],
+  "actions": [
+    {
+      "keys": "Unsent native composer pty100 preserve me"
+    },
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\r"
+    },
+    {
+      "keys": "\u001b[<0;5;14M\u001b[<0;5;14m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " corrected by human"
+    },
+    {
+      "keys": "\u001b[<0;34;28M\u001b[<0;34;28m"
+    }
+  ],
+  "pass_": false
+}

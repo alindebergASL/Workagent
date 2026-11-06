@@ -1,0 +1,218 @@
+[
+  {
+    "schema_version": "tool-observation/v1",
+    "call_id": "efde21b6-f56b-4718-8940-8b9e18b3d2cf",
+    "attempt_id": "87e4836f-5fc4-4cca-a1c2-4dca43f1117d",
+    "run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+    "capability_id": "delegation.verify",
+    "capability_version": "1",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "execution_profile": "bounded-delegation-v1",
+    "input_refs": [
+      {
+        "kind": "run_scope",
+        "id": "27533930-c46a-40b9-be74-e702d61f1930",
+        "version": "2",
+        "sha256": "f4d1d58a738529d4ce5abb1cecea21fa480c059d939160e402c5a46bc2e619a2"
+      }
+    ],
+    "output_refs": [],
+    "output_sha256": "412a6bc243dbb775515f28bdf3aa265bbaba7561a803891ef9b407d4a00643b9",
+    "output": {
+      "capability": "verify_delegate",
+      "result": {
+        "checks": [
+          "exact source rows",
+          "independent rational sum",
+          "independent rational mean"
+        ],
+        "child_attempt_id": "c8bd99f7-dfbe-45bd-bd31-adfd30306b91",
+        "execution": {
+          "cleanup_verified": true,
+          "code_sha256": "8b4c175ac8d5c15141aa98f33f2bf24eaf1c6d29082c5ae44a84201be50568e7",
+          "elapsed_ms": 703,
+          "exit_code": 0,
+          "inputs": [
+            {
+              "bytes": 24,
+              "name": "west.csv",
+              "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+            },
+            {
+              "bytes": 732,
+              "name": "task.json",
+              "sha256": "dd038f52808b0d25258cd9b283bfb96450d4a2f69cc5b1be839d12b95d36c8ee"
+            },
+            {
+              "bytes": 1779,
+              "name": "child.json",
+              "sha256": "0ed19fcf83ca52f729d24555f426d7da1a28f22f73b2f5bc578f068235fcbbd8"
+            }
+          ],
+          "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+          "resources": {
+            "cpu_usec": 468824,
+            "memory_peak_bytes": 21286912,
+            "oom_kill": 0,
+            "pids_peak": 30
+          },
+          "status": "succeeded",
+          "stdout_sha256": "481ee8a5c0380582551594231646d99f06ae2ff54f105e36bfafb22d9455d252"
+        },
+        "inspection": "Inspect exact input and child proposal; recompute with independent rational implementation",
+        "limitation": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+        "proposal": {
+          "mean": "120",
+          "rows": 2,
+          "source": "west.csv",
+          "total": "240"
+        },
+        "proposal_sha256": "5313722ddf2963cb57ba05168a38084d7da1e18a8cc724084568f8222d2dd628",
+        "state": "checks_passed"
+      },
+      "version": "1"
+    },
+    "started_at": "2026-10-29T11:58:59.787261Z",
+    "ended_at": "2026-10-29T11:59:03.616371Z",
+    "status": "observed",
+    "error": null,
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [
+      {
+        "kind": "workspace_file",
+        "id": "ade0a69b-3abf-409c-8705-df848d7c24f6",
+        "version": "34f97a1e-e8a1-4002-82dd-d7e207552dcc",
+        "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+      },
+      {
+        "kind": "processor",
+        "id": "local-confined-analysis-v1",
+        "version": "1",
+        "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f"
+      }
+    ],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "local_compute",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": 1,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "estimated",
+      "elapsed_ms": 3828,
+      "cpu_ms": 468,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  },
+  {
+    "schema_version": "tool-observation/v1",
+    "call_id": "5eac8090-6efe-4446-b84a-5757ebf6d4a0",
+    "attempt_id": "6b3adcd7-72f8-4bda-8589-6a79dcfab57f",
+    "run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+    "capability_id": "delegation.verify",
+    "capability_version": "1",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "execution_profile": "bounded-delegation-v1",
+    "input_refs": [
+      {
+        "kind": "run_scope",
+        "id": "27533930-c46a-40b9-be74-e702d61f1930",
+        "version": "2",
+        "sha256": "f4d1d58a738529d4ce5abb1cecea21fa480c059d939160e402c5a46bc2e619a2"
+      }
+    ],
+    "output_refs": [],
+    "output_sha256": "948a6aa944ac5b9ceb9349cff07e0fa07f360b02e38946976b85c126d8e7003f",
+    "output": {
+      "capability": "verify_delegate",
+      "result": {
+        "checks": [
+          "exact source rows",
+          "independent rational sum",
+          "independent rational mean"
+        ],
+        "child_attempt_id": "ddad656f-407c-4639-af58-7bf642aed687",
+        "execution": {
+          "cleanup_verified": true,
+          "code_sha256": "8b4c175ac8d5c15141aa98f33f2bf24eaf1c6d29082c5ae44a84201be50568e7",
+          "elapsed_ms": 629,
+          "exit_code": 0,
+          "inputs": [
+            {
+              "bytes": 25,
+              "name": "east.csv",
+              "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+            },
+            {
+              "bytes": 732,
+              "name": "task.json",
+              "sha256": "bd9120dd3d64a176c351dda2fe6c6abc20a87b5e890a290d6e93936f321a017f"
+            },
+            {
+              "bytes": 1779,
+              "name": "child.json",
+              "sha256": "52e46aa1115983030f9e0e337752f1d825758211c19364ed998a7f7ca5363b53"
+            }
+          ],
+          "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+          "resources": {
+            "cpu_usec": 477409,
+            "memory_peak_bytes": 21827584,
+            "oom_kill": 0,
+            "pids_peak": 30
+          },
+          "status": "succeeded",
+          "stdout_sha256": "481ee8a5c0380582551594231646d99f06ae2ff54f105e36bfafb22d9455d252"
+        },
+        "inspection": "Inspect exact input and child proposal; recompute with independent rational implementation",
+        "limitation": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+        "proposal": {
+          "mean": "180",
+          "rows": 2,
+          "source": "east.csv",
+          "total": "360"
+        },
+        "proposal_sha256": "eed9c283508c8dba2578eae699c6757d6e67cce35ffbc3042c76cf1f30b7dc89",
+        "state": "checks_passed"
+      },
+      "version": "1"
+    },
+    "started_at": "2026-10-29T11:59:06.277475Z",
+    "ended_at": "2026-10-29T11:59:08.803462Z",
+    "status": "observed",
+    "error": null,
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [
+      {
+        "kind": "workspace_file",
+        "id": "3726a3be-2733-4e4d-a3d4-9896c3ff4332",
+        "version": "c6040409-d42d-474c-a21b-f638c8856a62",
+        "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+      },
+      {
+        "kind": "processor",
+        "id": "local-confined-analysis-v1",
+        "version": "1",
+        "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f"
+      }
+    ],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "local_compute",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": 1,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "estimated",
+      "elapsed_ms": 2525,
+      "cpu_ms": 477,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  }
+]

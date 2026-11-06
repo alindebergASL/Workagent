@@ -7,6 +7,7 @@ import "@/styles/products.css";
 import "@/styles/phone.css";
 import { WorkspaceProvider } from "@/lib/client/workspace";
 import { Shell } from "@/components/Shell";
+import { ScopeGate } from "@/components/ScopeGate";
 
 export const metadata: Metadata = {
   title: { default: "Workagent", template: "%s · Workagent" },
@@ -19,9 +20,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <WorkspaceProvider>
-          <Shell>{children}</Shell>
-        </WorkspaceProvider>
+        <ScopeGate>
+          <WorkspaceProvider>
+            <Shell>{children}</Shell>
+          </WorkspaceProvider>
+        </ScopeGate>
       </body>
     </html>
   );

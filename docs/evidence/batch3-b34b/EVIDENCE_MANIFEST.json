@@ -1,0 +1,31 @@
+{
+  "files": {
+    "ACCEPTANCE.md": "01e18cb90a637e0edf9087268a60b7c856eb5dc0b8cef15b592551b41dca0274",
+    "HANDOFF.md": "3abf5f36347b54a9d541872e8a19b71a0ed3542ef9db8558aa900dd0110c00eb",
+    "IMPLEMENTATION.md": "47f323f06f5655ab26a0c37959e14c9d22b51d30261ed180ce27a7834556a717",
+    "OUTPUT_READBACK.json": "a71aff7d962d4551f65df047444bc035c01cc422cc803cc1516587ede8133d2f",
+    "PRIVACY.json": "aecd3e88d150e6e503619b6d3c0cc6c01d6eb421f995c8d36a58c06dacdf0d8c",
+    "RETAINED_HISTORY.json": "720463711d57c5170842553d8611cdfbfb1ea839dc91a7fab465d7246de84eb0",
+    "REVIEW_CLOSURE.md": "3b5e6067163c2c1c7cdd454df77538433b035bd92f8372247c9d45964b684086",
+    "REVIEW_INITIAL.md": "8ab728f386b6b39fd9b28b1c67b37b4da1edee6ac699e558040b5e2303156bb0",
+    "SOURCE_MANIFEST.json": "2d6074037fdc631273cc05623745067c51844b9e2ee629e0d221dce801c33d6a",
+    "TESTS.json": "11c536de2c0de0b02ac0f621c6d38492709a128580e2aa60b90e5df410d123db",
+    "actual-children.json": "11cd835340b8b6a13d3516e8a1aad956f3bbacdc447c6af52fb4a083e95b2552",
+    "adjacent-unit.log": "b3e17f2097f7e57fa7a50d92559d29ff19958a7a6753b0582dc912c1b8ab9b7a",
+    "assimilation.json": "7d0999308909aabadce1e7036d29c153931e544c66db56216a56ce9429f38587",
+    "native-120.png": "555511c3526ba395fc2d18004b549e3c7ff87d1ea6ae8a05250df05980ac26b6",
+    "native-80.png": "8a78b7d60f019bd5485a709ad220ff679776069cb91c79c944d7012d985465f3",
+    "outputs/B3.4b-verified-output.zip": "09d8649b8d58a2139bc14a9292af4471ffc8072d64aed020aa7c2b43488d8342",
+    "outputs/verified-regional-comparison.txt": "c9a1c9907b616271eaaed49bf599a08b11aaa0a636f621fcfb2bb75a13d61bc1",
+    "parent-verification.json": "4c02aa07bbb3dd7f2f928210b430327b6dd1f6600e4494f87bbbe85f0721028f",
+    "parent-worker-False.json": "387132d88cce0ef7478acc32766e1b7b873c56f16d97868db701e76ee0ee07c2",
+    "parent-worker-True.json": "a21afa84ad108e78b237e3c8d37182978530a75405b2f3bac912b7122212e0ac",
+    "provider-04.log": "acbf30cb5603bfdcb85cb2a7235769369bc1a042b2ddf5c88953410c7db25d2b",
+    "provider-04.xml": "3f97004322f7d185164a724fe5221fabae8c4a9604672829d4d70eed94ee6058",
+    "pty-120.json": "361c31af7ad5282f6b33c4d4a8e6e148d91128f55045df62b90d219efd433e63",
+    "pty-80.json": "d2bb2651b789fe8715e056206b28a2c917356f5a2188e69eaef3c26c6d8290e3",
+    "verified-04.log": "1f41a60122d3693a9f2bb86a43897e41eb3b8246051f8fc268b250c54763b71e",
+    "verified-04.xml": "f0b89e6b29eacff85627c490e223dd27417ce4702ca2a4160ac6abf632258336"
+  },
+  "status_sha256": "14a99eb71ad49cd39f81ac6eeca7d5f13d9dd90f1990f869eb953535ddd213b4"
+}

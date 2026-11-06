@@ -78,6 +78,15 @@ export async function loadConversationWork(
     .sort(byAttention);
 }
 
+/**
+ * A decision the person can act on: the pending proposal applies to the
+ * current saved version. A proposal made before the latest save can only be
+ * dismissed, so it is never presented as waiting on the person; its row
+ * still says it is out of date, and the work page keeps it in history.
+ */
+export const actionableDecision = (w: ConversationWork): boolean =>
+  w.decision?.fresh === true;
+
 /** Decisions you can act on first, then everything newest first. */
 function byAttention(a: ConversationWork, b: ConversationWork): number {
   const rank = (w: ConversationWork) =>

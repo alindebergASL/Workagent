@@ -1,0 +1,130 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "screenshot": "a-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "a-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "a-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "same-principal/same-endpoint ordinary reload restores exact draft and staged bytes",
+    {
+      "screenshot": "identity-unavailable-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "Controlled unavailable-session fault: no durable UI exposure or dispatch; unchanged exact A recovery after real authentication returns",
+    {
+      "screenshot": "principal-transition",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    {
+      "stale_command": "principal-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    "Principal B: existing owner-only work-snapshot refuses404 although ordinary shared conversation read200; no sampled transient draft or staged-file exposure",
+    {
+      "screenshot": "principal-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "principal-only change isolates drafts/bytes and stale dispatch; original scope restores",
+    {
+      "stale_command": "endpoint-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "screenshot": "endpoint-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "endpoint-only change isolates drafts/bytes and stale dispatch; original endpoint restores",
+    {
+      "screenshot": "revoked-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "revoked-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "revoked-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "active-midstream revocation sanitizes open browser, retains originals, refuses canonical reads; only2 intentional stale POST probes, no automatic dispatch"
+  ],
+  "posts": 2
+}

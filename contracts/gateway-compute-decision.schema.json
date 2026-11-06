@@ -1,0 +1,1982 @@
+{
+  "$defs": {
+    "AdvanceResponsibility": {
+      "additionalProperties": false,
+      "description": "Only the bound responsibility's preparation plan, never acceptance/authority.",
+      "properties": {
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/OutcomeEvidence"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "expected_work_version": {
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "advance_responsibility",
+          "title": "Kind",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/RecordingPlan"
+        }
+      },
+      "required": [
+        "kind",
+        "expected_work_version",
+        "plan",
+        "evidence"
+      ],
+      "title": "AdvanceResponsibility",
+      "type": "object"
+    },
+    "AlphaReply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "AlphaReply",
+      "type": "object"
+    },
+    "AlphaStop": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "stop",
+          "title": "Kind",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "complete",
+            "waiting_for_user",
+            "blocked"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "outcome",
+        "text"
+      ],
+      "title": "AlphaStop",
+      "type": "object"
+    },
+    "AreaIdentification": {
+      "additionalProperties": false,
+      "properties": {
+        "goal": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "project",
+            "workflow"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "goal",
+        "kind"
+      ],
+      "title": "AreaIdentification",
+      "type": "object"
+    },
+    "AreaPublish": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DraftDocument"
+            },
+            {
+              "$ref": "#/$defs/DraftTable"
+            },
+            {
+              "$ref": "#/$defs/DraftView"
+            }
+          ],
+          "title": "Body"
+        },
+        "kind": {
+          "const": "publish_artifact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "work_area": {
+          "$ref": "#/$defs/AreaIdentification"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "body",
+        "work_area"
+      ],
+      "title": "AreaPublish",
+      "type": "object"
+    },
+    "AreaReply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "work_area": {
+          "$ref": "#/$defs/AreaIdentification"
+        }
+      },
+      "required": [
+        "kind",
+        "text",
+        "work_area"
+      ],
+      "title": "AreaReply",
+      "type": "object"
+    },
+    "ArtifactsExport": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "input_ref": {
+          "$ref": "#/$defs/ExportInputRef"
+        },
+        "kind": {
+          "const": "artifacts_export",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "input_ref",
+        "format"
+      ],
+      "title": "ArtifactsExport",
+      "type": "object"
+    },
+    "AttachmentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "sha256"
+      ],
+      "title": "AttachmentRef",
+      "type": "object"
+    },
+    "CSVCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_sum": {
+          "pattern": "^-?[0-9]{1,15}\\.[0-9]{2}$",
+          "title": "Expected Sum",
+          "type": "string"
+        },
+        "kind": {
+          "const": "csv_totals",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mismatch_count": {
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Mismatch Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "expected_sum",
+        "mismatch_count"
+      ],
+      "title": "CSVCheck",
+      "type": "object"
+    },
+    "CSVDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttachmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "const": "reconcile_csv",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rounding": {
+          "enum": [
+            "ROUND_HALF_UP",
+            "ROUND_HALF_EVEN"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "target",
+        "rounding"
+      ],
+      "title": "CSVDecision",
+      "type": "object"
+    },
+    "ComputeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "name",
+        "ref"
+      ],
+      "title": "ComputeInput",
+      "type": "object"
+    },
+    "ComputePython": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/ComputeInput"
+          },
+          "maxItems": 8,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "kind": {
+          "const": "compute_python",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "inputs"
+      ],
+      "title": "ComputePython",
+      "type": "object"
+    },
+    "DecisionTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "body_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Body Hash",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "revision_id",
+        "body_hash"
+      ],
+      "title": "DecisionTarget",
+      "type": "object"
+    },
+    "DiscoverCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "discover_capabilities",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiscoverCapabilities",
+      "type": "object"
+    },
+    "DiscoverSavedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "after_artifact_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "After Artifact Id"
+        },
+        "kind": {
+          "const": "discover_saved_work",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "after_artifact_id",
+        "limit"
+      ],
+      "title": "DiscoverSavedWork",
+      "type": "object"
+    },
+    "DraftAction": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+          "title": "Binding",
+          "type": "string"
+        },
+        "kind": {
+          "const": "read_binding",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "payload_schema": {
+          "$ref": "#/$defs/DraftPayloadSchema"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "binding",
+        "payload_schema"
+      ],
+      "title": "DraftAction",
+      "type": "object"
+    },
+    "DraftChecklistBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "checked": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checked"
+        },
+        "kind": {
+          "const": "checklist",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "text",
+        "checked"
+      ],
+      "title": "DraftChecklistBlock",
+      "type": "object"
+    },
+    "DraftDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "blocks": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DraftTextBlock"
+              },
+              {
+                "$ref": "#/$defs/DraftChecklistBlock"
+              }
+            ]
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Blocks",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "blocks"
+      ],
+      "title": "DraftDocument",
+      "type": "object"
+    },
+    "DraftField": {
+      "additionalProperties": false,
+      "properties": {
+        "editable": {
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "enum": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Enum"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "scale": {
+          "anyOf": [
+            {
+              "maximum": 6,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scale"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "type",
+        "editable",
+        "unit",
+        "scale",
+        "enum"
+      ],
+      "title": "DraftField",
+      "type": "object"
+    },
+    "DraftPayloadSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "additionalProperties": {
+          "const": false,
+          "title": "Additionalproperties",
+          "type": "boolean"
+        },
+        "properties": {
+          "$ref": "#/$defs/EmptyPayload"
+        },
+        "type": {
+          "const": "object",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "properties",
+        "additionalProperties"
+      ],
+      "title": "DraftPayloadSchema",
+      "type": "object"
+    },
+    "DraftSource": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "maxLength": 48000,
+          "title": "Css",
+          "type": "string"
+        },
+        "html": {
+          "maxLength": 48000,
+          "minLength": 1,
+          "title": "Html",
+          "type": "string"
+        },
+        "js": {
+          "maxLength": 48000,
+          "title": "Js",
+          "type": "string"
+        }
+      },
+      "required": [
+        "html",
+        "css",
+        "js"
+      ],
+      "title": "DraftSource",
+      "type": "object"
+    },
+    "DraftTable": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/DraftField"
+          },
+          "maxItems": 24,
+          "minItems": 1,
+          "title": "Fields",
+          "type": "array"
+        },
+        "kind": {
+          "const": "structured_table",
+          "title": "Kind",
+          "type": "string"
+        },
+        "notes": {
+          "items": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Notes",
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/TableRow"
+          },
+          "maxItems": 200,
+          "title": "Rows",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "version": {
+          "const": "structured-table/v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "version",
+        "title",
+        "fields",
+        "rows",
+        "notes"
+      ],
+      "title": "DraftTable",
+      "type": "object"
+    },
+    "DraftText": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 85,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "kind": {
+          "const": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "enum": [
+            "text/plain",
+            "text/markdown",
+            "text/csv",
+            "application/json"
+          ],
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "sha256",
+        "kind",
+        "filename",
+        "mime_type"
+      ],
+      "title": "DraftText",
+      "type": "object"
+    },
+    "DraftTextBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "checked": {
+          "title": "Checked",
+          "type": "null"
+        },
+        "kind": {
+          "enum": [
+            "heading",
+            "paragraph",
+            "protected_note"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "text",
+        "checked"
+      ],
+      "title": "DraftTextBlock",
+      "type": "object"
+    },
+    "DraftView": {
+      "additionalProperties": false,
+      "properties": {
+        "access_generation": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Access Generation",
+          "type": "integer"
+        },
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/DraftAction"
+          },
+          "maxItems": 8,
+          "title": "Actions",
+          "type": "array"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/ViewBinding"
+          },
+          "maxItems": 4,
+          "title": "Bindings",
+          "type": "array"
+        },
+        "fallback": {
+          "maxLength": 12000,
+          "minLength": 1,
+          "title": "Fallback",
+          "type": "string"
+        },
+        "kind": {
+          "const": "custom_view",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/DraftSource"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "version": {
+          "const": "custom-view/v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "version",
+        "title",
+        "source",
+        "fallback",
+        "access_generation",
+        "bindings",
+        "actions"
+      ],
+      "title": "DraftView",
+      "type": "object"
+    },
+    "EmptyPayload": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "EmptyPayload",
+      "type": "object"
+    },
+    "ExportInputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "workspace_file",
+            "artifact_revision"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "ExportInputRef",
+      "type": "object"
+    },
+    "FetchPublicURL": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fetch_public_url",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "FetchPublicURL",
+      "type": "object"
+    },
+    "FileVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "version_id",
+        "sha256"
+      ],
+      "title": "FileVersionRef",
+      "type": "object"
+    },
+    "FilesCompare": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_compare",
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "right": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "kind",
+        "left",
+        "right"
+      ],
+      "title": "FilesCompare",
+      "type": "object"
+    },
+    "FilesCreateDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_create_draft",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/DraftText"
+        }
+      },
+      "required": [
+        "kind",
+        "source"
+      ],
+      "title": "FilesCreateDraft",
+      "type": "object"
+    },
+    "FilesList": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "After"
+        },
+        "kind": {
+          "const": "files_list",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "after",
+        "limit"
+      ],
+      "title": "FilesList",
+      "type": "object"
+    },
+    "FilesProposePatch": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "kind": {
+          "const": "files_propose_patch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "content",
+        "sha256",
+        "reason"
+      ],
+      "title": "FilesProposePatch",
+      "type": "object"
+    },
+    "FilesReadRange": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_read_range",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "offset",
+        "limit"
+      ],
+      "title": "FilesReadRange",
+      "type": "object"
+    },
+    "FormField": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "label"
+      ],
+      "title": "FormField",
+      "type": "object"
+    },
+    "InspectJSON": {
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "$ref": "#/$defs/AttachmentRef"
+        },
+        "kind": {
+          "const": "inspect_json",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "description": "Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.",
+          "items": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "path"
+      ],
+      "title": "InspectJSON",
+      "type": "object"
+    },
+    "LoadSkill": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "load_skill",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "skill_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Skill Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "skill_id",
+        "version",
+        "sha256"
+      ],
+      "title": "LoadSkill",
+      "type": "object"
+    },
+    "OutcomeEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "operation_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Operation Hash",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "selection",
+            "selection_2",
+            "selection_3",
+            "selection_4",
+            "selection_5",
+            "selection_6",
+            "selection_7",
+            "selection_8"
+          ],
+          "title": "Phase",
+          "type": "string"
+        }
+      },
+      "required": [
+        "phase",
+        "operation_hash"
+      ],
+      "title": "OutcomeEvidence",
+      "type": "object"
+    },
+    "PublishDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DraftDocument"
+            },
+            {
+              "$ref": "#/$defs/DraftTable"
+            },
+            {
+              "$ref": "#/$defs/DraftView"
+            }
+          ],
+          "title": "Body"
+        },
+        "kind": {
+          "const": "publish_artifact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "body"
+      ],
+      "title": "PublishDecision",
+      "type": "object"
+    },
+    "ReadAttachment": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_attachment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "message_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "ref": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "message_id",
+        "ref",
+        "sha256",
+        "offset",
+        "limit"
+      ],
+      "title": "ReadAttachment",
+      "type": "object"
+    },
+    "ReadContext": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "section": {
+          "enum": [
+            "messages",
+            "target",
+            "attachments",
+            "work_area"
+          ],
+          "title": "Section",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "section"
+      ],
+      "title": "ReadContext",
+      "type": "object"
+    },
+    "ReadResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_result",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "operation_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Operation Hash",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "selection",
+            "selection_2",
+            "selection_3",
+            "selection_4",
+            "selection_5",
+            "selection_6",
+            "selection_7",
+            "selection_8",
+            "final",
+            "stop"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "run_id",
+        "phase",
+        "operation_hash",
+        "offset",
+        "limit"
+      ],
+      "title": "ReadResult",
+      "type": "object"
+    },
+    "ReadSavedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_saved_work",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/DecisionTarget"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "ReadSavedWork",
+      "type": "object"
+    },
+    "RecordResponsibility": {
+      "additionalProperties": false,
+      "properties": {
+        "completion_criteria": {
+          "items": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "minItems": 1,
+          "title": "Completion Criteria",
+          "type": "array"
+        },
+        "goal": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "kind": {
+          "const": "record_responsibility",
+          "title": "Kind",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/RecordingPlan"
+        }
+      },
+      "required": [
+        "kind",
+        "goal",
+        "completion_criteria",
+        "plan"
+      ],
+      "title": "RecordResponsibility",
+      "type": "object"
+    },
+    "RecordingPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "current_outcome": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Current Outcome",
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "$ref": "#/$defs/ResponsibilityDependency"
+          },
+          "maxItems": 50,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "next_action": {
+          "$ref": "#/$defs/ResponsibilityNextAction"
+        },
+        "next_check_in_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Check In At"
+        },
+        "wait": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResponsibilityWait"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "current_outcome",
+        "next_action",
+        "dependencies",
+        "wait",
+        "next_check_in_at"
+      ],
+      "title": "RecordingPlan",
+      "type": "object"
+    },
+    "ResponsibilityDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Version",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "artifact_revision",
+            "source_version"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Object Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "object_id",
+        "expected_version"
+      ],
+      "title": "ResponsibilityDependency",
+      "type": "object"
+    },
+    "ResponsibilityNextAction": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "continue_work",
+            "review_dependency",
+            "request_decision",
+            "await_event",
+            "obtain_grant",
+            "obtain_tool"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "description"
+      ],
+      "title": "ResponsibilityNextAction",
+      "type": "object"
+    },
+    "ResponsibilityWait": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "person",
+            "dependency_change",
+            "check_in"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "ResponsibilityWait",
+      "type": "object"
+    },
+    "SearchWorkContext": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "search_work_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "query",
+        "limit"
+      ],
+      "title": "SearchWorkContext",
+      "type": "object"
+    },
+    "TableCell": {
+      "additionalProperties": false,
+      "properties": {
+        "field_key": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Field Key",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "field_key",
+        "value"
+      ],
+      "title": "TableCell",
+      "type": "object"
+    },
+    "TableRow": {
+      "additionalProperties": false,
+      "properties": {
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/TableCell"
+          },
+          "maxItems": 24,
+          "title": "Cells",
+          "type": "array"
+        },
+        "row_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Row Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "row_id",
+        "cells"
+      ],
+      "title": "TableRow",
+      "type": "object"
+    },
+    "ViewBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "body_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Body Hash",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "artifact_id",
+        "revision_id",
+        "body_hash"
+      ],
+      "title": "ViewBinding",
+      "type": "object"
+    },
+    "WasmCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "maximum": 1000000000,
+            "minimum": -1000000000,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "expected": {
+          "pattern": "^(0|-?[1-9][0-9]{0,18})$",
+          "title": "Expected",
+          "type": "string"
+        },
+        "kind": {
+          "const": "wasm_return",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "arguments",
+        "expected"
+      ],
+      "title": "WasmCheck",
+      "type": "object"
+    },
+    "WasmDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "maximum": 1000000000,
+            "minimum": -1000000000,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "code": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "entrypoint": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "input_form": {
+          "items": {
+            "$ref": "#/$defs/FormField"
+          },
+          "maxItems": 8,
+          "title": "Input Form",
+          "type": "array"
+        },
+        "kind": {
+          "const": "run_wasm",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "code",
+        "entrypoint",
+        "arguments",
+        "input_form"
+      ],
+      "title": "WasmDecision",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AreaReply"
+        },
+        {
+          "$ref": "#/$defs/AreaPublish"
+        },
+        {
+          "$ref": "#/$defs/AlphaReply"
+        },
+        {
+          "$ref": "#/$defs/CSVDecision"
+        },
+        {
+          "$ref": "#/$defs/WasmDecision"
+        },
+        {
+          "$ref": "#/$defs/PublishDecision"
+        },
+        {
+          "$ref": "#/$defs/AlphaStop"
+        },
+        {
+          "$ref": "#/$defs/DiscoverCapabilities"
+        },
+        {
+          "$ref": "#/$defs/LoadSkill"
+        },
+        {
+          "$ref": "#/$defs/ReadContext"
+        },
+        {
+          "$ref": "#/$defs/ReadSavedWork"
+        },
+        {
+          "$ref": "#/$defs/SearchWorkContext"
+        },
+        {
+          "$ref": "#/$defs/InspectJSON"
+        },
+        {
+          "$ref": "#/$defs/FetchPublicURL"
+        },
+        {
+          "$ref": "#/$defs/RecordResponsibility"
+        },
+        {
+          "$ref": "#/$defs/AdvanceResponsibility"
+        },
+        {
+          "$ref": "#/$defs/DiscoverSavedWork"
+        },
+        {
+          "$ref": "#/$defs/ReadResult"
+        },
+        {
+          "$ref": "#/$defs/ReadAttachment"
+        },
+        {
+          "$ref": "#/$defs/FilesList"
+        },
+        {
+          "$ref": "#/$defs/FilesReadRange"
+        },
+        {
+          "$ref": "#/$defs/FilesCreateDraft"
+        },
+        {
+          "$ref": "#/$defs/FilesProposePatch"
+        },
+        {
+          "$ref": "#/$defs/FilesCompare"
+        },
+        {
+          "$ref": "#/$defs/ArtifactsExport"
+        },
+        {
+          "$ref": "#/$defs/ComputePython"
+        }
+      ],
+      "title": "Decision"
+    },
+    "goal": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "success_criteria": {
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/WasmCheck"
+          },
+          {
+            "$ref": "#/$defs/CSVCheck"
+          }
+        ]
+      },
+      "maxItems": 8,
+      "title": "Success Criteria",
+      "type": "array"
+    }
+  },
+  "required": [
+    "goal",
+    "success_criteria",
+    "decision"
+  ],
+  "title": "GatewayComputeDecision",
+  "type": "object"
+}

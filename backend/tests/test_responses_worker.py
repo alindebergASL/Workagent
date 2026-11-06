@@ -105,7 +105,8 @@ def test_unknown_response_id_never_resends(context,tmp_path):
     assert restarted.run(ws,q.run.id)=='outcome_unknown'
     t=totals(s,g)
     assert t['request_counts']['dispatch']==1 and t['unknown_usage_steps']==1
-    assert t['reserved_cost_usd']=='0.13192' and t['conservatively_calculated_cost_usd'] is None
+    # Current 50k-input reservation, not the historical 20k-input amount.
+    assert t['reserved_cost_usd']=='0.20692' and t['conservatively_calculated_cost_usd'] is None
     assert s.get_assignment(p,ws,q.assignment.id).responsibility.runs[-1].state=='outcome_unknown'
 
 

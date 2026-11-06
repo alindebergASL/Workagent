@@ -1,0 +1,2142 @@
+[
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:16:23.672888Z",
+      "snapshot_cursor": "c5925a71-2fcc-475f-bec6-dfdb3660b1d5.1._gv54ETJyjF70kb4Ju7YVjsWr3oJhR8namqvtzfE_gQ",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "dad73b14-b62b-41c0-98ed-932e30142794.1.j2IgOpmU3r_r-4LvpwfGtVVivTSvM-rPSrzb6UKbL80",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:16:23.803699Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/exports/91d07218-297c-49ff-b134-c78653f1e308/download",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/exports/4c203d5f-0fd6-4c8d-a055-9195a4e800c4/download",
+    "method": "GET",
+    "status": 200
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:16:53.363865Z",
+      "snapshot_cursor": "49be2a95-77a5-4f31-a593-a207059ed460.1.EGCbApPUocFXhhixAlpXD6goY3Rn6O5w7WS-F7RmwI4",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "dad73b14-b62b-41c0-98ed-932e30142794.1.j2IgOpmU3r_r-4LvpwfGtVVivTSvM-rPSrzb6UKbL80",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:16:53.451189Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:17:23.816399Z",
+      "snapshot_cursor": "8973d4df-4892-4f10-949c-7d0066abc1e5.1.cMPSfWNU0q-ghbr-61Eq-GWJl_piULD_Mu8qVq5Ji9I",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        },
+        {
+          "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "2f52f781-639d-4bd2-8f0e-0a464f958eb9",
+          "body_hash": "9cc8da6760418382339bd3f6a67d59dd19f99db8ff290602a2477f920f8363f5"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "4f02cc2f-d8d2-45ec-b134-cbd6d42ebf0f",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:12.791123Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3acc698f-ddea-459f-a73c-aafd73868fda",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:23.661408Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "3acc698f-ddea-459f-a73c-aafd73868fda.1.1wBGeSWkG9vIGHAkqzcf_ST2ik0FmanFTJ-c3Zo466o",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:17:23.978740Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:17:57.230385Z",
+      "snapshot_cursor": "0a51e1bd-8ec2-4f57-98d8-269a0342e691.1.inkXYgQ1kKhuwAFPM1CthhCUMYBfc9elDcrkq_84LO4",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        },
+        {
+          "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+          "body_hash": "1fde4715b012753484a2d1986635f6fc56d9de60827f3c3d8fbec48952eeffe8"
+        },
+        {
+          "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+          "body_hash": "2ff8ace6aa3e73f81f5531083c15e8824b879e6f83eaf91bba8c03bd8e06853e"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "4f02cc2f-d8d2-45ec-b134-cbd6d42ebf0f",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:12.791123Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3acc698f-ddea-459f-a73c-aafd73868fda",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:23.661408Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "ac224658-d592-49cf-b85f-e2baf194f661",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:25.634207Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:55.841413Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e.1.TnVD6LPY7DX6pyEfZkZx7Ui0xQ1BJBwToPV4jBTBey4",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:17:57.513595Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:17:58.633195Z",
+      "snapshot_cursor": "0a51e1bd-8ec2-4f57-98d8-269a0342e691.1.inkXYgQ1kKhuwAFPM1CthhCUMYBfc9elDcrkq_84LO4",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        },
+        {
+          "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+          "body_hash": "1fde4715b012753484a2d1986635f6fc56d9de60827f3c3d8fbec48952eeffe8"
+        },
+        {
+          "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+          "body_hash": "2ff8ace6aa3e73f81f5531083c15e8824b879e6f83eaf91bba8c03bd8e06853e"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "4f02cc2f-d8d2-45ec-b134-cbd6d42ebf0f",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:12.791123Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3acc698f-ddea-459f-a73c-aafd73868fda",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:23.661408Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "ac224658-d592-49cf-b85f-e2baf194f661",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:25.634207Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:55.841413Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e.1.TnVD6LPY7DX6pyEfZkZx7Ui0xQ1BJBwToPV4jBTBey4",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:17:58.901351Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:18:13.536849Z",
+      "snapshot_cursor": "6aeff44f-a069-4e3e-90f7-853100ff57a1.1.3zEHSRM2iTJ85g-6vWrOS9K5uC0IwN5yT7FtQAyloSY",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        },
+        {
+          "id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "4dbb7ad7-deeb-4ae6-ac7a-cc28c92bac6d",
+          "body_hash": "927b8e88d5bc88f6b9cb7fc059fc6e977c9caf8e9215f4e96e4bce6876bde888"
+        },
+        {
+          "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+          "body_hash": "1fde4715b012753484a2d1986635f6fc56d9de60827f3c3d8fbec48952eeffe8"
+        },
+        {
+          "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+          "body_hash": "2ff8ace6aa3e73f81f5531083c15e8824b879e6f83eaf91bba8c03bd8e06853e"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "4f02cc2f-d8d2-45ec-b134-cbd6d42ebf0f",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:12.791123Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3acc698f-ddea-459f-a73c-aafd73868fda",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:23.661408Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "ac224658-d592-49cf-b85f-e2baf194f661",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:25.634207Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:55.841413Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "47afdf17-a487-49d6-bbd4-5b24c0710a7d",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:59.080141Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3f34a7fa-52de-4f38-a919-4986891965c6",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:18:12.704110Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "3f34a7fa-52de-4f38-a919-4986891965c6.1.tOR7VvJSV2ktuzCB0qkrjN1j1vjTYFJO801W-Tf-W_8",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:18:13.677758Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/queued-messages",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/documents",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "document_id": "3bec9059-c715-4826-a584-de032a054740",
+          "sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 5725,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+          "text_bytes": 768,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 2,
+            "covered_sheets": 2,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Values",
+                "state": "visible",
+                "total_rows": 3,
+                "total_columns": 2,
+                "covered_rows": 3,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 6,
+                "last_cell": "B3",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              },
+              {
+                "name": "Export notes",
+                "state": "visible",
+                "total_rows": 5,
+                "total_columns": 1,
+                "covered_rows": 5,
+                "merged_ranges": [],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 5,
+                "last_cell": "A5",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 8,
+            "visited_cells": 11
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "56bd8b18-0efe-4fce-bf51-646b62f8e510",
+          "sha256": "3a5a8367fc43e3a101aef693d745cc8faf360fef1dd0a0085d00ba3c3dea5085",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 36968,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae",
+          "text_bytes": 686,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 8,
+            "omitted_paragraphs": 0,
+            "total_tables": 0,
+            "omitted_tables": 0,
+            "paragraphs_covered": 8,
+            "tables_covered": 0,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "617d7968-94dc-40c2-bbda-820671e05fd3",
+          "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+          "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "owner_id": "local-human",
+          "filename": "original.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 23290,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b",
+          "text_bytes": 697,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/conversations/79498c29-b484-4756-a61b-0b2cccbf19a1/checkpoints",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/work-snapshot?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-29T03:18:15.529489Z",
+      "snapshot_cursor": "6aeff44f-a069-4e3e-90f7-853100ff57a1.1.3zEHSRM2iTJ85g-6vWrOS9K5uC0IwN5yT7FtQAyloSY",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [
+        {
+          "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+          "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386"
+        },
+        {
+          "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+          "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2"
+        },
+        {
+          "id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "4dbb7ad7-deeb-4ae6-ac7a-cc28c92bac6d",
+          "body_hash": "927b8e88d5bc88f6b9cb7fc059fc6e977c9caf8e9215f4e96e4bce6876bde888"
+        },
+        {
+          "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+          "body_hash": "1fde4715b012753484a2d1986635f6fc56d9de60827f3c3d8fbec48952eeffe8"
+        },
+        {
+          "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "title": "Working file",
+          "kind": "file",
+          "current_revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+          "body_hash": "2ff8ace6aa3e73f81f5531083c15e8824b879e6f83eaf91bba8c03bd8e06853e"
+        }
+      ],
+      "pending_proposals": []
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/attention?conversation_id=79498c29-b484-4756-a61b-0b2cccbf19a1",
+    "method": "GET",
+    "status": 200,
+    "body": {
+      "facts": [
+        {
+          "event_id": "e001e152-234f-41e1-a3d1-927295c9f1be",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:49:15.764430Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "0214f5f9-2fea-4efe-842a-691563e9ab91",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:50:52.707290Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "dad73b14-b62b-41c0-98ed-932e30142794",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T02:51:17.887811Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "4f02cc2f-d8d2-45ec-b134-cbd6d42ebf0f",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:12.791123Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3acc698f-ddea-459f-a73c-aafd73868fda",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:23.661408Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "ac224658-d592-49cf-b85f-e2baf194f661",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:25.634207Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "03b5099f-6c88-4d1b-a28b-c0a2ea691f6e",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:55.841413Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "47afdf17-a487-49d6-bbd4-5b24c0710a7d",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:17:59.080141Z",
+          "reason_code": "created"
+        },
+        {
+          "event_id": "3f34a7fa-52de-4f38-a919-4986891965c6",
+          "type": "revision.created",
+          "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+          "run_id": null,
+          "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+          "proposal_id": null,
+          "assignment_id": null,
+          "occurred_at": "2026-10-29T03:18:12.704110Z",
+          "reason_code": "created"
+        }
+      ],
+      "next_cursor": "3f34a7fa-52de-4f38-a919-4986891965c6.1.tOR7VvJSV2ktuzCB0qkrjN1j1vjTYFJO801W-Tf-W_8",
+      "has_more": false,
+      "reset_required": false,
+      "checked_at": "2026-10-29T03:18:15.722549Z"
+    }
+  },
+  {
+    "url": "/api/domain/v1/workspaces/office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d/exports/d1e2da8e-9ce6-4526-81f2-7abc4e5a624c/download",
+    "method": "GET",
+    "status": 200
+  }
+]

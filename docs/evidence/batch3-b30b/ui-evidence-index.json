@@ -1,0 +1,342 @@
+[
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/result.json",
+    "sha256": "e5ea6b5b6451aa6695b858096275b9e162b547cac3baaec041bc5009d7770f62",
+    "bytes": 134983
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web1440-markdown.md",
+    "sha256": "8411f9fcb460b340349b9f7938c7a880f73831fa8bf76d8a25bc173c344957f4",
+    "bytes": 57
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web1440-txt.txt",
+    "sha256": "8411f9fcb460b340349b9f7938c7a880f73831fa8bf76d8a25bc173c344957f4",
+    "bytes": 57
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web1440.png",
+    "sha256": "291fbdd8570c36aacc2994265397bb8e3de1dce46fa8aebce22a7a0598949c24",
+    "bytes": 118559
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web320-json.json",
+    "sha256": "04b03233e080d82ee693a20e7538081d3360d810e77ded6577c05c9361de8568",
+    "bytes": 100
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web320.png",
+    "sha256": "9af2c3dac75926a9fc61b473d83da485dee2759aa59a15db3f62bbc9c8e3217c",
+    "bytes": 89265
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web390-csv.csv",
+    "sha256": "5f58758ecdd783adb42f2c9193003874033915fc356f27be3bfc82df379f0e5a",
+    "bytes": 66
+  },
+  {
+    "path": ".local/batch3/b30b/final-web-proof-4/web390.png",
+    "sha256": "922aa9dd1886f6dc0937963106e115146d6f4b53cb705d98a08d3ffb3de36fee",
+    "bytes": 89025
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/1440-controls.png",
+    "sha256": "3e7c6073ef731c610e0e113859ce8735c138de492742875e2a9f705484b84b9e",
+    "bytes": 59727
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/1440-editor.png",
+    "sha256": "27c35cba412383b9e43a780f4ff9d49f36302a7f23a8d76ac4788a61712528cb",
+    "bytes": 61798
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/320-controls.png",
+    "sha256": "d1081cf9b70e8a39725b22e60de72930ce3c35c09a6f997bd1e258722768ad92",
+    "bytes": 39555
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/320-editor.png",
+    "sha256": "6a071ac215f30fcf1d36848457f5a024c0682866ea64c0da016d09fd4c73da3e",
+    "bytes": 41424
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/390-controls.png",
+    "sha256": "3fd9a2ede5bf1272df2887c670f2b757bdb0e1c74faefbd2bd4a25ae08c08d84",
+    "bytes": 40142
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/390-editor.png",
+    "sha256": "0e5ad7f07d152aac0a62ef50098f34631ed83048f3927a60686db66687b4d56d",
+    "bytes": 44646
+  },
+  {
+    "path": ".local/batch3/b30b/resume-viewport/result.json",
+    "sha256": "bf9b9dae4f6598438f3b4ff14ff12f8865b2cfae26a6056cb2889a985e0477c6",
+    "bytes": 1555
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-composer-preserved.png",
+    "sha256": "335cda6028eb2b7af04fd4f94e31ac88e11f549f0235133481a88b2807035d91",
+    "bytes": 53506
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-composer-preserved.txt",
+    "sha256": "b432c73c580ee7895603039c6c4566a748e481f2029c9c026daf780c048d7366",
+    "bytes": 8468
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-composer.png",
+    "sha256": "e3241a7250a7223f8114187e5400651003b505609e9eada028ca79c8a2e3a66d",
+    "bytes": 31156
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-composer.txt",
+    "sha256": "c98b3bee42a59178477c053a25dd4003bdab9e73aa1f292c2ef80568a909be17",
+    "bytes": 6334
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-created.png",
+    "sha256": "01747116a8ffbfe250fafcc9030bb4d80e785cccd8cdf266fd29b3a3db020864",
+    "bytes": 62177
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-created.txt",
+    "sha256": "60fabc68686c32e14f16b2e8618d2e2186fc84b16f54444fce19c083ef507c4b",
+    "bytes": 7498
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-download.txt",
+    "sha256": "e2dbbd5d390af2d27249e2b44d011fdfc4131164ee2b4363c8d18f99ac54d783",
+    "bytes": 56
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-downloaded.png",
+    "sha256": "a6ba9fdc41b4b469bf0f21826232e520e5437f90a9211d9045a401ac41781919",
+    "bytes": 53987
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-downloaded.txt",
+    "sha256": "5e679276018ea0a97af635538b3b0af5976194db7210de8a261837cc6c42e43b",
+    "bytes": 7635
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-edited.png",
+    "sha256": "a7c4a3d09067a7639a78f9adc2e66973412729d24dd82b7c0d738a3d943f19e9",
+    "bytes": 62297
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-edited.txt",
+    "sha256": "049454f0b71eeba521251fc65c251f03e624f5fa66ce2876ee53dbdcdf553c81",
+    "bytes": 7498
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-exported.png",
+    "sha256": "3d8beea7e697dd36c5d9157936be6eda5e3ab4168e427b15f10f17366caeb513",
+    "bytes": 59244
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-exported.txt",
+    "sha256": "47a9afdad8b5d364c9153bdbe74516c9d0cfdc77429fed7f6925ca39f56554bd",
+    "bytes": 7094
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-new.png",
+    "sha256": "0d8f22d6db1e09c0622100e612d1276db0ca2e2171e9e90ae216eb6025ea129e",
+    "bytes": 44319
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-new.txt",
+    "sha256": "53c101c201b29f4d0f31f7f39d90ec42b44c97dde3a6922fe5fdcb1dd4a837ca",
+    "bytes": 7620
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-restart-composer-reopened.png",
+    "sha256": "6abfd8dd27a3e39d21a584648452f5c406f2e8e66544df64ca72d5e3e2ffce21",
+    "bytes": 31150
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-restart-composer-reopened.txt",
+    "sha256": "c98b3bee42a59178477c053a25dd4003bdab9e73aa1f292c2ef80568a909be17",
+    "bytes": 6334
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-restart-file-draft-reopened.png",
+    "sha256": "9e4ea988a2d8907ac00e60c7942264b42927042b8c92f2795230774f9832eec0",
+    "bytes": 65008
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-restart-file-draft-reopened.txt",
+    "sha256": "fcd994892cab6c78f066b1a8572fb17bba50ea291bd28193b803e4ae9acc596a",
+    "bytes": 7415
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-result.json",
+    "sha256": "54d525fe3b069cc571703d284a4992da7fb94d7271c76cdf5d8555704caf8a06",
+    "bytes": 2109
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-typed.png",
+    "sha256": "4af459282211aa96797837fe8d6fd83d2dbeed360928bd0759adbecdc536a23e",
+    "bytes": 47862
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-typed.txt",
+    "sha256": "2a92b130dda7727f42d66021e69cdb1b19d9d362bc112a16f6966a47c8bc6dcd",
+    "bytes": 7620
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-unsent.png",
+    "sha256": "b6b7d501b5ff774562e1e6daabe316b4a64f37986889b5de6e6eeee2ab26b1b7",
+    "bytes": 65710
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty120-unsent.txt",
+    "sha256": "e6d707a61fc74e740c81eaf2ae69af0ac988a1f51cc6a50591f4d7cda2aaedb9",
+    "bytes": 7415
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-composer-preserved.png",
+    "sha256": "bd320b347642b81343b697d46dc18ac8cf5345deb04e4c84b48544bf84f1a75e",
+    "bytes": 30214
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-composer-preserved.txt",
+    "sha256": "201091c9aa4e4342d797e93a2811a2310a125a5ed77f12f930d16376f00ffa9b",
+    "bytes": 3396
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-composer.png",
+    "sha256": "461e9d141212c604c8fda5df13fbd25759bebe4905784f268a8b314bcfe37893",
+    "bytes": 27569
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-composer.txt",
+    "sha256": "fa9955007f971ce86322198c7304dd723d93fa3a3566bf88782d6f17a54d4f39",
+    "bytes": 3038
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-created.png",
+    "sha256": "f0ec9192c7286cf35c911e1c144308b8279b0b4e199b5cd914861cb95e03bdf6",
+    "bytes": 39288
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-created.txt",
+    "sha256": "2b66d81aa089f20e50c11a2f67e777e3df52939f1b296b89f290a98654559b60",
+    "bytes": 2637
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-download.txt",
+    "sha256": "04f868f39b6cc47f980feb92e601566aa5398b9298a37ace3be54fb31575fcdb",
+    "bytes": 54
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-downloaded.png",
+    "sha256": "9f596b0873bd2429c1abb2e0b348dd6ff0b90e039112a2ac516c5c3d51cdf751",
+    "bytes": 36760
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-downloaded.txt",
+    "sha256": "d5bab3369b338171904994600b740ed268b91af7845fc4c5f61a9ff3665abadf",
+    "bytes": 3111
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-edited.png",
+    "sha256": "247b064c72c0d9705c90324d6d613bc2491f55798627a9032f224606ccbae6f4",
+    "bytes": 40465
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-edited.txt",
+    "sha256": "e757ac933da74df9936c3a5a7d9c950ff856797a8661cd6fae2ae21e9855f61e",
+    "bytes": 2637
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-exported.png",
+    "sha256": "b3933f0fb5a8dd36a3d9ad59dad0f0ed8b87efb58f4f7e26ee528d8d116ac234",
+    "bytes": 25649
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-exported.txt",
+    "sha256": "5360862a3ece354870fdefdb89b15307016b9c2d660789191e3140edcd80ef8f",
+    "bytes": 3137
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-final-reopen-composer.png",
+    "sha256": "a4fdd8e92365a8153f98d2bd3cebe8aeeca7c46d34d2ba3eac4f4f73a74c599d",
+    "bytes": 27573
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-final-reopen-composer.txt",
+    "sha256": "fa9955007f971ce86322198c7304dd723d93fa3a3566bf88782d6f17a54d4f39",
+    "bytes": 3038
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-final-reopen-retained-file-draft.png",
+    "sha256": "6c3f132612977f454ae24720cd5696fa701bc6a426b81196802f8226273ef681",
+    "bytes": 51997
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-final-reopen-retained-file-draft.txt",
+    "sha256": "03775390c57d3793a574a7dc7f3ae9e3500662633653b8ee950541b8c4ef3ec1",
+    "bytes": 2657
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-new.png",
+    "sha256": "a0d61ff2a22fe100d370216f77fc54f36c72ea8dad0a01700b14a29e6079c162",
+    "bytes": 33279
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-new.txt",
+    "sha256": "167ffd05070b94c729e738ed70637233e2e06dbb5e797cde24837540cbac559a",
+    "bytes": 3286
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-reopen-result.json",
+    "sha256": "ac95b6190e4f613e5904c2306219cce91c0ef93ee2c7b23731473a5ae0c0295a",
+    "bytes": 226
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-restart-composer-reopened.png",
+    "sha256": "8ed4952668373ce01fb0a04e3e6db754088f574d5f7285b247acba17ebb306e5",
+    "bytes": 24238
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-restart-composer-reopened.txt",
+    "sha256": "af35f28d7ca962641f5970f104fdf8a1ea26b50b2fc03105ba2c01988d7757da",
+    "bytes": 3034
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-restart-label-failed.png",
+    "sha256": "e8599c8e4b06cea91fc4ece88b938ef4382810c4824acdd8a2bc0b7e23962cde",
+    "bytes": 29968
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-restart-label-failed.txt",
+    "sha256": "ce52bd01620369be701954f173f77961264b41eb29d6b9947fa2a811cd081aa0",
+    "bytes": 3400
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-result.json",
+    "sha256": "74f7c1011dc6c6d9a1dbc6c9ff38631e146e4eedf07a92e653fa0d972b5f3ff3",
+    "bytes": 2411
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-typed.png",
+    "sha256": "cfdf0e7e267d92a8426673d6f7deec0f9778d57033c0f94ee3afc855a3fa9561",
+    "bytes": 31779
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-typed.txt",
+    "sha256": "ccfbe041c96325acdfd373c03713f027d72a7296727b8bdba8088e87a65fdb45",
+    "bytes": 2941
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-unsent.png",
+    "sha256": "d35a9e79e790ebed533e3f91162bb49f90138e1be5e013add590587aeca145b0",
+    "bytes": 52235
+  },
+  {
+    "path": ".local/batch3/b30b/resume-pty-proof/pty80-unsent.txt",
+    "sha256": "fc7e90fca9b509f549f85744abb274a600fed907f4e480b9bb4f137b06e309a4",
+    "bytes": 2657
+  }
+]

@@ -1,0 +1,249 @@
+{
+  "mode": "before",
+  "downloads": [
+    {
+      "filename": "patch.txt",
+      "path": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/evidence/browser/before-patch.txt",
+      "sha256": "2210fff0d69182dc5afc22c69c114d64021624c9971e3e7fed35e4a72e4ef7b1",
+      "bytes": 506,
+      "manifest": {
+        "annotations": "explicit_omissions",
+        "blob": {
+          "blob_id": "b984424f-057f-461c-bf9e-7a808d143b60",
+          "byte_length": 506,
+          "kind": "generated_blob",
+          "mime_type": "text/plain",
+          "sha256": "2210fff0d69182dc5afc22c69c114d64021624c9971e3e7fed35e4a72e4ef7b1"
+        },
+        "code_sha256": "a9c89615f7fb5c13e8e9e61f44a25fc3398a7152eb180673d45b8ae790aaee68",
+        "conversation_id": "f2676162-b6fc-4fe3-bb99-7473a619ca4c",
+        "created_at": "2026-10-29T04:14:10.132072Z",
+        "export_id": "54936967-930a-4d37-acbd-482b6097a986",
+        "exporter_version": "compute-python-v1",
+        "filename": "patch.txt",
+        "format": "txt",
+        "input_refs": [
+          {
+            "id": "324c261b-73ac-4312-8b0c-36ac0be15f51",
+            "kind": "workspace_file",
+            "sha256": "f76c9f939e5521a2f07e4f4e232d720c411c7e8a67a7a17c910cceb23c457bf0",
+            "version": "9c850614-098f-4873-8912-15b17be0dfcc"
+          },
+          {
+            "id": "dd139e1e-397f-4a1e-a242-8711812799b4",
+            "kind": "workspace_file",
+            "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+            "version": "c857553d-5bd5-49ee-b8b6-7162dd1496ed"
+          },
+          {
+            "id": "7aa367f3-9a70-45c7-a2f5-60d1653ede06",
+            "kind": "workspace_file",
+            "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+            "version": "0c6fc241-afc4-4b84-84e0-2f9d8172b8fd"
+          },
+          {
+            "id": "15efefa9-c324-47f1-b3ae-94bdd4b9bf1a",
+            "kind": "workspace_file",
+            "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+            "version": "216ec3f4-645c-45bc-83d5-3db0c1c7dc07"
+          }
+        ],
+        "omissions": [
+          "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+        ],
+        "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+        "run_id": "f0116d49-19ae-4310-b7e4-adcca1d0f258",
+        "sandbox_sha256": "2210fff0d69182dc5afc22c69c114d64021624c9971e3e7fed35e4a72e4ef7b1",
+        "tool_attempt_id": "c3833230-70d4-4d20-8fac-02cb00aee5a1",
+        "workspace_id": "b32c-transfer-d4e72071-7a48-4a89-a814-cc929c447c20"
+      }
+    },
+    {
+      "filename": "candidate.txt",
+      "path": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/evidence/browser/before-candidate.txt",
+      "sha256": "37905a5ec87ec728682200cb6b93964d5eeb162fb7b003254f5b3ee87b000e0f",
+      "bytes": 877,
+      "manifest": {
+        "annotations": "explicit_omissions",
+        "blob": {
+          "blob_id": "6aa1ad9b-d12e-44d9-a4e2-f12784ab4ec4",
+          "byte_length": 877,
+          "kind": "generated_blob",
+          "mime_type": "text/plain",
+          "sha256": "37905a5ec87ec728682200cb6b93964d5eeb162fb7b003254f5b3ee87b000e0f"
+        },
+        "code_sha256": "a9c89615f7fb5c13e8e9e61f44a25fc3398a7152eb180673d45b8ae790aaee68",
+        "conversation_id": "f2676162-b6fc-4fe3-bb99-7473a619ca4c",
+        "created_at": "2026-10-29T04:14:10.119230Z",
+        "export_id": "9e3a00ac-18e3-408f-ae46-690b9f129538",
+        "exporter_version": "compute-python-v1",
+        "filename": "candidate.txt",
+        "format": "txt",
+        "input_refs": [
+          {
+            "id": "324c261b-73ac-4312-8b0c-36ac0be15f51",
+            "kind": "workspace_file",
+            "sha256": "f76c9f939e5521a2f07e4f4e232d720c411c7e8a67a7a17c910cceb23c457bf0",
+            "version": "9c850614-098f-4873-8912-15b17be0dfcc"
+          },
+          {
+            "id": "dd139e1e-397f-4a1e-a242-8711812799b4",
+            "kind": "workspace_file",
+            "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+            "version": "c857553d-5bd5-49ee-b8b6-7162dd1496ed"
+          },
+          {
+            "id": "7aa367f3-9a70-45c7-a2f5-60d1653ede06",
+            "kind": "workspace_file",
+            "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+            "version": "0c6fc241-afc4-4b84-84e0-2f9d8172b8fd"
+          },
+          {
+            "id": "15efefa9-c324-47f1-b3ae-94bdd4b9bf1a",
+            "kind": "workspace_file",
+            "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+            "version": "216ec3f4-645c-45bc-83d5-3db0c1c7dc07"
+          }
+        ],
+        "omissions": [
+          "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+        ],
+        "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+        "run_id": "f0116d49-19ae-4310-b7e4-adcca1d0f258",
+        "sandbox_sha256": "37905a5ec87ec728682200cb6b93964d5eeb162fb7b003254f5b3ee87b000e0f",
+        "tool_attempt_id": "c3833230-70d4-4d20-8fac-02cb00aee5a1",
+        "workspace_id": "b32c-transfer-d4e72071-7a48-4a89-a814-cc929c447c20"
+      }
+    },
+    {
+      "filename": "tests.json",
+      "path": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/evidence/browser/before-tests.json",
+      "sha256": "587b787cfebebd8b416ed91f6ad6bcee6fdb28578768365c1f134f6c7699bc03",
+      "bytes": 290,
+      "manifest": {
+        "annotations": "explicit_omissions",
+        "blob": {
+          "blob_id": "9eeda862-cb5b-431a-b4ff-9eba5b0c0804",
+          "byte_length": 290,
+          "kind": "generated_blob",
+          "mime_type": "application/json",
+          "sha256": "587b787cfebebd8b416ed91f6ad6bcee6fdb28578768365c1f134f6c7699bc03"
+        },
+        "code_sha256": "a9c89615f7fb5c13e8e9e61f44a25fc3398a7152eb180673d45b8ae790aaee68",
+        "conversation_id": "f2676162-b6fc-4fe3-bb99-7473a619ca4c",
+        "created_at": "2026-10-29T04:14:10.146776Z",
+        "export_id": "371d6a6a-87c6-4c43-acd5-f48512893b5f",
+        "exporter_version": "compute-python-v1",
+        "filename": "tests.json",
+        "format": "json",
+        "input_refs": [
+          {
+            "id": "324c261b-73ac-4312-8b0c-36ac0be15f51",
+            "kind": "workspace_file",
+            "sha256": "f76c9f939e5521a2f07e4f4e232d720c411c7e8a67a7a17c910cceb23c457bf0",
+            "version": "9c850614-098f-4873-8912-15b17be0dfcc"
+          },
+          {
+            "id": "dd139e1e-397f-4a1e-a242-8711812799b4",
+            "kind": "workspace_file",
+            "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+            "version": "c857553d-5bd5-49ee-b8b6-7162dd1496ed"
+          },
+          {
+            "id": "7aa367f3-9a70-45c7-a2f5-60d1653ede06",
+            "kind": "workspace_file",
+            "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+            "version": "0c6fc241-afc4-4b84-84e0-2f9d8172b8fd"
+          },
+          {
+            "id": "15efefa9-c324-47f1-b3ae-94bdd4b9bf1a",
+            "kind": "workspace_file",
+            "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+            "version": "216ec3f4-645c-45bc-83d5-3db0c1c7dc07"
+          }
+        ],
+        "omissions": [
+          "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+        ],
+        "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+        "run_id": "f0116d49-19ae-4310-b7e4-adcca1d0f258",
+        "sandbox_sha256": "587b787cfebebd8b416ed91f6ad6bcee6fdb28578768365c1f134f6c7699bc03",
+        "tool_attempt_id": "c3833230-70d4-4d20-8fac-02cb00aee5a1",
+        "workspace_id": "b32c-transfer-d4e72071-7a48-4a89-a814-cc929c447c20"
+      }
+    },
+    {
+      "filename": "applicability.json",
+      "path": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/evidence/browser/before-applicability.json",
+      "sha256": "849bf58afa27866ad5fc0b3a6596b2f7ed0b7f46d4b5d83edd083f75a37e4213",
+      "bytes": 1053,
+      "manifest": {
+        "annotations": "explicit_omissions",
+        "blob": {
+          "blob_id": "5d36d3c4-2731-4f1c-9343-d7baba64f21b",
+          "byte_length": 1053,
+          "kind": "generated_blob",
+          "mime_type": "application/json",
+          "sha256": "849bf58afa27866ad5fc0b3a6596b2f7ed0b7f46d4b5d83edd083f75a37e4213"
+        },
+        "code_sha256": "a9c89615f7fb5c13e8e9e61f44a25fc3398a7152eb180673d45b8ae790aaee68",
+        "conversation_id": "f2676162-b6fc-4fe3-bb99-7473a619ca4c",
+        "created_at": "2026-10-29T04:14:10.098417Z",
+        "export_id": "28f496a6-aebe-4356-96f0-f3500b03869a",
+        "exporter_version": "compute-python-v1",
+        "filename": "applicability.json",
+        "format": "json",
+        "input_refs": [
+          {
+            "id": "324c261b-73ac-4312-8b0c-36ac0be15f51",
+            "kind": "workspace_file",
+            "sha256": "f76c9f939e5521a2f07e4f4e232d720c411c7e8a67a7a17c910cceb23c457bf0",
+            "version": "9c850614-098f-4873-8912-15b17be0dfcc"
+          },
+          {
+            "id": "dd139e1e-397f-4a1e-a242-8711812799b4",
+            "kind": "workspace_file",
+            "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+            "version": "c857553d-5bd5-49ee-b8b6-7162dd1496ed"
+          },
+          {
+            "id": "7aa367f3-9a70-45c7-a2f5-60d1653ede06",
+            "kind": "workspace_file",
+            "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+            "version": "0c6fc241-afc4-4b84-84e0-2f9d8172b8fd"
+          },
+          {
+            "id": "15efefa9-c324-47f1-b3ae-94bdd4b9bf1a",
+            "kind": "workspace_file",
+            "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+            "version": "216ec3f4-645c-45bc-83d5-3db0c1c7dc07"
+          }
+        ],
+        "omissions": [
+          "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+        ],
+        "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+        "run_id": "f0116d49-19ae-4310-b7e4-adcca1d0f258",
+        "sandbox_sha256": "849bf58afa27866ad5fc0b3a6596b2f7ed0b7f46d4b5d83edd083f75a37e4213",
+        "tool_attempt_id": "c3833230-70d4-4d20-8fac-02cb00aee5a1",
+        "workspace_id": "b32c-transfer-d4e72071-7a48-4a89-a814-cc929c447c20"
+      }
+    }
+  ],
+  "layouts": [
+    {
+      "width": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "width": 390,
+      "pageWidth": 390
+    },
+    {
+      "width": 320,
+      "pageWidth": 320
+    }
+  ],
+  "refusalCleared": true,
+  "passed": true
+}

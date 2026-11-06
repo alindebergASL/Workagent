@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "backend/tests/test_compute_publication_pg.py",
+    "backend/tests/test_compute_gateway_pg.py",
+    "backend/tests/test_compute_worker_pg.py",
+    "backend/tests/test_compute_http_pg.py",
+    "--basetemp=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/pytest-closure-final-pg",
+    "--junitxml=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/closure-final-pg.xml"
+  ],
+  "exit": 0,
+  "started_at": 1793215203.5960615,
+  "elapsed_seconds": 180.26006722450256
+}

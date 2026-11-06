@@ -1,0 +1,21 @@
+{
+  "source_files_verified": 602,
+  "evidence_files": 167,
+  "archive_members": 168,
+  "archive_sha256": "cf61973793f49dc0b04f115dcf67fb47b8b86d71713e6b844e92d10c7505df02",
+  "archive_bytes": 12550245,
+  "secret_scan_matches": 0,
+  "matrix": {
+    "PENDING": 26,
+    "PASS": 17
+  },
+  "matrix_total": 43,
+  "paired_terminal_revision_notes_cells_verified": true,
+  "diff_check_exit": 0,
+  "services_retained": [
+    "b2r5b-api:18965/PID3933826",
+    "b2r5b-web:3195"
+  ],
+  "provider_worker_started": false,
+  "product_provider_calls": 0
+}

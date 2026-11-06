@@ -1,0 +1,59 @@
+workagent
+More
+← Back to Private fixture workspace
+Start a fresh duration assignment after forgetting the procedure
+Keep as a project
+
+You:
+Start a fresh duration assignment after forgetting the procedure.
+
+Agent:
+
+Ready to work with the supplied dataset. Controlled transport; not a live model evaluation.
+
+Details
+
+You:
+Summarize duration by group in seconds, checking duplicates and missing observations. Column mapping: {"id":"record_id","group":"cohort","value":"elapsed_minutes","seconds_per_unit":"60"}
+
+observations.csv · 104 bytes
+Agent:
+
+Computed a fresh summary in confined Python. Open summary.csv in Files to inspect or download; source rows remain unchanged. Controlled transport demonstrates mechanisms, not live usefulness.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 28 Oct, 23:41 UTC
+New version saved
+Mark as seen
+Details
+Files
+summary.csv
+text/csv · 107 bytes
+observations.csv
+text/csv · 104 bytes · read-only evidence
+summary.csv
+Text (107 bytes)
+Save
+Export as
+txt
+markdown
+csv
+json
+Export this version
+
+export.csv · 107 bytes
+
+Download (verified bytes)
+New file…
+Memory
+Tool activity
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

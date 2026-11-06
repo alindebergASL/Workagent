@@ -23,7 +23,8 @@ def test_no_write_retry_or_secret_error(client):
             raise OSError('sensitive: '+client.token)
     client.opener=Fail()
     with pytest.raises(OperatorError) as exc:
-        client.request('/w/conversations',{'command_id':'stable-command'})
+        client.request('/w/conversations',{'schema_version':'workagent/v1',
+            'request_id':'stable-command','command_id':'stable-command','title':'Synthetic work'})
     assert client.opener.calls==1
     assert client.token not in str(exc.value) and 'No retry' in str(exc.value)
 

@@ -74,13 +74,16 @@ def check_admission_budget(c, grant):
     from decimal import Decimal
     from .responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
     c.execute('SELECT pg_advisory_xact_lock(721004120)')
-    used = summary(c, grant.id, shared=True)
+    shared = summary(c, grant.id, shared=True)
     b = grant.responses
+    # Match reservation/SQL scope: only alpha counters and tokens are shared.
+    # Every grant still includes project-wide committed cost and historical carry.
+    used = shared if getattr(b, 'runtime_extension', None) == 'general-alpha-v1' else summary(c, grant.id)
     if (used['request_counts']['count_send'] >= b.count_limit
         or used['request_counts']['dispatch'] >= b.generation_limit
         or used['reserved_input_tokens'] + RESERVED_INPUT > b.input_limit
         or used['reserved_output_tokens'] + RESERVED_OUTPUT > b.output_limit
-        or Decimal(used['reserved_cost_usd']) + RESERVED_COST > Decimal(b.cost_limit_usd)):
+        or Decimal(shared['reserved_cost_usd']) + RESERVED_COST > Decimal(b.cost_limit_usd)):
         raise DomainError('budget_exhausted')
 
 
@@ -275,12 +278,17 @@ class ResponsibilityExecution:
             return
         run = Run.model_validate(c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s', (ws, rid)).fetchone()['data'])
         status = {'queued': 'queued', 'running': 'running', 'ready': 'settled', 'partial': 'settled', 'cancelled': 'blocked'}[run.state]
-        if run.stop_reason in ('budget_limit','blocked','waiting_for_user','step_limit'):
+        from .retained_results import enabled as retained_enabled
+        from .run_successors import has_new_progress
+        config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',(ws,rid)).fetchone()['data']
+        slice_end=(run.stop_reason=='step_limit' and retained_enabled(config) and life.state=='active'
+            and not life.wait and not life.blocker and has_new_progress(c,ws,rid,config))
+        if run.stop_reason in ('budget_limit','blocked','waiting_for_user','step_limit') and not slice_end:
             status = 'blocked'
         if life.execution_status == status:
             return
         life.execution_status = status
-        if status in ('settled','blocked') and run.state != 'cancelled':
+        if status in ('settled','blocked') and run.state != 'cancelled' and not slice_end:
             life.review_required = False
             life.outcome_status = 'needs_review'
             life.current_outcome = 'Continuation result retained; human review required. The goal is not verified complete.'
@@ -294,3 +302,9 @@ class ResponsibilityExecution:
                 reason='No automatic acceptance or claim of goal completion.')
             self._responsibility_state(life)
         c.execute('UPDATE assignments SET responsibility_lifecycle=%s WHERE workspace_id=%s AND id=%s', (encoded(life), ws, aid))
+        if run.state in ('ready','partial','cancelled'):
+            from .run_checkpoints import record
+            from .models import Conversation
+            cv=Conversation.model_validate(c.execute('SELECT data FROM conversations WHERE workspace_id=%s AND id=%s',
+                (ws,run.conversation_id)).fetchone()['data'])
+            record(self,c,run,cv,'stop' if run.state=='cancelled' else 'final','responsibility')

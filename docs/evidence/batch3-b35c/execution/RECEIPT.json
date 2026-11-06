@@ -1,0 +1,92 @@
+{
+  "status": "BLOCKED_paid_admission_full_AB_NOT_complete",
+  "base_head": "e735e154b247598dde439d84433064ec59e1b157",
+  "runtime_manifest_sha256": "0060de12f7a5503f60e205488530496d3d978c753d044ba8e4df979056e2d12b",
+  "runtime_files_verified": 278,
+  "new_product_calls": 0,
+  "new_allocation_usd": "0",
+  "live_AB_episodes": 0,
+  "full_AB_episodes_owed": 72,
+  "full_AB_trajectories_owed": 12,
+  "snapshot_at": "2026-10-29T19:21:06.787508+00:00",
+  "snapshot_ended_at": "2026-10-29T19:21:29.186459+00:00",
+  "stores": 13,
+  "readonly_checks": 9,
+  "funding": {
+    "ceiling_usd": "100",
+    "retained_allocations_usd": "99.605960",
+    "global_unallocated_usd": "0.394040",
+    "known_usage_estimate_usd": "14.7193575",
+    "generation_reservations_usd": "72.17292",
+    "unknown_usage_attempts": 3,
+    "unmatched_counts": 7,
+    "settled_bill": null,
+    "categories_overlap_not_additive": true,
+    "normal_eight_choice_model_only_reservation_usd": "1.65536"
+  },
+  "diagnostics": [
+    {
+      "attempt": 1,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    },
+    {
+      "attempt": 2,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    },
+    {
+      "attempt": 3,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    },
+    {
+      "attempt": 4,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "public_download_bytes": 13873,
+  "public_download_sha256": "7d81899d8237c93b04c697106e3280a04f1d0ca82167decb4209f891351864d1",
+  "proof_level": "scripted_real_public_tools_NOT_live_model_AB",
+  "implementation_changes": false,
+  "installed_maintenance": false,
+  "deployed": false,
+  "published": false,
+  "development_model": "gpt-6-astra/openai-codex",
+  "development_tool_billing": "outside_product_ledger_unreconciled",
+  "files": {
+    ".local/batch3/b35c/execution/freeze.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".local/batch3/b35c/execution/ledger/collector.log": "7fa73859e52cf1150eeaa923087cba647f1e032776c2d4ff36cf94e69b7eee4a",
+    ".local/batch3/b35c/execution/ledger/current-reconciliation.json": "53306d858e4c04d3eaa64e923a7a72950d44cf681eaab5061025d64d63af4673",
+    ".local/batch3/b35c/execution/ledger/proposed-tranche.json": "37bbdca2b70bf3440d6af6cb2e37818ce03adc586a87e758a76d921e73a382e2",
+    ".local/batch3/b35c/execution/ledger/public-caching-current.txt": "2da1ea8a2404b306773bee6aa1027ca36c9d0bc2f8a4ea3df83166d3da9d7e6c",
+    ".local/batch3/b35c/execution/ledger/public-model-current.txt": "ebcc1b0ae6c729a64411dacf303c0ae8b91b11a9be176dc8997b2652bec4b9b0",
+    ".local/batch3/b35c/execution/ledger/public-pricing-current.txt": "93d302a9b7a384877533bc3ab5bb48eebf4b56bd6add0f194095054b2a13f952",
+    ".local/batch3/b35c/execution/ledger/public-pricing-receipts.json": "4b705e10f3506ad176f9102ced17e1b967881d9c353686409bf7aa44ffd06a72",
+    ".local/batch3/b35c/execution/ledger/verification.json": "57c2816207b24b27d88d857fecb592a32208b80dc17ce180633e9f845700de1c",
+    ".local/batch3/b35c/execution/ledger/verification.log": "ed7f95ddd9057a8913f2625a9bee9d4e473d9e86a2c0c2baa7a0b89cac4a918f",
+    ".local/batch3/b35c/execution/ledger/verify_evidence.py": "e1dba870a193fc4f00113e62b586797d18565cf855c38b085523cf813ae05767",
+    ".local/batch3/b35c/execution/public-capture-observation-02.json": "78cb4cdbe7866f51276b640fa2c4b28b6fc7804d29ea758323e58ea3c6042575",
+    ".local/batch3/b35c/execution/public-capture-observation-03.json": "c4adb8e45e9a20bad71d8a52dc00ce98a42baa833d8944c3dad445deff2ba095",
+    ".local/batch3/b35c/execution/public-capture-observation.json": "60e49273de62cd9bd68a0b8fa2acc9b07fbd87d94426b2ce07f8973787918115",
+    ".local/batch3/b35c/execution/public-source-download.txt": "7d81899d8237c93b04c697106e3280a04f1d0ca82167decb4209f891351864d1",
+    ".local/batch3/b35c/execution/public-tools-01.log": "be9baafdba91e02c81154988049a87baf2cbba844dfebdc738bd3257f224b100",
+    ".local/batch3/b35c/execution/public-tools-01.xml": "92c98d223ec89cfff7ca2b58ff4fc4396a7e39a08b1b820ebe3b920b1e705d7a",
+    ".local/batch3/b35c/execution/public-tools-02.log": "a908431734a981d73fb2be7526a6ab3541f4d3caf3ecc3c68a08440158e02bd3",
+    ".local/batch3/b35c/execution/public-tools-02.xml": "0c2490b3f3c30a485d2d9b5b063f3b6f34604fbbe02e02b450b0069d751873a6",
+    ".local/batch3/b35c/execution/public-tools-03.log": "20c60cfd0e5e6d9dfda6210f18a6a37809f954b68ce5057b2741b7a521a7fb6f",
+    ".local/batch3/b35c/execution/public-tools-03.xml": "8ca2a465f483afa11c02b7ec3d4d028f9e53e1f9a89bd226435406c722a039aa",
+    ".local/batch3/b35c/execution/public-tools-04.log": "b54b626d8c03740b03cb62c64f200828ee82a5a2080b03cf82df761359a068e0",
+    ".local/batch3/b35c/execution/public-tools-04.xml": "5f46d8934784ffe8079c038d42302a2b409287a81f6f5a2e94b5e9a4e93e3db6",
+    ".local/batch3/b35c/execution/public-tools-proof.json": "6ce5ff5bad02ef3144f551ec17f9d54f141d04135afc228727db1cecf370851c",
+    ".local/batch3/b35c/execution/refresh.py": "86935f8cc493a9d144cea7cd4b614567c01cfb397751a16c83f2740acdd9fc80",
+    ".local/batch3/b35c/execution/test_public_tools.py": "7bd6293338839beeed6b87e2532b0e3541fca30ca8be04e625a74eb18c2b8e6e",
+    "docs/evidence/batch3-b35c/execution/REPORT.md": "d6a193ee3bd09dbf64f11ca43039e78f9356628837a12a8b88deaf9b405d28a1",
+    "docs/evidence/batch3-b35c/execution/freeze.py": "c833c99346a31b1bd0f15b4a4496443216cbd3a358b50eef291f588b168d97bb"
+  }
+}

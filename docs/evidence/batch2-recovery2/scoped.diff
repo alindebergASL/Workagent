@@ -1,0 +1,113 @@
+--- before/backend/tests/test_document_confinement.py
++++ after/backend/tests/test_document_confinement.py
+@@ -5,6 +5,8 @@
+ import json
+ import os
+ from pathlib import Path
++import signal
++import time
+ import pytest
+ from workagent.document_sandbox import run_confined
+ 
+@@ -74,14 +76,95 @@
+     assert json.loads(out)['bounded']
+ 
+ 
+-def test_real_cpu_bomb_stopped(tmp_path):
+-    code, out, err = probe(tmp_path, 'print("started",flush=True)\nwhile True: pass')
+-    assert out == b'started\n' and code in (-9,137), err.decode(errors='replace')
++def test_real_cpu_bomb_stopped(tmp_path, record_property):
++    # RLIMIT_CPU counts scheduled CPU, not elapsed time. Give this proof alone
++    # scheduling headroom; the production wall guard remains 15 seconds. A wall
++    # timeout is still a failure here, NEVER alternative CPU-enforcement evidence.
++    started = time.monotonic()
++    code, out, err = probe(tmp_path, '''
++import json, resource, time
++print(json.dumps({'cpu_limit': resource.getrlimit(resource.RLIMIT_CPU)}), flush=True)
++while time.process_time() < 4.5:
++ pass
++print(json.dumps({'cpu_seconds': time.process_time()}), flush=True)
++while True: pass
++''', timeout=60)
++    elapsed = time.monotonic() - started
++    limits, consumed = [json.loads(line) for line in out.splitlines()]
++    assert limits == {'cpu_limit': [5, 5]}
++    assert 4.5 <= consumed['cpu_seconds'] < 5
++    assert code in (-signal.SIGKILL, 128 + signal.SIGKILL), err.decode(errors='replace')
++    record_property('cpu_limit_seconds', 5)
++    record_property('observed_cpu_seconds', consumed['cpu_seconds'])
++    record_property('exit_code', code)
++    record_property('elapsed_wall_seconds', elapsed)
++    record_property('test_wall_guard_seconds', 60)
+ 
+ 
+-def test_real_wall_timeout_stopped(tmp_path):
+-    with pytest.raises(TimeoutError):
+-        probe(tmp_path, 'import time; time.sleep(60)', timeout=1)
++def process_tree(pid):
++    """Host-side identities only: never trust namespace PIDs from probe output."""
++    result = {}
++    pending = [pid]
++    while pending:
++        current = pending.pop()
++        path = Path('/proc') / str(current)
++        try:
++            fields = (path / 'stat').read_text().rsplit(')', 1)[1].split()
++            # starttime avoids treating a reused PID as a surviving descendant.
++            result[current] = (fields[19], fields[0], int(fields[3]), int(fields[1]))
++            pending.extend(int(p) for p in (path / 'task' / str(current) / 'children').read_text().split())
++        except FileNotFoundError:
++            pass
++    return result
++
++
++def test_real_wall_timeout_stopped(tmp_path, monkeypatch, record_property):
++    # Observe, but do not replace, the actual process-group SIGKILL. Include a
++    # detached grandchild with closed pipes: EOF/pipe closure must not save it.
++    real_killpg = os.killpg
++    trees = []
++
++    def observed_killpg(pid, sig):
++        trees.append((pid, sig, process_tree(pid)))
++        return real_killpg(pid, sig)
++
++    monkeypatch.setattr(os, 'killpg', observed_killpg)
++    started = time.monotonic()
++    with pytest.raises(TimeoutError, match='parser_timeout'):
++        probe(tmp_path, '''
++import os, time
++if os.fork() == 0:
++ os.setsid()
++ for fd in (0, 1, 2): os.close(fd)
++ time.sleep(60)
++ os._exit(0)
++time.sleep(60)
++''', timeout=5)
++    elapsed = time.monotonic() - started
++    assert len(trees) == 1
++    launcher, sig, tree = trees[0]
++    assert sig == signal.SIGKILL
++    # The detached leaf proves fork+setsid ran before the wall guard fired.
++    detached = [pid for pid, (_, state, session, _) in tree.items()
++                if pid != launcher and session == pid and state != 'Z'
++                and not any(info[3] == pid for info in tree.values())]
++    assert detached, tree
++    deadline = time.monotonic() + 3
++    while True:
++        survivors = {}
++        for pid, (birth, _, _, _) in tree.items():
++            current = process_tree(pid).get(pid)
++            if current and current[0] == birth and current[1] not in ('Z', 'X'):
++                survivors[pid] = current
++        if not survivors or time.monotonic() >= deadline:
++            break
++        time.sleep(0.02)
++    assert not survivors
++    assert elapsed >= 5
++    record_property('wall_guard_seconds', 5)
++    record_property('elapsed_wall_seconds', elapsed)
++    record_property('observed_processes', len(tree))
++    record_property('live_survivors', len(survivors))
+ 
+ @pytest.mark.parametrize('stream', ['stdout','stderr'])
+ def test_real_output_bomb_stopped(tmp_path, stream):

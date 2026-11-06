@@ -1,0 +1,22 @@
+{
+  "provider_attempts": {
+    "count": 30,
+    "sha256": "743c32d503ae6a8ce87a34e2d1f9d4b9a2d24d77543100f0d030bac31d879605"
+  },
+  "responses_steps": {
+    "count": 67,
+    "sha256": "5717afb4f08e45424bf39bb0775caff3a20ea75d06c7e417c5da0a2861de1a12"
+  },
+  "responses_events": {
+    "count": 376,
+    "sha256": "ea235052679e0798a01665425bcb2eb3943dfdba23c4e365545d33015a96e507"
+  },
+  "responses_budget_carry": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "responses_consumer_uses": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+}

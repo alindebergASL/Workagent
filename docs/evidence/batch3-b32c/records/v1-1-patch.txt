@@ -1,0 +1,21 @@
+--- a/bands_v1.py
++++ b/bands_v1.py
+@@ -12,9 +12,15 @@
+         start, stop = decode(row)
+         if stop < start:
+             raise ValueError("negative duration")
+-        lo, hi = start % size, stop % size
+-        if lo < hi:
+-            pieces.append((lo, hi))
++        duration = stop - start
++        lo = start % size
++        if duration >= size:
++            pieces.append((0, size))
++        elif duration:
++            end = lo + duration
++            pieces.append((lo, min(end, size)))
++            if end > size:
++                pieces.append((0, end - size))
+     merged = []
+     for lo, hi in sorted(pieces):
+         if merged and lo <= merged[-1][1]:

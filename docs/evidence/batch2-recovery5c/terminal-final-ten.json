@@ -1,0 +1,72 @@
+{
+  "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+  "workspace_id": "recovery5c-workspace",
+  "assignment_id": null,
+  "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+  "current_revision_id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+  "current_revision": {
+    "id": "df3e3e35-4693-4e69-af09-18c357ea41d4",
+    "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+    "revision_number": 5,
+    "parent_revision_id": "a0e74071-f92d-4152-b7fb-df5dd71af000",
+    "author_id": "local-human",
+    "author_kind": "human",
+    "body": {
+      "kind": "structured_table",
+      "version": "structured-table/v1",
+      "title": "Recovery5c ten",
+      "fields": [
+        {
+          "key": "plant",
+          "label": "Plant",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "decimal",
+          "editable": true,
+          "unit": "cm",
+          "scale": 1,
+          "enum": null
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "oak",
+          "cells": [
+            {
+              "field_key": "plant",
+              "value": "Cell-only correction 雪 ten notes4"
+            },
+            {
+              "field_key": "height",
+              "value": "12.5"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "  duplicate 雪\n\nend\n",
+        "  duplicate 雪\n\nend\n",
+        "n3\n\n  exact ♪\n",
+        "n4\n\n  exact ♪\n",
+        "n5\n\n  exact ♪\n",
+        "n6\n\n  exact ♪\n",
+        "n7\n\n  exact ♪\n",
+        "n8\n\n  exact ♪\n",
+        "n9\n\n  exact ♪\n",
+        "n10\n\n  exact ♪\n"
+      ]
+    },
+    "body_hash": "2605959e49b186d779afeec1c9a37318ea35b449c035d2e1a965f5182fcaf982",
+    "source_dependencies": [],
+    "created_at": "2026-10-26T22:04:53.161832Z"
+  },
+  "requested_revision": null,
+  "observed_at": "2026-10-26T22:05:26.870486Z"
+}

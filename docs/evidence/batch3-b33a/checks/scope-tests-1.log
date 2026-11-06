@@ -1,0 +1,82 @@
+................F....................................................... [ 84%]
+.............                                                            [100%]
+=================================== FAILURES ===================================
+__ test_selective_reduction_retains_other_repository_and_immutable_authority ___
+
+context = (<workagent.service.Service object at 0x719d62e74740>, Principal(id='local-human', kind='human'), 'test-01abb363-a88e-...time.datetime(2026, 10, 29, 5, 20, 2, 520492, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x719d66c4fe90>
+
+    def test_selective_reduction_retains_other_repository_and_immutable_authority(context,monkeypatch):
+        s,p,ws,_,admin=context;cv=conversation(context)
+        denied=discover();allowed=denied.model_copy(update={'repository':'psf/requests'})
+        cap,g,q=install(context,cv,[denied,allowed]);sent=[]
+        def fetch(req):
+            sent.append(req.repository)
+            return response([{'number':1,'title':req.repository+' retained title'}])
+        monkeypatch.setattr(G,'fetch',fetch)
+        a,_=execute(s,cap,q,denied);b,_=execute(s,cap,q,allowed)
+        ref=A.input_refs(denied)[0]
+        with s.db.transaction() as c:
+            original=c.execute('SELECT data FROM tool_grants WHERE id=%s',(g.id,)).fetchone()['data']
+            receipts=c.execute('SELECT e.data FROM tool_attempt_events e JOIN tool_attempts a ON a.id=e.attempt_id WHERE a.run_id=%s ORDER BY e.created_at',(q.run.id,)).fetchall()
+        policy.restrict_resources(Database(admin),g.id,[ref])
+        policy.restrict_resources(Database(admin),g.id,[ref])  # idempotent, not a new allowance
+        with s.db.transaction() as c:
+            assert c.execute('SELECT data,active FROM tool_grants WHERE id=%s',(g.id,)).fetchone()=={'data':original,'active':True}
+            assert c.execute('SELECT e.data FROM tool_attempt_events e JOIN tool_attempts a ON a.id=e.attempt_id WHERE a.run_id=%s ORDER BY e.created_at',(q.run.id,)).fetchall()==receipts
+            assert ref not in policy.grant(c,ws,q.run.id).resource_selectors
+            assert A.input_refs(allowed)[0] in policy.grant(c,ws,q.run.id).resource_selectors
+        with pytest.raises(DomainError):s.get_source_snapshot(p,ws,a.output['result']['snapshot']['snapshot_id'])
+        assert s.get_source_snapshot(p,ws,b.output['result']['snapshot']['snapshot_id']).snapshot_id==b.output['result']['snapshot']['snapshot_id']
+        page=s.list_workspace_files(p,ws,cv.id)
+>       assert len(page.items)==1 and not page.has_more and 'psf/requests' in page.items[0].filename
+
+backend/tests/test_github_scope_pagination.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = WorkspaceFilePage(items=[WorkspaceFile(workspace_file_id='8a091380-0c6f-4364-b65b-1b3e736211d2', workspace_id='test-01...5c7f86fa73fec5a8f47442b70a19e177247147f0'), byte_length=390, editable=False, office_provenance=None)], next_after=None)
+item = 'has_more'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra:
+                try:
+                    return pydantic_extra[item]
+                except KeyError as exc:
+                    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'WorkspaceFilePage' object has no attribute 'has_more'
+
+backend/.venv/lib/python3.12/site-packages/pydantic/main.py:991: AttributeError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_github_scope_pagination.py::test_selective_reduction_retains_other_repository_and_immutable_authority
+1 failed, 84 passed, 1 warning in 165.20s (0:02:45)

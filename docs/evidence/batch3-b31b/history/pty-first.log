@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31b/pty_journey.py", line 4, in <module>
+    from pty_driver import Terminal
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31b/pty_driver.py", line 6, in <module>
+    import pexpect
+ModuleNotFoundError: No module named 'pexpect'

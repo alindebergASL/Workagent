@@ -1,0 +1,20 @@
+{
+  "mode": "usage",
+  "passed": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "width": 320,
+      "scroll": 320
+    }
+  ],
+  "errors": [],
+  "rendered": "workagent\nAgent\nSpaces\nConversations\nYOUR WORK\nReviewed methods study\nActivity & details\nConnections\n← Back to agent\nReviewed duration transfer — fresh input\nKeep as a project\n\nYou:\nPrepare a duration summary by batch using unique valid observations; minutes must become seconds. Do not copy old values.\n\ndifferent-shape.json · 587 bytes\nAgent:\n\nSaved a fresh result from the current input. Reviewed guidance is advisory, not proof of correctness. Controlled transport; no causal learning claim.\n\nDetails\n\nWorkagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.\n\nRefresh conversation\nNow\nChecked 29 Oct, 09:46 UTC\nNew version saved\nMark as seen\nDetails\nFiles\ndifferent-shape.json\ntext/plain · 587 bytes · read-only evidence\nduration-summary.csv\ntext/csv · 90 bytes\nCaptured web sources\nRefresh sources Re-reads saved records; nothing new is fetched from the web.\n\nNo captured web sources in this conversation.\n\nNew file…\nMemory\nRemember\nKind\nFact\nPreference\nProject convention\nSomething that happened\nProcedure\nApplies to\nThis conversation only\nThis project\nAll my work in this workspace\nRemember\n\nLinked to a project. Project memories can be used here.\n\nIn use\nWaiting for review\n\nInspect current units; deduplicate identified records, omit missing values rather than treating them as zero, and use the unique valid denominator. Preserve excluded counts and present units. Never transfer old totals.\n\nProcedure · This project · In use\n\nWhy this is here\nThis conversation is linked to the project\nYou reviewed and accepted this\nConfidence: Inferred, not directly stated\nYou accepted this, which adopts it for use. It is still an inference: accepting it didn’t test that it works.\nBasis: Observed actual failed computation and human correction; applicability is inferred, not empirically validated.\nApplies when: Duration or rate analysis with identified records and explicit units.\nValid: Since 10/29/2026\nNo file or source selected; this rests only on the observations it cites.\nUsed in the latest answer\nDoesn’t apply when (part of when it applies, as reviewed):\nMissing is not zero; raw row count is a different denominator. Never skip current-unit and duplicate verification.\nChecked vs. guessed: Actual sandbox run failed, no numerical conclusion taken from it. Later deterministic transfer is mechanism evidence only.\nBased on (references, not instructions):\nObserved tool result (conversation_id: 4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0, event_id: 51995133-31e7-4bd8-9cec-8c032a79cde9, sha256: 0b6f0893f340c009894baab1b787d7108721742313c59d768391dc1573c00759)\nYour message (conversation_id: 4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0, event_id: a98e9923-aee9-4d09-b37f-2fc4a8da3e0e, sha256: 8a986a94923e82e5caad47cf435edaf22aea02d096124853c851e688c695c940)\nUsed when a request mentions: duration, rate\nNever when a request mentions: raw row count\nCorrect\nRestore an earlier version…\nLimit to this conversation only\nExpire\nForget…\nTool activity\nContinue the conversation\nAttach PDF, Word or Excel (up to 2, 5 MB each)\nAsk, steer, or add detail.\nRecord a hand-over\nQueue for later\n↑\nRun a local operation\nEnd this conversation\nLocal preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken"
+}

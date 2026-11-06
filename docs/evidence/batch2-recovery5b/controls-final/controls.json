@@ -1,0 +1,2987 @@
+{
+  "phase": "controls",
+  "started": "2026-10-26T21:23:54.889Z",
+  "evidence_type": "real Chromium + current real HTTP/PostgreSQL; synthetic fixture; zero product provider calls",
+  "checks": [
+    {
+      "name": "new latest run hides old stopped checkpoint immediately after reread"
+    },
+    {
+      "name": "Queue later exact intent creates no run and does not supersede"
+    },
+    {
+      "name": "STOP requires explicit confirm, affects exact run not queue/conversation"
+    },
+    {
+      "name": "queue cancellation independent canonical readback"
+    },
+    {
+      "name": "browser Mark seen clears attention without proposal acceptance"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:23:56.661Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:23:57.148Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:23:57.159Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:23:57.253Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:23:57.257Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.275Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.280Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.285Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.294Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.300Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.305Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.312Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.314Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.318Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.320Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.324Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.343Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.416Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.417Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.418Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.418Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.419Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.420Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.420Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.421Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.421Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.422Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.423Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.423Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.424Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.424Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.425Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.425Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.426Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.427Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.427Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.428Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.429Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.429Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.430Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.430Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.431Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.431Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.432Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.433Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.433Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.434Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.434Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.435Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.436Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.436Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.437Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.437Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.438Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.439Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.439Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.441Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.597Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.598Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.607Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.616Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.630Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.631Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.695Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.697Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.718Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.719Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.760Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.761Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.761Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.791Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.811Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:23:57.813Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:23:57.824Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:23:57.831Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:23:58.464Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=5dbf28a0-5e27-4951-a2ae-7b6bec035bc0.1.bxZyNZdepLiEz1rthFwjIdcY4QkNnueo5GmEMV4ntbc",
+      "at": "2026-10-26T21:23:59.273Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:02.252Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:24:02.253Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:24:02.258Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:24:02.260Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:03.809Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages/2be7f005-49b4-495f-8ef2-672900c77d4f/cancel",
+      "at": "2026-10-26T21:24:04.069Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:04.276Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:04.728Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:04.862Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:06.234Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:06.396Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:06.399Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:06.401Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:24:06.406Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:24:06.414Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:06.417Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:24:06.421Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:07.613Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/stop",
+      "at": "2026-10-26T21:24:07.770Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:08.018Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:08.034Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:24:08.035Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:08.051Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:24:08.052Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:24:08.059Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:08.717Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:09.262Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:09.264Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:24:09.274Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:09.279Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:09.284Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:24:09.292Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:24:09.296Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:10.313Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages/7920ed20-bfa5-40ff-9e95-664394e401b7/cancel",
+      "at": "2026-10-26T21:24:10.847Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:10.996Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention/seen",
+      "at": "2026-10-26T21:24:11.187Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:11.457Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:24:11.466Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:24:11.470Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:24:11.496Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:24:11.502Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:11.503Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:24:11.506Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:12.617Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:13.975Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:24:14.562Z"
+    }
+  ],
+  "before": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T21:08:43.889473Z",
+      "last_message_preview": "Retain and reread the attached PDF; no model evaluation claim.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 10,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      },
+      {
+        "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "sequence": 4,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:00.977242Z"
+      },
+      {
+        "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "sequence": 5,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:58.483556Z"
+      },
+      {
+        "id": "e3eefb66-ad62-422e-bb29-66a5f66cccc6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "sequence": 6,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:06:49.086866Z"
+      },
+      {
+        "id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "sequence": 7,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:08:43.889473Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:29:37.924547Z"
+      },
+      {
+        "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:32:58.409531Z"
+      },
+      {
+        "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:37:31.250611Z"
+      },
+      {
+        "id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:08:43.865498Z"
+      },
+      {
+        "id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "queued",
+        "fence": 0,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:08:43.877836Z"
+      }
+    ],
+    "assignment_ids": [
+      "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+    ],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "state": "unavailable",
+        "reason": "No controlled consumer claim observed; start or check the local server worker. No provider fallback.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  },
+  "snapshot_before": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 10,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T21:24:03.480831Z",
+    "snapshot_cursor": "5dbf28a0-5e27-4951-a2ae-7b6bec035bc0.1.bxZyNZdepLiEz1rthFwjIdcY4QkNnueo5GmEMV4ntbc",
+    "execution": {
+      "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+      "state": "queued",
+      "reason": "worker_unavailable",
+      "phase": null,
+      "admitted_at": "2026-10-26T21:08:43.877836Z",
+      "last_progress_at": "2026-10-26T21:08:43.877836Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [
+      {
+        "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+        "state": "blocked",
+        "next_action": {
+          "kind": "review_dependency",
+          "description": "Review changed saved context or the due check-in before continuing."
+        },
+        "next_check_in_at": null,
+        "historical_observation": {
+          "text": "Prepared context only; outcome remains unverified.",
+          "observed_at": "2026-10-26T20:37:33.146981Z"
+        },
+        "review_required": true
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Latest browser proposal retains human notes",
+        "kind": "structured_table",
+        "current_revision_id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+        "body_hash": "7df927f3b9d3f89860920535695a583a93b505fd3f3845ef276ec936a73169a7"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T21:18:55.215553Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      },
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "preexisting_queue": {
+    "items": [
+      {
+        "id": "a65f8cf6-7a7e-469c-903e-1be9fcbf47cd",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 1,
+        "queue_version": 2,
+        "created_at": "2026-10-26T20:28:59.806419Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "command_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "expected_work_version": 3,
+          "text": "  Garden plan 雪 ♪\nKeep Tuesday.\n  exact spaces Ω\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 3,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "cancelled",
+        "reason": null,
+        "run_id": null
+      },
+      {
+        "id": "96df151f-fb7a-460b-a8b8-f766217e4288",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 2,
+        "queue_version": 2,
+        "created_at": "2026-10-26T21:10:54.761139Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "5087bc38-c9a7-43c8-8198-15aca336d7db",
+          "command_id": "c1471af8-8475-40eb-9a3d-175a5d3a81bf",
+          "expected_work_version": 10,
+          "text": "Queue from browser 雪\nPreserve this exact later intent.",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 10,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "cancelled",
+        "reason": null,
+        "run_id": null
+      },
+      {
+        "id": "2be7f005-49b4-495f-8ef2-672900c77d4f",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 3,
+        "queue_version": 1,
+        "created_at": "2026-10-26T21:16:26.760978Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "d211dd7c-debc-4489-b1c0-d5d74433b3c2",
+          "command_id": "1a6548b9-a82f-46cb-a9bf-5c1681d06199",
+          "expected_work_version": 10,
+          "text": "  Queue from browser 雪\nPreserve this exact later intent.\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 10,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "pending",
+        "reason": null,
+        "run_id": null
+      }
+    ]
+  },
+  "queue": {
+    "items": [
+      {
+        "id": "a65f8cf6-7a7e-469c-903e-1be9fcbf47cd",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 1,
+        "queue_version": 2,
+        "created_at": "2026-10-26T20:28:59.806419Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "command_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "expected_work_version": 3,
+          "text": "  Garden plan 雪 ♪\nKeep Tuesday.\n  exact spaces Ω\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 3,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "cancelled",
+        "reason": null,
+        "run_id": null
+      },
+      {
+        "id": "96df151f-fb7a-460b-a8b8-f766217e4288",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 2,
+        "queue_version": 2,
+        "created_at": "2026-10-26T21:10:54.761139Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "5087bc38-c9a7-43c8-8198-15aca336d7db",
+          "command_id": "c1471af8-8475-40eb-9a3d-175a5d3a81bf",
+          "expected_work_version": 10,
+          "text": "Queue from browser 雪\nPreserve this exact later intent.",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 10,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "cancelled",
+        "reason": null,
+        "run_id": null
+      },
+      {
+        "id": "2be7f005-49b4-495f-8ef2-672900c77d4f",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 3,
+        "queue_version": 2,
+        "created_at": "2026-10-26T21:16:26.760978Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "d211dd7c-debc-4489-b1c0-d5d74433b3c2",
+          "command_id": "1a6548b9-a82f-46cb-a9bf-5c1681d06199",
+          "expected_work_version": 10,
+          "text": "  Queue from browser 雪\nPreserve this exact later intent.\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 10,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "cancelled",
+        "reason": null,
+        "run_id": null
+      },
+      {
+        "id": "7920ed20-bfa5-40ff-9e95-664394e401b7",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 4,
+        "queue_version": 1,
+        "created_at": "2026-10-26T21:24:04.820359Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "ab7f8070-0d33-451f-af28-3e16b5e67e50",
+          "command_id": "1b4a9dc9-011d-4d01-9664-83e97becc9c8",
+          "expected_work_version": 10,
+          "text": "  Queue from browser 雪\nPreserve this exact later intent.\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 10,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "pending",
+        "reason": null,
+        "run_id": null
+      }
+    ]
+  },
+  "after_stop": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T21:08:43.889473Z",
+      "last_message_preview": "Retain and reread the attached PDF; no model evaluation claim.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 11,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      },
+      {
+        "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "sequence": 4,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:00.977242Z"
+      },
+      {
+        "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "sequence": 5,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:58.483556Z"
+      },
+      {
+        "id": "e3eefb66-ad62-422e-bb29-66a5f66cccc6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "sequence": 6,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:06:49.086866Z"
+      },
+      {
+        "id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "sequence": 7,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:08:43.889473Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:29:37.924547Z"
+      },
+      {
+        "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:32:58.409531Z"
+      },
+      {
+        "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:37:31.250611Z"
+      },
+      {
+        "id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:08:43.865498Z"
+      },
+      {
+        "id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:24:07.845492Z"
+      }
+    ],
+    "assignment_ids": [
+      "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+    ],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  },
+  "final": {
+    "conversation": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T21:08:43.889473Z",
+        "last_message_preview": "Retain and reread the attached PDF; no model evaluation claim.",
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "workspace_id": "recovery5a-workspace",
+        "owner_id": "local-human",
+        "title": "Community garden continuity",
+        "work_version": 11,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T20:16:54.162225Z"
+      },
+      "messages": [
+        {
+          "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "sequence": 1,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Keep this useful draft; no correctness claim.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": {
+            "artifact_id": null,
+            "base_revision_id": null,
+            "kind": "publish_artifact",
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Garden plot options",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [
+                {
+                  "row_id": "oak",
+                  "cells": [
+                    {
+                      "field_key": "plant",
+                      "value": "Oak"
+                    },
+                    {
+                      "field_key": "height",
+                      "value": "12.5"
+                    }
+                  ]
+                }
+              ],
+              "notes": [
+                "Keep the shaded beds.",
+                "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+              ]
+            }
+          },
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:16:54.490353Z"
+        },
+        {
+          "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "sequence": 2,
+          "author_id": "general-worker",
+          "author_kind": "assistant",
+          "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+          "evidence_origin": "controlled_transport",
+          "result": {
+            "results": [
+              {
+                "kind": "text",
+                "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+              },
+              {
+                "kind": "structured_table",
+                "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+                "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+                "proposal_id": null,
+                "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+              }
+            ]
+          },
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:16:56.457642Z"
+        },
+        {
+          "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "sequence": 3,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Newer human steering from a second actual API client.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:24:01.781753Z"
+        },
+        {
+          "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "sequence": 4,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "  Unknown ACK 雪\nExact replay only.\n",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:32:00.977242Z"
+        },
+        {
+          "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "sequence": 5,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:32:58.483556Z"
+        },
+        {
+          "id": "e3eefb66-ad62-422e-bb29-66a5f66cccc6",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+          "sequence": 6,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Retain and reread the attached PDF; no model evaluation claim.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "document_refs": [
+            {
+              "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+              "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+              "workspace_id": "recovery5a-workspace",
+              "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+              "owner_id": "local-human",
+              "filename": "continuity.pdf",
+              "mime_type": "application/pdf",
+              "byte_length": 568,
+              "status": "extracted",
+              "reason": "text_extracted",
+              "parser_version": "confined-documents-v1",
+              "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+              "text_bytes": 45,
+              "coverage": {
+                "omissions": [
+                  "images, layout and non-text content"
+                ],
+                "total_pages": 1,
+                "covered_pages": 1,
+                "omitted_pages": 0,
+                "empty_pages_needing_ocr": [],
+                "partial_last_page": false
+              },
+              "limits": {
+                "rows": 1000,
+                "cells": 10000,
+                "pages": 50,
+                "sheets": 10,
+                "zip_bytes": 20971520,
+                "zip_ratio": 100,
+                "text_bytes": 102400,
+                "input_bytes": 5242880,
+                "zip_entries": 1000
+              },
+              "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+            }
+          ],
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T21:06:49.086866Z"
+        },
+        {
+          "id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+          "sequence": 7,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Retain and reread the attached PDF; no model evaluation claim.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "document_refs": [
+            {
+              "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+              "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+              "workspace_id": "recovery5a-workspace",
+              "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+              "owner_id": "local-human",
+              "filename": "continuity.pdf",
+              "mime_type": "application/pdf",
+              "byte_length": 568,
+              "status": "extracted",
+              "reason": "text_extracted",
+              "parser_version": "confined-documents-v1",
+              "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+              "text_bytes": 45,
+              "coverage": {
+                "omissions": [
+                  "images, layout and non-text content"
+                ],
+                "total_pages": 1,
+                "covered_pages": 1,
+                "omitted_pages": 0,
+                "empty_pages_needing_ocr": [],
+                "partial_last_page": false
+              },
+              "limits": {
+                "rows": 1000,
+                "cells": 10000,
+                "pages": 50,
+                "sheets": 10,
+                "zip_bytes": 20971520,
+                "zip_ratio": 100,
+                "text_bytes": 102400,
+                "input_bytes": 5242880,
+                "zip_entries": 1000
+              },
+              "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+            }
+          ],
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T21:08:43.889473Z"
+        }
+      ],
+      "runs": [
+        {
+          "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "partial",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-products-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-products-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+          "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 1,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [
+            "Draft retained; data shape only was checked. The requested goal needs validation."
+          ],
+          "observed_at": "2026-10-26T20:16:56.496781Z"
+        },
+        {
+          "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:29:37.924547Z"
+        },
+        {
+          "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:32:58.409531Z"
+        },
+        {
+          "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:37:31.250611Z"
+        },
+        {
+          "id": "660e104c-c329-4c42-a038-5d8e720f8071",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T21:08:43.865498Z"
+        },
+        {
+          "id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T21:24:07.845492Z"
+        }
+      ],
+      "assignment_ids": [
+        "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+      ],
+      "artifact_ids": [
+        "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+      ],
+      "turns": [
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "state": "failed",
+          "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        }
+      ]
+    },
+    "snapshot": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "work_version": 11,
+      "access_generation": 1,
+      "checked_at": "2026-10-26T21:24:12.290509Z",
+      "snapshot_cursor": "3e02b639-6606-4016-b969-a4fa7d319fc3.1.sNDxi7SILkJhftAGqkIW2M5zVMNbyDw6VK51E3oFa-c",
+      "execution": {
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "state": "stopped",
+        "reason": null,
+        "phase": null,
+        "admitted_at": "2026-10-26T21:08:43.877836Z",
+        "last_progress_at": "2026-10-26T21:24:07.845492Z",
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "admitted"
+      },
+      "responsibility": [
+        {
+          "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+          "state": "blocked",
+          "next_action": {
+            "kind": "review_dependency",
+            "description": "Review changed saved context or the due check-in before continuing."
+          },
+          "next_check_in_at": null,
+          "historical_observation": {
+            "text": "Prepared context only; outcome remains unverified.",
+            "observed_at": "2026-10-26T20:37:33.146981Z"
+          },
+          "review_required": true
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "title": "Latest browser proposal retains human notes",
+          "kind": "structured_table",
+          "current_revision_id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+          "body_hash": "7df927f3b9d3f89860920535695a583a93b505fd3f3845ef276ec936a73169a7"
+        }
+      ],
+      "pending_proposals": [
+        {
+          "proposal_id": "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+          "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "base_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+          "base_work_version": 1,
+          "created_at": "2026-10-26T21:18:55.215553Z",
+          "fresh": false,
+          "is_latest": false,
+          "removed_content_count": 3
+        },
+        {
+          "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+          "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+          "base_work_version": 1,
+          "created_at": "2026-10-26T20:16:58.207488Z",
+          "fresh": false,
+          "is_latest": false,
+          "removed_content_count": 3
+        }
+      ]
+    },
+    "queue": {
+      "items": [
+        {
+          "id": "a65f8cf6-7a7e-469c-903e-1be9fcbf47cd",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "position": 1,
+          "queue_version": 2,
+          "created_at": "2026-10-26T20:28:59.806419Z",
+          "intent": {
+            "schema_version": "workagent/v1",
+            "request_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+            "command_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+            "expected_work_version": 3,
+            "text": "  Garden plan 雪 ♪\nKeep Tuesday.\n  exact spaces Ω\n",
+            "operation": null,
+            "attachments": [],
+            "target": null
+          },
+          "admission_work_version": 3,
+          "access_generation": 1,
+          "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+          "state": "cancelled",
+          "reason": null,
+          "run_id": null
+        },
+        {
+          "id": "96df151f-fb7a-460b-a8b8-f766217e4288",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "position": 2,
+          "queue_version": 2,
+          "created_at": "2026-10-26T21:10:54.761139Z",
+          "intent": {
+            "schema_version": "workagent/v1",
+            "request_id": "5087bc38-c9a7-43c8-8198-15aca336d7db",
+            "command_id": "c1471af8-8475-40eb-9a3d-175a5d3a81bf",
+            "expected_work_version": 10,
+            "text": "Queue from browser 雪\nPreserve this exact later intent.",
+            "operation": null,
+            "attachments": [],
+            "target": null
+          },
+          "admission_work_version": 10,
+          "access_generation": 1,
+          "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+          "state": "cancelled",
+          "reason": null,
+          "run_id": null
+        },
+        {
+          "id": "2be7f005-49b4-495f-8ef2-672900c77d4f",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "position": 3,
+          "queue_version": 2,
+          "created_at": "2026-10-26T21:16:26.760978Z",
+          "intent": {
+            "schema_version": "workagent/v1",
+            "request_id": "d211dd7c-debc-4489-b1c0-d5d74433b3c2",
+            "command_id": "1a6548b9-a82f-46cb-a9bf-5c1681d06199",
+            "expected_work_version": 10,
+            "text": "  Queue from browser 雪\nPreserve this exact later intent.\n",
+            "operation": null,
+            "attachments": [],
+            "target": null
+          },
+          "admission_work_version": 10,
+          "access_generation": 1,
+          "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+          "state": "cancelled",
+          "reason": null,
+          "run_id": null
+        },
+        {
+          "id": "7920ed20-bfa5-40ff-9e95-664394e401b7",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "position": 4,
+          "queue_version": 2,
+          "created_at": "2026-10-26T21:24:04.820359Z",
+          "intent": {
+            "schema_version": "workagent/v1",
+            "request_id": "ab7f8070-0d33-451f-af28-3e16b5e67e50",
+            "command_id": "1b4a9dc9-011d-4d01-9664-83e97becc9c8",
+            "expected_work_version": 10,
+            "text": "  Queue from browser 雪\nPreserve this exact later intent.\n",
+            "operation": null,
+            "attachments": [],
+            "target": null
+          },
+          "admission_work_version": 10,
+          "access_generation": 1,
+          "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+          "state": "cancelled",
+          "reason": null,
+          "run_id": null
+        }
+      ]
+    },
+    "checkpoints": {
+      "items": [
+        {
+          "checkpoint_id": "2b467cb4-1ad2-4a75-8fdb-fd405a9c2747",
+          "workspace_id": "recovery5a-workspace",
+          "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "assignment_id": null,
+          "phase": "stop",
+          "checkpoint_kind": "stop",
+          "created_at": "2026-10-26T21:24:07.893286Z",
+          "checkpoint_hash": "12d74f0cee6aeb8b9b109d89fd4812f988045c6211c3522eabb5bcb86bfb988d",
+          "data": {
+            "schema_version": "run-checkpoint/v1",
+            "principal_id": "local-human",
+            "access_generation": 1,
+            "run_fence": 1,
+            "conversation_work_version": 11,
+            "assignment_work_version": null,
+            "assignment_fence": null,
+            "configuration_sha256": "2066d1d040059d98b8f188406ba73d34e14848fcb9ff63125050b0534e795b0b",
+            "runtime_sha256": "178ac70edaacc1324a5d71c1206032912595506f33f3a362f440d14a50e94f7e",
+            "scope_fingerprint": "bd52066c270be3893c19c43b47979879961af70287745f7f2634c1edacef6d98",
+            "context_sha256": null,
+            "intent_message_id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+            "intent_sha256": "bb5004af7e10ab39e3e3164ea6561778ca24c3a1927970d6f4015ade300ccb13",
+            "latest_human_intent_id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+            "last_observed_phase": "stop",
+            "steps": [],
+            "pending_proposal_ids": [
+              "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+              "f29237a8-4da3-42c9-ac40-5328b36e5943"
+            ],
+            "waiting": "stopped",
+            "next_safe_action": "stopped"
+          }
+        },
+        {
+          "checkpoint_id": "2535ed71-7f97-4d23-a9c8-7a9d4d7b4093",
+          "workspace_id": "recovery5a-workspace",
+          "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "assignment_id": null,
+          "phase": "stop",
+          "checkpoint_kind": "stop",
+          "created_at": "2026-10-26T20:37:31.333108Z",
+          "checkpoint_hash": "f2f00d6a660dc681f6fdaf46c13c5e57e5004bfd2dd0a82bfd310dbcae18043d",
+          "data": {
+            "schema_version": "run-checkpoint/v1",
+            "principal_id": "local-human",
+            "access_generation": 1,
+            "run_fence": 1,
+            "conversation_work_version": 7,
+            "assignment_work_version": null,
+            "assignment_fence": null,
+            "configuration_sha256": "2066d1d040059d98b8f188406ba73d34e14848fcb9ff63125050b0534e795b0b",
+            "runtime_sha256": "178ac70edaacc1324a5d71c1206032912595506f33f3a362f440d14a50e94f7e",
+            "scope_fingerprint": "e4f723de4f127cfc60674f8f821396f8e070498c610ec83b2dd717b64ee1bc99",
+            "context_sha256": null,
+            "intent_message_id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+            "intent_sha256": "95b3b926a5adc0b29657185d1873c3ca6ff26f32ad58409175f7ff3dbf90edf5",
+            "latest_human_intent_id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+            "last_observed_phase": "stop",
+            "steps": [],
+            "pending_proposal_ids": [
+              "f29237a8-4da3-42c9-ac40-5328b36e5943"
+            ],
+            "waiting": "stopped",
+            "next_safe_action": "stopped"
+          }
+        },
+        {
+          "checkpoint_id": "7b2793bd-95ac-439c-a666-30cd0f6f97c2",
+          "workspace_id": "recovery5a-workspace",
+          "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "assignment_id": null,
+          "phase": "stop",
+          "checkpoint_kind": "stop",
+          "created_at": "2026-10-26T20:29:38.336329Z",
+          "checkpoint_hash": "225e31b9f1c193267a77cc08b97ec48e1505e552c298d4f4fb1e7333974030d7",
+          "data": {
+            "schema_version": "run-checkpoint/v1",
+            "principal_id": "local-human",
+            "access_generation": 1,
+            "run_fence": 1,
+            "conversation_work_version": 4,
+            "assignment_work_version": null,
+            "assignment_fence": null,
+            "configuration_sha256": "2066d1d040059d98b8f188406ba73d34e14848fcb9ff63125050b0534e795b0b",
+            "runtime_sha256": "178ac70edaacc1324a5d71c1206032912595506f33f3a362f440d14a50e94f7e",
+            "scope_fingerprint": "e4f723de4f127cfc60674f8f821396f8e070498c610ec83b2dd717b64ee1bc99",
+            "context_sha256": null,
+            "intent_message_id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+            "intent_sha256": "ac20cf3436a8433b02150285b23b82fc11a4e1616715c839f5c06287865c132f",
+            "latest_human_intent_id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+            "last_observed_phase": "stop",
+            "steps": [],
+            "pending_proposal_ids": [
+              "f29237a8-4da3-42c9-ac40-5328b36e5943"
+            ],
+            "waiting": "stopped",
+            "next_safe_action": "stopped"
+          }
+        }
+      ]
+    },
+    "artifact": {
+      "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "workspace_id": "recovery5a-workspace",
+      "assignment_id": null,
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "current_revision_id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+      "current_revision": {
+        "id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "revision_number": 7,
+        "parent_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Latest browser proposal retains human notes",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Oak — browser correction 雪 2026-10-26T21:05:55.473Z"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Keep the shaded beds.",
+            "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+          ]
+        },
+        "body_hash": "7df927f3b9d3f89860920535695a583a93b505fd3f3845ef276ec936a73169a7",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T21:20:17.954862Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T21:24:12.676860Z"
+    }
+  },
+  "status": "PASS",
+  "finished": "2026-10-26T21:24:15.318Z"
+}

@@ -1,0 +1,135 @@
+{
+  "reviewer": "Independent Astra security reviewer (gpt-6-astra via openai-codex; not implementer)",
+  "verdict": "PASS",
+  "finding_id": "A14-R2-POLL",
+  "disposition": "FIXED",
+  "summary": "The exact polling correction prevents delayed decoded page bodies from crossing a terminal captured-scope fence. Independent actual-module probes confirm no event/status publication, reset, sleep or extra fetch, exactly one revocation, quiet abort, and preserved same-scope pagination/deduplication.",
+  "scope": "Bounded independent disposition of A14-R2-POLL only. This is not A14 closure, board completion, browser acceptance or wider product acceptance; parent reconciliation remains required.",
+  "repository": "/home/ubuntu/workagent-continuation-20261026",
+  "branch": "hermes/b2-conversational-client",
+  "head": "c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d",
+  "provenance": {
+    "manifest_path": "docs/evidence/batch2-recovery5d/poll-correction/source-manifest.json",
+    "manifest_sha256": "194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07",
+    "source_files_verified_before_and_after_execution": 611,
+    "mismatches": [],
+    "candidate2_manifest_path": "docs/evidence/batch2-recovery5d/candidate2-source-manifest.json",
+    "candidate2_manifest_sha256": "fd1c6bdb6d97727d5883d989bc6adb3d9c0690a1d02858f6b58d73377c68746c",
+    "candidate2_source_files": 610,
+    "delta_path": "docs/evidence/batch2-recovery5d/poll-correction/delta.patch",
+    "delta_sha256": "3090504150e1449281b35b60bc66166bf7ad28c55cf98495212a7735b501341b",
+    "delta_exactly_reconstructed": true,
+    "verification_method": "Compared manifest key unions and independently hashed every current source entry. Verified old production bytes against candidate2 using .local/recovery5d-poll-before/web/src/lib/client/work-stream.ts. Python difflib unified_diff reconstructed the complete delta.patch byte-for-byte from that snapshot and the current two changed paths. source-delta.json contains the same two entries. Rehashed all 611 current source entries after regressions and adversarial probes.",
+    "changes": [
+      {
+        "path": "web/src/lib/client/work-stream.ts",
+        "before": "533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708",
+        "after": "21bc73963492b2486808d47d78db9aa4d36c5b9b379d9bf7daffffaadea23faa"
+      },
+      {
+        "path": "web/test/poll-scope.test.ts",
+        "before": null,
+        "after": "879a968dae7bf29354cc2106ca2b13aa41d150e29779663253ccc858510d5591"
+      }
+    ]
+  },
+  "source_assessment": {
+    "result": "PASS",
+    "locations": [
+      "web/src/lib/client/work-stream.ts:223-248",
+      "web/src/lib/client/work-stream.ts:269-289",
+      "web/src/lib/client/session-scope.ts:36-58,183-187,200-238",
+      "web/src/lib/client/work-state.ts:225-250"
+    ],
+    "guard": "res.json() is awaited separately. Abort and captured-scope checks occur after it resolves and before contract parsing, event filtering, SeenIds mutation, cursor assignment, onChange or has_more continuation. Plain JSON parsing and these synchronous checks have no intervening await before page application.",
+    "revoked_propagation": "The new Revoked throw at line 233 is outside both the body-read catch and parser catch. The poll caller explicitly rethrows Revoked at line 275; the fatal handler invokes onRevoked once and returns at lines 287-289. It cannot be reclassified as Transport or NeedsReset along this corrected path. Fenced contract-invalid JSON objects and reset_required pages were independently exercised and also revoke once without resets.",
+    "abort": "Abort is checked before the scope fence; the polling catch/fatal paths return without publication or revocation. Independent abort-only and simultaneous abort-plus-fence probes both terminate quietly.",
+    "unchanged_scope": "The independent positive control processes two pages, advances the next request from c0 to c1, suppresses replayed event one, delivers new event two, filters a foreign-conversation event, and reports polling once. No revocation or reset occurs.",
+    "security_scan": "The complete added-line delta was inspected: no secrets, new external endpoints, executable-input sinks, persistence changes or authority expansion. Only the missing polling application boundary and its regression file change."
+  },
+  "regression_quality": {
+    "result": "PASS",
+    "actual_modules": "poll-scope.test.ts imports actual subscribeWork and scopedFetch. setup-scope.ts invokes bindTestScope, which binds via actual probeSession rather than mocking the scope guards. The delayed ReadableStream uses highWaterMark 0, so bodyStarted signals actual body consumption after successful headers, not eager prefetch.",
+    "assertion_strength": "The two fenced cases assert zero changes, no polling status, exactly one revocation, zero resets, and no added subscribeWork fetch attempts for has_more false and true. Counting above scopedFetch detects locally refused extra attempts, which raw transport counts alone would miss. Abort is separately tested. A bounded sleep loop makes faulty behavior terminate rather than hang.",
+    "positive_control_limit_and_supplement": "The owner positive control establishes one application and polling status but does not directly assert a subsequent fetch/cursor. The independent two-page positive probe supplies that assertion, including cursor progression, deduplication and conversation filtering.",
+    "retained_red": {
+      "path": "docs/evidence/batch2-recovery5d/poll-correction/red.txt",
+      "sha256": "3435710a909a4036b7e9e0c5d7e3b95683d9bbf17a9db83ef03a42a4c1284f5d",
+      "assessment": "Valid owner red on old production hash and final test hash: three failures each observe one forbidden onChange; unchanged-scope control passes. The two earlier retained hangs, including the missing checked_at fixture, remain harness failures, not product reds. Independently reproduced the original late-body violation from the exact old snapshot in memory without replacing current product source."
+    },
+    "retained_owner_green": {
+      "path": "docs/evidence/batch2-recovery5d/poll-correction/green.txt",
+      "sha256": "75b6f87d619c9420568c9c0b9a28c076daca6727fa9c0ab9f309081a2f92ac17",
+      "assessment": "Owner's 56-test pass is retained and attributed; independent fresh execution is recorded separately below."
+    }
+  },
+  "independent_execution": {
+    "narrow_regressions": {
+      "command": "timeout 100 ./node_modules/.bin/vitest run test/poll-scope.test.ts test/scope-races.test.ts test/work-events.test.ts test/client-scope.test.ts --no-cache --configLoader runner",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "result": "PASS",
+      "exit_code": 0,
+      "test_files_passed": 4,
+      "tests_passed": 56,
+      "duration_seconds": 9.54,
+      "coverage": "Includes existing SSE late-frame regression and unchanged R1/R3-related actual-module regressions. No full suite, static gate or build execution is claimed by this reviewer."
+    },
+    "adversarial_delayed_body_probe": {
+      "result": "PASS",
+      "exit_code": 0,
+      "method": "Inline node -e; installed TypeScript transpiles real modules in memory with a local import resolver and fresh module realm for each scenario. Actual probeSession binds synthetic A, actual scopedFetch wraps synthetic fetch, and actual subscribeWork and contract parser execute. A highWaterMark-zero ReadableStream holds the first polling response body until consumption begins. Count fetch attempts above scopedFetch and verify raw scope headers. Release JSON only after fence/abort. Assert terminal completion within two seconds and inspect callbacks after additional event-loop turns. No probe files or network requests are created.",
+      "current_source_scenarios_passed": 7,
+      "observations": [
+        {"case": "fence-last-page", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 1, "onReset": 0, "sleeps": 0},
+        {"case": "fence-has-more", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 1, "onReset": 0, "sleeps": 0},
+        {"case": "fence-contract-invalid-json-object", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 1, "onReset": 0, "sleeps": 0},
+        {"case": "fence-reset-required", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 1, "onReset": 0, "sleeps": 0},
+        {"case": "abort-has-more", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 0, "onReset": 0, "sleeps": 0},
+        {"case": "abort-and-fence-priority", "fetch_attempts": 2, "raw_calls": 2, "onChange": 0, "statuses": [], "onRevoked": 0, "onReset": 0, "sleeps": 0},
+        {"case": "unchanged-scope-pagination-dedup-cursor", "fetch_attempts": 3, "raw_calls": 3, "onChange": 2, "delivered_ids": [["one"], ["two"]], "callback_scopes": ["ready", "ready"], "second_poll_after": "c1", "statuses": ["polling"], "onRevoked": 0, "onReset": 0, "sleeps": 1}
+      ],
+      "old_source_negative_control": {
+        "result": "ORIGINAL DEFECT REPRODUCED",
+        "source_sha256": "533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708",
+        "fetch_attempts": 2,
+        "onChange": 1,
+        "callback_scope": "changed",
+        "statuses": ["polling"],
+        "onRevoked": 0,
+        "onReset": 0,
+        "note": "The control intentionally aborts at the first sleep after observing the late callback; it proves the original violation, not eventual old-loop behavior."
+      }
+    }
+  },
+  "prior_review_preservation": {
+    "path": "docs/evidence/batch2-recovery5d/independent-rereview.json",
+    "sha256": "49b4fa18b8a4393e2b5a485e2e042a9f34a967c67ddc39ffea71f9f19843385b",
+    "read_in_full": true,
+    "modified": false,
+    "findings": [
+      {"id": "A14-R1", "disposition": "FIXED_UNCHANGED", "assessment": "Prior ambiguous-write identity preservation finding remains fixed; this correction does not modify either transport or staging implementation."},
+      {"id": "A14-R2", "disposition": "RESIDUAL_POLL_CORRECTION_PASSES", "assessment": "Prior non-polling body/digest/download/SSE guards are unchanged. This review resolves only the named A14-R2-POLL residual; it does not expand the prior audit's scope."},
+      {"id": "A14-R3", "disposition": "FIXED_UNCHANGED", "assessment": "Explicit unconfirmed-identity preflight fencing and ordinary upstream 503 distinction remain unchanged."}
+    ],
+    "browser_evidence": "No browser was run or independently accepted here. Parent-provided context reports later principal-only, endpoint-only and active-revocation browser PASS, retained unchanged; those are parent evidence, not this reviewer's execution. The prior review's historical failed browser harness receipt and recovery-draft caveats are not erased or reinterpreted by this polling disposition.",
+    "impact_limit": "The old defect proves stale subscription-boundary metadata publication, not a rendered cross-principal canonical-data leak. The new pass does not promote that historical result into a broader disclosure or browser claim."
+  },
+  "remaining_findings_in_bounded_scope": [],
+  "retained_nonblocking_caveats": [
+    "The guard discards an in-flight successful body after fencing; it does not actively abort that request or provide immediate revocation while the body remains pending.",
+    "Body-read rejection/syntactically invalid JSON still follows the existing Transport catch, while contract-invalid decoded JSON after fencing is refused before contract parsing. This pass covers the requested decoded late-page application defect, not all transport-failure lifecycle behavior.",
+    "Owner-noted repeated NeedsReset with an immediately resolving onReset can loop without timed backoff; this pre-existing behavior is not modified or adjudicated in this bounded correction.",
+    "useWorkState onChange still relies on the subscription boundary, not an additional local callback scope guard; the corrected boundary is directly tested.",
+    "Parent full frontend/static/build gates and browser acceptance are not claimed as independently rerun here. A14 and wider acceptance remain held for parent reconciliation."
+  ],
+  "issues_encountered": [
+    "One execute_code batching attempt was blocked by unattended approval policy and executed no code. Standard read_file/terminal tools completed all required verification; no unresolved tooling blocker."
+  ],
+  "changes_made": ["docs/evidence/batch2-recovery5d/poll-correction/independent-review.json"],
+  "product_source_modified": false,
+  "browser_or_service_calls": 0,
+  "database_calls": 0,
+  "product_provider_calls": 0,
+  "commits_or_publication": false,
+  "board_tasks_closed": false
+}

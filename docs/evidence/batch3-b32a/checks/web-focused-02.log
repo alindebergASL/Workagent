@@ -1,0 +1,16 @@
+npm notice run @workagent/web@0.1.0 test
+npm notice run vitest run test/research-readers.test.ts test/research-sources.test.ts test/workspace-files-races.test.ts
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  3 passed (3)
+      Tests  38 passed (38)
+   Start at  00:46:10
+   Duration  12.39s (tests 62%, import 24%, transform 12%, setup 1%, worker 1%)
+
+    Isolate  3 workers spawned · ~475ms startup each (spawn + environment, per file)
+             at least ~950ms faster with isolate: false — reuses workers across files instead of one per file
+
+npm notice run @workagent/web@0.1.0 typecheck
+npm notice run tsc --noEmit

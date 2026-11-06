@@ -1,0 +1,36 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner/web
+
+ ❯ test/workspace-files-races.test.ts (4 tests | 1 failed) 3287ms
+   ❯ workspace files replay/remount races (R3/R4) (4)
+     × R4: a late create-A completion cannot clear a newer unresolved create B 995ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/workspace-files-races.test.ts > workspace files replay/remount races (R3/R4) > R4: a late create-A completion cannot clear a newer unresolved create B
+AssertionError: expected '' to be 'b.txt' // Object.is equality
+
+- Expected
++ Received
+
+- b.txt
+
+ ❯ test/workspace-files-races.test.ts:597:41
+    595|     const draft = w.world.store.get(NEW_KEY);
+    596|     expect(draft).toBeDefined();
+    597|     expect(JSON.parse(draft!).filename).toBe("b.txt");
+       |                                         ^
+    598|
+    599|     // After a reload, exactly B is restored for replay.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 39 passed (40)
+   Start at  15:22:06
+   Duration  10.63s (tests 54%, import 23%, transform 16%, setup 5%, worker 2%)
+
+    Isolate  5 workers spawned · ~502ms startup each (spawn + environment, per file)
+             at least ~2.01s faster with isolate: false — reuses workers across files instead of one per file
+

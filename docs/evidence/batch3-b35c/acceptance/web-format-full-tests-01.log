@@ -1,0 +1,15 @@
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'vitest' run --no-file-parallelism
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  82 passed (82)
+      Tests  948 passed (948)
+   Start at  02:07:23
+   Duration  73.81s (tests 67%, import 17%, transform 10%, setup 4%, worker 1%)
+
+    Isolate  82 workers spawned · ~228ms startup each (spawn + environment, per file)
+             at least ~18.43s faster with isolate: false — reuses workers across files instead of one per file
+
+vitest exit 0

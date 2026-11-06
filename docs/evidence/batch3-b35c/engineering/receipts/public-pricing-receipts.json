@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol.md",
+    "final_url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol.md",
+    "http_status": 200,
+    "sha256": "ebcc1b0ae6c729a64411dacf303c0ae8b91b11a9be176dc8997b2652bec4b9b0",
+    "bytes": 4079,
+    "at": "2026-10-29T15:21:31.929482+00:00",
+    "file": "public-model-current.txt"
+  },
+  {
+    "url": "https://developers.openai.com/api/docs/pricing.md",
+    "final_url": "https://developers.openai.com/api/docs/pricing.md",
+    "http_status": 200,
+    "sha256": "93d302a9b7a384877533bc3ab5bb48eebf4b56bd6add0f194095054b2a13f952",
+    "bytes": 22824,
+    "at": "2026-10-29T15:21:31.978346+00:00",
+    "file": "public-pricing-current.txt"
+  },
+  {
+    "url": "https://developers.openai.com/api/docs/guides/prompt-caching.md",
+    "final_url": "https://developers.openai.com/api/docs/guides/prompt-caching.md",
+    "http_status": 200,
+    "sha256": "2da1ea8a2404b306773bee6aa1027ca36c9d0bc2f8a4ea3df83166d3da9d7e6c",
+    "bytes": 56625,
+    "at": "2026-10-29T15:21:32.035970+00:00",
+    "file": "public-caching-current.txt"
+  }
+]

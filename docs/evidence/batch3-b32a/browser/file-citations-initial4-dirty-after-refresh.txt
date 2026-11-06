@@ -1,0 +1,100 @@
+workagent
+Agent
+Spaces
+Conversations
+Activity & details
+← Back to agent
+Research the current capacity of the synthetic east depot using https://fixture.example/source
+Keep as a project
+
+You:
+Research the current capacity of the synthetic east depot using https://fixture.example/source. Treat search snippets as discovery only and retain the exact source. Prepare an editable conclusion, not an accepted decision.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Link exact supporting source quotes to the current human-edited conclusion. Keep unsupported organization-wide extrapolations explicitly unsupported; do not change my wording.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Refresh the exact public source https://fixture.example/source. The source changed; propose a revision but keep my human conclusion unchanged.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 01:49 UTC
+Proposed change to Working file Waiting for your review · removes 1 item
+3 changes since you last looked
+Mark as seen
+Details
+Files
+public-source.txt
+text/plain · 217 bytes · read-only evidence
+research-conclusion.txt
+text/plain · 228 bytes
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+Capacity bulletin A · captured 10/29/2026, 12:33:58 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+
+Capacity bulletin B · captured 10/29/2026, 12:36:29 AM
+
+https://fixture.example/source
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+research-conclusion.txt
+Text (267 bytes) — unsaved edit
+Save
+
+Citations below describe the last saved version, not your unsaved edit.
+
+Sources for this version · 2 cited claims1 may be out of date
+Export as
+txt
+markdown
+csv
+json
+Export this version
+New file…
+Memory
+Tool activity
+Continue the conversation
+Attach a file
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

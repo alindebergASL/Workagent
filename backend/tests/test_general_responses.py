@@ -303,7 +303,9 @@ def test_reply_decision_without_operation_has_receipt_not_local_observation(cont
     cv=conversation(context); g=activate(context,[cv]); fake=Provider(); q=post(context,cv,'Hello')
     assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='ready'
     detail=s.get_conversation(p,ws,cv.id)
-    assert not detail.artifact_ids and len(detail.messages[-1].result.results)==1
+    # P5: the text-only reply is materialized as an editable artifact; it is not
+    # a product_observation and carries no local tool evidence.
+    assert len(detail.artifact_ids)==1 and len(detail.messages[-1].result.results)==1
     assert detail.messages[-1].model_receipt and detail.turns[0].provider_observation=='received'
     assert detail.conversation.execution_profile==PROFILE and detail.conversation.model_activation=='active'
     with s.db.transaction() as c:

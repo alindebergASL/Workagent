@@ -1,0 +1,3 @@
+# Optional conversational operator UI; service/CLI remain usable without it.
+-r requirements.txt
+textual==8.2.8

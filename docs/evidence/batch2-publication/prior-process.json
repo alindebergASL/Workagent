@@ -1,0 +1,9 @@
+{
+  "pid": 4139215,
+  "comm": "next-server (v1",
+  "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+  "stat": "4139215 (next-server (v1) S 93675 4139215 4139215 34817 4139215 4194304 39570 0 2056 0 577 40 0 0 20 0 13 0 103972189 13482725376 5735 18446744073709551615 14888960 54527057 140720395721280 0 0 0 0 16781312 17922 0 0 0 17 1 0 0 0 0 0 112175328 112356208 298029056 140720395722764 140720395722840 140720395722840 140720395726811 0\n",
+  "retained_old_api_pid": 2688430,
+  "retained_old_api_port": 18963,
+  "reason": "stop only owned old Next process before rebuilding its shared output; old APIs untouched"
+}

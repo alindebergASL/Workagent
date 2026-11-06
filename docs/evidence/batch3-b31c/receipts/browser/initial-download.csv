@@ -1,0 +1,5 @@
+group,unique_valid_observations,total_seconds,mean_seconds
+North,2,240.000,120.000
+South,1,240.000,240.000
+
+Human annotation: South remains provisional; retain this exact wording — reviewed by test operator.

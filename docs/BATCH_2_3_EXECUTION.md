@@ -26,3 +26,86 @@ B2.2 Textual conversational client and retained text attachments; B2.3 durable s
 No new product paid run. Existing cumulative $100 authority and historical unknown liabilities remain; last documented allocations/reservations are not a fresh live billing query. Re-read ledger before spending. No new private-account/processor access, business effects, production replacement or database maintenance authorized. Synthetic isolated DB provisioning is used for engineering tests. Host initially had 17 GB available; no destructive cleanup performed. Heavy builds/browser jobs use bounded concurrency.
 
 Research refresh: Textual workers/testing official documentation re-fetched; PyPI reports Textual 8.2.8, MIT, Python >=3.9,<4.0. Version availability is not yet installation or compatibility evidence. Original research remains preserved.
+
+## 2026-10-27 — Step 2 independent acceptance (append-only evidence history)
+
+Card `t_99a458da` independently accepted the remaining synthetic safety scope:
+A09/A21/A22/A23/A26/A33/A34 PASS, A27 backend accepted but full row **PENDING**
+paired web/TUI next-action evidence. Previously accepted A13/A25 were not rerun.
+All 612 current core hashes and 1,437 deployed hashes match the pinned candidate;
+raw manifests, SIGKILL/process identities, wire/ledger cutpoints, old-runtime pins,
+expiry/refusal counters and disposable rollback preservation were checked.
+
+The matrix derived from `process-order-fence-proof/parent-acceptance/` contains
+43 unique IDs, **29 PASS / 14 PENDING**; seven status changes, A27 evidence-only
+qualification, and 35 unrelated rows unchanged. Prior assessments and failed attempts
+remain intact. Exact report, matrix, evidence bindings and verification are at
+`/home/ubuntu/workagent-acceptance-remaining-20261026/step2-safety/acceptance/`.
+A23 proves the production atomic local responsibility effect, not external connectors;
+A26 is scoped to supported expiry/revocation schemas; A34 is application-version
+rollback with canonical old reads, not a nonexistent feature flag/installed rollback.
+
+All Step 2 author attempts total 107 synthetic provider operations and two effect
+observations. Reviewer performed no new behavioral/browser/build campaign, paid
+calls or product-source edits. Independent readback confirms zero fixture sessions,
+33 absent prior child identities, active services/idle timer, released reviewer lease
+and no active leases. Synthetic DB/private stores retained. **Step 2 done is not
+full Batch 2 done: publication remains HOLD.** Step 3, paid/live evaluation and
+Batch 3 were not started. Existing cumulative $100 ceiling/liabilities remain; no
+active successor or continuing work is represented under this completed card.
+
+## 2026-10-28 — Step 3 paired-client acceptance (append-only evidence history)
+
+The single independent reviewer `t_a6098a56` accepted all authorized synthetic
+paired-client obligations from the four serial slices. Literal browser/native-PTY
+input, canonical PG/network receipts and actual screenshots were inspected; no
+second reviewer or broad test/build/browser campaign was run. A04/A05/A06/A20/A27/
+A30/P4 now PASS; A01/A02 mechanism proof is accepted while live quality remains
+PENDING. Exact matrix:43 unique IDs,36 PASS/7 PENDING,34 unrelated rows unchanged.
+A07/A08/A10/P7/P8 stay pending; no synthetic output is promoted to live usefulness.
+
+Final622-file source manifest SHA256
+`a2bd405f417b5c6adba12ee67ed1dc59cb07a5cce5d2c1535a233beea555629f`
+binds the intentional dirty integration at HEAD `c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d`.
+Step3 contains37 changed/added source/test/contract files relative to Step2 (10 new);
+reviewer product edits zero. Final isolated production build `_0J4OPn8I5QJf9a-2c5nD`
+has149 verified bundle files; all1,437 staging hashes remain unchanged. Earlier
+proofs retain their original build bindings and explicit changed-source impact map.
+
+`/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/`
+contains required REVIEW/verification/acceptance-matrix/STEP3-RESULT plus raw/visual
+bindings and source-impact map. Original A05 metadata-only recovery RED, native
+scroll RED, all harness failures and two inherited budget-test failures are retained.
+No all-suite-green claim. Actual command bindings and15 responsiveness cases pass;
+these measure controlled interaction mechanisms, not live model latency/P8.
+
+Zero paid product calls/reservations; preserved synthetic databases have no live
+attempts/other sessions. All owned campaign browser/PTYS/processes/listeners and
+reviewer lease are stopped/released; idle timer and unchanged staging services stay
+active. DB/original/evidence preservation remains intentional, with no destructive
+cleanup, production replacement, merge, publication or Batch3 release.
+
+**Step3 is complete; full Batch2/publication remains HOLD.** Next authorized work is
+read-only ledger/liability reconciliation and bounded live-evaluation-envelope
+preparation. `t_75bcdd10` is currently todo with other unmet prerequisites, not a
+running successor. Completion notify+wake returns the evidence to the orchestrator
+for routine continuation; this is not a user-ordered stop or a generic permission
+gate. No automatic paid dispatch or cumulative$100 budget reset is authorized.
+
+## 2026-10-28 — Accepted Batch2 publication/runtime handoff
+
+Later final acceptance closes all43 literal rows with qualifications preserved;
+historical partial matrices above remain historical, not current publication gates.
+The [publication packet](evidence/batch2-publication/README.md) contains the exact
+630-file final source manifest, independent publication review, retained original
+acceptance,525 passing web tests,2 real process/HTTP tests and actual desktop/phone/
+narrow browser plus native readback. Product source commit:
+`1c36002cd2481ef2f3195ae4c52ba4dd05e0608c`; feature base remains
+`hermes/conversational-continuity`. Exact-head remote CI/PR readback belongs to this
+publication card's final handoff; frontend mock CI is not real-stack acceptance.
+
+Current loopback development stack: web3197/API18967 with new disposable PG,
+optimized build and synthetic fixture only. No model worker, no new paid calls,
+no production/default merge/public exposure. Existing audit-only `t_99aaa2a0`
+receives final SHA/PR/CI/proof/runtime/budget; Batch3 continues through the declared
+successor graph only after that audit. No mission-complete claim.

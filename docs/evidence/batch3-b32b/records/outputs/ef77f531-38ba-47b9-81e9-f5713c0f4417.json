@@ -1,0 +1,32 @@
+{
+  "export_id": "ef77f531-38ba-47b9-81e9-f5713c0f4417",
+  "workspace_id": "test-bba45ba9-7932-4cac-b795-f79ae1b2e609",
+  "conversation_id": "de94354e-7f3f-4b32-8141-d29980b250ff",
+  "artifact_id": "3ab245eb-ed3d-4935-a5fc-c7e6b83ee1eb",
+  "revision_id": "ff277af5-9f37-401e-9848-7c545399cae1",
+  "input_sha256": "15689bbebab788a81ffcbe0597a6bfd982048e65b66643014256cb6c95ce5e01",
+  "workspace_file_id": "3ab245eb-ed3d-4935-a5fc-c7e6b83ee1eb",
+  "source_snapshot_id": null,
+  "format": "xlsx",
+  "filename": "export.xlsx",
+  "blob": {
+    "kind": "generated_blob",
+    "blob_id": "665896ad-d1da-4836-a850-1f33b63fe9d6",
+    "sha256": "986b4e903b4fc0036776c30d2fd5e2743e12f4a43c2bea17e29e08dd55cd85ea",
+    "byte_length": 5670,
+    "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "created_at": "2026-10-29T02:45:54.163395Z",
+  "annotations": "explicit_omissions",
+  "omissions": [
+    "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+    "No OCR or vision was performed; PDF imports use only the text layer.",
+    "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+    "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+  ],
+  "tool_attempt_id": null,
+  "exporter_version": "office-exports-v1",
+  "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+  "provenance": null,
+  "chart": null
+}

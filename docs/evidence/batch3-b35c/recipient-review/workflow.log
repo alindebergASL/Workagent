@@ -1,0 +1,31 @@
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 159, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 681, "utf8_bytes": 3013}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 15714, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 67909, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "9fb6fb160ae67698a9127e9fa0a40dd9a97facfdbbebfd284f0f65cf2af5574f", "run_id": "8bf71273-0975-4005-9288-376e59bef530"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 680, "utf8_bytes": 1974}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 159, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 1237, "utf8_bytes": 4276}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 320, "utf8_bytes": 976}}, "estimated_input_tokens": 17164, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 71971, "phase": "selection_2", "provider_count_authoritative": true, "request_sha256": "69136b9ce6b0825bc00938d5c942d9785d7760b62e72a6dc62d5f2bee84a14bb", "run_id": "8bf71273-0975-4005-9288-376e59bef530"}
+Created isolated database workagent_test_1eca70bca9ef; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-review/e410002df3fa41869bd76ea9065df61a/B1/fresh.private.env. No credentials printed.
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch3-b35c/recipient-review/probe_workflow.py", line 101, in <module>
+    rows=[run(arm) for arm in ('B1','M1')]
+          ^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch3-b35c/recipient-review/probe_workflow.py", line 73, in run
+    result=f.run(0,q.run)
+           ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/evaluation/verify_recipient_product.py", line 225, in run
+    return self.worker(hook).work(self.principal, self.workspaces[i], run.id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_worker.py", line 119, in work
+    result=self._responses_work(p,ws,run)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_worker.py", line 259, in _responses_work
+    return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_worker.py", line 334, in _adaptive_work
+    staged=s.stage_general_product(cap,receipt,phase)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/products.py", line 334, in stage_general_product
+    p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_responses.py", line 331, in resolve_selection
+    decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config),continuity=continuity_enabled(config)).decision if enabled(config) else
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/adaptive.py", line 142, in decision
+    raise DomainError('source_changed')
+workagent.errors.DomainError: source_changed

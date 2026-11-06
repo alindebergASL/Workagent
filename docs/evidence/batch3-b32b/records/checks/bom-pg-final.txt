@@ -1,0 +1,143 @@
+F..FFF                                                                   [100%]
+=================================== FAILURES ===================================
+________________ test_bom_imported_revision_proposal_and_export ________________
+
+context = (<workagent.service.Service object at 0x74efd6a301a0>, Principal(id='local-human', kind='human'), 'test-0d4d372e-fccc-...ime.datetime(2026, 10, 29, 3, 23, 36, 373650, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74efda96ebd0>
+
+    def test_bom_imported_revision_proposal_and_export(context,monkeypatch):
+        s,p,ws,_,owner=context
+        s.db.check_runtime_role()
+>       cv,original,draft,detail,raw=imported(context,monkeypatch)
+
+backend/tests/test_office_bom_pg.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_office_pg.py:26: in imported
+    packages=Path(os.environ['WORKAGENT_DOCUMENT_PACKAGES'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = environ({'SHELL': '/bin/bash', 'HERMES_MEDIA_TRUST_RECENT_FILES': '1', 'DISCORD_REACTIONS': 'true', 'QT_ACCESSIBILITY'..., 'PYTEST_CURRENT_TEST': 'backend/tests/test_office_bom_pg.py::test_bom_imported_revision_proposal_and_export (call)'})
+key = 'WORKAGENT_DOCUMENT_PACKAGES'
+
+>   ???
+E   KeyError: 'WORKAGENT_DOCUMENT_PACKAGES'
+
+<frozen os>:685: KeyError
+___________ test_real_import_edit_export_revoke_original_dependency ____________
+
+context = (<workagent.service.Service object at 0x74efd62d7b60>, Principal(id='local-human', kind='human'), 'test-664032a7-fff1-...ime.datetime(2026, 10, 29, 3, 23, 37, 110221, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74efd62d7200>
+
+    def test_real_import_edit_export_revoke_original_dependency(context,monkeypatch):
+        from docx import Document
+        s,p,ws,refs,admin=context
+>       cv,original,draft,detail,raw=imported(context,monkeypatch)
+
+backend/tests/test_office_pg.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_office_pg.py:26: in imported
+    packages=Path(os.environ['WORKAGENT_DOCUMENT_PACKAGES'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = environ({'SHELL': '/bin/bash', 'HERMES_MEDIA_TRUST_RECENT_FILES': '1', 'DISCORD_REACTIONS': 'true', 'QT_ACCESSIBILITY'...TEST_CURRENT_TEST': 'backend/tests/test_office_pg.py::test_real_import_edit_export_revoke_original_dependency (call)'})
+key = 'WORKAGENT_DOCUMENT_PACKAGES'
+
+>   ???
+E   KeyError: 'WORKAGENT_DOCUMENT_PACKAGES'
+
+<frozen os>:685: KeyError
+___________ test_real_conversion_race_never_retains_over_human_edit ____________
+
+context = (<workagent.service.Service object at 0x74efd6158fb0>, Principal(id='local-human', kind='human'), 'test-b54ed585-e0f1-...ime.datetime(2026, 10, 29, 3, 23, 37, 427064, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74efd6158650>
+
+    def test_real_conversion_race_never_retains_over_human_edit(context,monkeypatch):
+        s,p,ws,_,_=context
+>       cv,_,draft,_,_=imported(context,monkeypatch)
+
+backend/tests/test_office_pg.py:67: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_office_pg.py:26: in imported
+    packages=Path(os.environ['WORKAGENT_DOCUMENT_PACKAGES'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = environ({'SHELL': '/bin/bash', 'HERMES_MEDIA_TRUST_RECENT_FILES': '1', 'DISCORD_REACTIONS': 'true', 'QT_ACCESSIBILITY'...TEST_CURRENT_TEST': 'backend/tests/test_office_pg.py::test_real_conversion_race_never_retains_over_human_edit (call)'})
+key = 'WORKAGENT_DOCUMENT_PACKAGES'
+
+>   ???
+E   KeyError: 'WORKAGENT_DOCUMENT_PACKAGES'
+
+<frozen os>:685: KeyError
+________ test_run_office_chart_exact_receipt_replay_and_human_download _________
+
+context = (<workagent.service.Service object at 0x74efd615ab40>, Principal(id='local-human', kind='human'), 'test-31a0e89f-0c11-...ime.datetime(2026, 10, 29, 3, 23, 37, 678261, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_run_office_chart_exact_receipt_replay_and_human_download(context):
+        from test_workspace_files_pg import make
+        from test_workspace_file_gateway_pg import install,call
+        from workagent.capabilities.models import InputRef
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.workspace_file_models import WorkingText
+        from workagent.models import new_id
+        s,p,ws,_,admin=context
+        cv=s.create_conversation(p,ws,cmd(CreateConversation,selected_source_refs=[]))
+        content='team,hours\na,0.1\na,0.2\nb,1.5\n'
+        file=s.create_workspace_file(p,ws,cv.id,cmd(CreateWorkspaceFile,expected_work_version=cv.work_version,
+            source=WorkingText(filename='dataset.csv',mime_type='text/csv',content=content,sha256=sha256(content.encode()).hexdigest())))
+        ref=InputRef(kind='workspace_file',id=file.workspace_file_id,version=file.current.version_id,sha256=file.current.sha256)
+>       cap,grant,q=install(context,cv,[ref],['artifacts.export.office'])
+
+backend/tests/test_office_pg.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_workspace_file_gateway_pg.py:29: in install
+    policy.install(Database(admin),grant,limits={'local_compute':20,'rendering':5})
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <workagent.db.Database object at 0x74efd6128bc0>
+tool_grant = ToolGrantV1(schema_version='tool-grant/v1', id='b451f32d-adcf-43fa-8583-73c604880f0e', workspace_id='test-31a0e89f-0c1...e.timezone.utc), access_generation=1, budget_account_id='f0c9914d-cb25-44a4-953a-c7f554dfc44a', approval_evidence=None)
+
+    def install(db, tool_grant, *, limits, provider_grant_id=None):
+        """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
+    
+        Reuse an existing account ID for parent/child/shared capacity; never manufacture
+        a new money limit. Dollars remain bounded by the existing project grant ledger.
+        """
+        g=ToolGrantV1.model_validate_json(tool_grant.model_dump_json())
+        allowed={'local_compute','search','extraction','rendering','connector','child'}
+        if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
+            raise ValueError('finite typed capacity limits required')
+        available=registry.adapters()
+        with db.transaction() as c:
+            _owner(c)
+            c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
+            r=c.execute('SELECT data,conversation_id,assignment_id FROM runs WHERE workspace_id=%s AND id=%s',
+                        (g.workspace_id,g.run_id)).fetchone()
+            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(g.workspace_id,)).fetchone()
+            if (not r or r['data']['principal_id']!=g.principal_id or g.scope_id!=(r['conversation_id'] or r['assignment_id'])
+                or generation['access_generation']!=g.access_generation or g.expires_at<=now()):
+                raise ValueError('exact current run-derived grant required')
+            for pin in g.capabilities:
+                d=available[pin.id].descriptor
+                if (pin.version!=d.version or pin.schema_sha256!=d.schema_sha256 or pin.implementation_sha256!=d.implementation_sha256
+                    or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)):
+                    raise ValueError('reviewed exact capability pin required')
+                c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
+                          (d.id,d.version,encoded(d)))
+                saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
+                if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
+>                   raise ValueError('installation drift; install a new version')
+E                   ValueError: installation drift; install a new version
+
+backend/workagent/capabilities/policy.py:161: ValueError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_office_bom_pg.py::test_bom_imported_revision_proposal_and_export
+FAILED backend/tests/test_office_pg.py::test_real_import_edit_export_revoke_original_dependency
+FAILED backend/tests/test_office_pg.py::test_real_conversion_race_never_retains_over_human_edit
+FAILED backend/tests/test_office_pg.py::test_run_office_chart_exact_receipt_replay_and_human_download
+4 failed, 2 passed, 1 warning in 4.91s

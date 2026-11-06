@@ -1,0 +1,138 @@
+workagent
+Agent
+Spaces
+Conversations
+Activity & details
+← Back to agent
+Community garden continuity
+Keep as a project
+
+You:
+Keep this useful draft; no correctness claim.
+
+Agent:
+
+Draft retained; data shape only was checked. The requested goal needs validation.
+
+Garden options — current human correction
+Table
+Plant	Height
+Oak — browser correction 雪 2026-10-26T21:05:55.473Z	12.5
+
+Changed since.
+
+Open this version
+Open current table
+Details
+
+You:
+Newer human steering from a second actual API client.
+
+Stopped before a reply. Your message is kept.
+
+You:
+Unknown ACK 雪 Exact replay only.
+
+Stopped before a reply. Your message is kept.
+
+You:
+Unknown ACK fault202 雪 Exact replay only.
+
+Stopped before a reply. Your message is kept.
+
+You:
+Retain and reread the attached PDF; no model evaluation claim.
+
+continuity.pdf
+· 568 B · Text read
+Stopped before a reply. Your message is kept.
+
+You:
+Retain and reread the attached PDF; no model evaluation claim.
+
+continuity.pdf
+· 568 B · Text read
+Workagent isn’t running right now. Your message is kept and is answered once it’s back.
+Why
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+About these replies
+Handed over
+Keep the community garden plan current
+Await a material human edit.
+Blocked
+Needs your review before it continues. Nothing runs for it right now.
+↗
+Now
+Queued
+Checked 26 Oct, 21:10 UTC
+
+Accepted and waiting for a worker. Nothing has started yet. Last progress recorded 26 Oct, 21:08 UTC.
+
+Blocked
+Needs your review
+Open
+
+Next: Review changed saved context or the due check-in before continuing.
+
+Earlier check-in (26 Oct, 20:37 UTC): Prepared context only; outcome remains unverified.
+
+Proposed change to Garden options — current human correction Based on an earlier version · removes 3 items
+10 changes since you last looked
+Mark as seen
+Details
+Queued for later
+Queued
+Queue from browser 雪 Preserve this exact later intent.
+
+Runs after the current work settles.
+
+Cancel this queued message
+Earlier queued messages (1)
+Documents
+continuity.pdf
+Text read
+
+568 B · original kept in full · Pages 1 of 1.
+
+Download original
+Text that was read
+continuity.docx
+Text read
+
+891 B · original kept in full · 2 of 2 paragraphs and 1 of 1 tables.
+
+Download original
+Text that was read
+continuity.pdf
+Text read
+
+568 B · original kept in full · Pages 1 of 1.
+
+Download original
+Text that was read
+continuity.xlsx
+Text read
+
+1 KB · original kept in full · 1 of 1 sheets.
+
+Download original
+Text that was read
+continuity.pdf
+Text read
+
+568 B · original kept in full · Pages 1 of 1.
+
+Download original
+Text that was read
+Continue the conversation
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

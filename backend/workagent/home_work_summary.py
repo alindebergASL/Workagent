@@ -85,6 +85,8 @@ LEFT JOIN LATERAL (
     LIMIT 1
 ) pending ON true
 WHERE a.workspace_id=%s AND a.id>%s AND a.assignment_id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
+      AND f.artifact_id=a.id AND f.owner_id<>%s)
   AND NOT EXISTS (
       SELECT 1 FROM jsonb_array_elements(cv.data->'selected_source_refs') ref
       LEFT JOIN sources src ON src.workspace_id=cv.workspace_id AND src.id=ref->>'source_id'
@@ -115,7 +117,7 @@ def read(service, principal, workspace_id, cursor=None, limit=100):
         raise DomainError('validation_error', fields=['limit'])
     with service.db.transaction() as c:
         service._scope(c, principal, workspace_id)
-        rows = c.execute(_QUERY, (workspace_id, cursor or '', principal.id, limit + 1)).fetchall()
+        rows = c.execute(_QUERY, (workspace_id, cursor or '', principal.id, principal.id, limit + 1)).fetchall()
     items = []
     for row in rows[:limit]:
         proposal_id = row.pop('proposal_id')

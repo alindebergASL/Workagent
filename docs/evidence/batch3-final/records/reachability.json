@@ -1,0 +1,6 @@
+{
+  "loopback_web_http": "200",
+  "external_web_http": "000",
+  "external_ip": "10.0.3.214",
+  "expectation": "loopback 200; external refused/timeout"
+}

@@ -272,6 +272,7 @@
       "response": {
         "artifact_ids": [],
         "assignment_ids": [],
+        "attachment_context": [],
         "conversation": {
           "created_at": "2026-10-02T00:00:00Z",
           "execution_profile": "general-controlled-v1",

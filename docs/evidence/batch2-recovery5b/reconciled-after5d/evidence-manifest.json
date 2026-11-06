@@ -1,0 +1,20 @@
+{
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/CHECKPOINT.md": "dec0b15a0850eb7a5d1f396547193bdd3a766c2fa33264f84236778af004587e",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/HANDOFF.md": "1c5d888b2f153f1a611011aee7cfd356e76389342d6b0325f494812a614099b9",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/MISSING-PROOF-CHECKLIST.md": "489d9b411fe0bc4f8e83851aa59b8e29aad2d78e429dac6e2abe1bc08c4046dc",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/PROOF-SCOPES.md": "1ebc950d7ad353063e4af3b77380058f382f22e525fd0bf9d79e1a963566df3d",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/VISUAL-INSPECTION.md": "1c3885f96cf31e9f150e5a26d2df5512781bfa02e66a0d20a589e10a13a26a22",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/acceptance-matrix.json": "93f5ddc388081b35332dadab220a5d2478aea1c9670366e7a6a9940402ec8c98",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/acceptance-matrix.md": "95ac43632c2e18a109bc768f5cbd05614a3f7a330789fc082a1b5e8dfbb54b13",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/assertion-source-index.json": "a1f1329ef01484ed37af86e91aeda7fabbe97a0dc27bab09eeaece2ddd61285b",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/evidence-receipts.json": "0ae814e957295a00948bafbec13f3d5aa306095111376fde463ebb3d58c13540",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/historical-test-receipts.json": "dd3d0773b77fa4a970cbf0ea122b44e22eda779f06c9f1823eebbeef1c131e10",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/ledger-references.json": "b87ce4e81e7d3e8e543d325258e5ad5beadd26eedd51629fa9f012462021be1f",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/preservation-verification.json": "7fde6c286ecb43b8d33948518934fd4323240f00503b4d706c8f958cb28bb85c",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/reconcile.py": "59bc982e77a4f7acfe75b11b627f3ff2a9b47634a99bda7e51bcb485131cc8af",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/row-assessments.json": "32bedf410d529a91e4abd9a6c208bfbe8c4a03eaefae72424d18e7f5f5022015",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/source-reuse.json": "883b248d367f58b11ba75904c24df2b925358d2caae87021c699f072a7f6e3c2",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/summary.json": "bc68adafd4d002e4581ef2b7b6651256f952cece0e8e319322d48547d8b0d684",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/validation.json": "2c645bddb9c46fbd94ece4a84a02b0d8ca3a76d7531f5da8b1dd5f7e21424a6f",
+  "docs/evidence/batch2-recovery5b/reconciled-after5d/visual-evidence.json": "fc6dd4f75c3e497eb6c757bd112add1041c205796feeea7f53c6c01cd69540b4"
+}

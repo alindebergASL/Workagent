@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/ledger-reconciliation.md",
+    "sha256": "960e74d41549c9d3715fa19761eeb87dceef1d4966d64c3fe5fac0070f2a67d2",
+    "authority": "historical read-only reconciliation; zero new paid calls/reservations authorized"
+  },
+  {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/ledger-reconciliation.receipt.json",
+    "sha256": "011ed93af8120f233b2d37d5f8ce8ca91d0720ccf49341c88a9eede8fa30af4b",
+    "authority": "historical read-only reconciliation; zero new paid calls/reservations authorized"
+  }
+]

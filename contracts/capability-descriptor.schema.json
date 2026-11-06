@@ -1,0 +1,215 @@
+{
+  "$defs": {
+    "CostProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "local_compute",
+            "search",
+            "extraction",
+            "rendering",
+            "connector",
+            "child"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "reserved_cost_usd": {
+          "default": "0",
+          "pattern": "^(0|[1-9][0-9]{0,2})(\\.[0-9]{1,6})?$",
+          "title": "Reserved Cost Usd",
+          "type": "string"
+        },
+        "reserved_units": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Reserved Units",
+          "type": "integer"
+        },
+        "unit": {
+          "enum": [
+            "call",
+            "millisecond"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "reserved_units",
+        "unit"
+      ],
+      "title": "CostProfile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "availability_reason": {
+      "enum": [
+        "available",
+        "needs_consent",
+        "blocked_by_scope",
+        "temporarily_unavailable",
+        "not_installed"
+      ],
+      "title": "Availability Reason",
+      "type": "string"
+    },
+    "cost_profile": {
+      "$ref": "#/$defs/CostProfile"
+    },
+    "effects": {
+      "items": {
+        "enum": [
+          "read",
+          "local_compute",
+          "draft",
+          "external_write"
+        ],
+        "type": "string"
+      },
+      "maxItems": 4,
+      "minItems": 1,
+      "title": "Effects",
+      "type": "array"
+    },
+    "execution_profile": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Execution Profile",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "input_schema": {
+      "additionalProperties": true,
+      "title": "Input Schema",
+      "type": "object"
+    },
+    "installation_state": {
+      "enum": [
+        "installed",
+        "not_installed",
+        "disabled"
+      ],
+      "title": "Installation State",
+      "type": "string"
+    },
+    "output_schema": {
+      "additionalProperties": true,
+      "title": "Output Schema",
+      "type": "object"
+    },
+    "privacy_classes": {
+      "items": {
+        "enum": [
+          "public",
+          "workspace_private"
+        ],
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 1,
+      "title": "Privacy Classes",
+      "type": "array"
+    },
+    "required_permission_template": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Required Permission Template",
+      "type": "string"
+    },
+    "resource_kinds": {
+      "items": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Resource Kinds",
+      "type": "array"
+    },
+    "result_byte_limit": {
+      "maximum": 1048576,
+      "minimum": 1,
+      "title": "Result Byte Limit",
+      "type": "integer"
+    },
+    "retry_policy": {
+      "const": "never_resend_unknown",
+      "default": "never_resend_unknown",
+      "title": "Retry Policy",
+      "type": "string"
+    },
+    "schema_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Schema Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "capability-descriptor/v2",
+      "default": "capability-descriptor/v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "timeout_ms": {
+      "maximum": 120000,
+      "minimum": 1,
+      "title": "Timeout Ms",
+      "type": "integer"
+    },
+    "transport": {
+      "enum": [
+        "native",
+        "mcp",
+        "sandbox",
+        "browser"
+      ],
+      "title": "Transport",
+      "type": "string"
+    },
+    "version": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "schema_sha256",
+    "implementation_sha256",
+    "transport",
+    "input_schema",
+    "output_schema",
+    "effects",
+    "resource_kinds",
+    "privacy_classes",
+    "execution_profile",
+    "cost_profile",
+    "result_byte_limit",
+    "timeout_ms",
+    "installation_state",
+    "availability_reason",
+    "required_permission_template"
+  ],
+  "title": "CapabilityDescriptorV2",
+  "type": "object"
+}

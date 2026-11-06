@@ -1,0 +1,92 @@
+workagent
+Agent
+Spaces
+Conversations
+Activity & details
+← Back to conversation
+
+FROM THE CONVERSATION
+
+Research the current capacity of the synthetic east depot using https://fixture.example/source
+
+You:
+Research the current capacity of the synthetic east depot using https://fixture.example/source. Treat search snippets as discovery only and retain the exact source. Prepare an editable conclusion, not an accepted decision.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Link exact supporting source quotes to the current human-edited conclusion. Keep unsupported organization-wide extrapolations explicitly unsupported; do not change my wording.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+
+You:
+Refresh the exact public source https://fixture.example/source. The source changed; propose a revision but keep my human conclusion unchanged.
+
+Agent:
+
+Exact captured sources and citations are available in Files and the saved result. A changed source is a proposal, not permission to replace your conclusion. Controlled transport and local TLS fixtures; no live search/model usefulness claim.
+
+Details
+Reply about this work
+Attach a file
+Ask about this work or ask for a change.
+↑
+Open the full conversation
+Working file
+File · last saved by you
+Download saved file
+Check for updates
+Result
+
+content.txt
+
+Saved. Nothing checks this table automatically.
+
+WAITING FOR YOU
+
+A proposed version is ready
+
+New immutable source version; retain the protected human conclusion until explicit review.
+
+See the proposed version
+Research conclusion (proposed)
+Current public capacity: 10 units.
+Scope: synthetic east depot only.
+The search snippet is not evidence.
+
+Human conclusion: keep the conservative allocation until reviewed — exact human wording.
+
+Proposed source update (not accepted): Current public capacity: 12 units.
+
+
+Applying this removes or replaces 1 saved value or content.
+
+What it removes or replaces
+/content: Research conclusion (proposed)
+Current public capacity: 10 units.
+Scope: synthetic east depot only.
+The search snippet is not evidence.
+
+Human conclusion: keep the conservative allocation until reviewed — exact human wording.
+
+I understand this removes or replaces the saved content above
+Download proposed file
+Apply proposed version
+Keep my current version
+Research conclusion (proposed)
+Current public capacity: 10 units.
+Scope: synthetic east depot only.
+The search snippet is not evidence.
+
+Human conclusion: keep the conservative allocation until reviewed — exact human wording.
+
+Saved history and original input
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

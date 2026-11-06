@@ -1,0 +1,31 @@
+{
+  "actual_pty": true,
+  "cols": 80,
+  "rows": 24,
+  "passed": true,
+  "actions": [
+    {
+      "keys": "\u001b[<0;30;4M\u001b[<0;30;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;5;16M\u001b[<0;5;16m"
+    },
+    {
+      "keys": "\u001b[<0;5;19M\u001b[<0;5;19m"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\u001b[1;5H"
+    },
+    {
+      "keys": "\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B"
+    }
+  ],
+  "run_id": "f2cc2629-d9da-4890-b1c4-73b6667bfb66",
+  "rendered": "5 recorded attempts on this page. Select one to view actual output. No automatic\nretries.                                                                        \n\u258a\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u258e  \n\u258a delegation.verify \u00b7 observed                                               \u258e  \n\u258a Attempt 26686c55-f2b5-4c8e-a808-1f2f6074d3ed                               \u258e  \n\u258a Optional bounded analysis \u00b7 no paid child provider                         \u258e  \n\u258a Unknown work is never relaunched.                                          \u258e  \n\u258a Child status: checks_passed                                                \u258e  \n\u258a Child attempt: e815b302-87f0-4c6c-a5ca-2f455588a8c5                        \u258e\u2586\u2586\n\u258a Parent-supplied checks executed; not human acceptance, memory              \u258e  \n\u258a admission or independent goal truth.                                       \u258e  \n\u258a Parent inspection: Inspect exact regional rows; recompute sum and mean     \u258e  \n\u258a with rational arithmetic                                                   \u258e  \n\u258a Executed checks: exact source rows; independent rational sum;              \u258e  \n\u258a independent rational mean                                                  \u258e  \n\u258a Exact child proposal SHA256:                                               \u258e  \n\u258a eed9c283508c8dba2578eae699c6757d6e67cce35ffbc3042c76cf1f30b7dc89           \u258e  \n\u258a Proposal (inert evidence, not acceptance): {\"mean\": \"180\", \"rows\": 2,      \u258e\u2587\u2587\n\u258a \"source\": \"east.csv\", \"total\": \"360\"}                                      \u258e  \n\u258a Cost/reservation: {\"basis\": \"estimated\", \"billed_cost_usd\": null,          \u258e  \n\u258a \"category\": \"local_compute\", \"cpu_ms\": 475, \"elapsed_ms\": 3533,            \u258e  \n\u258a \"observed_cost_usd\": null, \"observed_units\": 1, \"reserved_cost_usd\":       \u258e  \n\u258a \"0\", \"reserved_units\": 1, \"unit\": \"call\"}                                  \u258e  \n esc Back  ^r Refresh receipts                                                  "
+}

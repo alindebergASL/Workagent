@@ -1,0 +1,12 @@
+{
+  "denied": {
+    "conversation": 404,
+    "document": 404,
+    "original": 404,
+    "snapshot": 404,
+    "events": 404,
+    "exact_upload_replay": 404
+  },
+  "unrelated_conversation_readable": true,
+  "document_id": "cef6e73c-7410-4ed5-aef5-d825274bbcf7"
+}

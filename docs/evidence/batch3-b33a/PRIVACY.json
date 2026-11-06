@@ -1,0 +1,11 @@
+{
+  "credential_customer_pattern_hits": 0,
+  "files_scanned": 172,
+  "known_private_value_hits": 0,
+  "known_private_values_checked": 15,
+  "passed": true,
+  "product_model_calls": 0,
+  "raw_agent_logs_and_envs": "excluded; retained privately",
+  "raw_public_API_bodies": "excluded from publication; exact hashes retained, original bytes in private workspace/DB",
+  "screenshots": "actual public-source/synthetic fixture UI; preloaded negative canary is intentionally synthetic"
+}

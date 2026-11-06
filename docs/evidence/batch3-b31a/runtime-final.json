@@ -1,0 +1,14 @@
+{
+  "unit": "workagent-compute-b31a-v3.service",
+  "config": "# /run/systemd/transient/workagent-compute-b31a-v3.service\n# This is a transient unit file, created programmatically via the systemd API. Do not edit.\n[Unit]\nDescription=/usr/bin/python3 -B -m sandbox.service --runtime /run/workagent-compute-b31a-v3 --rootfs /run/workagent-compute-b31a-v3/rootfs --pins /run/workagent-compute-b31a-v3/pins.json --state /run/workagent-compute-b31a-v3/state --socket /run/workagent-compute-b31a-v3/compute.sock --client-uid 1000\n\n[Service]\nDelegate=yes\nDelegateSubgroup=supervisor\nKillMode=control-group\nMemoryMax=805306368\nMemorySwapMax=0\nTasksMax=256\nCPUQuota=100%\nPrivateMounts=yes\nUMask=0077\nWorkingDirectory=/run/workagent-compute-b31a-v3\nExecStart=\nExecStart=\"/usr/bin/python3\" \"-B\" \"-m\" \"sandbox.service\" \"--runtime\" \"/run/workagent-compute-b31a-v3\" \"--rootfs\" \"/run/workagent-compute-b31a-v3/rootfs\" \"--pins\" \"/run/workagent-compute-b31a-v3/pins.json\" \"--state\" \"/run/workagent-compute-b31a-v3/state\" \"--socket\" \"/run/workagent-compute-b31a-v3/compute.sock\" \"--client-uid\" \"1000\"\n",
+  "properties": "MainPID=3526925\nExecMainStartTimestamp=Wed 2026-10-28 19:20:37 UTC\nActiveState=active\nSubState=running\n",
+  "after_stop": "MainPID=0\nLoadState=not-found\nActiveState=inactive\nSubState=dead\n",
+  "original_processes": {
+    "875172": "/home/ubuntu/workagent-input-optimization-20261021/.venv/bin/python -m uvicorn workagent.api:app --host 127.0.0.1 --port 8152 --no-access-log ",
+    "2688430": ".venv/bin/python -m uvicorn workagent.api:app --host 127.0.0.1 --port 18963 ",
+    "2718652": ".venv/bin/python -m uvicorn workagent.api:app --host 127.0.0.1 --port 18967 --log-level warning "
+  },
+  "snapshot_preserved": true,
+  "remaining_job_cgroups": [],
+  "socket_connect_errno": 111
+}

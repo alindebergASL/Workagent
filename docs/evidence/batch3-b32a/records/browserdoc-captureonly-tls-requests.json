@@ -1,0 +1,13 @@
+[
+  {
+    "method": "GET",
+    "path": "/source",
+    "headers": {
+      "Host": "fixture.example",
+      "User-Agent": "Workagent-PublicReader/1.0",
+      "Accept": "text/html, text/plain, application/xhtml+xml, application/json",
+      "Accept-Encoding": "identity",
+      "Connection": "close"
+    }
+  }
+]

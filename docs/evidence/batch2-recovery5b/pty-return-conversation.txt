@@ -1,0 +1,40 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work                ▎▊  Community garden continuity                                                  ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+ Conversation  Work  Files  Status  Recovery  Details
+╸━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Messages 1–8 of 8 · Earlier / Later pages
+
+ human: Keep this useful draft; no correctness claim.
+
+ assistant: Draft retained; data shape only was checked. The requested goal needs validation.
+
+ kind: structured_table
+ artifact id: dfe536ed-23fa-44fc-8e3d-0f9796317304
+ revision id: 056797bb-b48d-4d43-bc72-7f11725514c9
+ proposal id: unknown
+ observation id: 4144b450-1487-4c30-97ec-776d4db46ef3
+
+ human: Newer human steering from a second actual API client.
+
+ human:   Unknown ACK 雪
+ Exact replay only.                                                                                                   ▆▆
+
+
+ human:   Unknown ACK fault202 雪
+ Exact replay only.
+
+▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔
+ Earlier    Later
+▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁
+ Enter adds a line. F5 / Ctrl+Enter sends. Detach leaves server work running.
+
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔
+    Send · F5       Queue later   Refresh   Detach
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁
+ ^q Detach  ^⏎ Send  ^r Refresh                                                                             ▏^p palette

@@ -1,0 +1,1701 @@
+{
+  "phase": "baseline",
+  "started": "2026-10-26T21:05:40.853Z",
+  "evidence_type": "real Chromium + current real HTTP/PostgreSQL; synthetic fixture; zero product provider calls",
+  "checks": [
+    {
+      "name": "readable same work/documents/current-v-history keyboard no-overflow",
+      "width": 1440,
+      "texts": [
+        "Synthetic paragraph\n[Table]\nCell A\tCell B\nAfter table\n",
+        "\n[Page 1]\nSynthetic document evidence page 1\n",
+        "\n[Sheet Inputs; visible]\nA1: Synthetic cell\nB1: 3\nA2: inert formula =SUM(B1,2); cached=5; references not resolved\n"
+      ]
+    },
+    {
+      "name": "readable same work/documents/current-v-history keyboard no-overflow",
+      "width": 390,
+      "texts": [
+        "Synthetic paragraph\n[Table]\nCell A\tCell B\nAfter table\n",
+        "\n[Page 1]\nSynthetic document evidence page 1\n",
+        "\n[Sheet Inputs; visible]\nA1: Synthetic cell\nB1: 3\nA2: inert formula =SUM(B1,2); cached=5; references not resolved\n"
+      ]
+    },
+    {
+      "name": "readable same work/documents/current-v-history keyboard no-overflow",
+      "width": 320,
+      "texts": [
+        "Synthetic paragraph\n[Table]\nCell A\tCell B\nAfter table\n",
+        "\n[Page 1]\nSynthetic document evidence page 1\n",
+        "\n[Sheet Inputs; visible]\nA1: Synthetic cell\nB1: 3\nA2: inert formula =SUM(B1,2); cached=5; references not resolved\n"
+      ]
+    },
+    {
+      "name": "browser original exact bytes",
+      "document_id": "841e656d-7860-4bb3-b158-f6973147582d",
+      "sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11",
+      "length": 891
+    },
+    {
+      "name": "browser original exact bytes",
+      "document_id": "95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "length": 568
+    },
+    {
+      "name": "browser original exact bytes",
+      "document_id": "9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+      "sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04",
+      "length": 1451
+    },
+    {
+      "name": "browser cell edit retains exact terminal human note objects"
+    },
+    {
+      "name": "actual IndexedDB binary staged; closing entire Chromium context/process"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:05:42.819Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:05:43.209Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:05:43.228Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:05:43.238Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:43.241Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.374Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.375Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.401Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.402Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.409Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.416Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.419Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.422Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.423Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.436Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.442Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.444Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.452Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.476Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.485Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.508Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.516Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.517Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.529Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.530Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.535Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.541Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.558Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.558Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.559Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.560Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.560Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.561Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.562Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.562Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.563Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.564Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.564Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.565Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.565Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.566Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.567Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.567Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.568Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.568Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.569Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.570Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.769Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.770Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.777Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.787Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.793Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.797Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.809Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.821Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.829Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.831Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.836Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.844Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.854Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.861Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.863Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.873Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.876Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.882Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.885Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.887Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.887Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.891Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.893Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.895Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.895Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.897Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.899Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:05:43.899Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:43.900Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:05:43.902Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:43.959Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=e188948d-b913-489d-91c3-8aec4eaea901.1.bUcJymd6nPhUWUqLDOJh9Fel30fd2o-tuntXQMAH8GI",
+      "at": "2026-10-26T21:05:45.000Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:05:48.536Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:05:48.542Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:05:48.571Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:05:48.578Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/841e656d-7860-4bb3-b158-f6973147582d",
+      "at": "2026-10-26T21:05:50.068Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+      "at": "2026-10-26T21:05:50.323Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+      "at": "2026-10-26T21:05:50.519Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/841e656d-7860-4bb3-b158-f6973147582d/download",
+      "at": "2026-10-26T21:05:53.332Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/95dff2ca-e855-4a4b-8ec0-c59d28a4ed60/download",
+      "at": "2026-10-26T21:05:53.752Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents/9dc2ae7e-408f-47c5-8750-b32e53cda9be/download",
+      "at": "2026-10-26T21:05:54.068Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:05:54.647Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:54.648Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:05:54.649Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/history?limit=100",
+      "at": "2026-10-26T21:05:54.649Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/observations/4144b450-1487-4c30-97ec-776d4db46ef3",
+      "at": "2026-10-26T21:05:54.873Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:05:55.008Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:55.010Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/save",
+      "at": "2026-10-26T21:05:55.677Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:05:55.858Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:55.864Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:05:55.878Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/history?limit=100",
+      "at": "2026-10-26T21:05:55.880Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/observations/4144b450-1487-4c30-97ec-776d4db46ef3",
+      "at": "2026-10-26T21:05:56.180Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:05:58.830Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:05:59.221Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:05:59.247Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:05:59.248Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:05:59.257Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.282Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.289Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.290Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.290Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.297Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.298Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.307Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.427Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.445Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.455Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.468Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.469Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.486Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.487Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.494Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.501Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.515Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.518Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.528Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.530Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.537Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.545Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.566Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.567Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.582Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.584Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.586Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.588Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.590Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.591Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.634Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.641Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.657Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.663Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.666Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.673Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.699Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.712Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.719Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.722Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.726Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.730Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.735Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.737Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.740Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.804Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.830Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.840Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.844Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.860Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.863Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.873Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.879Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.893Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.908Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.911Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.925Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.943Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.945Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.956Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.962Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:05:59.984Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.093Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.096Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.101Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.105Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.107Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:06:00.110Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:06:00.113Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:06:00.117Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:06:00.771Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=a86d619a-9bb9-4542-b4bf-a26b6e80f443.1.NYGVwhThciRG_rAGjpFRr6yJ4C9CLZx4JZ1jFOPUoU4",
+      "at": "2026-10-26T21:06:01.375Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:06:05.749Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:06:05.755Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:06:05.765Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:06:05.766Z"
+    }
+  ],
+  "initial": {
+    "conversation": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T20:32:58.483556Z",
+        "last_message_preview": "  Unknown ACK fault202 雪\nExact replay only.\n",
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "workspace_id": "recovery5a-workspace",
+        "owner_id": "local-human",
+        "title": "Community garden continuity",
+        "work_version": 8,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T20:16:54.162225Z"
+      },
+      "messages": [
+        {
+          "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "sequence": 1,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Keep this useful draft; no correctness claim.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": {
+            "artifact_id": null,
+            "base_revision_id": null,
+            "kind": "publish_artifact",
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Garden plot options",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [
+                {
+                  "row_id": "oak",
+                  "cells": [
+                    {
+                      "field_key": "plant",
+                      "value": "Oak"
+                    },
+                    {
+                      "field_key": "height",
+                      "value": "12.5"
+                    }
+                  ]
+                }
+              ],
+              "notes": [
+                "Keep the shaded beds.",
+                "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+              ]
+            }
+          },
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:16:54.490353Z"
+        },
+        {
+          "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "sequence": 2,
+          "author_id": "general-worker",
+          "author_kind": "assistant",
+          "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+          "evidence_origin": "controlled_transport",
+          "result": {
+            "results": [
+              {
+                "kind": "text",
+                "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+              },
+              {
+                "kind": "structured_table",
+                "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+                "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+                "proposal_id": null,
+                "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+              }
+            ]
+          },
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:16:56.457642Z"
+        },
+        {
+          "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "sequence": 3,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "Newer human steering from a second actual API client.",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:24:01.781753Z"
+        },
+        {
+          "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "sequence": 4,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "  Unknown ACK 雪\nExact replay only.\n",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:32:00.977242Z"
+        },
+        {
+          "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "sequence": 5,
+          "author_id": "local-human",
+          "author_kind": "human",
+          "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+          "evidence_origin": "human",
+          "result": null,
+          "operation": null,
+          "attachments": [],
+          "target": null,
+          "model_receipt": null,
+          "created_at": "2026-10-26T20:32:58.483556Z"
+        }
+      ],
+      "runs": [
+        {
+          "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "partial",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-products-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-products-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+          "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 1,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [
+            "Draft retained; data shape only was checked. The requested goal needs validation."
+          ],
+          "observed_at": "2026-10-26T20:16:56.496781Z"
+        },
+        {
+          "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:29:37.924547Z"
+        },
+        {
+          "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:32:58.409531Z"
+        },
+        {
+          "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "workspace_id": "recovery5a-workspace",
+          "assignment_id": null,
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "principal_id": "local-human",
+          "kind": "conversation_turn",
+          "state": "cancelled",
+          "fence": 1,
+          "access_generation": 1,
+          "lease_expires_at": null,
+          "profile": "general-controlled-v1",
+          "execution": {
+            "mode": "fixture",
+            "profile": "general-controlled-v1",
+            "model": null,
+            "grant_id": null,
+            "attempt_id": null,
+            "provider_observation": "not_observed",
+            "evidence_origin": "controlled_transport"
+          },
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "stop_reason": null,
+          "cursor": 0,
+          "budget_units": 1,
+          "used_units": 0,
+          "artifact_id": null,
+          "base_revision_id": null,
+          "instruction": null,
+          "proposal_id": null,
+          "unresolved": [],
+          "observed_at": "2026-10-26T20:37:31.250611Z"
+        }
+      ],
+      "assignment_ids": [
+        "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+      ],
+      "artifact_ids": [
+        "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+      ],
+      "turns": [
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+          "state": "failed",
+          "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        },
+        {
+          "profile": "general-controlled-v1",
+          "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+          "state": "cancelled",
+          "reason": "Turn cancelled or superseded.",
+          "evidence_origin": "controlled_transport",
+          "provider_observation": "not_observed",
+          "response_steps": [],
+          "adaptive": null,
+          "retained_local_result": null,
+          "explanation": null,
+          "responsibility_origin": null,
+          "responsibility_recording": null
+        }
+      ]
+    },
+    "snapshot": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "work_version": 8,
+      "access_generation": 1,
+      "checked_at": "2026-10-26T21:05:49.429360Z",
+      "snapshot_cursor": "e188948d-b913-489d-91c3-8aec4eaea901.1.bUcJymd6nPhUWUqLDOJh9Fel30fd2o-tuntXQMAH8GI",
+      "execution": {
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "state": "stopped",
+        "reason": null,
+        "phase": null,
+        "admitted_at": "2026-10-26T20:32:58.432215Z",
+        "last_progress_at": "2026-10-26T20:37:31.250611Z",
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "admitted"
+      },
+      "responsibility": [
+        {
+          "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+          "state": "blocked",
+          "next_action": {
+            "kind": "review_dependency",
+            "description": "Review changed saved context or the due check-in before continuing."
+          },
+          "next_check_in_at": null,
+          "historical_observation": {
+            "text": "Prepared context only; outcome remains unverified.",
+            "observed_at": "2026-10-26T20:37:33.146981Z"
+          },
+          "review_required": true
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "title": "Garden options — current human correction",
+          "kind": "structured_table",
+          "current_revision_id": "8c396484-3f52-44b3-aacf-139eb06758ad",
+          "body_hash": "563298717189b38bf326e7f8aa5a66321dfe288c56598da2bc15f3b7417c12b4"
+        }
+      ],
+      "pending_proposals": [
+        {
+          "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+          "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+          "base_work_version": 1,
+          "created_at": "2026-10-26T20:16:58.207488Z",
+          "fresh": false,
+          "is_latest": false,
+          "removed_content_count": 3
+        }
+      ]
+    },
+    "artifact": {
+      "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "workspace_id": "recovery5a-workspace",
+      "assignment_id": null,
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "current_revision_id": "8c396484-3f52-44b3-aacf-139eb06758ad",
+      "current_revision": {
+        "id": "8c396484-3f52-44b3-aacf-139eb06758ad",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "revision_number": 5,
+        "parent_revision_id": "2025341e-254a-40ea-8f6a-de3a7dfc95f4",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Garden options — current human correction",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Oak — browser correction 雪"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Keep the shaded beds.",
+            "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+          ]
+        },
+        "body_hash": "563298717189b38bf326e7f8aa5a66321dfe288c56598da2bc15f3b7417c12b4",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T21:04:19.652307Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T21:05:49.557158Z"
+    },
+    "documents": {
+      "items": [
+        {
+          "document_id": "841e656d-7860-4bb3-b158-f6973147582d",
+          "sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11",
+          "workspace_id": "recovery5a-workspace",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "filename": "continuity.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "byte_length": 891,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "d4578dcc2654f5bbf06f4c4607b11a6cee1272d9e678de36d719cbd88518eba8",
+          "text_bytes": 54,
+          "coverage": {
+            "omissions": [
+              "headers",
+              "footers",
+              "comments",
+              "tracked changes",
+              "nested tables, drawings and exact list numbering/layout"
+            ],
+            "total_paragraphs": 2,
+            "omitted_paragraphs": 0,
+            "total_tables": 1,
+            "omitted_tables": 0,
+            "paragraphs_covered": 2,
+            "tables_covered": 1,
+            "partial_last_block": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+          "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+          "workspace_id": "recovery5a-workspace",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "filename": "continuity.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 568,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+          "text_bytes": 45,
+          "coverage": {
+            "omissions": [
+              "images, layout and non-text content"
+            ],
+            "total_pages": 1,
+            "covered_pages": 1,
+            "omitted_pages": 0,
+            "empty_pages_needing_ocr": [],
+            "partial_last_page": false
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        },
+        {
+          "document_id": "9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+          "sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04",
+          "workspace_id": "recovery5a-workspace",
+          "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "owner_id": "local-human",
+          "filename": "continuity.xlsx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "byte_length": 1451,
+          "status": "extracted",
+          "reason": "text_extracted",
+          "parser_version": "confined-documents-v1",
+          "text_sha256": "c559fbcd56f752c246f2311863854f72b39a00e61a2d4da72c88645ffbc441ea",
+          "text_bytes": 114,
+          "coverage": {
+            "omissions": [
+              "formatting, charts, comments; formula references unsupported; no recalculation"
+            ],
+            "total_sheets": 1,
+            "covered_sheets": 1,
+            "omitted_sheets": 0,
+            "sheets": [
+              {
+                "name": "Inputs",
+                "state": "visible",
+                "total_rows": 2,
+                "total_columns": 2,
+                "covered_rows": 2,
+                "merged_ranges": [
+                  "A1"
+                ],
+                "omitted_merged_ranges": 0,
+                "visited_cells": 4,
+                "last_cell": "B2",
+                "partial_last_row": false,
+                "omitted_rows": 0,
+                "omitted_cell_positions": 0
+              }
+            ],
+            "covered_rows": 2,
+            "visited_cells": 4
+          },
+          "limits": {
+            "rows": 1000,
+            "cells": 10000,
+            "pages": 50,
+            "sheets": 10,
+            "zip_bytes": 20971520,
+            "zip_ratio": 100,
+            "text_bytes": 102400,
+            "input_bytes": 5242880,
+            "zip_entries": 1000
+          }
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  "after_edit": {
+    "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+    "workspace_id": "recovery5a-workspace",
+    "assignment_id": null,
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "current_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+    "current_revision": {
+      "id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+      "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "revision_number": 6,
+      "parent_revision_id": "8c396484-3f52-44b3-aacf-139eb06758ad",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Garden options — current human correction",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "oak",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Oak — browser correction 雪 2026-10-26T21:05:55.473Z"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": [
+          "Keep the shaded beds.",
+          "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+        ]
+      },
+      "body_hash": "4f1e51610f357efa8a5ee87608c92c14db8d0551922cbf1a7152bb565c88588c",
+      "source_dependencies": [],
+      "created_at": "2026-10-26T21:05:55.782638Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-26T21:05:56.148168Z"
+  },
+  "idb_staged": [
+    {
+      "key": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6|8580018f-f1c3-416a-8fc2-0176c3d5ff46",
+      "scope": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "generation": "8580018f-f1c3-416a-8fc2-0176c3d5ff46",
+      "staged_at": 1793048667268,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "local",
+      "ref": null,
+      "upload": null,
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "status": "PASS",
+  "finished": "2026-10-26T21:06:06.978Z"
+}

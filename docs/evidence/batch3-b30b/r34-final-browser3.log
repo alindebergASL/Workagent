@@ -1,0 +1,20 @@
+ExpectError: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)
+    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)
+    at Object.toBe (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)
+    at controlProof (/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/r34_final_browser.cjs:9:57)
+    at async /home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/r34_final_browser.cjs:77:25 {
+  matcherResult: {
+    actual: false,
+    expected: true,
+    message: 'expect(received).toBe(expected) // Object.is equality\n' +
+      '\n' +
+      'Expected: true\n' +
+      'Received: false',
+    name: 'toBe',
+    pass: false
+  }
+}

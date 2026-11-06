@@ -1,0 +1,28 @@
+{
+  "decision": "ACCEPT bounded A26 repair; not full A26 or Batch2 acceptance",
+  "review_reused": "/home/ubuntu/workagent-acceptance-remaining-20261026/resumed-gates-repair/revision2/independent-review/REVIEW.md",
+  "review_sha256": "3d32a8b5f81402df4a726eaed1f525ce3521e25a765fb0afaf5a3d3c8bd21d78",
+  "verifier_sha256": "3b13b291bf63a0429dd21d1657cba2e3eb7286449a627cff89adb5d65dd1dc2a",
+  "original_review_receipt_unchanged": true,
+  "current_verification": "/home/ubuntu/workagent-acceptance-remaining-20261026/resumed-gates-repair/revision2/parent-acceptance-20261027/current-source-and-evidence-verification.json",
+  "current_verification_sha256": "20a66af86cbaa8fe07454005962583bbcab48a858d43aa03860cf725731f8ac2",
+  "counts": {
+    "current_source": 612,
+    "original_before_images": 611,
+    "original_public_evidence": 74,
+    "revision2_public_evidence": 72
+  },
+  "implementation_receipts": {
+    "PASS": 29
+  },
+  "independent_review_receipts": {
+    "PASS": 6
+  },
+  "new_tests_run": 0,
+  "source_edits": [],
+  "paid_calls": 0,
+  "source_manifest_sha256": "64e81082effd32572843dbee3b5d3a90347c40f7a07a3c5d616373163c68f59e",
+  "correction_patch_sha256": "c0217defdafbb00dc1b43f2c899f9bb50a049ea3b819cdbcd8a02e075a817c20",
+  "incomplete_review_run_excluded": true,
+  "publication": "HOLD"
+}

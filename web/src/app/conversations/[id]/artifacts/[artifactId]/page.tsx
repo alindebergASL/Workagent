@@ -8,6 +8,7 @@ import { ScopedRecord } from "@/components/ScopedRecord";
 import { useResource } from "@/lib/client/hooks";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { conversationApi } from "@/lib/client/real-api";
+import { scopedSession } from "@/lib/client/session-scope";
 import {
   currentObservation,
   resolveObservations,
@@ -51,6 +52,7 @@ import {
   reviewOf,
   type ReviewableProposal,
 } from "@/lib/proposal-review";
+import { pristineBehind } from "@/lib/pristine-draft";
 import { ProposalReviewGate } from "@/components/ProposalReviewGate";
 import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
@@ -134,7 +136,7 @@ function readDraft(key: string, artifact: S["Artifact"]): Draft {
   const body = artifact.current_revision.body;
   if (!isProduct(body)) throw new Error("Not a typed product.");
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     if (raw) {
       const d = JSON.parse(raw) as Draft;
       if (d.base && d.body?.kind === body.kind) return d;
@@ -332,8 +334,13 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
               artifactId={artifactId}
               wsId={ws!}
               refreshWork={resource.refresh}
+              // The service links a reply to a saved version (and takes files)
+              // only while a model answers this conversation. Without one it
+              // refuses the send, so offer the plain, unlinked reply instead.
               target={
-                CAPABILITIES.naturalAdmission
+                CAPABILITIES.naturalAdmission &&
+                resource.data.conversation.conversation.model_activation ===
+                  "active"
                   ? {
                       artifact_id: resource.data.artifact.id,
                       revision_id: resource.data.artifact.current_revision_id,
@@ -386,6 +393,21 @@ function ProductEditor({
     JSON.stringify(draft.body) !==
       JSON.stringify(artifact.current_revision.body);
   const changed = draft.base !== artifact.current_revision_id;
+  // A draft the person never touched follows the worker's saves: re-based
+  // during render, so no frame claims a conflict or unsaved edits for work
+  // they didn't do. Any typed input, pending write or real difference from
+  // the version the draft was based on keeps the draft and both warnings.
+  if (
+    changed &&
+    pristineBehind(draft, artifact.current_revision_id, data.history, {
+      touched: Boolean(draft.toolInputs),
+    })
+  )
+    setDraft({
+      base: artifact.current_revision_id,
+      body: structuredClone(artifact.current_revision.body as ProductBody),
+      pending: null,
+    });
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   const verified =
     currentObservation(artifact, data.observations.current) && !stale;
@@ -404,7 +426,7 @@ function ProductEditor({
   function keep(next: Draft): boolean {
     setDraft(next);
     try {
-      sessionStorage.setItem(key, JSON.stringify(next));
+      scopedSession.setItem(key, JSON.stringify(next));
       return true;
     } catch {
       setNotice(
@@ -630,161 +652,194 @@ function ProductEditor({
             ReviewableProposal)[],
           artifact.current_revision_id,
         );
-        return [...(c.latest ? [c.latest] : []), ...c.earlier, ...c.outdated];
-      })().map((p) => {
-        const outdated = p.base_revision_id !== artifact.current_revision_id;
-        const review = outdated
-          ? null
-          : reviewOf(
-              p as typeof p & ReviewableProposal,
-              artifact.current_revision.body,
-              candidates(
-                pendingProposals as (typeof p & ReviewableProposal)[],
-                artifact.current_revision_id,
-              ).latest?.id ?? null,
-            );
-        const given = review ? acksFor(acks[p.id], review) : null;
-        const earlier = Boolean(review && !review.isLatest);
-        // The run bound to exactly this proposed version, if any.
-        const proposedRun = stale
-          ? undefined
-          : observations.find((read) => {
-              const o = read.observation;
-              return (
-                read.current_scope &&
-                read.binding_state === "pending_proposal" &&
-                o.proposal_id === p.id &&
-                o.workspace_id === ws &&
-                o.conversation_id === cid &&
-                o.artifact_id === artifact.id &&
-                o.body_hash === p.body_hash
+        const renderCard = (p: (typeof c.outdated)[number]) => {
+          const outdated = p.base_revision_id !== artifact.current_revision_id;
+          const review = outdated
+            ? null
+            : reviewOf(
+                p as typeof p & ReviewableProposal,
+                artifact.current_revision.body,
+                candidates(
+                  pendingProposals as (typeof p & ReviewableProposal)[],
+                  artifact.current_revision_id,
+                ).latest?.id ?? null,
               );
-            });
-        return (
-          <section
-            key={p.id}
-            className="card decision-card product-proposal"
-            data-testid="product-proposal"
-            aria-labelledby={`proposal-${p.id}`}
-          >
-            <p className="eyebrow-caps">
-              {earlier ? "Earlier proposal" : "Waiting for you"}
-            </p>
-            <h2 id={`proposal-${p.id}`}>
-              {outdated
-                ? "This proposal is out of date"
-                : earlier
-                  ? "An earlier proposed version"
-                  : "A proposed version is ready"}
-            </h2>
-            {earlier ? (
-              <p className="small" role="note">
-                A later proposal was made for the same saved version.
+          const given = review ? acksFor(acks[p.id], review) : null;
+          const earlier = Boolean(review && !review.isLatest);
+          // The run bound to exactly this proposed version, if any.
+          const proposedRun = stale
+            ? undefined
+            : observations.find((read) => {
+                const o = read.observation;
+                return (
+                  read.current_scope &&
+                  read.binding_state === "pending_proposal" &&
+                  o.proposal_id === p.id &&
+                  o.workspace_id === ws &&
+                  o.conversation_id === cid &&
+                  o.artifact_id === artifact.id &&
+                  o.body_hash === p.body_hash
+                );
+              });
+          return (
+            <section
+              key={p.id}
+              className="card decision-card product-proposal"
+              data-testid="product-proposal"
+              aria-labelledby={`proposal-${p.id}`}
+            >
+              <p className="eyebrow-caps">
+                {outdated
+                  ? "Out of date"
+                  : earlier
+                    ? "Earlier proposal"
+                    : "Waiting for you"}
               </p>
-            ) : null}
-            {outdated ? (
-              <p className="decision-question" role="status">
-                It was made from an earlier saved version, so it can’t replace
-                your current one. Dismiss it, or ask for a new one in the
-                conversation.
-              </p>
-            ) : null}
-            <p className="small">{p.reason}</p>
-            {isProduct(p.body) ? (
-              <>
-                {p.body.kind === "table" ? (
-                  <p className="decision-question">
-                    {
-                      tableSummary(
-                        p.body,
-                        proposedRun?.observation.output.kind ===
-                          "reconcile_csv",
-                      ).headline
-                    }
-                  </p>
-                ) : p.body.kind === "tool" ? (
-                  <ProposedToolResult body={p.body} read={proposedRun} />
-                ) : null}
-                <details className="ids-details">
-                  <summary>See the proposed version</summary>
-                  <ProductView body={p.body} />
-                  {p.body.kind !== "file" ? (
-                    <p className="small">
-                      Your notes kept:{" "}
-                      {(p.body.notes ?? []).join("; ") || "none"}
-                    </p>
-                  ) : null}
-                </details>
-              </>
-            ) : null}
-            {review && given ? (
-              <ProposalReviewGate
-                review={review}
-                acks={given}
-                disabled={locked || dirty}
-                setAcks={(next) => setAcks((a) => ({ ...a, [p.id]: next }))}
-              />
-            ) : null}
-            <div className="row">
+              <h2 id={`proposal-${p.id}`}>
+                {outdated
+                  ? "This proposal is out of date"
+                  : earlier
+                    ? "An earlier proposed version"
+                    : "A proposed version is ready"}
+              </h2>
+              {earlier ? (
+                <p className="small" role="note">
+                  A later proposal was made for the same saved version.
+                </p>
+              ) : null}
+              {outdated ? (
+                <p className="decision-question" role="status">
+                  It was made from an earlier saved version, so it can’t replace
+                  your current one. Dismiss it, or ask for a new one in the
+                  conversation.
+                </p>
+              ) : null}
+              <p className="small">{p.reason}</p>
               {isProduct(p.body) ? (
+                <>
+                  {p.body.kind === "table" ? (
+                    <p className="decision-question">
+                      {
+                        tableSummary(
+                          p.body,
+                          proposedRun?.observation.output.kind ===
+                            "reconcile_csv",
+                        ).headline
+                      }
+                    </p>
+                  ) : p.body.kind === "tool" ? (
+                    <ProposedToolResult body={p.body} read={proposedRun} />
+                  ) : null}
+                  <details className="ids-details">
+                    <summary>See the proposed version</summary>
+                    <ProductView body={p.body} />
+                    {p.body.kind !== "file" ? (
+                      // Each note as written: one to an item, line breaks kept.
+                      <div className="small" data-testid="proposal-kept-notes">
+                        {p.body.notes?.length ? (
+                          <>
+                            <p>Your notes kept:</p>
+                            <ul className="table-notes">
+                              {p.body.notes.map((n, i) => (
+                                <li key={i}>{n}</li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : (
+                          <p>Your notes kept: none</p>
+                        )}
+                      </div>
+                    ) : null}
+                  </details>
+                </>
+              ) : null}
+              {review && given ? (
+                <ProposalReviewGate
+                  review={review}
+                  acks={given}
+                  disabled={locked || dirty}
+                  setAcks={(next) => setAcks((a) => ({ ...a, [p.id]: next }))}
+                />
+              ) : null}
+              <div className="row">
+                {isProduct(p.body) ? (
+                  <button
+                    className="btn btn-quiet"
+                    disabled={busy || stale}
+                    onClick={() =>
+                      void productApi
+                        .download(ws, artifact, p)
+                        .catch((e) =>
+                          setError(
+                            e instanceof Error ? e.message : "Download failed",
+                          ),
+                        )
+                    }
+                  >
+                    Download proposed file
+                  </button>
+                ) : null}
+                {outdated || !review || !given ? null : (
+                  <button
+                    className={earlier ? "btn btn-quiet" : "btn btn-on-soft"}
+                    disabled={locked || dirty || !canAccept(review, given)}
+                    data-testid="apply-proposal"
+                    onClick={() =>
+                      void submit({
+                        kind: "accept",
+                        id: crypto.randomUUID(),
+                        pid: p.id,
+                        base: artifact.current_revision_id,
+                        acks: ackPayload(review, given),
+                      })
+                    }
+                  >
+                    {earlier
+                      ? "Apply this earlier version"
+                      : "Apply proposed version"}
+                  </button>
+                )}
                 <button
                   className="btn btn-quiet"
-                  disabled={busy || stale}
-                  onClick={() =>
-                    void productApi
-                      .download(ws, artifact, p)
-                      .catch((e) =>
-                        setError(
-                          e instanceof Error ? e.message : "Download failed",
-                        ),
-                      )
-                  }
-                >
-                  Download proposed file
-                </button>
-              ) : null}
-              {outdated || !review || !given ? null : (
-                <button
-                  className={earlier ? "btn btn-quiet" : "btn btn-on-soft"}
-                  disabled={locked || dirty || !canAccept(review, given)}
-                  data-testid="apply-proposal"
+                  disabled={locked}
                   onClick={() =>
                     void submit({
-                      kind: "accept",
+                      kind: "dismiss",
                       id: crypto.randomUUID(),
                       pid: p.id,
                       base: artifact.current_revision_id,
-                      acks: ackPayload(review, given),
+                      resolution: outdated ? "dismiss" : "keep_current",
                     })
                   }
                 >
-                  {earlier
-                    ? "Apply this earlier version"
-                    : "Apply proposed version"}
+                  {outdated ? "Dismiss proposal" : "Keep my current version"}
                 </button>
-              )}
-              <button
-                className="btn btn-quiet"
-                disabled={locked}
-                onClick={() =>
-                  void submit({
-                    kind: "dismiss",
-                    id: crypto.randomUUID(),
-                    pid: p.id,
-                    base: artifact.current_revision_id,
-                    resolution: outdated ? "dismiss" : "keep_current",
-                  })
-                }
-              >
-                {outdated ? "Dismiss proposal" : "Keep my current version"}
-              </button>
-            </div>
-            {!outdated && dirty ? (
-              <p className="small">Save or discard your changes first.</p>
+              </div>
+              {!outdated && dirty ? (
+                <p className="small">Save or discard your changes first.</p>
+              ) : null}
+            </section>
+          );
+        };
+        return (
+          <>
+            {[...(c.latest ? [c.latest] : []), ...c.earlier].map(renderCard)}
+            {/* Made before the saved version changed: they can only be
+                dismissed, so they stay one line and never bury the work. */}
+            {c.outdated.length ? (
+              <details className="ids-details" data-testid="outdated-proposals">
+                <summary>
+                  {c.outdated.length === 1
+                    ? "1 out-of-date proposal"
+                    : `${c.outdated.length} out-of-date proposals`}
+                  , made before your latest saved version
+                </summary>
+                <div className="stack-sm">{c.outdated.map(renderCard)}</div>
+              </details>
             ) : null}
-          </section>
+          </>
         );
-      })}
+      })()}
 
       {draft.body.kind === "file" ? (
         <ProductView body={draft.body} />

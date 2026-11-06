@@ -1,0 +1,13 @@
+{
+  "pid": 128374,
+  "run": "f0116d49-19ae-4310-b7e4-adcca1d0f258",
+  "worker_state": "ready",
+  "compute_calls": 2,
+  "duplicate_suppressed": true,
+  "human_source_unchanged": true,
+  "source": {
+    "workspace_file_id": "324c261b-73ac-4312-8b0c-36ac0be15f51",
+    "version_id": "9c850614-098f-4873-8912-15b17be0dfcc",
+    "sha256": "f76c9f939e5521a2f07e4f4e232d720c411c7e8a67a7a17c910cceb23c457bf0"
+  }
+}

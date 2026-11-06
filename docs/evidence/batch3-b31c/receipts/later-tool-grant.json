@@ -1,0 +1,56 @@
+{
+  "schema_version": "tool-grant/v1",
+  "id": "f4384a46-3e1f-430d-966b-76cdb7665b58",
+  "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+  "principal_id": "local-human",
+  "run_id": "cd66db57-9872-45eb-8a0d-a2b911f9b462",
+  "scope_kind": "task",
+  "scope_id": "01f700fd-1126-45dc-a82a-1fade015e4dd",
+  "capabilities": [
+    {
+      "id": "files.list",
+      "version": "1",
+      "schema_sha256": "4dae751ed7acadba68844d366c58511a688b63d9e0827451ad38b79a70c21362",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    },
+    {
+      "id": "files.read_range",
+      "version": "1",
+      "schema_sha256": "b134c87e22e4f85c491b271ec7c911c7bd09850fd3e6cf0fce586bede44f98d6",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    },
+    {
+      "id": "compute.python",
+      "version": "1",
+      "schema_sha256": "e1f8187117cce593d513e9e53d2daddd5a8b35c62658a805807ed710618b0551",
+      "implementation_sha256": "429eae89241d1553001718e4b5ecc7cd542c6fca01109073f1477fce04ecc6b5"
+    },
+    {
+      "id": "files.create_draft",
+      "version": "1",
+      "schema_sha256": "1bb88253c5f069a3265ba2a6ed68aca58f25f51522d185f779c577325bdc9382",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    }
+  ],
+  "resource_selectors": [
+    {
+      "kind": "workspace_file",
+      "id": "fa0f8926-b4ed-4d7d-961a-a08e5d814109",
+      "version": "15d2cde5-f753-45d0-b6c0-2f858bb92738",
+      "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda"
+    }
+  ],
+  "effects": [
+    "draft",
+    "local_compute",
+    "read"
+  ],
+  "privacy_classes": [
+    "workspace_private"
+  ],
+  "egress": "none",
+  "expires_at": "2026-10-29T00:37:00.853088Z",
+  "access_generation": 1,
+  "budget_account_id": "60cb1638-597e-462e-abb3-bebb4f5f3ecd",
+  "approval_evidence": null
+}

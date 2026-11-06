@@ -1,0 +1,42 @@
+{
+  "owned_services": [
+    {
+      "pid": 8895,
+      "cwd": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate",
+      "port": 18231,
+      "name": "api",
+      "owned_cwd_verified": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate",
+      "port_refused": true,
+      "pid_exists": false
+    },
+    {
+      "pid": 8898,
+      "cwd": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/web",
+      "port": 13231,
+      "name": "web",
+      "owned_cwd_verified": "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/web",
+      "port_refused": true,
+      "pid_exists": false
+    }
+  ],
+  "installed_services": {
+    "workagent-dev-api": "MainPID=917\nActiveState=active\nActiveEnterTimestampMonotonic=8033904",
+    "workagent-dev-web": "MainPID=918\nActiveState=active\nActiveEnterTimestampMonotonic=8036447",
+    "postgresql": "MainPID=0\nActiveState=active\nActiveEnterTimestampMonotonic=8028414",
+    "workagent-idle.timer": "ActiveState=active\nActiveEnterTimestampMonotonic=5275287"
+  },
+  "released": {
+    "released": "ad1b09e6-316b-4e1f-82c3-2bc6cbad3e82"
+  },
+  "lease_readback": {
+    "state": {
+      "boot": "85369732-8ce0-4c34-8720-ba6c4fb3e556",
+      "checked_uptime": 4252.3,
+      "cpu_busy": 23717,
+      "cpu_total": 1699200,
+      "last_activity_uptime": 4255.41
+    },
+    "leases": []
+  },
+  "scope": "No installed runtime changes, no fixture deletion, no database maintenance"
+}

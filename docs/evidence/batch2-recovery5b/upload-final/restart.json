@@ -1,0 +1,1799 @@
+{
+  "phase": "restart",
+  "started": "2026-10-26T21:30:08.990Z",
+  "evidence_type": "real Chromium + current real HTTP/PostgreSQL; synthetic fixture; zero product provider calls",
+  "checks": [
+    {
+      "name": "actual API PID restart with browser kept open retains exact draft/unknown bytes, no automatic writes, old current cursor still accepted"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:30:10.172Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:30:10.820Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:30:10.841Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:30:10.846Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:30:10.855Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.856Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.856Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.877Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.900Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.901Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.910Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.910Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.912Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.914Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.916Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.916Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.917Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.917Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.919Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.922Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.922Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.923Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.924Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.924Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.925Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.925Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.926Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.927Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.927Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.930Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.930Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.939Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.944Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.952Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.954Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.962Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.975Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.991Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.994Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:30:10.998Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.002Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.003Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.015Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.025Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.026Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.027Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.027Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.028Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.032Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.081Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.089Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.104Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.104Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.128Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.133Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.138Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.139Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.139Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.140Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.141Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.141Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.142Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.142Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.143Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.143Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.156Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.157Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.163Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.166Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.173Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.176Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.178Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.183Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.192Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:30:11.197Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:30:11.199Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:30:11.205Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:30:12.739Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+      "at": "2026-10-26T21:30:14.492Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:30:16.101Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:30:16.111Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:30:16.112Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:30:16.117Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU&limit=100",
+      "at": "2026-10-26T21:30:18.060Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+      "at": "2026-10-26T21:30:20.103Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU&limit=100",
+      "at": "2026-10-26T21:30:20.133Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+      "at": "2026-10-26T21:30:24.161Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU&limit=100",
+      "at": "2026-10-26T21:30:24.176Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:30:31.131Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:30:31.692Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+      "at": "2026-10-26T21:30:32.229Z"
+    }
+  ],
+  "idb_before": [
+    {
+      "key": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6|00270df6-618b-4dcd-96b0-bd7914bd9de1",
+      "scope": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "generation": "00270df6-618b-4dcd-96b0-bd7914bd9de1",
+      "staged_at": 1793049905741,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "unknown",
+      "ref": null,
+      "upload": {
+        "command_id": "1b6604f8-1744-45d0-8a71-e852b7f55d1f",
+        "request_id": "9b9d768b-b66f-4b4e-a561-1e1bb5131255",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6"
+      },
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "snapshot_before": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 11,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T21:30:16.963858Z",
+    "snapshot_cursor": "29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+    "execution": {
+      "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+      "state": "stopped",
+      "reason": null,
+      "phase": null,
+      "admitted_at": "2026-10-26T21:08:43.877836Z",
+      "last_progress_at": "2026-10-26T21:24:07.845492Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [
+      {
+        "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+        "state": "blocked",
+        "next_action": {
+          "kind": "review_dependency",
+          "description": "Review changed saved context or the due check-in before continuing."
+        },
+        "next_check_in_at": null,
+        "historical_observation": {
+          "text": "Prepared context only; outcome remains unverified.",
+          "observed_at": "2026-10-26T20:37:33.146981Z"
+        },
+        "review_required": true
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Latest browser proposal retains human notes",
+        "kind": "structured_table",
+        "current_revision_id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+        "body_hash": "7df927f3b9d3f89860920535695a583a93b505fd3f3845ef276ec936a73169a7"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T21:18:55.215553Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      },
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "conversation_before": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T21:08:43.889473Z",
+      "last_message_preview": "Retain and reread the attached PDF; no model evaluation claim.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 11,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      },
+      {
+        "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "sequence": 4,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:00.977242Z"
+      },
+      {
+        "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "sequence": 5,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:58.483556Z"
+      },
+      {
+        "id": "e3eefb66-ad62-422e-bb29-66a5f66cccc6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "sequence": 6,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:06:49.086866Z"
+      },
+      {
+        "id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "sequence": 7,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:08:43.889473Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:29:37.924547Z"
+      },
+      {
+        "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:32:58.409531Z"
+      },
+      {
+        "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:37:31.250611Z"
+      },
+      {
+        "id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:08:43.865498Z"
+      },
+      {
+        "id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:24:07.845492Z"
+      }
+    ],
+    "assignment_ids": [
+      "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+    ],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  },
+  "old_pid": 3850164,
+  "new_pid": 3933826,
+  "snapshot_after": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 11,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T21:30:40.134758Z",
+    "snapshot_cursor": "29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+    "execution": {
+      "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+      "state": "stopped",
+      "reason": null,
+      "phase": null,
+      "admitted_at": "2026-10-26T21:08:43.877836Z",
+      "last_progress_at": "2026-10-26T21:24:07.845492Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [
+      {
+        "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+        "state": "blocked",
+        "next_action": {
+          "kind": "review_dependency",
+          "description": "Review changed saved context or the due check-in before continuing."
+        },
+        "next_check_in_at": null,
+        "historical_observation": {
+          "text": "Prepared context only; outcome remains unverified.",
+          "observed_at": "2026-10-26T20:37:33.146981Z"
+        },
+        "review_required": true
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Latest browser proposal retains human notes",
+        "kind": "structured_table",
+        "current_revision_id": "742bac81-4b55-46ca-bc9d-8ec5a02af3c9",
+        "body_hash": "7df927f3b9d3f89860920535695a583a93b505fd3f3845ef276ec936a73169a7"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T21:18:55.215553Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      },
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "conversation_after": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T21:08:43.889473Z",
+      "last_message_preview": "Retain and reread the attached PDF; no model evaluation claim.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 11,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line ♪"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      },
+      {
+        "id": "87651cc7-724d-4458-a3cb-2184767cb76c",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "sequence": 4,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:00.977242Z"
+      },
+      {
+        "id": "4f47b20c-237c-49e3-954c-ab39a4542e0a",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "sequence": 5,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "  Unknown ACK fault202 雪\nExact replay only.\n",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:32:58.483556Z"
+      },
+      {
+        "id": "e3eefb66-ad62-422e-bb29-66a5f66cccc6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "sequence": 6,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:06:49.086866Z"
+      },
+      {
+        "id": "172ff013-2fce-41b3-bd42-2774441d28d6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "sequence": 7,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Retain and reread the attached PDF; no model evaluation claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "document_refs": [
+          {
+            "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+            "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+            "workspace_id": "recovery5a-workspace",
+            "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+            "owner_id": "local-human",
+            "filename": "continuity.pdf",
+            "mime_type": "application/pdf",
+            "byte_length": 568,
+            "status": "extracted",
+            "reason": "text_extracted",
+            "parser_version": "confined-documents-v1",
+            "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+            "text_bytes": 45,
+            "coverage": {
+              "omissions": [
+                "images, layout and non-text content"
+              ],
+              "total_pages": 1,
+              "covered_pages": 1,
+              "omitted_pages": 0,
+              "empty_pages_needing_ocr": [],
+              "partial_last_page": false
+            },
+            "limits": {
+              "rows": 1000,
+              "cells": 10000,
+              "pages": 50,
+              "sheets": 10,
+              "zip_bytes": 20971520,
+              "zip_ratio": 100,
+              "text_bytes": 102400,
+              "input_bytes": 5242880,
+              "zip_entries": 1000
+            },
+            "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+          }
+        ],
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T21:08:43.889473Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:29:37.924547Z"
+      },
+      {
+        "id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:32:58.409531Z"
+      },
+      {
+        "id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:37:31.250611Z"
+      },
+      {
+        "id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:08:43.865498Z"
+      },
+      {
+        "id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "cancelled",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T21:24:07.845492Z"
+      }
+    ],
+    "assignment_ids": [
+      "e921371f-cd32-4f5b-8ca2-81fc537f68ae"
+    ],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c5cc5aa4-40f3-4282-85b6-80d7fc6cf583",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "660e104c-c329-4c42-a038-5d8e720f8071",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "d83b432c-cabb-445b-a931-b738ce1c8726",
+        "state": "cancelled",
+        "reason": "Turn cancelled or superseded.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  },
+  "cursor_replay": {
+    "events": [],
+    "next_cursor": "29b35e8d-7128-4e0e-a696-7e63d144558b.1.bxv7eVufWPgPpMlhU6UX6Z4VmLSIccoSIqTLYDNvGdU",
+    "has_more": false,
+    "reset_required": false,
+    "checked_at": "2026-10-26T21:30:40.317197Z"
+  },
+  "status": "PASS",
+  "finished": "2026-10-26T21:30:41.212Z"
+}

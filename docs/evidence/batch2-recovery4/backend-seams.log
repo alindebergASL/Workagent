@@ -1,0 +1,287 @@
+.............................F.......................FF....F............ [ 18%]
+............................................................
+=================================== FAILURES ===================================
+___________ test_no_provider_imports_or_key_reads_in_cli_subprocess ____________
+
+context = (<workagent.service.Service object at 0x7fa7f04c7f80>, Principal(id='local-human', kind='human'), 'test-50b758ea-3380-...me.datetime(2026, 10, 26, 19, 12, 45, 249972, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_no_provider_imports_or_key_reads_in_cli_subprocess(context):
+        s,p,ws,_,_=context
+        # Fresh interpreter with guarded provider modules, keys and non-loopback sockets.
+        script='''
+    import importlib.abc, os, socket, sys
+    class DenyProvider(importlib.abc.MetaPathFinder):
+        def find_spec(self,fullname,*args):
+            if fullname.split('.')[0] in ('openai','anthropic','agents','litellm') or fullname.startswith('workagent.responses'):
+                raise AssertionError('provider import denied')
+    sys.meta_path.insert(0,DenyProvider())
+    old=os._Environ.__getitem__
+    def guarded(self,key):
+        if any(word in key.upper() for word in ('OPENAI','ANTHROPIC','API_KEY','PROVIDER')):
+            raise AssertionError('provider credential lookup denied')
+        return old(self,key)
+    os._Environ.__getitem__=guarded
+    connect=socket.socket.connect
+    def local(self,address):
+        if isinstance(address,tuple) and address[0] not in ('127.0.0.1','localhost','::1'):
+            raise AssertionError('external network denied')
+        return connect(self,address)
+    socket.socket.connect=local
+    from workagent.prompt_cli import main
+    raise SystemExit(main(['--controlled','--workspace',sys.argv[1],'prompt','No provider path']))
+    '''
+        child=subprocess.run([sys.executable,'-c',script,ws],env=os.environ,capture_output=True,text=True)
+>       assert child.returncode==0,child.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 21, in <module>
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/prompt_cli.py", line 122, in main
+E             queued=service.post_message(principal,workspace,cid,command(PostMessage,expected_work_version=expected,text=args.text,operation=operation,attachments=attachments,target=target))
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/conversations.py", line 176, in post_message
+E             return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 199, in _command
+E             result = mutate(c, authorized)
+E                      ^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/conversations.py", line 178, in <lambda>
+E             lambda c,cv:self._admit_conversation_turn(c,p,ws,cv,cmd))
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/conversations.py", line 219, in _admit_conversation_turn
+E             from .retained_results import enabled as retained_enabled
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/retained_results.py", line 5, in <module>
+E             from .composition import ReadDecision, ContinuityDecision, CONTINUITY_POLICY
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/composition.py", line 7, in <module>
+E             from .general_schema import Closed, Reply, CSVDecision, WasmDecision, PublishDecision, DecisionTarget, AttachmentRef
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_schema.py", line 6, in <module>
+E             from .responses_transport import FrozenSchema
+E           File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+E           File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+E           File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+E           File "<string>", line 6, in find_spec
+E         AssertionError: provider import denied
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python', '-c', "\nimport import...tstrap>", line 1262, in _find_spec\n  File "<string>", line 6, in find_spec\nAssertionError: provider import denied\n').returncode
+
+backend/tests/test_conversations.py:289: AssertionError
+______ test_exact_four_natural_turns_real_http_cli_and_home_recipe[http] _______
+
+context = (<workagent.service.Service object at 0x7fa7f083f7d0>, Principal(id='local-human', kind='human'), 'test-378e529c-cd71-...me.datetime(2026, 10, 26, 19, 16, 50, 439030, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-63/test_exact_four_natural_turns_0')
+entry = 'http'
+
+    @pytest.mark.parametrize('entry',['http','cli'])
+    def test_exact_four_natural_turns_real_http_cli_and_home_recipe(context,tmp_path,entry):
+        s,p,ws,_,_=context
+        with api(context) as client:
+            base=f'/v1/workspaces/{ws}'
+            def post(path,command,code=200):
+                response=client.post(base+path,json=command.model_dump(mode='json'))
+                assert response.status_code==code,response.text
+                return response.json()
+            cv1=post('/conversations',cmd(CreateConversation,title='Invoice reconciliation'),201)
+            cv2=post('/conversations',cmd(CreateConversation,title='Invoice calculator'),201)
+            grant=activate(context,[Conversation.model_validate(cv1),Conversation.model_validate(cv2)])
+            fixture=ExactFourProvider()
+            def dispatch():
+                # New runtime/service each time, stable private recovery state, no fixture worker.
+                restarted=(Service(Database(s.db.dsn)),p,ws,[],context[-1])
+                result=ResponsesDispatcher(worker(restarted,fixture,tmp_path/'worker'),workspace=ws,grant_id=grant.id).once()
+                assert result['results'] and all(r['status']=='completed' for r in result['results']),result
+            def send(cv,text,attachment=None,target=None):
+                version=client.get(base+'/conversations/'+cv['id']).json()['conversation']['work_version']
+                command=cmd(PostMessage,expected_work_version=version,text=text,attachments=[attachment] if attachment else [],target=target)
+                if entry=='http':
+                    result=post('/conversations/'+cv['id']+'/messages',command,202)
+                    replay=post('/conversations/'+cv['id']+'/messages',command,202)
+                    assert replay['run']['id']==result['run']['id']
+                else:
+                    args=[sys.executable,'-m','workagent.prompt_cli','--general-responses','--workspace',ws,'continue',cv['id'],text]
+                    if attachment:
+                        attachment_path=tmp_path/attachment.filename; attachment_path.write_text(attachment.content)
+                        args+=['--attach',str(attachment_path)]
+                    if target: args+=['--target-artifact',target.artifact_id,'--target-revision',target.revision_id,'--target-body-hash',target.body_hash]
+                    result=subprocess.run(args,env={**os.environ,'LOCAL_BEARER_TOKEN':TOKEN},capture_output=True,text=True,timeout=30)
+                    assert result.returncode==0,result.stderr
+                    assert 'general-responses-v1' in result.stdout
+                dispatch()
+                detail=client.get(base+'/conversations/'+cv['id']).json()
+                assert detail['assignment_ids']==[]
+                assert detail['turns'][-1]['provider_observation']=='received'
+                assert detail['turns'][-1]['evidence_origin']=='synthetic_provider_receipt'
+                return detail['messages'][-1]['result']['results'][1]
+            def artifact(id):
+                response=client.get(base+'/artifacts/'+id); assert response.status_code==200
+                return Artifact.model_validate(response.json())
+            from workagent.message_models import AttachmentInput,ExactTarget
+            first=send(cv1,'Reconcile this invoice CSV. Keep original values and notes; show discrepancies and give me a downloadable result.',AttachmentInput(filename='invoices.csv',mime_type='text/csv',content=CSV))
+            table=artifact(first['artifact_id'])
+            observed_csv=client.get(base+'/observations/'+first['observation_id']).json()['observation']['output']
+            assert observed_csv['reported_sum']=='78.40' and observed_csv['expected_sum']=='77.40' and observed_csv['discrepancies']==['B']
+            assert client.get(base+'/artifacts/'+table.id+'/download').status_code==200
+            body=table.current_revision.body.model_dump(mode='json'); body['rows'][1]['unit_price']='12.495'; body['rows'][1]['note']='Human: keep my corrected price and note.'
+            saved=Artifact.model_validate(post('/artifacts/'+table.id+'/save',cmd(HumanSave,expected_current_revision_id=table.current_revision_id,body=TableBody.model_validate(body))))
+            target=ExactTarget(artifact_id=saved.id,revision_id=saved.current_revision_id,body_hash=saved.current_revision.body_hash)
+            revision=send(cv1,'Recalculate my saved table using round-half-even. Preserve my edits and propose the change.',target=target)
+            proposal=client.get(base+'/artifacts/'+saved.id+'/proposals').json()['items'][0]
+            assert proposal['id']==revision['proposal_id'] and proposal['status']=='pending'
+            assert proposal['base_revision_id']==saved.current_revision_id
+            assert proposal['body']['rows'][1]['note']==body['rows'][1]['note']
+            assert proposal['body']['rows'][1]['calculated_total']=='37.48' and proposal['body']['rows'][1]['difference']=='1.02'
+            assert client.get(base+'/observations/'+revision['observation_id']).json()['observation']['output']['expected_sum']=='77.38'
+            assert artifact(saved.id).current_revision_id==saved.current_revision_id
+            initial_tool=send(cv2,'Build a small local invoice-total calculator with quantity and unit price in cents. Test quantity3 and price1250.')
+            tool=artifact(initial_tool['artifact_id']); toolbody=tool.current_revision.body.model_dump(mode='json'); toolbody['notes']=['Human: keep cents, not dollars.']
+            edited=Artifact.model_validate(post('/artifacts/'+tool.id+'/save',cmd(HumanSave,expected_current_revision_id=tool.current_revision_id,body=ToolBody.model_validate(toolbody))))
+            revised_tool=send(cv2,'Add shipping as a separate cents input. Test3 items at1250 cents plus500 shipping. Preserve my note and propose the update.',target=ExactTarget(artifact_id=edited.id,revision_id=edited.current_revision_id,body_hash=edited.current_revision.body_hash))
+            observed=client.get(base+'/observations/'+revised_tool['observation_id']).json()
+            assert observed['observation']['output']['value']=='4250'
+            assert observed['binding_state']=='pending_proposal'
+            assert observed['observation']['evidence_origin']=='local_tool'
+            assert [r['output']['value'] for r in fixture.local_results if r['output']['kind']=='run_wasm']==[3750,4250]
+            assert len(fixture.inputs)==4 and len(fixture.local_results)==4
+            status=general_status(s.db,ws,grant.id)
+            assert status['budget']['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
+>           assert status['budget']['reserved_input_tokens']==160000 and status['budget']['reserved_output_tokens']==65536
+E           assert (400000 == 160000)
+
+backend/tests/test_general_responses_journey.py:129: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 311, "utf8_bytes": 813}, "other_context": {"estimated_tokens": 164, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 121, "utf8_bytes": 448}}, "estimated_input_tokens": 4578, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18835, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "b7b5ac6b6073ec51d4cf6af6207c1e14a9f0d528b536fec8b295b9a2918c2cd3", "run_id": "b1c1cb52-336e-4631-bfa1-c86041eea19e"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 873, "utf8_bytes": 2636}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 311, "utf8_bytes": 813}, "other_context": {"estimated_tokens": 164, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 121, "utf8_bytes": 448}}, "estimated_input_tokens": 2919, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 12327, "phase": "final", "provider_count_authoritative": true, "request_sha256": "63fc9d8ff4eefe1c01e44327bdd2c7e7735b19639cd0cf4752d2996a91dfd4e1", "run_id": "b1c1cb52-336e-4631-bfa1-c86041eea19e"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 978, "utf8_bytes": 2586}, "other_context": {"estimated_tokens": 166, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 420, "utf8_bytes": 1216}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 678, "utf8_bytes": 1738}}, "estimated_input_tokens": 6259, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 23532, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "565950fa1adfe835c510c8dce9860a08a773f3d979c92feaac4b5bd3ac0baaa0", "run_id": "b7606c77-1c7f-4007-9a52-7218724219b6"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 950, "utf8_bytes": 2834}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 978, "utf8_bytes": 2586}, "other_context": {"estimated_tokens": 166, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 420, "utf8_bytes": 1216}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 678, "utf8_bytes": 1738}}, "estimated_input_tokens": 4677, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 17222, "phase": "final", "provider_count_authoritative": true, "request_sha256": "ce0e9f88fc0553b288b33f3bd3b032b88ba2545c9911853ef2ec29b6927de68e", "run_id": "b7606c77-1c7f-4007-9a52-7218724219b6"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 167, "utf8_bytes": 488}, "other_context": {"estimated_tokens": 164, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 120, "utf8_bytes": 448}}, "estimated_input_tokens": 4428, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18484, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "9264edcb796e0e5bdd538e3e440e1136bb8592d986d7bebf7e9b53d704959dd6", "run_id": "b38410a2-8d99-499f-915d-21023b5af7ac"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 794, "utf8_bytes": 2404}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 167, "utf8_bytes": 488}, "other_context": {"estimated_tokens": 164, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 120, "utf8_bytes": 448}}, "estimated_input_tokens": 2690, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 11744, "phase": "final", "provider_count_authoritative": true, "request_sha256": "7786ee2c022a626f5bfd9acbbbef9907bb5a43a4aa6d796317ac9b5d79eb5867", "run_id": "b38410a2-8d99-499f-915d-21023b5af7ac"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 831, "utf8_bytes": 2292}, "other_context": {"estimated_tokens": 167, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 312, "utf8_bytes": 889}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 632, "utf8_bytes": 1701}}, "estimated_input_tokens": 5954, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 22780, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "363fb866daa0b2caec5ab87b975b376ef761619ba150a609018e9b909769fdf5", "run_id": "7ef57acb-d724-44b0-85a7-2e2d5d608c7a"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1068, "utf8_bytes": 3115}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 831, "utf8_bytes": 2292}, "other_context": {"estimated_tokens": 167, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 312, "utf8_bytes": 889}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 632, "utf8_bytes": 1701}}, "estimated_input_tokens": 4490, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 16751, "phase": "final", "provider_count_authoritative": true, "request_sha256": "5d19e370ed8ce1aa31a5357d11ebe670cdb4459c6fb8a066d873896b8f6625a1", "run_id": "7ef57acb-d724-44b0-85a7-2e2d5d608c7a"}
+_______ test_exact_four_natural_turns_real_http_cli_and_home_recipe[cli] _______
+
+context = (<workagent.service.Service object at 0x7fa7ef812d50>, Principal(id='local-human', kind='human'), 'test-ddd26087-be65-...me.datetime(2026, 10, 26, 19, 17, 35, 997751, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-63/test_exact_four_natural_turns_1')
+entry = 'cli'
+
+    @pytest.mark.parametrize('entry',['http','cli'])
+    def test_exact_four_natural_turns_real_http_cli_and_home_recipe(context,tmp_path,entry):
+        s,p,ws,_,_=context
+        with api(context) as client:
+            base=f'/v1/workspaces/{ws}'
+            def post(path,command,code=200):
+                response=client.post(base+path,json=command.model_dump(mode='json'))
+                assert response.status_code==code,response.text
+                return response.json()
+            cv1=post('/conversations',cmd(CreateConversation,title='Invoice reconciliation'),201)
+            cv2=post('/conversations',cmd(CreateConversation,title='Invoice calculator'),201)
+            grant=activate(context,[Conversation.model_validate(cv1),Conversation.model_validate(cv2)])
+            fixture=ExactFourProvider()
+            def dispatch():
+                # New runtime/service each time, stable private recovery state, no fixture worker.
+                restarted=(Service(Database(s.db.dsn)),p,ws,[],context[-1])
+                result=ResponsesDispatcher(worker(restarted,fixture,tmp_path/'worker'),workspace=ws,grant_id=grant.id).once()
+                assert result['results'] and all(r['status']=='completed' for r in result['results']),result
+            def send(cv,text,attachment=None,target=None):
+                version=client.get(base+'/conversations/'+cv['id']).json()['conversation']['work_version']
+                command=cmd(PostMessage,expected_work_version=version,text=text,attachments=[attachment] if attachment else [],target=target)
+                if entry=='http':
+                    result=post('/conversations/'+cv['id']+'/messages',command,202)
+                    replay=post('/conversations/'+cv['id']+'/messages',command,202)
+                    assert replay['run']['id']==result['run']['id']
+                else:
+                    args=[sys.executable,'-m','workagent.prompt_cli','--general-responses','--workspace',ws,'continue',cv['id'],text]
+                    if attachment:
+                        attachment_path=tmp_path/attachment.filename; attachment_path.write_text(attachment.content)
+                        args+=['--attach',str(attachment_path)]
+                    if target: args+=['--target-artifact',target.artifact_id,'--target-revision',target.revision_id,'--target-body-hash',target.body_hash]
+                    result=subprocess.run(args,env={**os.environ,'LOCAL_BEARER_TOKEN':TOKEN},capture_output=True,text=True,timeout=30)
+                    assert result.returncode==0,result.stderr
+                    assert 'general-responses-v1' in result.stdout
+                dispatch()
+                detail=client.get(base+'/conversations/'+cv['id']).json()
+                assert detail['assignment_ids']==[]
+                assert detail['turns'][-1]['provider_observation']=='received'
+                assert detail['turns'][-1]['evidence_origin']=='synthetic_provider_receipt'
+                return detail['messages'][-1]['result']['results'][1]
+            def artifact(id):
+                response=client.get(base+'/artifacts/'+id); assert response.status_code==200
+                return Artifact.model_validate(response.json())
+            from workagent.message_models import AttachmentInput,ExactTarget
+            first=send(cv1,'Reconcile this invoice CSV. Keep original values and notes; show discrepancies and give me a downloadable result.',AttachmentInput(filename='invoices.csv',mime_type='text/csv',content=CSV))
+            table=artifact(first['artifact_id'])
+            observed_csv=client.get(base+'/observations/'+first['observation_id']).json()['observation']['output']
+            assert observed_csv['reported_sum']=='78.40' and observed_csv['expected_sum']=='77.40' and observed_csv['discrepancies']==['B']
+            assert client.get(base+'/artifacts/'+table.id+'/download').status_code==200
+            body=table.current_revision.body.model_dump(mode='json'); body['rows'][1]['unit_price']='12.495'; body['rows'][1]['note']='Human: keep my corrected price and note.'
+            saved=Artifact.model_validate(post('/artifacts/'+table.id+'/save',cmd(HumanSave,expected_current_revision_id=table.current_revision_id,body=TableBody.model_validate(body))))
+            target=ExactTarget(artifact_id=saved.id,revision_id=saved.current_revision_id,body_hash=saved.current_revision.body_hash)
+            revision=send(cv1,'Recalculate my saved table using round-half-even. Preserve my edits and propose the change.',target=target)
+            proposal=client.get(base+'/artifacts/'+saved.id+'/proposals').json()['items'][0]
+            assert proposal['id']==revision['proposal_id'] and proposal['status']=='pending'
+            assert proposal['base_revision_id']==saved.current_revision_id
+            assert proposal['body']['rows'][1]['note']==body['rows'][1]['note']
+            assert proposal['body']['rows'][1]['calculated_total']=='37.48' and proposal['body']['rows'][1]['difference']=='1.02'
+            assert client.get(base+'/observations/'+revision['observation_id']).json()['observation']['output']['expected_sum']=='77.38'
+            assert artifact(saved.id).current_revision_id==saved.current_revision_id
+            initial_tool=send(cv2,'Build a small local invoice-total calculator with quantity and unit price in cents. Test quantity3 and price1250.')
+            tool=artifact(initial_tool['artifact_id']); toolbody=tool.current_revision.body.model_dump(mode='json'); toolbody['notes']=['Human: keep cents, not dollars.']
+            edited=Artifact.model_validate(post('/artifacts/'+tool.id+'/save',cmd(HumanSave,expected_current_revision_id=tool.current_revision_id,body=ToolBody.model_validate(toolbody))))
+            revised_tool=send(cv2,'Add shipping as a separate cents input. Test3 items at1250 cents plus500 shipping. Preserve my note and propose the update.',target=ExactTarget(artifact_id=edited.id,revision_id=edited.current_revision_id,body_hash=edited.current_revision.body_hash))
+            observed=client.get(base+'/observations/'+revised_tool['observation_id']).json()
+            assert observed['observation']['output']['value']=='4250'
+            assert observed['binding_state']=='pending_proposal'
+            assert observed['observation']['evidence_origin']=='local_tool'
+            assert [r['output']['value'] for r in fixture.local_results if r['output']['kind']=='run_wasm']==[3750,4250]
+            assert len(fixture.inputs)==4 and len(fixture.local_results)==4
+            status=general_status(s.db,ws,grant.id)
+            assert status['budget']['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
+>           assert status['budget']['reserved_input_tokens']==160000 and status['budget']['reserved_output_tokens']==65536
+E           assert (400000 == 160000)
+
+backend/tests/test_general_responses_journey.py:129: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 317, "utf8_bytes": 813}, "other_context": {"estimated_tokens": 171, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 126, "utf8_bytes": 448}}, "estimated_input_tokens": 4596, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18835, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "04406ce693ac9c27a9b82c9b0938bdd017b6059da6a8f553d47dd0e5464324b3", "run_id": "ce7e5b04-3a11-40bb-aef1-e3b25c3748fd"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 864, "utf8_bytes": 2636}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 317, "utf8_bytes": 813}, "other_context": {"estimated_tokens": 171, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 126, "utf8_bytes": 448}}, "estimated_input_tokens": 2928, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 12327, "phase": "final", "provider_count_authoritative": true, "request_sha256": "c5fbdb27bfafb2d3e75f4b564f02cc321474e24c706fc876a8088ed6ad3641eb", "run_id": "ce7e5b04-3a11-40bb-aef1-e3b25c3748fd"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 977, "utf8_bytes": 2586}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 416, "utf8_bytes": 1216}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 671, "utf8_bytes": 1738}}, "estimated_input_tokens": 6249, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 23532, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "e45b0ef46ec21f0ad07929fef0174f25b57fbd8df59f2314430096dcc1f383be", "run_id": "837c4923-aa60-4aa0-bf92-f86adacf4c2e"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 936, "utf8_bytes": 2834}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 977, "utf8_bytes": 2586}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 416, "utf8_bytes": 1216}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 671, "utf8_bytes": 1738}}, "estimated_input_tokens": 4653, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 17222, "phase": "final", "provider_count_authoritative": true, "request_sha256": "080c5fdcc3c518e2cc00656795a8fd0ecebc0ac1b7f1911466d93f9c00368eca", "run_id": "837c4923-aa60-4aa0-bf92-f86adacf4c2e"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 167, "utf8_bytes": 488}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 123, "utf8_bytes": 448}}, "estimated_input_tokens": 4435, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18484, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "d73cedadef9f63daacedd757397ab9505e4ec6996b37d83d4ea0c8640477a2b0", "run_id": "2b1056fe-c86f-4ad4-a09a-43a1e06193e4"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 799, "utf8_bytes": 2404}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 167, "utf8_bytes": 488}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 123, "utf8_bytes": 448}}, "estimated_input_tokens": 2702, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 11744, "phase": "final", "provider_count_authoritative": true, "request_sha256": "f4f26a444de760cc8ee7fc636dd1d3ba03728c582e865877f8c41b314e6891bc", "run_id": "2b1056fe-c86f-4ad4-a09a-43a1e06193e4"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 832, "utf8_bytes": 2292}, "other_context": {"estimated_tokens": 166, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 312, "utf8_bytes": 889}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 633, "utf8_bytes": 1701}}, "estimated_input_tokens": 5955, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 22780, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "5de6c0149b193ef13ea95573a9869c399a04efabb6e9fd3f3fbadf5f0a11f149", "run_id": "c191c36b-29d2-4713-bb48-393a84cd77ca"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1056, "utf8_bytes": 3115}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 832, "utf8_bytes": 2292}, "other_context": {"estimated_tokens": 166, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 312, "utf8_bytes": 889}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 633, "utf8_bytes": 1701}}, "estimated_input_tokens": 4479, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 16751, "phase": "final", "provider_count_authoritative": true, "request_sha256": "bea3463a7de9d6084521dd65cc6087c9465a72a07912aed7160625c7ab613f94", "run_id": "c191c36b-29d2-4713-bb48-393a84cd77ca"}
+__________ test_predispatch_revoke_blocks_send_and_keeps_reservation ___________
+
+context = (<workagent.service.Service object at 0x7fa7f03006b0>, Principal(id='local-human', kind='human'), 'test-cddbbb03-6412-...time.datetime(2026, 10, 26, 19, 19, 7, 60489, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-63/test_predispatch_revoke_blocks0')
+
+    def test_predispatch_revoke_blocks_send_and_keeps_reservation(context,tmp_path):
+        from workagent.provider_attempts import revoke_grant
+        s,p,ws,_,admin=context
+        cv,g,fake,q,w=setup(context,tmp_path)
+        def revoke(name):
+            if name=='after_predispatch':revoke_grant(Database(admin),g.id)
+        w.phases.hook=revoke
+        with pytest.raises(Exception):w.work(p,ws,q.run.id)
+        assert len(fake.responses)==0 and len(fake.calls)==1
+        assert totals(s,g)['request_counts']['dispatch']==1
+>       assert totals(s,g)['reserved_input_tokens']==20000
+E       assert 50000 == 20000
+
+backend/tests/test_general_responses_gates.py:58: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 305, "utf8_bytes": 745}, "other_context": {"estimated_tokens": 169, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 126, "utf8_bytes": 448}}, "estimated_input_tokens": 4582, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18767, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "58b2e048eddd2cbf0b96ade6b14292264c25ebd8af70bb1c8daef892582348a8", "run_id": "22b340d1-1686-4867-9368-02a2855dcfa2"}
+------------------------------ Captured log call -------------------------------
+WARNING  workagent.responses_worker:responses_worker.py:337 {"event": "provider_io_not_started", "run_id": "22b340d1-1686-4867-9368-02a2855dcfa2", "attempt_id": "d3d10e54-7675-46ad-9334-e77655fd9e19", "phase": "selection", "operation": "dispatch", "reason": "authority_changed", "reservation_committed": true}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery4/backend-seams.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_conversations.py::test_no_provider_imports_or_key_reads_in_cli_subprocess
+FAILED backend/tests/test_general_responses_journey.py::test_exact_four_natural_turns_real_http_cli_and_home_recipe[http]
+FAILED backend/tests/test_general_responses_journey.py::test_exact_four_natural_turns_real_http_cli_and_home_recipe[cli]
+FAILED backend/tests/test_general_responses_gates.py::test_predispatch_revoke_blocks_send_and_keeps_reservation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:110: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+4 failed, 128 passed, 1 warning in 1001.15s (0:16:41)

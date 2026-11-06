@@ -1,0 +1,53 @@
+{
+  "tables": {
+    "conversations": {
+      "count": 91,
+      "sha256": "a61c66838551dca1183d39421770f307bf694a1a63b02116a025f2bb805c1258"
+    },
+    "general_grant_continuations": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "memberships": {
+      "count": 86,
+      "sha256": "afb3106ea4566c8e13ae9646aa14b96f3e8bc0ff2c0232edf2fcc78d1b3cd094"
+    },
+    "provider_attempts": {
+      "count": 30,
+      "sha256": "743c32d503ae6a8ce87a34e2d1f9d4b9a2d24d77543100f0d030bac31d879605"
+    },
+    "provider_grants": {
+      "count": 30,
+      "sha256": "a8a5aad5a4e11bb6d663959321a1a7f93993fb4686741662d8994f663885f109"
+    },
+    "responses_budget_carry": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "responses_consumer_uses": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "responses_events": {
+      "count": 376,
+      "sha256": "ea235052679e0798a01665425bcb2eb3943dfdba23c4e365545d33015a96e507"
+    },
+    "responses_steps": {
+      "count": 67,
+      "sha256": "5717afb4f08e45424bf39bb0775caff3a20ea75d06c7e417c5da0a2861de1a12"
+    },
+    "run_dispatches": {
+      "count": 71,
+      "sha256": "136ae92898b370843bb11c561870f4d4f6ce149dc70c7cb58b47cbedd7fdba27"
+    },
+    "source_access": {
+      "count": 525,
+      "sha256": "8d294b1277c1d38aef666592b8b5a14248b247965fd87db58de2259b3822aca8"
+    }
+  },
+  "provider_matches_prior": true,
+  "database_mutations": 0,
+  "new_product_provider_calls": 0,
+  "new_product_spend": 0,
+  "all_audited_state_unchanged": true
+}

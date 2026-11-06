@@ -1,0 +1,2 @@
+{"passed": true, "label": "file-citations-after-restart", "counts": {"tool_attempts": 7, "tool_events": 14, "tool_costs": 14, "provider_events": 75, "source_snapshots": 2}, "completed_runs": 3, "provider_calls": 0}
+readback exit 0

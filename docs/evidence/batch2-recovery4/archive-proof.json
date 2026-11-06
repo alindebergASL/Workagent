@@ -1,0 +1,9 @@
+{
+  "archive": "/home/ubuntu/workagent-continuation-20261026/.local/recovery4-evidence.zip",
+  "archive_sha256": "908feadd7ef4e13fa973a6de8c74f4cba36b8baf1ce7479049952122732a0d98",
+  "bytes": 343722,
+  "members": 51,
+  "source_files_verified": 599,
+  "secret_scan": "clean exact private credentials and env-path exclusion",
+  "zip_integrity": "PASS"
+}

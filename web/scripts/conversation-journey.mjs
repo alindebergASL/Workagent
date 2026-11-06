@@ -17,6 +17,7 @@ import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { scopedHeaders } from "./lib/scope.mjs";
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -26,10 +27,10 @@ const out = path.resolve(process.argv[2]);
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const base = `${origin}/api/domain/v1/workspaces/local-workspace`;
-const headers = {
+const headers = await scopedHeaders(origin, {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
-};
+});
 const api = async (p, body) => {
   const r = await fetch(base + p, {
     method: body ? "POST" : "GET",

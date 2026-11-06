@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="1.218" timestamp="2026-10-26T17:37:40.816267+00:00" hostname="ip-10-0-3-214"><testcase classname="backend.tests.test_document_confinement" name="test_real_cpu_bomb_stopped" file="backend/tests/test_document_confinement.py" line="78" time="0.297"><failure message="TimeoutError: parser_timeout">tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-61/test_real_cpu_bomb_stopped0')
+record_property = &lt;function record_property.&lt;locals&gt;.append_property at 0x7364428802c0&gt;
+
+    def test_real_cpu_bomb_stopped(tmp_path, record_property):
+        # RLIMIT_CPU counts scheduled CPU, not elapsed time. Give this proof alone
+        # scheduling headroom; the production wall guard remains 15 seconds. A wall
+        # timeout is still a failure here, NEVER alternative CPU-enforcement evidence.
+        started = time.monotonic()
+&gt;       code, out, err = probe(tmp_path, '''
+    import json, resource, time
+    print(json.dumps({'cpu_limit': resource.getrlimit(resource.RLIMIT_CPU)}), flush=True)
+    while time.process_time() &lt; 4.5:
+     pass
+    print(json.dumps({'cpu_seconds': time.process_time()}), flush=True)
+    while True: pass
+    ''', timeout=60)
+
+backend/tests/test_document_confinement.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/recovery2/cpu_wall_negative.py:11: in short_wall
+    return original(tmp_path, code, timeout=0.25)
+backend/tests/test_document_confinement.py:17: in probe
+    return run_confined(b'synthetic', 'probe', module_path=script, wall_seconds=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+raw = b'synthetic', kind = 'probe'
+
+    def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WALL_SECONDS):
+        """Bound both pipes concurrently and kill the entire jail on every early exit.
+    
+        module_path is an internal testing seam, never supplied by an HTTP command.
+        """
+        if len(raw) &gt; MAX_ORIGINAL:
+            raise ValueError('input_limit')
+        module_path = module_path or Path(__file__).with_name('document_parser.py')
+        with tempfile.TemporaryDirectory(prefix='workagent-document-') as directory:
+            input_path = Path(directory) / 'original'
+            input_path.write_bytes(raw)
+            argv = jail_argv(input_path, module_path, kind, packages)
+            process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, close_fds=True, start_new_session=True,
+                                       env={}, cwd=directory)
+            output, errors = bytearray(), bytearray()
+            deadline = time.monotonic() + wall_seconds
+            try:
+                with selectors.DefaultSelector() as selector:
+                    for pipe, target in ((process.stdout, output), (process.stderr, errors)):
+                        os.set_blocking(pipe.fileno(), False)
+                        selector.register(pipe, selectors.EVENT_READ, target)
+                    while selector.get_map():
+                        remaining = deadline - time.monotonic()
+                        if remaining &lt;= 0:
+&gt;                           raise TimeoutError('parser_timeout')
+E                           TimeoutError: parser_timeout
+
+backend/workagent/document_sandbox.py:82: TimeoutError</failure></testcase></testsuite></testsuites>

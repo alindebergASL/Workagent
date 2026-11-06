@@ -1,4 +1,5 @@
 "use client";
+import { HistoryNavigation } from "@/components/HumanHistory";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -27,7 +28,9 @@ import {
 } from "@/lib/work-state";
 import { readableTitle } from "@/lib/titles";
 import { Ownership } from "@/components/Ownership";
-import { OutcomeLede } from "@/components/OutcomeLede";
+import { LatestNote } from "@/components/LatestNote";
+import { useSnapshotRead } from "@/lib/client/latest-note";
+import { latestNote } from "@/lib/latest-note";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -73,12 +76,19 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   // says there is no responsibility here; never while it's unknown, denied,
   // or an earlier "none" can't be re-read.
   const legacy = rs.kind === "absent";
-  // Its published outputs live in its conversation; only the rich read
-  // projects them, and each opens at its canonical conversation address.
+  // The paged read includes originals and conversation outputs, each linked
+  // to its canonical owner independently of the bounded legacy summary.
   const outputs = useResponsibilityOutputs(
     wsId,
     id,
     rs.kind === "ready" ? rs.detail.assignment : null,
+  );
+  // When the latest recorded note was recorded comes from the conversation's
+  // work snapshot, read only once the rich responsibility read is in.
+  const snapshotRead = useSnapshotRead(
+    wsId,
+    rs.kind === "ready" ? (a?.conversation_id ?? null) : null,
+    rs.kind === "ready" ? rs.detail.lifecycle.current_outcome : "",
   );
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
@@ -125,6 +135,9 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   const current = rs.kind === "ready" ? rs.detail.assignment : null;
   // A recorded responsibility leads with what it prepared and what's next.
   const rich = rs.kind === "ready" ? rs.detail : null;
+  const note = rich
+    ? latestNote(rich.lifecycle.current_outcome, id, snapshotRead)
+    : null;
   const goal = current?.goal ?? a.goal;
   const criteria = current?.completion_criteria ?? a.completion_criteria;
   const badge =
@@ -252,10 +265,10 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         )}
         <h1>{shortTitle(current?.goal ?? a.title)}</h1>
         {rich ? (
-          // Where it stands is the panel's; the header leads with what it has
-          // done so far, in its own recorded words.
-          rich.lifecycle.current_outcome ? (
-            <OutcomeLede text={rich.lifecycle.current_outcome} />
+          // Where it stands is the panel's; the header leads with the latest
+          // recorded note, in its own words, labelled as that.
+          note ? (
+            <LatestNote note={note} zone={zone} />
           ) : null
         ) : (
           <div className="row">
@@ -295,7 +308,7 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         ) : null}
       </header>
 
-      {rich && (outputs.loading || outputs.outputs.length) ? (
+      {rich ? (
         <section
           aria-labelledby="prepared-title"
           className="stack"
@@ -304,6 +317,15 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           <h2 id="prepared-title" className="section-title">
             Prepared for you
           </h2>
+          <HistoryNavigation
+            loading={outputs.loading}
+            unavailable={outputs.unavailable}
+            hasMore={outputs.hasMore}
+            hasPrevious={outputs.hasPrevious}
+            next={outputs.next}
+            first={outputs.first}
+            refresh={() => void outputs.refresh()}
+          />
           {outputs.loading ? (
             <p
               className="hint"

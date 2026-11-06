@@ -1,0 +1,15 @@
+{
+  "base": "cf47d250021e7eb1d37b7d0a0c76cf7873d59fd0",
+  "files": {
+    "backend/tests/test_tui_tool_activity.py": "3edc3f6c4bd637590bd1e06a4009299458b29b3d2f4e597bef8d4d47249d34cf",
+    "backend/workagent/operator_client.py": "ace06cf7b3fde13cc0e886e34134df15e78f013d805f55ad709c93c270970a2e",
+    "backend/workagent/tui/app.py": "4816c1e6eb840dbe98707e52afb0c5af4cd58d83f4b29bc72e13a666977062a6",
+    "backend/workagent/tui/tool_activity.py": "92ae721234448fd411c78f52c64d49f140ba2d6f37c28c84e9f53d8c4b626dd1",
+    "backend/workagent/tui/tool_activity_screen.py": "0b5c8b185ccaa3d645d086375c4b232902d2f37a37a4f5d6cb00cfca61191a68",
+    "web/src/components/ComputeReceipt.tsx": "85d3a0ff80fe9238a0598aeb325ce2e2b9beaae36ebc2157f49c86eeccc3e78f",
+    "web/src/components/ToolActivity.tsx": "4194ef38690aac197e16cd9a8e6d1afb3b808bb16e1dd90b0988fab46cb47ba1",
+    "web/src/lib/tool-activity.ts": "ddd3de464357a3ae39c869c5ab13623b7c892446fc08b1e03ac1f011df73ba13",
+    "web/test/compute-receipt.test.ts": "d6b1f4d24727fe22ca2971db3636225400a561a3f18bb74e0616e17c0b0afd32",
+    "web/test/tool-activity.test.ts": "43255b940ad2b9c221e77c44b0401abaad474902e2314ced07ea8ab8e2e29a9f"
+  }
+}

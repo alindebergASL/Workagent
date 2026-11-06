@@ -1,0 +1,491 @@
+{
+  "workspace": "recovery5c-workspace",
+  "principal": "local-human",
+  "origin": "synthetic; inline ControlledTransport fixture builder only; no model or provider worker process",
+  "items": {
+    "five": {
+      "conversation": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+      "artifact": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "revision": "78bbadf2-9db7-4b23-9409-76fb8108b61f",
+      "body_hash": "a23c4b884fbcec6abf2d3bd9ef9abde19c0e0b81767d88db555370c9ce2e2cac",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Recovery5c five",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "oak",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Oak"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": [
+          "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+          "  Deposit due Friday.  ",
+          "Contacts\n\nMara (catering)\nIo (AV)\n",
+          "Single line.",
+          "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+        ]
+      }
+    },
+    "ten": {
+      "conversation": "4cb712cc-4840-4b1b-a499-73556f218201",
+      "artifact": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "revision": "d7aab87e-0f4a-44ca-b96e-00fd35634d8b",
+      "body_hash": "2edec499113de90bd118197de3ea28612916a4317c5077c84a458c11a2bdea8c",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Recovery5c ten",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "oak",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Oak"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": [
+          "  duplicate 雪\n\nend\n",
+          "  duplicate 雪\n\nend\n",
+          "n3\n\n  exact ♪\n",
+          "n4\n\n  exact ♪\n",
+          "n5\n\n  exact ♪\n",
+          "n6\n\n  exact ♪\n",
+          "n7\n\n  exact ♪\n",
+          "n8\n\n  exact ♪\n",
+          "n9\n\n  exact ♪\n",
+          "n10\n\n  exact ♪\n"
+        ]
+      }
+    },
+    "removals": {
+      "conversation": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+      "artifact": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+      "revision": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+      "body_hash": "89d3ee7ffc5cff26fb4a8e1ffff87aa1b38b73925c0f514834930fa7880072e2",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Recovery5c removals",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "row-00",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 00"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-01",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 01"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-02",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 02"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-03",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 03"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-04",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 04"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-05",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 05"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-06",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 06"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-07",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 07"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-08",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 08"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-09",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 09"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-10",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 10"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-11",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 11"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-12",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 12"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-13",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 13"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-14",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 14"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-15",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 15"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-16",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 16"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-17",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 17"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-18",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 18"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-19",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 19"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-20",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 20"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-21",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 21"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-22",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 22"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-23",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 23"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-24",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 24"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          },
+          {
+            "row_id": "row-25",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Plant 25"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": []
+      },
+      "proposal": "da95864f-4b81-4017-a10d-0b4f8364132b"
+    }
+  }
+}

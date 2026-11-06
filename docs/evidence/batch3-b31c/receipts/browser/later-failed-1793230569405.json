@@ -1,0 +1,3 @@
+{
+  "error": "Error: {\"code\":\"version_conflict\",\"message\":\"The current version changed.\",\"request_id\":\"93119023-e5e2-4688-8549-606cae6d16e9\",\"next_action\":\"Refresh current work and review a new proposal against that base.\",\"details\":{\"current_revision_id\":null,\"current_version\":3,\"proposal_id\":null,\"fields\":[]}}"
+}

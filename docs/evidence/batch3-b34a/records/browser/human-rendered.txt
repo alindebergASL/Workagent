@@ -1,0 +1,68 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Reviewed methods study
+Activity & details
+Connections
+← Back to agent
+Reviewed duration transfer — fresh input
+Keep as a project
+
+You:
+Prepare a duration summary by batch using unique valid observations; minutes must become seconds. Do not copy old values.
+
+different-shape.json · 587 bytes
+Agent:
+
+Saved a fresh result from the current input. Reviewed guidance is advisory, not proof of correctness. Controlled transport; no causal learning claim.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 09:48 UTC
+2 changes since you last looked
+Mark as seen
+Details
+Files
+different-shape.json
+text/plain · 587 bytes · read-only evidence
+duration-summary.csv
+text/csv · 107 bytes
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+No captured web sources in this conversation.
+
+duration-summary.csv
+Text (107 bytes)
+Save
+
+Refresh citations Re-reads saved records; nothing new is fetched from the web.
+
+Export as
+Plain text (.txt)
+Markdown (.md)
+CSV (.csv)
+JSON (.json)
+Word document (.docx)
+Excel workbook (.xlsx)
+PDF (.pdf)
+Bar chart image (.png)
+Export saved version 32afa607-802…
+New file…
+Memory
+Tool activity
+Continue the conversation
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

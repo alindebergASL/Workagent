@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "backend/tests/test_capability_gateway.py",
+    "backend/tests/test_workspace_file_gateway_pg.py",
+    "backend/tests/test_b30b_final_journeys.py",
+    "--basetemp=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/pytest-closure-compat-verified",
+    "--junitxml=/home/ubuntu/workagent-continuation-20261026/.local/batch3/b31a/closure-compat-verified.xml"
+  ],
+  "exit": 0,
+  "started_at": 1793215650.881577,
+  "elapsed_seconds": 246.06753301620483
+}

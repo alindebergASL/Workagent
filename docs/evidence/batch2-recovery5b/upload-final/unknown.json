@@ -1,0 +1,1530 @@
+{
+  "phase": "unknown",
+  "started": "2026-10-26T21:25:08.804Z",
+  "evidence_type": "real Chromium + current real HTTP/PostgreSQL; synthetic fixture; zero product provider calls",
+  "checks": [
+    {
+      "name": "binary exact after process close/reopen",
+      "rows": [
+        {
+          "key": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6|00270df6-618b-4dcd-96b0-bd7914bd9de1",
+          "scope": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+          "generation": "00270df6-618b-4dcd-96b0-bd7914bd9de1",
+          "staged_at": 1793049905741,
+          "filename": "continuity.pdf",
+          "mime_type": "application/pdf",
+          "byte_length": 568,
+          "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+          "state": "local",
+          "ref": null,
+          "upload": null,
+          "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+          "actual_length": 568
+        }
+      ]
+    },
+    {
+      "name": "revoked conversation does not display original draft"
+    },
+    {
+      "name": "real upload committed then browser ACK deliberately dropped; frozen upload identity retained"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:25:10.157Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:25:10.626Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:25:10.668Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:25:10.677Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:10.687Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.691Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.691Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.697Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.698Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.700Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.702Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.702Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.703Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.704Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.704Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.705Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.705Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.706Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.706Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.707Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.708Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.709Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.727Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.736Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.740Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.741Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.742Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.742Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.743Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.744Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.744Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.745Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.745Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.746Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.747Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.747Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.748Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.750Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.751Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.752Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.752Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.753Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.754Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.754Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.755Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.755Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.756Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.756Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.757Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.893Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.900Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.918Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.927Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.936Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:10.946Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.016Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.027Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.028Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.035Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.038Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.043Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.050Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.055Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.059Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.062Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.066Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.071Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.080Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.081Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.081Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.089Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.092Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.120Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.126Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:25:11.127Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:11.170Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:25:11.171Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:11.898Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=3e02b639-6606-4016-b969-a4fa7d319fc3.1.sNDxi7SILkJhftAGqkIW2M5zVMNbyDw6VK51E3oFa-c",
+      "at": "2026-10-26T21:25:13.383Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:25:16.076Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:25:16.081Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:25:16.082Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:25:16.112Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:25:17.056Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/83c35686-6645-4866-be46-c0d5ea929e24/queued-messages",
+      "at": "2026-10-26T21:25:17.333Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/83c35686-6645-4866-be46-c0d5ea929e24/checkpoints",
+      "at": "2026-10-26T21:25:17.338Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/83c35686-6645-4866-be46-c0d5ea929e24/documents",
+      "at": "2026-10-26T21:25:17.363Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=83c35686-6645-4866-be46-c0d5ea929e24",
+      "at": "2026-10-26T21:25:17.383Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.384Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.394Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.400Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.401Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.410Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.411Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.411Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.421Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.440Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.441Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.449Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.451Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.455Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.458Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.458Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.461Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.464Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.472Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.472Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.475Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.613Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.614Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.620Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.621Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.627Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.637Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.643Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.648Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.649Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.649Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.651Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.652Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.652Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.653Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.675Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.676Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.676Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.678Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.678Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.691Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.692Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.759Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.780Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.792Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.806Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.812Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.823Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.835Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.840Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.846Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.847Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.857Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.865Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.868Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.879Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.886Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.894Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.902Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.911Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.913Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.921Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.921Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.930Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.930Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.945Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.948Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.953Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.956Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.967Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:25:17.971Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/83c35686-6645-4866-be46-c0d5ea929e24",
+      "at": "2026-10-26T21:25:17.975Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:25:17.978Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/83c35686-6645-4866-be46-c0d5ea929e24",
+      "at": "2026-10-26T21:25:18.112Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces?limit=100",
+      "at": "2026-10-26T21:25:19.760Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/queued-messages",
+      "at": "2026-10-26T21:25:20.139Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:25:20.151Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:25:20.152Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-snapshot?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:20.188Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.194Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-008e7824-0876-4642-b9b0-50b5f7db6b83/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.202Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-06dc353f-bb97-4b8f-8d73-81cd2c69e451/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.203Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-0d123f37-1338-4491-b9a2-2aae9c4c4c96/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.203Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-15362774-2c40-41a7-a00f-bc7b173e2eff/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.214Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-16ed030e-f5af-445a-baf2-139cf2ecc207/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.215Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1740a129-df57-4846-8701-11379427fa24/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.215Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1abb226f-3925-498d-9db6-463465342cbe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.220Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1bafa4b6-2bf7-403f-836a-6dd174f58c70/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.221Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1db19335-b686-409a-ba17-8af9820e9a2b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.221Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-1f9f0e18-5fe6-42b0-90e7-f8ab5c99e3ca/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.226Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-20595cf8-99f0-49de-bbd3-a575aaf9e429/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.230Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-245c9912-c088-4af2-a2e8-05d3e462c9fe/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.231Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-26a9be11-f1ab-4b3f-8be3-e57c7014c944/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.350Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2a6cc65d-7f70-40f9-846f-f4473cedea6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.350Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-2cba25f3-0afb-4fb9-a537-9c28bf62c008/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.359Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-34a0e1e6-4bdd-40f6-be5f-9b32a7b741f7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.361Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-361de8d6-0eb4-45c0-9999-c216cc4800d4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.373Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-377a2c80-b791-47ee-b7ab-0ee6e935f221/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.379Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3a1d4e97-065c-4e70-a60f-7c3fcddfaf3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.381Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3c902f47-9cfd-474e-a4bf-75b5f4042ab8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.385Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-3e03b17f-064a-45d4-b799-52755fd89462/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.385Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-44389323-d87e-46c0-a1bb-01d10390fbd4/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.398Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-4d3ce369-344d-437a-a47d-f9b3665025c7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.399Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-50bd5253-810a-460c-95c4-13c2feced133/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.399Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-5b024778-a77f-48db-9df8-c1b63574792d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.414Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6172e132-25fe-4d6d-bd42-48f20cd7056b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.424Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64c7068b-8ed7-46b9-9c74-d1a4af3ac1f3/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.425Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-64fb6a71-fedd-4982-9ad5-bedd6726bf97/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.447Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-65d8da6f-7d71-437a-a868-bf7ebcba553a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.450Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-696c02f4-22a5-4124-ab07-645eb14518fa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.461Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-6d093dd8-fb53-4b16-8844-e8bf8880257b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.462Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-72bb1f86-8606-4979-b9b6-09cc20163c19/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.498Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-75600aca-9a84-4038-943e-73412f1e7a52/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.505Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-7611a62b-c90e-4e6a-959f-93c8de093898/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.526Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-78b15f09-4991-4e25-8b44-6629696585aa/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.526Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-80420bff-36d6-47c3-b4e6-4695de0972ce/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.544Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-8c830fba-ec74-4a88-8850-e38777dc4c60/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.556Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9516b839-23bc-4166-bffd-cdf4bf820a35/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.557Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b660d56-1da5-4b2d-bb34-5d353d20665d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.567Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9b6d75a6-c730-43ee-942b-b52752b103a7/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.578Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9def7868-34b2-4e02-905a-00cdc7721ff0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.578Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9e54d622-2392-400e-a6f7-072f90b5a145/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.633Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f12fa6e-4051-47d3-b250-dabc4cf6f792/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.650Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-9f803eb8-b3e2-4446-a9f1-fd6d424afbd0/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.660Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a261db7b-9ec4-4d92-a74a-198aa2b104e6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.661Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-a822f0f9-a302-425f-9267-38a2f6c730d6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.662Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-aa9e94f7-63bb-4f75-b653-198edd707c6d/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.663Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-adca480d-6fd9-4c48-962c-6354e98f403e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.663Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b245fa93-60dd-4e92-a1ac-05601bad8a2e/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.664Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b6cbdd67-70a6-497c-b222-259ef8c23ba5/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.665Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-b9af18bc-7c5c-4702-abcc-cb4700e9b269/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.682Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-bd232d94-54ef-4f0c-8547-b56dfeebb60b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.688Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-be3652c2-09a0-40fd-971e-f30c909e4f3b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.697Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c29b4a9c-e374-4d65-a662-9ecc6dd81a22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.855Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c48ab040-8c89-43ed-849e-62b8376f6164/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.860Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c4c572f7-85af-433a-9cd4-04a4d1476991/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.860Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c5dd92a8-765e-4e8b-b5d4-e66b04c02714/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.869Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c85cfd56-decb-4c33-ab00-68b361dcf077/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.870Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-c921b130-e021-45c0-beee-53c3248dc5b8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.873Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-cffa48b8-48cf-487c-9730-c71004de0f0c/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.876Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-db3c2e13-8a29-44d8-be2a-a4040eded8c8/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.880Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dd462e67-d9d2-48db-86e7-7b398a4ddd22/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.884Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-dff37e3a-0232-46e1-b712-7b930103306a/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.885Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e5f7abda-a5fb-481d-8d8f-df09032b2f49/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.906Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-e6978b88-34e4-44ac-922e-61b7363269a6/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.907Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ecbf87a4-bed8-4762-8f4c-288938e218ad/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.929Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-ed2c9cf4-0ee8-4ff2-8754-72a239c68a13/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.939Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2b7d78b-f31c-4903-9c55-da3e1548646b/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.949Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/test-f2e1fd79-53a7-4f52-abe9-19b0c2240747/work-areas?limit=100",
+      "at": "2026-10-26T21:25:20.949Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:20.952Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/execution",
+      "at": "2026-10-26T21:25:20.954Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/attention?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "at": "2026-10-26T21:25:21.435Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/events/stream?conversation_id=cb848ce6-e383-4dc8-b2dc-7721720e45e6&after=3e02b639-6606-4016-b969-a4fa7d319fc3.1.sNDxi7SILkJhftAGqkIW2M5zVMNbyDw6VK51E3oFa-c",
+      "at": "2026-10-26T21:25:23.117Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/checkpoints",
+      "at": "2026-10-26T21:25:25.343Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304",
+      "at": "2026-10-26T21:25:25.347Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/artifacts/dfe536ed-23fa-44fc-8e3d-0f9796317304/proposals?limit=100",
+      "at": "2026-10-26T21:25:25.348Z"
+    },
+    {
+      "method": "GET",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/assignments/e921371f-cd32-4f5b-8ca2-81fc537f68ae/responsibility",
+      "at": "2026-10-26T21:25:25.354Z"
+    },
+    {
+      "method": "POST",
+      "url": "/api/domain/v1/workspaces/recovery5a-workspace/conversations/cb848ce6-e383-4dc8-b2dc-7721720e45e6/documents",
+      "at": "2026-10-26T21:25:25.990Z"
+    }
+  ],
+  "idb_unknown": [
+    {
+      "key": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6|00270df6-618b-4dcd-96b0-bd7914bd9de1",
+      "scope": "local-human:recovery5a-workspace:conversation:cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "generation": "00270df6-618b-4dcd-96b0-bd7914bd9de1",
+      "staged_at": 1793049905741,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "unknown",
+      "ref": null,
+      "upload": {
+        "command_id": "1b6604f8-1744-45d0-8a71-e852b7f55d1f",
+        "request_id": "9b9d768b-b66f-4b4e-a561-1e1bb5131255",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6"
+      },
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "documents_after_commit": {
+    "items": [
+      {
+        "document_id": "49055b9e-ee17-41b4-b1df-d9423ed545c2",
+        "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.pdf",
+        "mime_type": "application/pdf",
+        "byte_length": 568,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+        "text_bytes": 45,
+        "coverage": {
+          "omissions": [
+            "images, layout and non-text content"
+          ],
+          "total_pages": 1,
+          "covered_pages": 1,
+          "omitted_pages": 0,
+          "empty_pages_needing_ocr": [],
+          "partial_last_page": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "7b2234a7-65f6-436d-957e-663b3bb35bbf",
+        "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.pdf",
+        "mime_type": "application/pdf",
+        "byte_length": 568,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+        "text_bytes": 45,
+        "coverage": {
+          "omissions": [
+            "images, layout and non-text content"
+          ],
+          "total_pages": 1,
+          "covered_pages": 1,
+          "omitted_pages": 0,
+          "empty_pages_needing_ocr": [],
+          "partial_last_page": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "841e656d-7860-4bb3-b158-f6973147582d",
+        "sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "byte_length": 891,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "d4578dcc2654f5bbf06f4c4607b11a6cee1272d9e678de36d719cbd88518eba8",
+        "text_bytes": 54,
+        "coverage": {
+          "omissions": [
+            "headers",
+            "footers",
+            "comments",
+            "tracked changes",
+            "nested tables, drawings and exact list numbering/layout"
+          ],
+          "total_paragraphs": 2,
+          "omitted_paragraphs": 0,
+          "total_tables": 1,
+          "omitted_tables": 0,
+          "paragraphs_covered": 2,
+          "tables_covered": 1,
+          "partial_last_block": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+        "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.pdf",
+        "mime_type": "application/pdf",
+        "byte_length": 568,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+        "text_bytes": 45,
+        "coverage": {
+          "omissions": [
+            "images, layout and non-text content"
+          ],
+          "total_pages": 1,
+          "covered_pages": 1,
+          "omitted_pages": 0,
+          "empty_pages_needing_ocr": [],
+          "partial_last_page": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+        "sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "byte_length": 1451,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "c559fbcd56f752c246f2311863854f72b39a00e61a2d4da72c88645ffbc441ea",
+        "text_bytes": 114,
+        "coverage": {
+          "omissions": [
+            "formatting, charts, comments; formula references unsupported; no recalculation"
+          ],
+          "total_sheets": 1,
+          "covered_sheets": 1,
+          "omitted_sheets": 0,
+          "sheets": [
+            {
+              "name": "Inputs",
+              "state": "visible",
+              "total_rows": 2,
+              "total_columns": 2,
+              "covered_rows": 2,
+              "merged_ranges": [
+                "A1"
+              ],
+              "omitted_merged_ranges": 0,
+              "visited_cells": 4,
+              "last_cell": "B2",
+              "partial_last_row": false,
+              "omitted_rows": 0,
+              "omitted_cell_positions": 0
+            }
+          ],
+          "covered_rows": 2,
+          "visited_cells": 4
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "9ef4ae56-9db9-427c-82f0-401f71d37400",
+        "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.pdf",
+        "mime_type": "application/pdf",
+        "byte_length": 568,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+        "text_bytes": 45,
+        "coverage": {
+          "omissions": [
+            "images, layout and non-text content"
+          ],
+          "total_pages": 1,
+          "covered_pages": 1,
+          "omitted_pages": 0,
+          "empty_pages_needing_ocr": [],
+          "partial_last_page": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      }
+    ],
+    "next_cursor": null
+  },
+  "status": "PASS",
+  "finished": "2026-10-26T21:25:28.508Z"
+}

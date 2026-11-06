@@ -1,0 +1,480 @@
+............F..F.F.F...FFFF...                                           [100%]
+=================================== FAILURES ===================================
+_______________ test_permanent_temporary_and_independent_dispute _______________
+
+context = (<workagent.service.Service object at 0x72bb3bc74050>, Principal(id='local-human', kind='human'), 'test-215759bd-21dc-...ime.datetime(2026, 10, 28, 20, 50, 8, 147733, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_permanent_temporary_and_independent_dispute(context):
+        s,p,ws,_,_=context;cv=conversation(context)
+        first,_=remember(context,cv,content='Fifteen minutes',valid_from=now()-timedelta(days=1))
+>       corrected=s.correct_memory(p,ws,first.memory_id,cmd(CorrectMemory,expected_revision_id=first.revision_id,content='Ten minutes'))
+
+backend/tests/test_memory_pg.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/memory/store.py:136: in correct_memory
+    return self._memory_mutate(p, ws, mid, cmd, 'correct')
+backend/workagent/memory/store.py:129: in _memory_mutate
+    return self._command(p, ws, 'memory_' + operation, {'memory_id':mid}, cmd,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/memory/store.py:128: in mutate
+    return self._memory_append(c, p, ws, operation, revision, old.revision_id)
+backend/workagent/memory/store.py:67: in _memory_append
+    c.execute('SELECT write_memory_revision(%s,%s,%s,%s,%s)',
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x72bb3ecd2b70>
+query = 'SELECT write_memory_revision(%s,%s,%s,%s,%s)'
+params = ('test-215759bd-21dc-4d4d-8468-1f1daaab25f9', 'local-human', 'correct', '8b616b85-2900-4979-ae72-3beb75e6ff2a', Jsonb({'memory_id': 'a9130823-c8e0-40bb-9 ... (1006 chars)))
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: boolean -> unknown
+E           LINE 3:        OR NOT (payload->'source_refs' @> old->'source_refs')
+E                                                               ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           QUERY:  old->>'status' NOT IN ('active','contested') OR payload->>'status'<>'active'
+E                  OR payload->>'origin'<>'human_reviewed' OR payload->>'reviewed_by_principal_id' IS DISTINCT FROM owner
+E                  OR NOT (payload->'source_refs' @> old->'source_refs')
+E           CONTEXT:  PL/pgSQL function write_memory_revision(text,text,text,text,jsonb) line 45 at IF
+
+backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedFunction
+___________ test_correction_cannot_silently_drop_source_eligibility ____________
+
+context = (<workagent.service.Service object at 0x72bb3bc773e0>, Principal(id='local-human', kind='human'), 'test-fd85e531-9e66-...me.datetime(2026, 10, 28, 20, 50, 12, 268111, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_correction_cannot_silently_drop_source_eligibility(context):
+        s,p,ws,refs,admin=context;cv=conversation(context)
+        m,_=remember(context,cv,source_refs=[MemorySource(ref=refs[0])])
+>       corrected=s.correct_memory(p,ws,m.memory_id,cmd(CorrectMemory,
+            expected_revision_id=m.revision_id,content='Corrected source-backed statement'))
+
+backend/tests/test_memory_pg.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/memory/store.py:136: in correct_memory
+    return self._memory_mutate(p, ws, mid, cmd, 'correct')
+backend/workagent/memory/store.py:129: in _memory_mutate
+    return self._command(p, ws, 'memory_' + operation, {'memory_id':mid}, cmd,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/memory/store.py:128: in mutate
+    return self._memory_append(c, p, ws, operation, revision, old.revision_id)
+backend/workagent/memory/store.py:67: in _memory_append
+    c.execute('SELECT write_memory_revision(%s,%s,%s,%s,%s)',
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x72bb3bc76150>
+query = 'SELECT write_memory_revision(%s,%s,%s,%s,%s)'
+params = ('test-fd85e531-9e66-4726-b22a-e79f1b3a430a', 'local-human', 'correct', '817a0ef7-d0cf-449f-9821-92ca0cd3a00e', Jsonb({'memory_id': '28f83259-b797-48eb-a ... (1155 chars)))
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: boolean -> unknown
+E           LINE 3:        OR NOT (payload->'source_refs' @> old->'source_refs')
+E                                                               ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           QUERY:  old->>'status' NOT IN ('active','contested') OR payload->>'status'<>'active'
+E                  OR payload->>'origin'<>'human_reviewed' OR payload->>'reviewed_by_principal_id' IS DISTINCT FROM owner
+E                  OR NOT (payload->'source_refs' @> old->'source_refs')
+E           CONTEXT:  PL/pgSQL function write_memory_revision(text,text,text,text,jsonb) line 45 at IF
+
+backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedFunction
+_ test_forget_all_payloads_tombstone_suppression_and_content_free_command_replay _
+
+context = (<workagent.service.Service object at 0x72bb3cb66030>, Principal(id='local-human', kind='human'), 'test-0100b28c-f135-...me.datetime(2026, 10, 28, 20, 50, 13, 804324, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_forget_all_payloads_tombstone_suppression_and_content_free_command_replay(context):
+        s,p,ws,_,_=context;cv=conversation(context)
+        m,command=remember(context,cv,content='Erase this original payload')
+        correction=cmd(CorrectMemory,expected_revision_id=m.revision_id,content='Erase this correction payload')
+>       updated=s.correct_memory(p,ws,m.memory_id,correction)
+
+backend/tests/test_memory_pg.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/memory/store.py:136: in correct_memory
+    return self._memory_mutate(p, ws, mid, cmd, 'correct')
+backend/workagent/memory/store.py:129: in _memory_mutate
+    return self._command(p, ws, 'memory_' + operation, {'memory_id':mid}, cmd,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/memory/store.py:128: in mutate
+    return self._memory_append(c, p, ws, operation, revision, old.revision_id)
+backend/workagent/memory/store.py:67: in _memory_append
+    c.execute('SELECT write_memory_revision(%s,%s,%s,%s,%s)',
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x72bb3bc75eb0>
+query = 'SELECT write_memory_revision(%s,%s,%s,%s,%s)'
+params = ('test-0100b28c-f135-483c-ae94-93f9c35e2bfc', 'local-human', 'correct', 'f93a9099-ee6d-429f-b530-7f9a8756bb11', Jsonb({'memory_id': 'a487558a-c5a7-4cac-9 ... (1024 chars)))
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: boolean -> unknown
+E           LINE 3:        OR NOT (payload->'source_refs' @> old->'source_refs')
+E                                                               ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           QUERY:  old->>'status' NOT IN ('active','contested') OR payload->>'status'<>'active'
+E                  OR payload->>'origin'<>'human_reviewed' OR payload->>'reviewed_by_principal_id' IS DISTINCT FROM owner
+E                  OR NOT (payload->'source_refs' @> old->'source_refs')
+E           CONTEXT:  PL/pgSQL function write_memory_revision(text,text,text,text,jsonb) line 45 at IF
+
+backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedFunction
+____ test_later_scoped_runtime_manifest_usage_and_stale_unsent_invalidation ____
+
+context = (<workagent.service.Service object at 0x72bb3bc774a0>, Principal(id='local-human', kind='human'), 'test-65ba961b-91e8-...me.datetime(2026, 10, 28, 20, 50, 15, 699659, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_later_scoped_runtime_manifest_usage_and_stale_unsent_invalidation(context):
+        from test_general_alpha_runtime import activate
+        from workagent.memory.runtime import POLICY,SCHEMA
+        from workagent.request_packing import prepare_selection
+        from workagent.responses_transport import RequestMetadata
+        s,p,ws,_,_=context;cv=conversation(context)
+        m,_=remember(context,cv,scope_kind='user',scope_id=p.id)
+        later=conversation(context)
+        with patch('test_general_alpha_runtime.POLICY',POLICY),patch('test_general_alpha_runtime.DECISION_SCHEMA',SCHEMA):
+            activate(context,later,continuity_version='sustained-v1',max_steps=3)
+        q=post(context,later,'Use my remembered formatting preference')
+        cap=s.claim_run(p,ws,q.run.id)
+        frozen=s.conversation_worker_context(cap)
+        assert frozen['memory_context']['items'][0]['revision']['memory_id']==m.memory_id
+        assert frozen['memory_manifest'][0]['revision_id']==m.revision_id
+        request=prepare_selection(frozen,instructions=POLICY,read_schema=SCHEMA,
+            metadata=RequestMetadata(request_id=new_id(),attempt_id=new_id(),step_id='selection'),policy='adaptive-local-v1')
+>       s.correct_memory(p,ws,m.memory_id,cmd(CorrectMemory,expected_revision_id=m.revision_id,content='Use descriptive headings'))
+
+backend/tests/test_memory_pg.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/memory/store.py:136: in correct_memory
+    return self._memory_mutate(p, ws, mid, cmd, 'correct')
+backend/workagent/memory/store.py:129: in _memory_mutate
+    return self._command(p, ws, 'memory_' + operation, {'memory_id':mid}, cmd,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/memory/store.py:128: in mutate
+    return self._memory_append(c, p, ws, operation, revision, old.revision_id)
+backend/workagent/memory/store.py:67: in _memory_append
+    c.execute('SELECT write_memory_revision(%s,%s,%s,%s,%s)',
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x72bb3bc4eb70>
+query = 'SELECT write_memory_revision(%s,%s,%s,%s,%s)'
+params = ('test-65ba961b-91e8-43ba-875a-37a62d538635', 'local-human', 'correct', '330e6a2f-6242-479b-af94-7d84147d1602', Jsonb({'memory_id': '411c0ad4-f18a-4293-8 ... (994 chars)))
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: boolean -> unknown
+E           LINE 3:        OR NOT (payload->'source_refs' @> old->'source_refs')
+E                                                               ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           QUERY:  old->>'status' NOT IN ('active','contested') OR payload->>'status'<>'active'
+E                  OR payload->>'origin'<>'human_reviewed' OR payload->>'reviewed_by_principal_id' IS DISTINCT FROM owner
+E                  OR NOT (payload->'source_refs' @> old->'source_refs')
+E           CONTEXT:  PL/pgSQL function write_memory_revision(text,text,text,text,jsonb) line 45 at IF
+
+backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedFunction
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3600, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 149, "utf8_bytes": 414}, "other_context": {"estimated_tokens": 1113, "utf8_bytes": 4278}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 6708, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 13425, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 57964, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "5af33b16770855d380b333c8144c0df07925b98dfa2ea3ff0ceb077c6a87445c", "run_id": "d9d4566d-55a1-4ad6-97c2-74e38da5ef25"}
+_____________ test_parent_tcp_remember_review_race_forget_restart ______________
+
+tcp = (<httpx.Client object at 0x72bb3bbcc560>, (<workagent.service.Service object at 0x72bb3bbcc4d0>, Principal(id='local-h...b3bbc7060>, PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-41/test_parent_tcp_remember_revie0'))
+
+    def test_parent_tcp_remember_review_race_forget_restart(tcp):
+        client, ctx, start, stop, tmp = tcp
+        _, _, ws, _, _ = ctx
+        cv = create_work(client, ws)
+        receipt = remember(client, ws, cv)
+        initial = inspect(client, ws, receipt)['current']
+        assert initial['status'] == 'active' and initial['origin'] == 'human_explicit'
+        assert initial['reviewed_by_principal_id'] is None
+        root = f'/v1/workspaces/{ws}/memory'
+        fields = dict(kind='procedure', scope_kind='task', scope_id=cv['id'], subject_key='analysis',
+                      predicate_key='denominator_check', content='Verify units and denominator before calculating',
+                      confidence_basis='Proposed from synthetic local observation')
+        candidate_body = command(**fields)
+        candidate = checked(client.post(root + '/candidates', json=candidate_body), 201)
+        assert candidate['status'] == 'candidate'
+        assert candidate['memory_id'] not in [x['revision']['memory_id'] for x in page(client, ws, cv)['items']]
+        assert candidate['memory_id'] in [x['revision']['memory_id'] for x in page(client, ws, cv, status='candidate')['items']]
+        # Untrusted source text cannot turn a proposal into an accepted record.
+        forged = client.post(root + '/candidates', json=command(**fields, status='active', origin='human_reviewed'))
+        assert forged.status_code == 422
+        review = command(expected_revision_id=candidate['revision_id'], decision='accept')
+        accepted = checked(client.post(root + '/' + candidate['memory_id'] + '/review', json=review))
+        assert accepted['status'] == 'active'
+        stale = client.post(root + '/' + candidate['memory_id'] + '/review', json=command(
+            expected_revision_id=candidate['revision_id'], decision='accept'))
+        assert stale.status_code == 409
+        # Two real requests race from one inspected base. Exactly one applies.
+        def correct(i):
+            return client.post(root + '/' + receipt['memory_id'] + '/correct', json=command(
+                expected_revision_id=receipt['revision_id'], content='Full headings ' + str(i), mode='permanent'))
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(correct, (1, 2)))
+>       assert sorted(r.status_code for r in results) == [200, 409]
+E       assert [500, 500] == [200, 409]
+E         
+E         At index 0 diff: 500 != 200
+E         Use -v to get more diff
+
+backend/tests/test_memory_parent_http.py:58: AssertionError
+_________ test_parent_tcp_scope_noninterference_dispute_and_temporary __________
+
+tcp = (<httpx.Client object at 0x72bb3b8006b0>, (<workagent.service.Service object at 0x72bb3b800a10>, Principal(id='local-h...b3bbeb1a0>, PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-41/test_parent_tcp_scope_noninter0'))
+
+    def test_parent_tcp_scope_noninterference_dispute_and_temporary(tcp):
+        client, ctx, _, _, _ = tcp
+        _, _, ws, _, _ = ctx
+        a, b = create_work(client, ws), create_work(client, ws)
+        empty = page(client, ws, b, query='confidential')
+        receipt = remember(client, ws, a, subject_key='confidential', predicate_key='timing', content='15 minutes')
+        assert page(client, ws, b, query='confidential') == empty
+        first = page(client, ws, a)
+        assert len(first['items']) == 1
+        conflicting = remember(client, ws, a, subject_key='confidential', predicate_key='timing', content='20 minutes')
+        both = page(client, ws, a)['items']
+        assert len(both) == 2 and all(x['unresolved_conflict'] for x in both)
+        assert all(x['revision']['status'] == 'contested' for x in both)
+        root = f'/v1/workspaces/{ws}/memory'
+        checked(client.post(root + '/' + conflicting['memory_id'] + '/expire',
+                            json=command(expected_revision_id=conflicting['revision_id'])))
+        current = datetime.now(timezone.utc)
+>       exception = checked(client.post(root + '/' + receipt['memory_id'] + '/correct', json=command(
+            expected_revision_id=receipt['revision_id'], content='10 minutes this week only', mode='temporary',
+            valid_from=(current - timedelta(minutes=1)).isoformat(), valid_until=(current + timedelta(minutes=10)).isoformat())))
+
+backend/tests/test_memory_parent_http.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+response = <Response [500 Internal Server Error]>, status = 200
+
+    def checked(response, status=200):
+>       assert response.status_code==status,response.text
+E       AssertionError: {"code":"internal_error","message":"Operation cannot proceed.","request_id":"1197fe9c-7a04-42aa-a87b-709a370c3631","next_action":"Review current state and authority before retrying.","details":{"current_revision_id":null,"current_version":null,"proposal_id":null,"fields":[]}}
+E       assert 500 == 200
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+backend/tests/test_workspace_files_parent_http.py:64: AssertionError
+___________ test_parent_later_worker_request_manifest_correct_forget ___________
+
+context = (<workagent.service.Service object at 0x72bb3b8ced20>, Principal(id='local-human', kind='human'), 'test-b14484d7-f53d-...me.datetime(2026, 10, 28, 20, 50, 56, 483260, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-41/test_parent_later_worker_reque0')
+
+    def test_parent_later_worker_request_manifest_correct_forget(context, tmp_path):
+        s, p, ws, _, _ = context
+        first, later = conversation(context), conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='user', scope_id=p.id,
+            subject_key='writing', predicate_key='heading_style', content='Use concise headings'))
+        activated(context, later)
+        def execute(expected_revision):
+            cv = s.get_conversation(p, ws, later.id).conversation
+            q = post(context, cv, 'Prepare this next ordinary project summary')
+            provider = AlphaProvider([{'kind': 'reply', 'text': 'Controlled transport completed the request.'}])
+            w = worker(context, provider, tmp_path)
+            result = finish_safe_visits(context, w, q.run.id)
+            assert result.state == 'ready'
+            assert provider.contexts, 'Must capture an actual provider-bound request'
+            entries = provider.contexts[0]['memory_manifest']
+            assert [x['revision_id'] for x in entries] == ([expected_revision] if expected_revision else [])
+            usages = s.memory_usage(p, ws, q.run.id).items
+            assert len(usages) == 2
+            assert len({(u.attempt_id, u.phase, u.request_sha256) for u in usages}) == 2
+            with s.db.transaction() as c:
+                for usage in usages:
+                    actual = c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                                       (usage.attempt_id, usage.phase)).fetchone()
+                    assert actual['request_sha256'] == usage.request_sha256
+            assert all([x.revision_id for x in item.entries] == ([expected_revision] if expected_revision else []) for item in usages)
+            calls = list(provider.calls)
+            assert worker(context, provider, tmp_path).work(p, ws, q.run.id).state == 'ready'
+            assert provider.calls == calls, 'A completed run must not send again on restart'
+            return q, provider
+        first_run, initial = execute(m.revision_id)
+>       corrected = s.correct_memory(p, ws, m.memory_id, cmd(CorrectMemory, expected_revision_id=m.revision_id,
+            content='Use descriptive headings'))
+
+backend/tests/test_memory_parent_worker.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/memory/store.py:136: in correct_memory
+    return self._memory_mutate(p, ws, mid, cmd, 'correct')
+backend/workagent/memory/store.py:129: in _memory_mutate
+    return self._command(p, ws, 'memory_' + operation, {'memory_id':mid}, cmd,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/memory/store.py:128: in mutate
+    return self._memory_append(c, p, ws, operation, revision, old.revision_id)
+backend/workagent/memory/store.py:67: in _memory_append
+    c.execute('SELECT write_memory_revision(%s,%s,%s,%s,%s)',
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x72bb3b9b96d0>
+query = 'SELECT write_memory_revision(%s,%s,%s,%s,%s)'
+params = ('test-b14484d7-f53d-4b50-8217-e9b87a4c11a2', 'local-human', 'correct', '3c5d3d5b-e8b0-477f-a697-97e67f01ede2', Jsonb({'memory_id': 'b512037c-a181-4fb1-b ... (999 chars)))
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: boolean -> unknown
+E           LINE 3:        OR NOT (payload->'source_refs' @> old->'source_refs')
+E                                                               ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           QUERY:  old->>'status' NOT IN ('active','contested') OR payload->>'status'<>'active'
+E                  OR payload->>'origin'<>'human_reviewed' OR payload->>'reviewed_by_principal_id' IS DISTINCT FROM owner
+E                  OR NOT (payload->'source_refs' @> old->'source_refs')
+E           CONTEXT:  PL/pgSQL function write_memory_revision(text,text,text,text,jsonb) line 45 at IF
+
+backend/.venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedFunction
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3600, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 154, "utf8_bytes": 417}, "other_context": {"estimated_tokens": 1121, "utf8_bytes": 4283}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 6708, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 124, "utf8_bytes": 448}}, "estimated_input_tokens": 13450, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 58023, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "4459139593472172f781d28335da8e3e34a3b399c06f1f1f129bcebc4db7b977", "run_id": "8e6eadc6-3c3a-4eb8-983b-03b3ff208975"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 411, "utf8_bytes": 1516}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3600, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 154, "utf8_bytes": 417}, "other_context": {"estimated_tokens": 1121, "utf8_bytes": 4283}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 124, "utf8_bytes": 448}}, "estimated_input_tokens": 7210, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 34885, "phase": "final", "provider_count_authoritative": true, "request_sha256": "b2843c8d8f98e6344421bd36adaf219702e25099ce9d65ac0043e6e7665e7493", "run_id": "8e6eadc6-3c3a-4eb8-983b-03b3ff208975"}
+__________ test_parent_correction_during_model_io_fences_publication ___________
+
+context = (<workagent.service.Service object at 0x72bb3b9bb3b0>, Principal(id='local-human', kind='human'), 'test-7720566b-b6a5-...me.datetime(2026, 10, 28, 20, 51, 13, 376115, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-41/test_parent_correction_during_0')
+
+    def test_parent_correction_during_model_io_fences_publication(context, tmp_path):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='task', scope_id=cv.id,
+            subject_key='writing', predicate_key='heading_style', content='Use concise headings'))
+        activated(context, cv)
+        q = post(context, cv, 'Prepare a summary')
+        class MidIOCorrection(AlphaProvider):
+            changed = False
+            def handle(self, request):
+                result = super().handle(request)
+                if request.method == 'POST' and not request.url.path.endswith('input_tokens') and not self.changed:
+                    self.changed = True
+                    s.correct_memory(p, ws, m.memory_id, cmd(CorrectMemory, expected_revision_id=m.revision_id,
+                        content='Use descriptive headings'))
+                return result
+        provider = MidIOCorrection([{'kind': 'reply', 'text': 'STALE RESULT MUST NEVER PUBLISH'}])
+        w = worker(context, provider, tmp_path)
+        with pytest.raises(DomainError) as refusal:
+>           finish_safe_visits(context, w, q.run.id)
+
+backend/tests/test_memory_parent_worker.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+ctx = (<workagent.service.Service object at 0x72bb3b9bb3b0>, Principal(id='local-human', kind='human'), 'test-7720566b-b6a5-...me.datetime(2026, 10, 28, 20, 51, 13, 376115, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+w = <workagent.general_worker.GeneralWorker object at 0x72bb3b9ba150>
+run_id = 'ea43d598-783c-4166-8b25-6ed09e3162cd'
+
+    def finish_safe_visits(ctx,w,run_id,*,stop_when=None):
+        """A bounded run may need several leases, even with immediate mock HTTP.
+    
+        Only expire a synthetic lease after proving there is no unmatched I/O.
+        Reuse the same worker state/attempt; the callers assert exact total requests.
+        Lease timing itself is covered by test_responses_leases with a controlled clock.
+        A failure probe may stop on its expected retained unknown; never expire that
+        unknown merely to force the probe to finish.
+        """
+        s,p,ws,_,_=ctx
+        for _ in range(6):
+            result=w.work(p,ws,run_id)
+            if result.state!='running' or (stop_when is not None and stop_when()): return result
+            with s.db.transaction() as c:
+                rows=c.execute('SELECT e.phase,e.kind FROM responses_events e '
+                    'JOIN provider_attempts a ON a.id=e.attempt_id '
+                    'WHERE a.workspace_id=%s AND a.run_id=%s',(ws,run_id)).fetchall()
+            phases={row['phase'] for row in rows}
+            for phase in phases:
+                kinds={row['kind'] for row in rows if row['phase']==phase}
+                assert 'count_send' not in kinds or 'count_result' in kinds
+>               assert 'dispatch' not in kinds or 'result' in kinds
+E               AssertionError: assert ('dispatch' not in {'count_result', 'count_send', 'dispatch'} or 'result' in {'count_result', 'count_send', 'dispatch'})
+
+backend/tests/test_adaptive_execution.py:95: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3600, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 145, "utf8_bytes": 392}, "other_context": {"estimated_tokens": 1141, "utf8_bytes": 4309}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 6708, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 122, "utf8_bytes": 448}}, "estimated_input_tokens": 13459, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 58024, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "06c094196d7f800ec4d42f284f5c5be09f81004abe8cd8c07bdfd845440c0215", "run_id": "ea43d598-783c-4166-8b25-6ed09e3162cd"}
+------------------------------ Captured log call -------------------------------
+WARNING  workagent.responses_worker:responses_worker.py:406 {"event": "provider_dispatch_problem", "run_id": "ea43d598-783c-4166-8b25-6ed09e3162cd", "attempt_id": "fe9779f1-b0de-4708-b37d-0006ea4dc6ee", "phase": "selection", "code": "network_outcome_unknown"}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_pg.py::test_permanent_temporary_and_independent_dispute
+FAILED backend/tests/test_memory_pg.py::test_correction_cannot_silently_drop_source_eligibility
+FAILED backend/tests/test_memory_pg.py::test_forget_all_payloads_tombstone_suppression_and_content_free_command_replay
+FAILED backend/tests/test_memory_pg.py::test_later_scoped_runtime_manifest_usage_and_stale_unsent_invalidation
+FAILED backend/tests/test_memory_parent_http.py::test_parent_tcp_remember_review_race_forget_restart
+FAILED backend/tests/test_memory_parent_http.py::test_parent_tcp_scope_noninterference_dispute_and_temporary
+FAILED backend/tests/test_memory_parent_worker.py::test_parent_later_worker_request_manifest_correct_forget
+FAILED backend/tests/test_memory_parent_worker.py::test_parent_correction_during_model_io_fences_publication
+8 failed, 22 passed, 1 warning in 86.72s (0:01:26)

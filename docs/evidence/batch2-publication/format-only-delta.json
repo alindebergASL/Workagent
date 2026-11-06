@@ -1,0 +1,17 @@
+{
+  "files": {
+    "web/src/lib/attachment-context.ts": {
+      "before": "9766ace7f5bf02fb3b59c8224f3691c635236136d5089fb271a273a519c45cc5",
+      "after": "2d12458b1121c6fb2ad26a10b5f2dc3848d47746b68b4018b9a291d46082030a"
+    },
+    "web/test/attachment-context.test.ts": {
+      "before": "7ec1037b04fdb2d90f0254b7cd759a5235890459052ef8e48e8506aff29880d8",
+      "after": "47494195d5c2c1fe8cebc8bb589b06311e257415db568d49183b6083843305b2"
+    }
+  },
+  "production_emitted_javascript_identical": true,
+  "test_emitted_javascript_identical": false,
+  "qualification": "Production module emission compared equal. Test emission retained formatting differences; do not claim byte-identical emitted tests. Claude used only locked Prettier; all web tests subsequently passed.",
+  "owner": "Claude Code fresh isolated lane",
+  "scope": "Prettier formatting only"
+}

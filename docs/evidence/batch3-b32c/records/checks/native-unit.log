@@ -1,0 +1,350 @@
+FFFFFFFFFFFFFF.........................                                  [100%]
+=================================== FAILURES ===================================
+________________ test_truthful_failures_unknown_and_unavailable ________________
+
+    def test_truthful_failures_unknown_and_unavailable():
+>       d=example();item=ToolAttemptView.model_validate(d)
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:45: ValidationError
+__________________ test_observation_identity_rejected[run_id] __________________
+
+field = 'run_id'
+
+    @pytest.mark.parametrize('field',['run_id','attempt_id','call_id','capability_id'])
+    def test_observation_identity_rejected(field):
+        d=example();d['observation'][field]='wrong'
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:57: ValidationError
+________________ test_observation_identity_rejected[attempt_id] ________________
+
+field = 'attempt_id'
+
+    @pytest.mark.parametrize('field',['run_id','attempt_id','call_id','capability_id'])
+    def test_observation_identity_rejected(field):
+        d=example();d['observation'][field]='wrong'
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:57: ValidationError
+_________________ test_observation_identity_rejected[call_id] __________________
+
+field = 'call_id'
+
+    @pytest.mark.parametrize('field',['run_id','attempt_id','call_id','capability_id'])
+    def test_observation_identity_rejected(field):
+        d=example();d['observation'][field]='wrong'
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'wrong', 'att...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:57: ValidationError
+______________ test_observation_identity_rejected[capability_id] _______________
+
+field = 'capability_id'
+
+    @pytest.mark.parametrize('field',['run_id','attempt_id','call_id','capability_id'])
+    def test_observation_identity_rejected(field):
+        d=example();d['observation'][field]='wrong'
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 4 validation errors for ToolAttemptView
+E       observation.capability_id
+E         String should match pattern '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$' [type=string_pattern_mismatch, input_value='wrong', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_pattern_mismatch
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:57: ValidationError
+__________________ test_export_binding_rejected[workspace_id] __________________
+
+field = 'workspace_id'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+_____________________ test_export_binding_rejected[run_id] _____________________
+
+field = 'run_id'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+________________ test_export_binding_rejected[tool_attempt_id] _________________
+
+field = 'tool_attempt_id'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+__________________ test_export_binding_rejected[code_sha256] ___________________
+
+field = 'code_sha256'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+_________________ test_export_binding_rejected[profile_sha256] _________________
+
+field = 'profile_sha256'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+___________________ test_export_binding_rejected[input_refs] ___________________
+
+field = 'input_refs'
+
+    @pytest.mark.parametrize('field',['workspace_id','run_id','tool_attempt_id','code_sha256','profile_sha256','input_refs'])
+    def test_export_binding_rejected(field):
+        d=example();m=manifest();m[field]=[dict(kind='workspace_file',id='wrong',version='1',sha256='d'*64)] if field=='input_refs' else ('d'*64 if field.endswith('sha256') else 'wrong')
+        d['observation']['output']['result']['outputs']=[m]
+>       with pytest.raises(OperatorError):compute_result(ToolAttemptView.model_validate(d),'ws')
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptView
+E       observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/tests/test_tui_tool_activity.py:64: ValidationError
+_______ test_run_scope_is_not_export_input_and_refreshes_before_download _______
+
+    def test_run_scope_is_not_export_input_and_refreshes_before_download():
+        client=HTTP();client.item['observation']['output']['result']['outputs']=[manifest()]
+>       ctrl=ToolActivityController(client,'ws','human','run');item=ctrl.listing().items[0];m=compute_result(item,'ws').outputs[0]
+
+backend/tests/test_tui_tool_activity.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.tui.tool_activity.ToolActivityController object at 0x7e6fc9cf9c40>
+after = None
+
+    def listing(self, after=None):
+        self.authorize()
+>       page = ToolAttemptPage.model_validate(self.client.request('/' + self.workspace + '/runs/' + self.run +
+            '/tool-attempts?' + urlencode(dict(limit=25, **({'after': identifier(after)} if after else {})))))
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for ToolAttemptPage
+E       items.0.observation.started_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       items.0.observation.ended_at
+E         Input should be a valid datetime [type=datetime_type, input_value='2026-10-29T00:00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/datetime_type
+E       items.0.observation.error
+E         Field required [type=missing, input_value={'call_id': 'call', 'atte...d_ms': 10, 'cpu_ms': 1}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+backend/workagent/tui/tool_activity.py:62: ValidationError
+__________ test_actual_widgets_read_clear_refusal_inert_output[size0] __________
+
+size = (120, 40)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen);await pilot.pause(.5)
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '<script>BAD</script>' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh();await pilot.pause(.5)
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+>       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen);await pilot.pause(.5)
+>           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:85: AssertionError
+__________ test_actual_widgets_read_clear_refusal_inert_output[size1] __________
+
+size = (80, 24)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen);await pilot.pause(.5)
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '<script>BAD</script>' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh();await pilot.pause(.5)
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+>       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen);await pilot.pause(.5)
+>           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:85: AssertionError
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/native-unit.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_tui_tool_activity.py::test_truthful_failures_unknown_and_unavailable
+FAILED backend/tests/test_tui_tool_activity.py::test_observation_identity_rejected[run_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_observation_identity_rejected[attempt_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_observation_identity_rejected[call_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_observation_identity_rejected[capability_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[workspace_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[run_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[tool_attempt_id]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[code_sha256]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[profile_sha256]
+FAILED backend/tests/test_tui_tool_activity.py::test_export_binding_rejected[input_refs]
+FAILED backend/tests/test_tui_tool_activity.py::test_run_scope_is_not_export_input_and_refreshes_before_download
+FAILED backend/tests/test_tui_tool_activity.py::test_actual_widgets_read_clear_refusal_inert_output[size0]
+FAILED backend/tests/test_tui_tool_activity.py::test_actual_widgets_read_clear_refusal_inert_output[size1]
+14 failed, 25 passed in 18.58s

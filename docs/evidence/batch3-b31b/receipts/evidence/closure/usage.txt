@@ -1,0 +1,86 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Revocable history area
+B
+A
+Memory pty80
+Memory pty100
+Memory mobile
+Activity & details
+← Back to Private fixture workspace
+Memory browser desktop
+Keep as a project
+
+You:
+Prepare the next ordinary project summary using currently eligible memory
+
+Agent:
+
+Controlled transport completed this later request; not a live quality result.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Files
+
+No working files in this conversation yet.
+
+New file…
+Memory
+Remember
+Kind
+Fact
+Preference
+Project convention
+Something that happened
+Procedure
+Applies to
+This conversation only
+This project
+All my work in this workspace
+Remember
+
+Not linked to a project. Only this conversation’s memories (and your general preferences) are used.
+
+Link to a project…
+In use
+Waiting for review
+
+Verify units before calculating
+
+Procedure · This conversation only · In use
+
+Why this is here
+Saved for this conversation
+You reviewed and accepted this
+Basis: Explicit human statement
+Valid: Since 10/28/2026
+No linked source
+Used in the latest answer
+Correct
+Expire
+Forget…
+
+Unrelated preserved note
+
+Preference · This conversation only · In use
+
+Why this is here
+Correct
+Expire
+Forget…
+Tool activity
+Continue the conversation
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

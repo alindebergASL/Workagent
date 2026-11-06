@@ -1,0 +1,12 @@
+{
+  "expected_count": 602,
+  "initial_verified_count": 602,
+  "initial_mismatches": [],
+  "snapshot_count": 599,
+  "snapshot_missing": [
+    "backend/workagent/api.py",
+    "contracts/openapi.json",
+    "contracts/src/schema.d.ts"
+  ],
+  "manifest_sha256": "1a969241aa7dfba5f77cf7382f2c521cb1d5fd12bb1ce831e230968fba89017f"
+}

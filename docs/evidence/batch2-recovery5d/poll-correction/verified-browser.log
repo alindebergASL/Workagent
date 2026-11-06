@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "posts": 0,
+  "errors": [],
+  "screenshots": [
+    {
+      "name": "verified-fenced-1440.png",
+      "width": 1440,
+      "document": 1440,
+      "body": 1440
+    },
+    {
+      "name": "verified-fenced-390.png",
+      "width": 390,
+      "document": 390,
+      "body": 390
+    },
+    {
+      "name": "verified-fenced-320.png",
+      "width": 320,
+      "document": 320,
+      "body": 320
+    }
+  ]
+}

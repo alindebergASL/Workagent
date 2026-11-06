@@ -1,0 +1,277 @@
+{
+  "at": "2026-10-26T21:12:43.468945+00:00",
+  "installed_api_pid": 875172,
+  "read_only_transaction": true,
+  "projects": {
+    "proj_lBEuNsSvgxoMYSyb7td0jIxp": {
+      "grants": [
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "20.00",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "20.00",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "20.00",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "20.00",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "20.00",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "9.93640",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "8.838640",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "9.762080",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "9.76208",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "12.136640",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "12.79624",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "13.98352",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "13.85160",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "15.03888",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "15.83040",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "15.56656",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "15.43464",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "15.43464",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "18.60072",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "22.55832",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "22.55832",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "22.55832",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "22.55832",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "22.55832",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "29.15432",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "29.15432",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "29.15432",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "33.06504",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "39.27264",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "44.85948",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "50.44632",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "53.96396",
+          "synthetic_only": true
+        },
+        {
+          "active": false,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "59.96464",
+          "synthetic_only": true
+        },
+        {
+          "active": true,
+          "model_id": null,
+          "expires_at": null,
+          "cost_limit_usd": "67.62068",
+          "synthetic_only": true
+        }
+      ],
+      "summary": {
+        "carried_reserved_cost_usd": "3.42992",
+        "request_counts": {
+          "count_send": 380,
+          "dispatch": 373,
+          "read": 1281,
+          "cancel": 0
+        },
+        "reserved_input_tokens": 13040000,
+        "reserved_output_tokens": 3055616,
+        "reserved_cost_usd": "66.58608",
+        "reported_usage": {
+          "input_tokens": 4565760,
+          "output_tokens": 173454
+        },
+        "unknown_usage_steps": 3,
+        "conservatively_calculated_cost_usd": null,
+        "billed_cost_usd": null,
+        "cost_basis": "undiscounted reservation rates; not provider billing"
+      },
+      "allocated_grant_caps_usd": "836.420360",
+      "grant_count": 34,
+      "active_count": 1,
+      "source_database_fingerprint": "0cbe78a8967162c55f99b8c503056d9991b0e3449ca6ede5b3fdb47964be1b8a"
+    }
+  },
+  "authority_ceiling_usd": "100",
+  "product_provider_calls_this_card": 0,
+  "billing_queried": false,
+  "warning": "Installed ledger read only. Caps are allocations, reservations are liabilities, reported usage is not billing. This does not enumerate other databases or authorize fresh grants. No paid trial started."
+}

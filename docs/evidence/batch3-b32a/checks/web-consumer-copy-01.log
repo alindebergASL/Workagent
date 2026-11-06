@@ -1,0 +1,9 @@
+pre-copy candidate hashes:
+ffd14405b1deb7ed00f9aa467e144c9d1d9a273a0d25a68d4aaf5918f78a09a5  .local/batch3/b32a/candidate/web/src/components/WorkspaceFiles.tsx
+52d793194eed1881bdec6fcccbc824485ed6434f6e38edbac5ae55dc25425f1b  .local/batch3/b32a/candidate/web/test/workspace-files-races.test.ts
+post-copy source vs candidate:
+src/components/WorkspaceFiles.tsx a7b5b913d66047c84ae9385bc5fbaf9cbb2b6a8306847644806ccca9422cf5f7 a7b5b913d66047c84ae9385bc5fbaf9cbb2b6a8306847644806ccca9422cf5f7 MATCH
+test/workspace-files-races.test.ts d04855503575985880cb01251042c3c90d0fb8b766dc518a5ca12b53ac9530b5 d04855503575985880cb01251042c3c90d0fb8b766dc518a5ca12b53ac9530b5 MATCH
+full src tree diff:
+src identical
+test identical

@@ -1,0 +1,13 @@
+{
+  "profile": "public-offline-browser-v1",
+  "files": {
+    "chrome-headless-shell": "ded93a9c9a53a1ae040f08124badcca95c938e9d5015ff340c3b5538c41bf39e",
+    "headless_lib_data.pak": "4519fcd2ddd1c185d22e9a5f8927a6427585d5b1fd7ae527706ccc8d8d48b0aa",
+    "headless_lib_strings.pak": "d9307a1c47c4dc246091a6d441601da5b49fb25e24b14632239d6f9b47bc6c7d",
+    "headless_command_resources.pak": "5dacfe683bbd88ab1c96dfbaa1f375b54821235772cb71dd71273350cdfec867",
+    "icudtl.dat": "a3c6d7824935e87fed17e94c2d84b7683ef360ebc5c4ea92e2ca70f361bc9314",
+    "v8_context_snapshot.bin": "2c8872dd6615b15d192d9b49a6c9da63bcdc9649ee0b1b4a5d1e49b0151fa381",
+    "libEGL.so": "532800b1f5882fb0034a72582233edaf50ed6433e3911c43f88cbcfcb24708d1",
+    "libGLESv2.so": "17370d7cc22d0bc4048cc851b7f8fdbb5e51c4f4b0f53d6c68b8770fb6a8ab00"
+  }
+}

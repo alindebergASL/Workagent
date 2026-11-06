@@ -1,0 +1,20 @@
+{
+  "mode": "before-final",
+  "passed": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "width": 390,
+      "pageWidth": 390
+    },
+    {
+      "width": 320,
+      "pageWidth": 320
+    }
+  ],
+  "downloads": [],
+  "errors": []
+}

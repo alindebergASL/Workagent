@@ -1,0 +1,23 @@
+{
+  "run_id": "f1f57e42-5573-4ad0-bc4e-6842a06ed472",
+  "state": "running",
+  "provider_calls": [],
+  "steps": [
+    {
+      "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+      "phase": "selection",
+      "request_sha256": "f377238c720a3597d956d918d76534d9fe4133fd4df51b3abb623cd1dfa723ae"
+    },
+    {
+      "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+      "phase": "selection_2",
+      "request_sha256": "d092faa902aefe6cd610cc184568684656b055d520afb71169cea348de9454a6"
+    },
+    {
+      "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+      "phase": "selection_3",
+      "request_sha256": "426fd3d24fb04831f265dfb0ba9e72b5eeb9651a50741024312d3b47f8ccea39"
+    }
+  ],
+  "reason": "Controlled callback raised before returning a result; retained unknown, no blind resend"
+}

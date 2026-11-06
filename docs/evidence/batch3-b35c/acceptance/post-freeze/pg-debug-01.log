@@ -1,0 +1,34 @@
+..........F                                                              [100%]
+=================================== FAILURES ===================================
+________ test_partial_material_collected_without_success_then_new_turn _________
+
+context = (<workagent.service.Service object at 0x79c52e5097c0>, Principal(id='local-human', kind='human'), 'test-5c9a1952-b72d-...ime.datetime(2026, 11, 1, 12, 25, 17, 360305, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-309/test_partial_material_collecte0')
+
+    def test_partial_material_collected_without_success_then_new_turn(context,tmp_path):
+        from post_freeze_packets import collect_packet
+        from test_local_rejection_settlement import readiness_document
+        s,p,ws,_,_=context;cv=conversation(context);activate(context,cv)
+        q=post(context,cv,'Create a local draft, then ask for review.')
+        fake=AlphaProvider([dict(kind='publish_artifact',target=None,body=readiness_document()),
+            dict(kind='stop',outcome='waiting_for_user',text='Draft retained; human review is required.')])
+        result=finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id)
+>       assert result.state=='partial' and result.stop_reason=='waiting_for_user'
+E       AssertionError: assert ('partial' == 'partial'
+E         
+E           partial and None == 'waiting_for_user')
+E        +  where None = Run(id='70d78223-49b6-4739-99fd-7bc92d453db3', workspace_id='test-5c9a1952-b72d-495e-bb28-7a87bcbf65be', assignment_id...g work require human acceptance.'], observed_at=datetime.datetime(2026, 11, 1, 12, 25, 24, 802375, tzinfo=TzInfo(UTC))).stop_reason
+
+backend/tests/test_post_freeze_terminal_pg.py:132: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1246, "utf8_bytes": 5682}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 2489, "utf8_bytes": 13774}, "messages": {"estimated_tokens": 155, "utf8_bytes": 417}, "other_context": {"estimated_tokens": 533, "utf8_bytes": 2283}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 4596, "utf8_bytes": 17168}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 9422, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 41079, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "1fd0452a4fb60a5ef117eb2d354d134a0a9f03cbab6e698834a15333fbef935a", "run_id": "70d78223-49b6-4739-99fd-7bc92d453db3"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1246, "utf8_bytes": 5682}, "continuation_history": {"estimated_tokens": 750, "utf8_bytes": 2773}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 2489, "utf8_bytes": 13774}, "messages": {"estimated_tokens": 155, "utf8_bytes": 417}, "other_context": {"estimated_tokens": 533, "utf8_bytes": 2283}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 5633, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 26916, "phase": "final", "provider_count_authoritative": true, "request_sha256": "db62ced2a8ccf427f57a333a8026f7ddabb4fc8715e65e8231a38527880a16c4", "run_id": "70d78223-49b6-4739-99fd-7bc92d453db3"}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_post_freeze_terminal_pg.py::test_partial_material_collected_without_success_then_new_turn
+1 failed, 10 passed, 1 warning in 143.64s (0:02:23)

@@ -213,6 +213,22 @@
           "title": "Max Steps",
           "type": "integer"
         },
+        "memory_recall": {
+          "anyOf": [
+            {
+              "enum": [
+                "off",
+                "reviewed-v1"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Recall"
+        },
         "output_limit": {
           "maximum": 2097152,
           "minimum": 0,
@@ -598,6 +614,22 @@
           "minimum": 1,
           "title": "Max Steps",
           "type": "integer"
+        },
+        "memory_recall": {
+          "anyOf": [
+            {
+              "enum": [
+                "off",
+                "reviewed-v1"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Recall"
         },
         "output_limit": {
           "maximum": 8388608,

@@ -1,0 +1,24 @@
+{
+  "mode": "initial",
+  "size": [
+    100,
+    45
+  ],
+  "pid": 4015727,
+  "actions": [
+    {
+      "keys": "\u001b[<0;12;38M\u001b[<0;12;38m"
+    },
+    {
+      "keys": "Research https://fixture.example/source for the east depot capacity. Treat search snippets as discovery only. Save an editable conclusion with exact captured evidence; do not accept any decision."
+    },
+    {
+      "keys": "\u001b[15~"
+    },
+    {
+      "keys": "\u0012"
+    }
+  ],
+  "passed": true,
+  "conversation_id": "a7e8600d-8179-40ba-8126-251a91619c90"
+}

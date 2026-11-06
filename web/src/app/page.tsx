@@ -9,6 +9,7 @@ import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useHomeOverview } from "@/lib/client/overview";
 import {
+  actionableDecision,
   useHomeWork,
   type ConversationWork,
 } from "@/lib/client/conversation-work";
@@ -28,6 +29,7 @@ import { useHoldsIn } from "@/lib/client/responsibility";
 import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 import { useSinceMarker } from "@/lib/client/since-marker";
+import { scopedLocal } from "@/lib/client/session-scope";
 import {
   homeSummary,
   recentWork,
@@ -147,7 +149,7 @@ function useHomeDestination() {
   const [remembered, setRemembered] = useState<string | null>(null);
   useEffect(() => {
     try {
-      setRemembered(localStorage.getItem(DESTINATION_KEY));
+      setRemembered(scopedLocal.getItem(DESTINATION_KEY));
     } catch {
       /* storage unavailable: the address or the default decides */
     }
@@ -156,7 +158,7 @@ function useHomeDestination() {
   const choose = (next: string) => {
     setRemembered(next);
     try {
-      localStorage.setItem(DESTINATION_KEY, next);
+      scopedLocal.setItem(DESTINATION_KEY, next);
     } catch {
       /* storage unavailable: the address still carries it */
     }
@@ -237,8 +239,12 @@ function AgentHome() {
   const conversationWork = useHomeWork(workspaceIds);
   const made = conversationWork.data?.items ?? [];
   const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
-  const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
-  const madeSaved = made.filter((w) => !w.decision);
+  // Only a decision the person can act on needs them. Work whose pending
+  // proposals are all out of date stays with its saved result below.
+  const madeDecisions = made.filter(
+    (w) => actionableDecision(w) && w !== leadDecision,
+  );
+  const madeSaved = made.filter((w) => !actionableDecision(w));
   // What changed since this device last showed Home; the decision already
   // shown in full below isn't repeated.
   const marker = useSinceMarker(

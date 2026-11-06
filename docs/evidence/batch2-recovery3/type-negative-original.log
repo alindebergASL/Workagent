@@ -1,0 +1,3 @@
+Applied in-memory PostMessage substitution
+Property 'PostMessage' does not exist on type '{ AcceptProposal: { acknowledge_older_proposal: boolean; acknowledge_removed_content: boolean; command_id: string; expected_current_revision_id: string; request_id: string; schema_version: "workagent/v1"; }; ... 156 more ...; WorkspacePage: { ...; }; }'.
+{"substitution":"PostMessage","regressionDiagnostics":1,"sourceMutation":false}

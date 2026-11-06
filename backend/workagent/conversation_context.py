@@ -10,6 +10,9 @@ from .errors import DomainError
 def bound_context(context, run_id, max_bytes):
     from .service import canonical
     messages = context['messages']
+    from .documents import project_message_documents
+    for message in messages:
+        project_message_documents(message)
     current = next(m for m in messages if m['run_id'] == run_id and m['author_kind'] in ('human', 'system'))
     # Exclude any later publication from this immutable run's input projection.
     history = [m for m in messages if m['sequence'] < current['sequence']]

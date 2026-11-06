@@ -1,0 +1,65 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Confidential synthetic project
+Plant inventory
+Duration study
+B
+A
+Memory pty80
+Activity & details
+← Back to Private fixture workspace
+Summarize duration by group in seconds, excluding missing values
+Keep as a project
+
+You:
+Summarize duration by group in seconds, excluding missing values. Column mapping: {"id":"observation_id","group":"zone","value":"latency_seconds","seconds_per_unit":"1"}
+
+observations.csv · 84 bytes
+Agent:
+
+Computed a fresh summary in confined Python. Open summary.csv in Files to inspect or download; source rows remain unchanged. Controlled transport demonstrates mechanisms, not live usefulness.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 28 Oct, 23:35 UTC
+2 changes since you last looked
+Mark as seen
+Details
+Files
+observations.csv
+text/csv · 84 bytes · read-only evidence
+summary.csv
+text/csv · 210 bytes
+summary.csv
+Text (210 bytes)
+Save
+Export as
+txt
+markdown
+csv
+json
+Export this version
+
+export.csv · 210 bytes
+
+Download (verified bytes)
+New file…
+Memory
+Tool activity
+Continue the conversation
+Attach a file
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

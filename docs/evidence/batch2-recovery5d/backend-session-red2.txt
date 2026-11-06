@@ -1,0 +1,370 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_______________ test_authenticated_identity_is_stable_and_opaque _______________
+
+    def test_authenticated_identity_is_stable_and_opaque():
+>       a = identity()
+
+backend/tests/test_client_session.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+settings = Settings(database_url='postgresql://fixture:private@localhost/synthetic_one', local_test_mode=True, local_bearer='synthetic-session-test-key-not-a-real-secret', principal_id='synthetic-a', frontend_origin=None, fixture_mode=False)
+
+    def identity(settings=BASE):
+        response = client(settings).get('/v1/session', headers=HEADERS)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/test_client_session.py:17: AssertionError
+________ test_identity_requires_real_auth_not_caller_selected_principal ________
+
+    def test_identity_requires_real_auth_not_caller_selected_principal():
+        c = client()
+        for headers in ({}, {'X-Workagent-Principal': 'synthetic-a'},
+                        {**HEADERS, 'Authorization': 'Bearer wrong'}):
+>           assert c.get('/v1/session', headers=headers).status_code == 401
+E           AssertionError: assert 404 == 401
+E            +  where 404 = <Response [404 Not Found]>.status_code
+E            +    where <Response [404 Not Found]> = get('/v1/session', headers={})
+E            +      where get = <starlette.testclient.TestClient object at 0x7b5f7f345220>.get
+
+backend/tests/test_client_session.py:34: AssertionError
+______________ test_principal_and_backend_changes_are_independent ______________
+
+    def test_principal_and_backend_changes_are_independent():
+>       a = identity()
+
+backend/tests/test_client_session.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+settings = Settings(database_url='postgresql://fixture:private@localhost/synthetic_one', local_test_mode=True, local_bearer='synthetic-session-test-key-not-a-real-secret', principal_id='synthetic-a', frontend_origin=None, fixture_mode=False)
+
+    def identity(settings=BASE):
+        response = client(settings).get('/v1/session', headers=HEADERS)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/test_client_session.py:17: AssertionError
+___________ test_stale_scope_refuses_before_service_read_or_mutation ___________
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 177, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 847, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 341, in from_call
+    |     result: TResult | None = func()
+    |                              ^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 242, in <lambda>
+    |     lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    |     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    |     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    |     raise exception
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    |     teardown.throw(exception)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/threadexception.py", line 92, in pytest_runtest_call
+    |     yield from thread_exception_runtest_hook()
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/threadexception.py", line 68, in thread_exception_runtest_hook
+    |     yield
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    |     teardown.throw(exception)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py", line 95, in pytest_runtest_call
+    |     yield from unraisable_exception_runtest_hook()
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py", line 70, in unraisable_exception_runtest_hook
+    |     yield
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    |     teardown.throw(exception)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/logging.py", line 846, in pytest_runtest_call
+    |     yield from self._runtest_for(item, "call")
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/logging.py", line 829, in _runtest_for
+    |     yield
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    |     teardown.throw(exception)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/capture.py", line 898, in pytest_runtest_call
+    |     return (yield)
+    |             ^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    |     teardown.throw(exception)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/skipping.py", line 257, in pytest_runtest_call
+    |     return (yield)
+    |             ^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    |     res = hook_impl.function(*args)
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 174, in pytest_runtest_call
+    |     item.runtest()
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/python.py", line 1627, in runtest
+    |     self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    |     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    |     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    |     raise exception
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    |     res = hook_impl.function(*args)
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/_pytest/python.py", line 159, in pytest_pyfunc_call
+    |     result = testfunction(**testargs)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/tests/test_client_session.py", line 56, in test_stale_scope_refuses_before_service_read_or_mutation
+    |     r = c.request(method, path, headers=h, json=body)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 437, in request
+    |     return super().request(
+    |            ^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    |     return self.send(request, auth=auth, follow_redirects=follow_redirects)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    |     response = self._send_handling_auth(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    |     response = self._send_handling_redirects(
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    |     response = self._send_single_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    |     response = transport.handle_request(request)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 340, in handle_request
+    |     raise exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 337, in handle_request
+    |     portal.call(self.app, scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/from_thread.py", line 340, in call
+    |     return cast(T_Retval, self.start_task_soon(func, *args).result())
+    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/usr/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    |     return self.__get_result()
+    |            ^^^^^^^^^^^^^^^^^^^
+    |   File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    |     raise self._exception
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/from_thread.py", line 265, in _call_func
+    |     retval = await retval_or_awaitable
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/applications.py", line 112, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    |     raise exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 176, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |   File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 178, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/api.py", line 102, in boundary
+    |     response=await call_next(request)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 156, in call_next
+    |     raise app_exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 141, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 714, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 734, in app
+    |     await route.handle(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 214, in run_endpoint_function
+    |     return await run_in_threadpool(dependant.call, **values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/concurrency.py", line 37, in run_in_threadpool
+    |     return await anyio.to_thread.run_sync(func)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/to_thread.py", line 65, in run_sync
+    |     return await get_async_backend().run_sync_in_worker_thread(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    |     return await future
+    |            ^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    |     result = context.run(func, *args)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/api.py", line 144, in list_workspaces
+    |     return service.list_workspaces(p,cursor,limit)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/ubuntu/workagent-continuation-20261026/backend/tests/test_client_session.py", line 46, in unexpected
+    |     raise AssertionError('stale scope reached service')
+    | AssertionError: stale scope reached service
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+    def test_stale_scope_refuses_before_service_read_or_mutation():
+        c = client()
+        # If the dependency fails to fence, service methods below would fail the test.
+        def unexpected(*args, **kwargs):
+            raise AssertionError('stale scope reached service')
+        c.app.state.service.list_workspaces = unexpected
+        c.app.state.service.create_conversation = unexpected
+        h = {**HEADERS, 'X-Workagent-Scope': '0' * 64}
+        for method, path, body in [
+            ('GET', '/v1/workspaces', None),
+            ('POST', '/v1/workspaces/synthetic/conversations', {
+                'schema_version': 'workagent/v1', 'request_id': 'scope-test',
+                'command_id': 'scope-test', 'title': 'Never dispatch', 'selected_source_refs': []}),
+        ]:
+>           r = c.request(method, path, headers=h, json=body)
+
+backend/tests/test_client_session.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:437: in request
+    return super().request(
+backend/.venv/lib/python3.12/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+backend/.venv/lib/python3.12/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+backend/.venv/lib/python3.12/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+backend/.venv/lib/python3.12/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+backend/.venv/lib/python3.12/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:340: in handle_request
+    raise exc
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:337: in handle_request
+    portal.call(self.app, scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/usr/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+/usr/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+backend/.venv/lib/python3.12/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+backend/.venv/lib/python3.12/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/applications.py:112: in __call__
+    await self.middleware_stack(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:187: in __call__
+    raise exc
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py:176: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+/usr/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+backend/.venv/lib/python3.12/site-packages/starlette/_utils.py:82: in collapse_excgroups
+    raise exc
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py:178: in __call__
+    response = await self.dispatch_func(request, call_next)
+backend/workagent/api.py:102: in boundary
+    response=await call_next(request)
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py:156: in call_next
+    raise app_exc
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/base.py:141: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+backend/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+backend/.venv/lib/python3.12/site-packages/starlette/routing.py:714: in __call__
+    await self.middleware_stack(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/routing.py:734: in app
+    await route.handle(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/routing.py:288: in handle
+    await self.app(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+backend/.venv/lib/python3.12/site-packages/starlette/routing.py:73: in app
+    response = await f(request)
+backend/.venv/lib/python3.12/site-packages/fastapi/routing.py:301: in app
+    raw_response = await run_endpoint_function(
+backend/.venv/lib/python3.12/site-packages/fastapi/routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+backend/.venv/lib/python3.12/site-packages/starlette/concurrency.py:37: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+backend/.venv/lib/python3.12/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+backend/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+backend/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+backend/workagent/api.py:144: in list_workspaces
+    return service.list_workspaces(p,cursor,limit)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (Principal(id='synthetic-a', kind='human'), None, 25), kwargs = {}
+
+    def unexpected(*args, **kwargs):
+>       raise AssertionError('stale scope reached service')
+E       AssertionError: stale scope reached service
+
+backend/tests/test_client_session.py:46: AssertionError
+___ test_matching_scope_is_not_authority_and_legacy_clients_remain_supported ___
+
+    def test_matching_scope_is_not_authority_and_legacy_clients_remain_supported():
+        c = client()
+>       scope = identity()['scope_id']
+
+backend/tests/test_client_session.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+settings = Settings(database_url='postgresql://fixture:private@localhost/synthetic_one', local_test_mode=True, local_bearer='synthetic-session-test-key-not-a-real-secret', principal_id='synthetic-a', frontend_origin=None, fixture_mode=False)
+
+    def identity(settings=BASE):
+        response = client(settings).get('/v1/session', headers=HEADERS)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/test_client_session.py:17: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_client_session.py::test_authenticated_identity_is_stable_and_opaque
+FAILED backend/tests/test_client_session.py::test_identity_requires_real_auth_not_caller_selected_principal
+FAILED backend/tests/test_client_session.py::test_principal_and_backend_changes_are_independent
+FAILED backend/tests/test_client_session.py::test_stale_scope_refuses_before_service_read_or_mutation
+FAILED backend/tests/test_client_session.py::test_matching_scope_is_not_authority_and_legacy_clients_remain_supported
+5 failed, 1 warning in 8.77s

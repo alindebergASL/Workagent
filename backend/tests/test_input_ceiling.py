@@ -74,7 +74,7 @@ def test_new_count_binding_and_exact_full_reservation(context, tmp_path):
 @pytest.mark.parametrize('limits', [{'input_limit': 49999}, {'cost_limit_usd': '0.206919'}])
 def test_new_reservation_does_not_enlarge_authority(context, tmp_path, limits):
     g, fake, x = prepared(context, tmp_path, **limits)
-    count(x, fake)
+    count(x, fake, prior_count=True)
     raises('budget_exhausted', lambda: reserve(x, 'dispatch'))
     with pytest.raises(psycopg.Error, match='(reservation limit|project budget exhausted)'):
         raw(x, 'dispatch', NEW_DISPATCH)
@@ -134,7 +134,7 @@ def test_carried_unknown_cost_still_reduces_new_send_capacity(context, tmp_path)
     install_carry(Database(context[4]), project_id=g.responses.project_id,
         transport_mode='synthetic', source_database='workagent_test_historical_unknown',
         source_grant_id=new_id(), source_manifest_sha256='a'*64, reserved_cost_usd='0.80')
-    count(x, fake)
+    count(x, fake, prior_count=True)
     raises('budget_exhausted', lambda: reserve(x, 'dispatch'))
     with pytest.raises(psycopg.Error, match='shared cumulative project budget exhausted'):
         raw(x, 'dispatch', NEW_DISPATCH)

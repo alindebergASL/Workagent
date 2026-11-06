@@ -1,0 +1,59 @@
+{
+  "verdict": "PASS",
+  "scope": "B3.0b R3/R4 correction only; independent read-only review",
+  "source_root": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner",
+  "material_findings": [],
+  "source_sha256": {
+    "web/src/components/WorkspaceFiles.tsx": "1c44d937b798e3b14051cbf3c214fe53748c4cf55f96d21f197c2ba93c63bf22",
+    "web/src/lib/file-draft.ts": "11ea527c7967fc917ba2c376607579aec4c5a7699a112e0615c6ffc3d54f5999",
+    "web/test/workspace-files-races.test.ts": "2c5ffb7c9f5e0fa7605e959359831eb54f18cdbbcdc259367908ffdb95a493b8"
+  },
+  "supporting_sha256": {
+    "web/src/lib/client/pending-command.ts": "138d4220be8791e0911e7d32eaa68bc832382443c4cc0e9f9bfc8e7b64c3dda1",
+    "r34-final-candidate.patch": "ec7f16d8dbd86a4da74d7d25e466541e02a757aeb0cce72c04e0ee3357593ab9",
+    "r34-final-candidate-source.json": "5839f8a1dbd1104a53d18e8697670c845d073006520208e5fcd8ca8649d03c74"
+  },
+  "commands": [
+    {
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "command": "git -C .local/batch3/b30b/web-owner apply --reverse --check /home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/r34-final-candidate.patch",
+      "exit_code": 0
+    },
+    {
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner/web",
+      "command": "./node_modules/.bin/vitest run test/workspace-files-races.test.ts",
+      "exit_code": 0,
+      "test_files_passed": 1,
+      "tests_passed": 9,
+      "tests_failed": 0
+    },
+    {
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "command": "sha256sum .local/batch3/b30b/r34-final-candidate.patch .local/batch3/b30b/r34-final-candidate-source.json .local/batch3/b30b/web-owner/web/src/components/WorkspaceFiles.tsx .local/batch3/b30b/web-owner/web/src/lib/file-draft.ts .local/batch3/b30b/web-owner/web/test/workspace-files-races.test.ts",
+      "exit_code": 0
+    },
+    {
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "command": "python3 -c 'import hashlib,json,pathlib; r=pathlib.Path(\"/home/ubuntu/workagent-continuation-20261026\"); m=json.loads((r/\".local/batch3/b30b/r34-final-candidate-source.json\").read_text()); actual={p:hashlib.sha256((r/\".local/batch3/b30b/web-owner\"/p).read_bytes()).hexdigest() for p in m}; print(json.dumps({\"manifest_match\":actual==m,\"source_sha256\":actual},indent=2)); assert actual==m'",
+      "exit_code": 0,
+      "manifest_match": true
+    }
+  ],
+  "coverage": {
+    "actual_transpiled_components_and_usePendingCommand": true,
+    "creator_oldfirst_and_replayfirst": "tested",
+    "editor_oldfirst_and_replayfirst": "tested",
+    "newer_editor_draft_recovery": "tested",
+    "newer_creator_B_journal_and_draft": "tested",
+    "creator_dead_hash_and_error_completion": "tested",
+    "editor_equivalent_B_hash_error_fences": "source inspected",
+    "catch_and_finally_persistent_ownership": "source inspected",
+    "browser_or_production_build": "not run; parent owned"
+  },
+  "limitations": [
+    "Synthetic hook scheduler, transport and per-tab storage; not real React/browser execution.",
+    "Existing r34-parent-handler-result.json contained an earlier unbound old-first failure when read; not counted as final-candidate evidence.",
+    "No broader R1/R2/backend/native review or Batch 3 acceptance claim."
+  ],
+  "report": ".local/batch3/b30b/r34-final-review.md"
+}

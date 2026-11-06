@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium, expect } from "@playwright/test";
+import { scopedHeaders } from "./lib/scope.mjs";
 
 const out = path.resolve(process.argv[2]);
 const r = JSON.parse(await readFile(process.argv[3], "utf8"));
@@ -48,6 +49,31 @@ try {
   await expect(page.getByTestId("responsibility-outcome")).toHaveText(
     "Prepared a brief and a second checklist. No external outcome claimed.",
   );
+  // It's labelled as the latest recorded note, with the time from
+  // this assignment's own observation in the conversation's work snapshot,
+  // or "time not recorded"; it sits apart from what's prepared.
+  const snap = await (
+    await fetch(
+      `${origin}/api/domain/v1/workspaces/${r.workspace}/work-snapshot?conversation_id=${r.conversation_id}`,
+      {
+        headers: await scopedHeaders(origin, {
+          "X-Workagent-Client": "local-ui",
+        }),
+      },
+    )
+  ).json();
+  const obs = snap.responsibility?.find(
+    (x) => x.assignment_id === r.assignment_id,
+  )?.historical_observation;
+  const note = page.getByTestId("latest-note");
+  await expect(note).toContainText("Latest recorded note");
+  await expect(note).toHaveAttribute(
+    "data-time",
+    obs?.observed_at ? "known" : "unknown",
+    { timeout: 15000 },
+  );
+  if (!obs?.observed_at) await expect(note).toContainText("time not recorded");
+  await expect(prepared.getByTestId("latest-note")).toHaveCount(0);
   // Then what it prepared, each opening where it lives.
   for (const aid of r.outputs)
     await expect(
@@ -117,6 +143,23 @@ try {
   ).toBeVisible({ timeout: 20000 });
   pass("opening a prepared result reaches the work");
 
+  // The snapshot can't be read: the record's note stays, saying its time
+  // couldn't be checked (not "not recorded"); no read time stands in.
+  await page.route(/\/work-snapshot(\?|$)/, (route) => route.abort("failed"));
+  await page.goto(page_);
+  const unread = page.getByTestId("latest-note");
+  await expect(unread).toHaveAttribute("data-time", "unchecked", {
+    timeout: 20000,
+  });
+  await expect(unread).toContainText("time couldn’t be checked");
+  await expect(page.getByTestId("responsibility-outcome")).toHaveText(
+    "Prepared a brief and a second checklist. No external outcome claimed.",
+  );
+  await page.unroute(/\/work-snapshot(\?|$)/);
+  pass(
+    "the latest recorded note is labelled with its own observation's time, or time not recorded; an unreadable snapshot keeps the note, saying its time couldn't be checked, with no time borrowed; it sits apart from what's prepared",
+  );
+
   // Home keeps track of it; it isn't listed as needing the person.
   await page.goto(`${origin}/`);
   const held = page
@@ -148,7 +191,7 @@ try {
   // A long recorded outcome leads with its first sentence on a phone, so the
   // prepared work and the steering stay in view; the full text, uncertainty
   // included, is one click away, word for word. (Only the outcome text of
-  // the real read is lengthened, in the browser.)
+  // the real reads is lengthened, in the browser.)
   const LONG =
     "Prepared a brief and a second checklist from the bound inputs and saved both in the conversation. " +
     "Publication checked shape only; nobody has reviewed the wording, and no external outcome is claimed. " +
@@ -165,6 +208,16 @@ try {
       await route.fulfill({ response: res, json: body });
     },
   );
+  // The note shown is the snapshot's own observation for this assignment
+  // when there is one, so lengthen it there too, as the service would.
+  await phone.route(/\/work-snapshot(\?|$)/, async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    for (const x of body.responsibility ?? [])
+      if (x.assignment_id === r.assignment_id && x.historical_observation)
+        x.historical_observation.text = LONG;
+    await route.fulfill({ response: res, json: body });
+  });
   await phone.goto(page_);
   const outcome = phone.getByTestId("responsibility-outcome");
   await expect(outcome).toContainText(

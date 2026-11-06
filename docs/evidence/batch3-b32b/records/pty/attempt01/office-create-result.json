@@ -1,0 +1,37 @@
+{
+  "mode": "create",
+  "size": [
+    100,
+    45
+  ],
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;41;4M\u001b[<0;41;4m"
+    },
+    {
+      "keys": "\u001b[<0;5;16M\u001b[<0;5;16m"
+    },
+    {
+      "keys": "\u0001\u000b"
+    },
+    {
+      "keys": "\u001b[200~native-brief.json\u001b[201~"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\u001b[200~{\n  \"office_version\": \"office-v1\",\n  \"kind\": \"document\",\n  \"paragraphs\": [\n    \"Native created brief\",\n    \"Exact quotation: “Keep these words.”\"\n  ],\n  \"annotations\": [\n    \"Human native annotation retained across restart.\"\n  ]\n}\u001b[201~"
+    },
+    {
+      "keys": "\u0013"
+    }
+  ],
+  "passed": false
+}

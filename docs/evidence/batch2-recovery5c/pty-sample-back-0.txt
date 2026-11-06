@@ -1,0 +1,50 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work                ▎▊  Recovery5c removals                                                          ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+ Conversation  Work  Files  Status  Recovery  Details
+━━━━━━━━━━━━━━╸━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ /rows/row-00: {"cells":[{"field_key":"plant","value":"Plant
+ 00"},{"field_key":"height","value":"12.5"}],"row_id":"row-00"}
+
+ /rows/row-01: {"cells":[{"field_key":"plant","value":"Plant
+ 01"},{"field_key":"height","value":"12.5"}],"row_id":"row-01"}
+
+ /rows/row-02: {"cells":[{"field_key":"plant","value":"Plant
+ 02"},{"field_key":"height","value":"12.5"}],"row_id":"row-02"}
+
+ /rows/row-03: {"cells":[{"field_key":"plant","value":"Plant
+ 03"},{"field_key":"height","value":"12.5"}],"row_id":"row-03"}
+
+ /rows/row-04: {"cells":[{"field_key":"plant","value":"Plant
+ 04"},{"field_key":"height","value":"12.5"}],"row_id":"row-04"}
+
+ /rows/row-05: {"cells":[{"field_key":"plant","value":"Plant
+ 05"},{"field_key":"height","value":"12.5"}],"row_id":"row-05"}
+
+ /rows/row-06: {"cells":[{"field_key":"plant","value":"Plant
+ 06"},{"field_key":"height","value":"12.5"}],"row_id":"row-06"}
+
+ /rows/row-07: {"cells":[{"field_key":"plant","value":"Plant
+ 07"},{"field_key":"height","value":"12.5"}],"row_id":"row-07"}
+
+ /rows/row-08: {"cells":[{"field_key":"plant","value":"Plant
+ 08"},{"field_key":"height","value":"12.5"}],"row_id":"row-08"}
+
+ /rows/row-09: {"cells":[{"field_key":"plant","value":"Plant
+ 09"},{"field_key":"height","value":"12.5"}],"row_id":"row-09"}                                                       ▅▅
+
+ /rows/row-10: {"cells":[{"field_key":"plant","value":"Plant
+ 10"},{"field_key":"height","value":"12.5"}],"row_id":"row-10"}                                                       ▆▆
+
+ /rows/row-11: {"cells":[{"field_key":"plant","value":"Plant
+ Select each required acknowledgement for this exact candidate Draft retained; inspect Recovery. No automatic retry.
+
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊                                                                                                                      ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔
+    Send · F5       Queue later   Refresh   Detach
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁
+ ^q Detach  ^⏎ Send  ^r Refresh                                                                             ▏^p palette

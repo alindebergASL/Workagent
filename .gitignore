@@ -13,3 +13,5 @@ test-results/
 # Next dev emits coding-agent pointers; not product bundles.
 web/AGENTS.md
 web/CLAUDE.md
+# Raw orchestration context is retained locally, not product evidence.
+docs/evidence/batch2-recovery5b/baseline-t_ed572e1e/complete-card-context.json

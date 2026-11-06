@@ -1,0 +1,826 @@
+[
+  {
+    "path": "tsconfig.json",
+    "matches": true
+  },
+  {
+    "path": "pnpm-lock.yaml",
+    "matches": true
+  },
+  {
+    "path": "next.config.ts",
+    "matches": true
+  },
+  {
+    "path": "package.json",
+    "matches": true
+  },
+  {
+    "path": ".prettierignore",
+    "matches": true
+  },
+  {
+    "path": "pnpm-workspace.yaml",
+    "matches": true
+  },
+  {
+    "path": ".prettierrc",
+    "matches": true
+  },
+  {
+    "path": ".gitignore",
+    "matches": true
+  },
+  {
+    "path": "vitest.config.mts",
+    "matches": true
+  },
+  {
+    "path": "eslint.config.mjs",
+    "matches": true
+  },
+  {
+    "path": "playwright.config.ts",
+    "matches": true
+  },
+  {
+    "path": "README.md",
+    "matches": true
+  },
+  {
+    "path": "tsconfig.tsbuildinfo",
+    "matches": false
+  },
+  {
+    "path": "next-env.d.ts",
+    "matches": true
+  },
+  {
+    "path": "scripts/sandbox-regressions.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/products-readback-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/responsibility_result_fixture.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/conversation-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/demo-s1.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/real-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/intake-states.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/flexible-live-records.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/space_demo_fixture.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/responsibility-recovery.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/reset-checkpoint.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/space-experience.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/managed_evidence.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/space-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/responsibility-recording-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/review-boundary.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/products-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/intake_synthetic.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/intake_evidence.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/build-smoke.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/managed-recommendation.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/workspace-routing.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/source-drift.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/agent-first-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/flexible-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/products-review-regressions.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/attachment-parity.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/rr_fixture.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/responsibility-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/fault-regressions.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/capture-states.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/reset_checkpoint.py",
+    "matches": true
+  },
+  {
+    "path": "scripts/responsibility-result-journey.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/conversation-hold.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/conversation-refusal.mjs",
+    "matches": true
+  },
+  {
+    "path": "scripts/conversation_evidence.py",
+    "matches": true
+  },
+  {
+    "path": "e2e/reopen.spec.ts",
+    "matches": true
+  },
+  {
+    "path": "e2e/journey.spec.ts",
+    "matches": true
+  },
+  {
+    "path": "e2e/revision-draft.spec.ts",
+    "matches": true
+  },
+  {
+    "path": "e2e/helpers.ts",
+    "matches": true
+  },
+  {
+    "path": "test/recommendation.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/send-error.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/diff.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/since-you-left.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/conversation.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/natural-admission.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/rich-text.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/operation-state.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/product-summary.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/execution-view.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/titles.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/activity.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/result-links.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/draft-carry.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/adaptive-presentation.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/responsibility-recording.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/work-areas.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/home-destination.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/batch2-durable.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/space-view.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/responsibility-view.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/proposal-changes.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/note-authors.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/table-notes.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/doc-read.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/scope.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/thread.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/work-state.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/outcome-preview.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/cell-authors.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/flexible.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/worker.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/responsibility-outputs.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/service.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/assignment-summary.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/products.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/sandbox.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/proposal-review.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/command-cache.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/continuation.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/attachment-vectors.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/conversation-work.test.ts",
+    "matches": true
+  },
+  {
+    "path": "test/fixtures/managed-bodies.json",
+    "matches": true
+  },
+  {
+    "path": "test/fixtures/attachment-vectors.json",
+    "matches": true
+  },
+  {
+    "path": "test/fixtures/recording-turn.json",
+    "matches": true
+  },
+  {
+    "path": "src/components/ProposalReviewGate.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/OutcomeLede.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/Shell.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/SandboxedView.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ObservedOutput.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/NotesList.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/WorkRow.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/WorkFacets.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ProductView.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ResponsibilityPanel.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/FlexibleWork.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ConversationWorkRow.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/SourcesDrawer.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ExecutionLine.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ConversationPeek.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/SpaceWork.css",
+    "matches": true
+  },
+  {
+    "path": "src/components/AttachedFiles.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/WorkSurface.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/RichText.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/EarlierVersion.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/Ownership.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/OperationComposer.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/WorkCard.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/WorkAreas.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ConversationRow.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/HistoryDrawer.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/SpaceView.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/DocBody.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ScopedRecord.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/ui.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/components/TurnProgress.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/styles/globals.css",
+    "matches": true
+  },
+  {
+    "path": "src/styles/phone.css",
+    "matches": true
+  },
+  {
+    "path": "src/styles/foundations.css",
+    "matches": true
+  },
+  {
+    "path": "src/styles/agent-first.css",
+    "matches": true
+  },
+  {
+    "path": "src/styles/products.css",
+    "matches": true
+  },
+  {
+    "path": "src/lib/titles.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/security-headers.d.mts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/activity.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/hold-view.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/product-summary.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/time.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/proposal-changes.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/rich-text.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/space-view.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/draft.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/document-blocks.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/outcome-preview.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/flexible.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/responsibility-outputs.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/since-you-left.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/work-state.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/proposal-review.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/result-links.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/responsibility-view.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/thread.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/diff.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/sandbox.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/scope.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/execution-view.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/security-headers.mjs",
+    "matches": true
+  },
+  {
+    "path": "src/lib/home-destination.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/adaptive-presentation.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/execution.ts",
+    "matches": true
+  },
+  {
+    "path": "src/app/icon.svg",
+    "matches": true
+  },
+  {
+    "path": "src/app/layout.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/conversations/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/spaces/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/activity/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/assignments/[id]/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/assignments/[id]/artifacts/[artifactId]/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/spaces/[spaceId]/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/spaces/[spaceId]/work/[id]/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/app/api/mock/[...path]/route.ts",
+    "matches": true
+  },
+  {
+    "path": "src/app/conversations/[id]/artifacts/[artifactId]/page.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/lib/mock/fixture.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/mock/service.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/mock/store.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/mock/worker.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/leave-guard.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/workspace.tsx",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/products.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/conversation-work.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/assignment-summary.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/responsibility.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/overview.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/doc-store.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/landing.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/pending-command.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/responsibility-outputs.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/capabilities.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/staged-documents.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/since-marker.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/operation-state.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/limit.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/mock-api.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/recommendation.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/api.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/execution.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/command-cache.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/work-areas.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/hooks.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/client/result-states.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/contract/natural.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/contract/types.ts",
+    "matches": true
+  },
+  {
+    "path": "src/lib/contract/errors.ts",
+    "matches": true
+  }
+]

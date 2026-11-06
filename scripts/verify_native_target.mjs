@@ -15,7 +15,8 @@ const f=JSON.parse(await readFile(fixturePath,'utf8'));
 assert.equal(f.fixture_origin,'controlled native-admission preflight');
 const origin=process.env.WORKAGENT_WEB_ORIGIN;
 assert(origin&&new URL(origin).hostname==='127.0.0.1','Loopback synthetic preflight only');
-const headers={'X-Workagent-Client':'local-ui'};
+const {scopedHeaders} = await import('../web/scripts/lib/scope.mjs');
+const headers=await scopedHeaders(origin,{'X-Workagent-Client':'local-ui'});
 const base=`${origin}/api/domain/v1/workspaces/${f.workspace_id}`;
 async function get(p){const r=await fetch(base+p,{headers});assert.equal(r.status,200);return r.json();}
 const before=await get(`/artifacts/${f.artifact_id}`);

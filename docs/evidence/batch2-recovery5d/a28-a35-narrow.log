@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "checks": [
+    "five: scoped UI save/readback/reload preserves exact multiline notes, order and count",
+    "ten: scoped UI save/readback/reload preserves exact multiline notes, order and count",
+    "A28 explicit consent flags still cannot bypass stale base through authenticated scoped proxy"
+  ]
+}

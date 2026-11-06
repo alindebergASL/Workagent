@@ -1,0 +1,71 @@
+........................................................................ [ 45%]
+.....................................................F.................. [ 91%]
+...........FFF                                                           [100%]
+=================================== FAILURES ===================================
+_______________ test_closed_compatible_catalog_and_honest_hashes _______________
+
+    def test_closed_compatible_catalog_and_honest_hashes():
+        old=json.loads((BASE/'classification-01/BEFORE.json').read_text())['descriptors']
+        live={k:a.descriptor.model_dump(mode='json') for k,a in registry.adapters().items()}
+        assert len(old)==len(live)==23 and len(releases.TRANSITION_IDS)==12
+        for k,d in live.items():
+            assert old[k]['implementation_sha256']!=d['implementation_sha256']
+>           assert {x:v for x,v in old[k].items() if x!='implementation_sha256'}=={x:v for x,v in d.items() if x!='implementation_sha256'}
+E           AssertionError: assert {'availabilit...iles-v1', ...} == {'availabilit...iles-v1', ...}
+E             
+E             Omitting 16 identical items, use -vv to show
+E             Differing items:
+E             {'output_schema': {'$defs': {'ChartResult': {'additionalProperties': False, 'properties': {'computation_version': {'co...tManifest'}, 'version': {'title': 'Version', 'type': 'string'}}, 'required': ['capability', 'version', 'result'], ...}} != {'output_schema': {'$defs': {'ChartResult': {'additionalProperties': False, 'properties': {'computation_version': {'co...tManifest'}, 'version': {'title': 'Version', 'type': 'string'}}, 'required': ['capability', 'version', 'result'], ...}}
+E             {'schema_sha256': '17ba5aabea63f...
+E             
+E             ...Full output truncated (2 lines hidden), use '-vv' to show
+
+backend/tests/test_implementation_releases.py:25: AssertionError
+_________ test_actual_existing_receipt_bootstrap_keeps_old_pins[None] __________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-284/test_actual_existing_receipt_b0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b80acf67170>
+damage = None
+
+    @pytest.mark.parametrize('damage',[None,'receipt_drift','expired'])
+    def test_actual_existing_receipt_bootstrap_keeps_old_pins(tmp_path,monkeypatch,damage):
+        from contextlib import contextmanager
+        from datetime import timedelta
+>       import live_tool_authority as bootstrap
+E       ModuleNotFoundError: No module named 'live_tool_authority'
+
+backend/tests/test_implementation_releases.py:148: ModuleNotFoundError
+_____ test_actual_existing_receipt_bootstrap_keeps_old_pins[receipt_drift] _____
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-284/test_actual_existing_receipt_b1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b80acfefbf0>
+damage = 'receipt_drift'
+
+    @pytest.mark.parametrize('damage',[None,'receipt_drift','expired'])
+    def test_actual_existing_receipt_bootstrap_keeps_old_pins(tmp_path,monkeypatch,damage):
+        from contextlib import contextmanager
+        from datetime import timedelta
+>       import live_tool_authority as bootstrap
+E       ModuleNotFoundError: No module named 'live_tool_authority'
+
+backend/tests/test_implementation_releases.py:148: ModuleNotFoundError
+________ test_actual_existing_receipt_bootstrap_keeps_old_pins[expired] ________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-284/test_actual_existing_receipt_b2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b80acf668d0>
+damage = 'expired'
+
+    @pytest.mark.parametrize('damage',[None,'receipt_drift','expired'])
+    def test_actual_existing_receipt_bootstrap_keeps_old_pins(tmp_path,monkeypatch,damage):
+        from contextlib import contextmanager
+        from datetime import timedelta
+>       import live_tool_authority as bootstrap
+E       ModuleNotFoundError: No module named 'live_tool_authority'
+
+backend/tests/test_implementation_releases.py:148: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED backend/tests/test_implementation_releases.py::test_closed_compatible_catalog_and_honest_hashes
+FAILED backend/tests/test_implementation_releases.py::test_actual_existing_receipt_bootstrap_keeps_old_pins[None]
+FAILED backend/tests/test_implementation_releases.py::test_actual_existing_receipt_bootstrap_keeps_old_pins[receipt_drift]
+FAILED backend/tests/test_implementation_releases.py::test_actual_existing_receipt_bootstrap_keeps_old_pins[expired]
+4 failed, 154 passed in 14.34s

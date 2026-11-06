@@ -1,0 +1,18 @@
+{
+  "workspace": "b3final-e0ff196f",
+  "conversation": "284bd8c4-a6ca-4ebe-808b-daaa68b85ab5",
+  "run": "16acdb36-4924-4c29-b731-126fe4ca94ae",
+  "run_state": "ready",
+  "materialize_events": 1,
+  "artifacts": [
+    {
+      "id": "939eb965-2266-4c80-a3fb-26b915637b1b",
+      "fn": "reply.txt",
+      "content": "Local calculation observed. Review the saved product or pending proposal; human notes preserved. No external action was performed.",
+      "mime": "text/plain",
+      "producer_run_id": "16acdb36-4924-4c29-b731-126fe4ca94ae"
+    }
+  ],
+  "paid_product_calls": 0,
+  "transport": "httpx.MockTransport offline"
+}

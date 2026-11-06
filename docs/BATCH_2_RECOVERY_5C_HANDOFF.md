@@ -1,0 +1,50 @@
+# Recovery5c bounded checkpoint — A14 RED; full Batch2 HOLD
+
+Task `t_5f1899a4`. Only A14/A28/A35 investigated. No publication, default merge, Batch3, task-graph changes or product-provider calls. The original full-acceptance `t_75bcdd10` and publication `t_45ab8522` remain untouched. This card is **not complete**: a real A14 cross-principal local-draft disclosure requires web-owner correction and a bounded follow-up proof.
+
+## Source and runtime binding
+
+All602 source hashes match recovery5b before fixture writes and at checkpoint. Branch `hermes/b2-conversational-client`, HEAD `c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d`; intentional dirty source is preserved. Exact original source-manifest SHA256 `1a969241aa7dfba5f77cf7382f2c521cb1d5fd12bb1ce831e230968fba89017f`; local copy `docs/evidence/batch2-recovery5c/source-manifest.json`. **Product-source delta: zero files.** Evidence/harnesses only under recovery5c, private launcher/profile/journal under `.local/recovery5c`. Existing508 backend,481 frontend,134 targeted and nine-file independent correction-review evidence remains unaffected; no broad suites or redundant independent review rerun.
+
+Actual Chromium→current Next3195→current API18965→restricted PostgreSQL `workagent_test_0604a6a3b5d9`. No installed8152 or old18963 proof. Credentials remain only `.local/recovery5a/test.env`, sourced privately. Task-owned synthetic fixtures in `fixture.json`, `canonical-inputs.json`, `scope-fixture.json`. All note/table input bodies validated with current `StructuredTableBody` before artifact writes, followed by canonical reads. Inline existing `ControlledTransport` fixture builder created three deterministic artifacts, not model-quality evidence and not a model/provider worker process.
+
+## A14 — confirmed RED, not closed
+
+`scope-browser.mjs`, `scope-report.json`, `scope-principal-a.png/.txt`, `scope-principal-b.png/.txt` record an actual principal/endpoint switch while retaining the same browser origin/profile:
+
+- A: current API18965 authenticated as `local-human`. Fresh shared scope `recovery5c-scope`, conversation `e46f5bcc-2187-4ea4-a04d-f39408100b94`. Exact unsent multiline draft and PDF staged to real IndexedDB; stored-byte SHA256 equals original. Switching to a different conversation hides both; returning restores exact draft/bytes.
+- B: same current API source launched at18966 authenticated as disposable `recovery5c-other`. Only the fresh synthetic scope membership was added. Actual Next proxy restarted to18966; B could read this shared conversation200 and correctly received404 for unrelated recovery5a workspace. This is a genuine authenticated-principal change, not a fabricated browser response.
+- **B's page displays A's exact unsent draft.** Screenshot shows access-change/refusal presentation and the foreign draft textarea. `principal_b_visible_staged=0`: the staged PDF was **not rendered in B's UI**. The same original byte/hash record remains in IndexedDB under the hardcoded `local-human` key, but do not describe that as a visible B attachment or proven dispatch. This corrects the initial board comment's overstatement about staged PDF exposure.
+- Zero POSTs during the switch journey. Server snapshots/streams did not expose foreign canonical work in the refusal presentation. The local-draft disclosure alone fails absence-of-cross-scope-leakage acceptance.
+- Root cause seam: `web/src/lib/client/api.ts` exports build-time `PRINCIPAL='local-human'`; durable draft/document keys cannot reflect an actual changed backend identity, and `draftScope` lacks endpoint identity. A genuine session/backend scope identity must be obtained before restoring/rendering local state or dispatching. Preserve old drafts under their original scope; do not silently relabel or delete them. Claude remains sole web implementation owner. No Claude lane resumed or product code changed on this bounded checkpoint.
+- Switched proxy back to18965, then revoked **only fresh** local-human membership during open browser work. First post-revoke Node fetch hit a transient socket error and ended the active-midstream harness; that segment is **incomplete**, not PASS. `scope-revoked.json` confirms mutation/readback. `final2-browser-report.json` separately proves current conversation/snapshot/events404 and sanitized fresh-browser read. It does **not** substitute for the unfinished active-stream journey. Recovery5a's preexisting source-access hash remains identical before/after; its revoked fixture was never re-enabled.
+
+Remaining: bounded explicit-current-source Claude scope-identity correction (or orchestrator-designed identity interface), one material-delta risk review, real separate principal and endpoint switches including staged bytes/cache/no stale dispatch, and complete active-midstream revocation. No retry/iteration limits raised. This is implementation/proof work, not permission to start paid trials.
+
+## A28 — paired deterministic proof verified, with refresh qualification
+
+`review2-report.json` verifies actual browser26-row removal proposal, server20-member sample, total26 and omitted6. UI explicitly says only20 listed and compare full versions. Apply disabled without removal consent. A concurrent newer canonical candidate arrives while review remains mounted; **production focus-refresh** rereads it and clears consent/disables Apply. The artifact page does not poll continuously: original `review-report.json` is retained RED for the harness expectation of an automatic30-second reset. Do not claim automatic push/poll reset.
+
+Browser checked exact fresh consent, then the harness paused the actual accept request, saved a newer human base, and forwarded the original unmodified POST. Server409; all26 rows and new human note preserved. `review2-stale-refused.png/.txt` and request/response/readback in report.
+
+An additional fresh-base candidate was reviewed in the real120x50 Textual PTY. `pty-sample-back-1.txt` explicitly shows **26 total removed/replaced members;20 displayed samples** and proposed body. `pty-consent-location.txt` shows the no-consent refusal. Exact removal checkbox then Accept succeeds. `pty-accept-readback.json` contains before/after canonical current revisions:26→0 rows, human note unchanged. `pty-accepted-body.txt/.ansi` displays actual revision4/current body and historical base separately. `final2-browser-report.json` and `final2-browser-accepted.png` read that same TUI-accepted revision/body back in browser. Earlier menu-only/misdirected keyboard captures remain in evidence but are not claimed as body proof. Unaffected older-candidate/server regression obligations retain recovery5b's indexed evidence; no new live model claim.
+
+## A35 — paired current-source note parity verified
+
+Clearly synthetic canonical inputs:
+- Five objects,17 newline-delimited displayed text lines; leading spaces, blank line, trailing newline and tab retained.
+- Ten objects,40 such lines; first two objects byte-identical duplicates; every object multiline, with blank/trailing lines. Object limit is10, not rendered-line count.
+
+`notes4-report.json`, `notes4-{five,ten}-{unchanged,cell-only}.json` and1440/390/320 screenshots prove editor values, actual cell-only UI saves, exact note strings/order/count and per-note hashes, reload, and disabled eleventh Add. Unchanged retyping correctly removes the Save button: **UI no-op, not a fictional unchanged-save click**. Separately, `final2-browser-report.json` sends exact unchanged canonical bodies through real browser fetch to current save API, reads back unchanged body/hash and reloads per-note editor. That is an actual wire-save, not a claim that a nonexistent UI button was clicked.
+
+Actual Textual captures `pty-five-selected/scrolled` and `pty-ten-selected/scrolled` show complete notes and browser-edited cells. Raw PTY visually expands tabs and cannot certify trailing spaces; canonical JSON supplies byte proof. Finally the real `python -m workagent.operator_tui ... artifact ID` executable reads the exact current revisions after unchanged wire saves: `terminal-final-five.json`, `terminal-final-ten.json`, `terminal-parity.json` compare current revision/body byte data to browser receipts and all canonical note hashes. No flattening workaround.
+
+## Reds, authority and services
+
+Append-only red receipts retained: nonexistent unchanged-save control; changing `observed_at` mistaken for body inequality; initial Add label mismatch; automatic refresh assumption; final reload defaulting to Result tab; scope fetch transient. These are not erased or counted as successful journeys. The one confirmed product RED is cross-principal draft exposure. Scope setup initially rejected unsupported `member` role transaction; its empty task-owned workspace was retained, then synthetic `owner` membership added and read-tested; no old workspace was changed.
+
+`audit-before/seeded/final.json` show provider grant hashes unchanged, no continuation allocations, preexisting source access unchanged. `run_dispatches` increases67→70 solely from the three inline ControlledTransport seeds; do not call those provider dispatches. `no-provider-proof.json` plus scoped joined proof report current provider attempts/steps/events for fresh scopes. No live transport/model worker, spending authorization changes or private-account access expansion. Product cumulative100USD is a ceiling, not available balance.
+
+At checkpoint API `b2r5b-api` PID3933826/18965 remains unchanged. Web `b2r5b-web` PID3982762/3195 is restored to backend18965, same build/source. Auxiliary18966 API stopped; TUI detached; Chromium contexts closed. Scope local-human membership intentionally remains revoked; other synthetic membership retained. No cleanup, database maintenance or parent workspace edits.
+
+Full43-row matrix remains historical and untouched. `acceptance-supplement.json/.md` updates only A14/A28/A35 with these qualifications; other40 rows and all live/longitudinal obligations remain pending exactly as before. Parent owns full reconciliation/publication and next-lane scheduling. No successor card created by this worker.

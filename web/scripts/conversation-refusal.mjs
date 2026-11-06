@@ -12,12 +12,14 @@ import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sessionScope } from "./lib/scope.mjs";
 
 const out = path.resolve(process.argv[2]);
 await mkdir(out, { recursive: true });
 const ids = JSON.parse(await readFile(process.argv[3], "utf8"));
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const ws = ids.workspace;
+const scope = await sessionScope(origin);
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
@@ -142,13 +144,14 @@ try {
   // fixture's own conversations are activated, so the one above becomes a
   // project (still without answers turned on).
   const promoted = await page.evaluate(
-    async ({ ws, cid }) => {
+    async ({ ws, cid, scope }) => {
       const api = `/api/domain/v1/workspaces/${ws}`;
       const h = () => ({
         "content-type": "application/json",
         "x-workagent-client": "local-ui",
         "x-schema-version": "workagent/v1",
         "x-request-id": crypto.randomUUID(),
+        "x-workagent-scope": scope,
       });
       const now = await (
         await fetch(`${api}/conversations/${cid}`, { headers: h() })
@@ -168,7 +171,7 @@ try {
       });
       return { ok: r.ok, body: await r.text() };
     },
-    { ws, cid },
+    { ws, cid, scope },
   );
   assert.ok(promoted.ok, promoted.body);
   await page.goto(`${origin}/spaces/${ws}/work/${cid}`);

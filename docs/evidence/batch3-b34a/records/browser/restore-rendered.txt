@@ -1,0 +1,105 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Reviewed methods study
+Activity & details
+Connections
+← Back to agent
+Reviewed methods study
+
+Part of Reviewed methods study · Open the project
+
+You:
+Investigate this duration summary. The naive row denominator may be wrong; retain a failed validation honestly.
+
+training.csv · 50 bytes
+Agent:
+
+The denominator check failed; the result is not validated. Review the actual failure before proposing any lesson.
+
+Details
+
+You:
+Editorial correction: the v1 short excerpt overstates the observation. Use source version v2 and retain the full pilot-week qualification; annual savings remain unknown. This is a human proposal, not a source-authorized rule.
+
+pilot-source-v2.txt · 244 bytes
+Agent:
+
+Saved a fresh result from the current input. Reviewed guidance is advisory, not proof of correctness. Controlled transport; no causal learning claim.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 09:53 UTC
+New version saved
+Mark as seen
+Details
+Files
+current-policy-brief.md
+text/markdown · 453 bytes
+training.csv
+text/csv · 50 bytes · read-only evidence
+pilot-source-v2.txt
+text/plain · 244 bytes · read-only evidence
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+No captured web sources in this conversation.
+
+New file…
+Memory
+Remember
+Kind
+Fact
+Preference
+Project convention
+Something that happened
+Procedure
+Applies to
+This conversation only
+This project
+All my work in this workspace
+Remember
+In use
+Waiting for review
+
+Verify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.
+
+Procedure · This project · In use
+
+Why this is here
+Based only on what you said, not on an observed result.
+Correct
+Restore an earlier version…
+Limit to this conversation only
+Expire
+Forget…
+
+Inspect current units; deduplicate identified records, omit missing values rather than treating them as zero, and use the unique valid denominator. Preserve excluded counts and present units. Never transfer old totals.
+
+Procedure · This project · In use
+
+Why this is here
+Correct
+Restore an earlier version…
+Limit to this conversation only
+Expire
+Forget…
+
+Done. Reread now shows: In use.
+
+Tool activity
+Continue the conversation
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { API_MODE, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { usePendingCommand } from "@/lib/client/pending-command";
+import { scopedSession } from "@/lib/client/session-scope";
 import {
   areaHref,
   workAreas,
@@ -24,7 +25,7 @@ type Draft = AreaInput & { base?: number };
 
 function readKept(key: string): Draft | null {
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     return raw ? (JSON.parse(raw) as Draft) : null;
   } catch {
     return null;
@@ -32,8 +33,8 @@ function readKept(key: string): Draft | null {
 }
 function keep(key: string, value: Draft | null) {
   try {
-    if (value) sessionStorage.setItem(key, JSON.stringify(value));
-    else sessionStorage.removeItem(key);
+    if (value) scopedSession.setItem(key, JSON.stringify(value));
+    else scopedSession.removeItem(key);
   } catch {
     /* storage unavailable: the typed values stay in memory */
   }
@@ -266,8 +267,8 @@ export function SpaceDetails({
   useEffect(() => {
     try {
       if (
-        sessionStorage.getItem(draftKey) ||
-        sessionStorage.getItem(`${draftKey}:pending`)
+        scopedSession.getItem(draftKey) ||
+        scopedSession.getItem(`${draftKey}:pending`)
       )
         setEditing(true);
     } catch {

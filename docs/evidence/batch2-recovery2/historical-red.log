@@ -1,0 +1,56 @@
+............................................F....................        [100%]
+=================================== FAILURES ===================================
+__________________________ test_real_cpu_bomb_stopped __________________________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-47/test_real_cpu_bomb_stopped0')
+
+    def test_real_cpu_bomb_stopped(tmp_path):
+>       code, out, err = probe(tmp_path, 'print("started",flush=True)\nwhile True: pass')
+
+backend/tests/test_document_confinement.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_document_confinement.py:15: in probe
+    return run_confined(b'synthetic', 'probe', module_path=script, wall_seconds=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+raw = b'synthetic', kind = 'probe'
+
+    def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WALL_SECONDS):
+        """Bound both pipes concurrently and kill the entire jail on every early exit.
+    
+        module_path is an internal testing seam, never supplied by an HTTP command.
+        """
+        if len(raw) > MAX_ORIGINAL:
+            raise ValueError('input_limit')
+        module_path = module_path or Path(__file__).with_name('document_parser.py')
+        with tempfile.TemporaryDirectory(prefix='workagent-document-') as directory:
+            input_path = Path(directory) / 'original'
+            input_path.write_bytes(raw)
+            argv = jail_argv(input_path, module_path, kind, packages)
+            process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, close_fds=True, start_new_session=True,
+                                       env={}, cwd=directory)
+            output, errors = bytearray(), bytearray()
+            deadline = time.monotonic() + wall_seconds
+            try:
+                with selectors.DefaultSelector() as selector:
+                    for pipe, target in ((process.stdout, output), (process.stderr, errors)):
+                        os.set_blocking(pipe.fileno(), False)
+                        selector.register(pipe, selectors.EVENT_READ, target)
+                    while selector.get_map():
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+>                           raise TimeoutError('parser_timeout')
+E                           TimeoutError: parser_timeout
+
+backend/workagent/document_sandbox.py:82: TimeoutError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/docs-final-parent.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_document_confinement.py::test_real_cpu_bomb_stopped
+1 failed, 64 passed, 1 warning in 623.36s (0:10:23)

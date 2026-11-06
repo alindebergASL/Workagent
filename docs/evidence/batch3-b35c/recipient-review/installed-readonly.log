@@ -1,0 +1,1 @@
+{"issuer_certificates_not_queried": true, "provider_calls": 0, "scope": "exact12 identity and unfunded-state read-only; no issuer inspection", "status": "PASS", "verified_databases": 12, "verified_grants": 24}

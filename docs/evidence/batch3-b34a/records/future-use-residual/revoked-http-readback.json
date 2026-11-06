@@ -1,0 +1,16 @@
+{
+  "denied": [
+    {
+      "path": "/sources/residual-source-124b5cad-586c-433d-b8a3-37546ce845ea",
+      "status": 404
+    },
+    {
+      "path": "/memory/5f62d7e5-cc21-4e93-b15a-63fe3e2d6d58",
+      "status": 404
+    }
+  ],
+  "memory_page": {
+    "items": [],
+    "has_more": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "state": "ready",
+  "run_id": "c9c79e66-6e30-4e1b-9ed1-2d78ee8cd0ce",
+  "paid_product_calls": 0,
+  "model_transport": "deterministic selection fixture",
+  "tool_transport": "real local TCP SDK"
+}

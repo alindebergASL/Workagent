@@ -1,0 +1,63 @@
+{
+  "id": "79f89f1b-4720-44be-96cb-d61b24357f96",
+  "workspace_id": "batch2-publication-smoke-final",
+  "assignment_id": null,
+  "conversation_id": "2bb2a1b4-2561-4d21-bba7-5ba5afcdc7b0",
+  "current_revision_id": "9ae66ef6-9763-4470-a4fc-b502516222d5",
+  "current_revision": {
+    "id": "9ae66ef6-9763-4470-a4fc-b502516222d5",
+    "artifact_id": "79f89f1b-4720-44be-96cb-d61b24357f96",
+    "revision_number": 3,
+    "parent_revision_id": "2fc4e3db-8f9a-4691-83a0-0e5fff3f72b9",
+    "author_id": "local-human",
+    "author_kind": "human",
+    "body": {
+      "kind": "structured_table",
+      "version": "structured-table/v1",
+      "title": "Synthetic garden plan",
+      "fields": [
+        {
+          "key": "plant",
+          "label": "Plant",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "decimal",
+          "editable": true,
+          "unit": "cm",
+          "scale": 1,
+          "enum": null
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "oak",
+          "cells": [
+            {
+              "field_key": "plant",
+              "value": "Oak"
+            },
+            {
+              "field_key": "height",
+              "value": "12.5"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "Human note: keep Saturday morning. Verified in publication smoke."
+      ]
+    },
+    "body_hash": "eb1489c0d9c8485aae19a2c475c401d763de12add5fd8d8b5830e6b80e1a534b",
+    "source_dependencies": [],
+    "created_at": "2026-10-28T09:40:33.739256Z"
+  },
+  "requested_revision": null,
+  "observed_at": "2026-10-28T09:41:10.101379Z"
+}

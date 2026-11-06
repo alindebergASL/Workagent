@@ -1,0 +1,13 @@
+{
+  "difference_seconds": "60",
+  "file_id": "c419cfc2-79f2-408b-a1d0-625509c89751",
+  "independent_fraction_means": {
+    "east.csv": "180",
+    "west.csv": "120"
+  },
+  "readback": "actual persisted immutable workspace-file bytes through scoped service",
+  "run_id": "f2cc2629-d9da-4890-b1c4-73b6667bfb66",
+  "sha256": "c9a1c9907b616271eaaed49bf599a08b11aaa0a636f621fcfb2bb75a13d61bc1",
+  "version_id": "4af0a35e-657f-4c4a-a427-cf3847296002",
+  "workspace_id": "test-74ff8013-a797-4855-808f-91dca1443973"
+}

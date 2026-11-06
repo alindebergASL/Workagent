@@ -1,0 +1,9 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  04:22:48
+   Duration  1.14s (transform 54%, tests 24%, setup 10%, import 7%, worker 4%)
+

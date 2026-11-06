@@ -1,0 +1,36 @@
+{
+  "versions": {
+    "node": "v22.22.2",
+    "backend_python": "Python 3.12.3",
+    "parser_python": "Python 3.12.3",
+    "textual": "8.2.8",
+    "psycopg": "3.2.9",
+    "fastapi": "0.115.12",
+    "uvicorn": "0.34.3",
+    "next": "16.3.4",
+    "@playwright/test": "1.62.0",
+    "typescript": "5.9.3",
+    "parsers": {
+      "pypdf": "6.21.2",
+      "python-docx": "1.2.0",
+      "openpyxl": "3.1.5"
+    }
+  },
+  "health": {
+    "api_status": 200,
+    "identity_keys": [
+      "principal_id",
+      "scope_id"
+    ],
+    "principal_matches": true,
+    "web_status": 200,
+    "web_html_bytes": 8729,
+    "web_html_sha256": "8f0e2a784919a85fe56b8968fa189495bc357720c2479471ac857fbe49072268"
+  },
+  "classification": "new prerequisite readback, not browser/product acceptance",
+  "retained_harness_failure": {
+    "first_probe_exit": 1,
+    "http_status": 422,
+    "cause": "Probe omitted required X-Schema-Version and X-Request-Id headers; corrected GET returns 200; no product change"
+  }
+}

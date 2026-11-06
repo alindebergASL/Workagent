@@ -1,0 +1,38 @@
+[
+  {
+    "path": "docs/evidence/batch2-recovery4/final-backend-core.xml",
+    "sha256": "7ae9c867b777f542a16914dc78582a40a448f0041da4891da93f41449052bd58",
+    "testcases": 411,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "classification": "retained execution; not rerun"
+  },
+  {
+    "path": "docs/evidence/batch2-recovery4/final-backend-seams.xml",
+    "sha256": "c76c3f03c2cb40f7260bd2e103c9a730dc3e125b2a59e68bf00654bd296bd6da",
+    "testcases": 97,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "classification": "retained execution; not rerun"
+  },
+  {
+    "path": "docs/evidence/batch2-recovery5a/journey-tests.xml",
+    "sha256": "fabaf426b8cc827d70c3a0810638f61aaa2e658f0a29c60655356e2cb8fb8d9d",
+    "testcases": 134,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "classification": "retained execution; not rerun"
+  },
+  {
+    "path": "docs/evidence/batch2-recovery5b/frontend-stop-final.xml",
+    "sha256": "1387443db868f5e61a7dfd69fe4ba0254300d0fdb13d5683c32eb9051326a977",
+    "testcases": 481,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "classification": "retained execution; not rerun"
+  }
+]

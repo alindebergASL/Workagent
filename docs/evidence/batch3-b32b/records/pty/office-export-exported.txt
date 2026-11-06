@@ -1,0 +1,45 @@
+ Working files · Ctrl+S save · Esc back                                                             
+ Export ready; download verifies actual bytes and hash.                                             
+ Export export.docx (docx) · SHA256                                                                 
+ d6eea5de8a1b1e4d5b937cc50eb06c3c7f94d78e1fee3e2a7636f1f7194e8129                                   
+ Export input a69fe1e1-c68a-45ec-8dec-50fcbe435b70 · SHA256                                         
+ b9501c9944dd4eb0da398a7b90b211b85cecd58da64b6124505ebd617e3ce57a                                   
+ Fidelity: Editable values and plain paragraphs; constrained layout; no office-suite fidelity. ·    
+ Annotations: explicit_omissions                                                                    
+ Export omissions: Rich formatting, layout, comments, tracked changes, drawings and embedded        
+ objects are not preserved.; No OCR or vision was performed; PDF imports use only the text          
+ layer.; Tables, merged cells, date formatting, headers and footers are simplified or omitted;      
+ dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from     
+ exported XLSX.; Formulas are not evaluated; caches are imported or user-supplied observations,   ▂▂
+ never computed results.                                                                            
+ Complete editor content: 234 UTF-8 bytes. No omitted bytes. Original newline: lf. BOM retained.    
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                         
+ Make editable office copy                                                                          
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                         
+Open a retained DOCX/XLSX source, then make a separate editable office-v1 JSON copy. The original   
+is unchanged. Edit paragraphs, cells and annotations in JSON. Formulas are not computed; imported   
+caches are historical. Rich formatting/layout may be omitted. No OCR or image understanding.        
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  native-brief.json                                                                             ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  4    "paragraphs": [                                                                          ▎  
+▊  5      "Native created brief",                                                                ▎  
+▊  6      "Exact quotation: “Keep these words.”"                                              ▇▇ ▎  
+▊  7    ],                                                                                       ▎  
+▊  8    "annotations": [                                                                         ▎  
+▊  9      "Human native annotation retained across restart."                                     ▎  
+▊ 10    ]                                                                                        ▎  
+▊ 11  }                                                                                          ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▃▃
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎                                        
+▊ ▐X▌ Allow LF normalization of edited mixed line endings  ▎                                        
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎                                        
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                        
+ Save human edit   Read back   Replay exact                                                         
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                        
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                                 
+ Resolve rejection                                                                                  
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                                 
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+ esc Back  ^s Save file  ^r Refresh list                                                            

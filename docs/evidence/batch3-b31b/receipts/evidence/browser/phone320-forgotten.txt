@@ -1,0 +1,41 @@
+workagent
+More
+← Back to agent
+Memory browser mobile
+Keep as a project
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Files
+
+No working files in this conversation yet.
+
+New file…
+Memory
+Remember
+Kind
+Fact
+Preference
+Project convention
+Something that happened
+Procedure
+Applies to
+This conversation only
+This project
+All my work in this workspace
+Remember
+
+Not linked to a project. Only this conversation’s memories (and your general preferences) are used.
+
+Link to a project…
+In use
+Waiting for review
+
+Nothing is remembered for this conversation.
+
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

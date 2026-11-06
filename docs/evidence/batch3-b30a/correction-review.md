@@ -1,0 +1,29 @@
+# B3.0a narrow correction rereview — PASS
+
+**Verdict: PASS. No remaining blocking finding identified in the requested corrections and subsequent authority/fencing delta.** This is a source/test inspection, not a fresh architecture audit or product-acceptance claim.
+
+Reviewed the dirty working tree on `hermes/b2-conversational-client`, HEAD `26e599b3db8a61b73eeeaea4f87a1d3de0b296d9`. Exact inspected production/test bytes are recorded in `correction-review.json`; partial-file inspections are identified there.
+
+## Original corrections
+
+- **Completed observation after reclamation:** `backend/workagent/capabilities/broker.py:28-44` reauthorizes and reads the exact stored call observation before attempting dispatch. Migration053 `:168-172` retains immutable call/scope equality; `:195-203` still fences dispatch against the original lease. `backend/tests/test_capability_integration.py:28-36` asserts a higher-fence worker reuses the result with exactly one invocation.
+- **Revocation and downstream consumption:** `backend/workagent/service.py:588-619` applies the shared tool check; `capabilities/policy.py:18-33` checks SQL authority and current implementation/schema pins. `general_responses.py:301-311` enters that check before selection consumption. Migration053 `:275-329` gates model sends, staged results and publication. Regressions cover context/publication denial, revocation after staging before the next request, and direct SQL dispatch denial (`test_capability_integration.py:75-83,202-228`). Late settlement retains cost without granting continuation.
+- **Typed legacy datetime output:** `capabilities/broker.py:49-53` directly dumps typed output and uses strict JSON validation for raw results, avoiding strict Python validation of serialized datetimes. Both legacy assignment/artifact adapters are exercised in `test_capability_integration.py:39-59`, including the public Broker entry point.
+- **Existing runtime role upgrade:** migration053 `:331-340` grants new-table SELECT to existing non-public/non-owner roles with responses-event INSERT, without granting direct history/authority writes. `test_capability_upgrade.py:29-82` executes accepted052 source, preserves historical snapshots/accounting through repeated migrator invocation, checks SELECT/no INSERT, and executes the gateway with the same runtime role.
+
+## Subsequent security delta
+
+- **Legacy escape prevention:** `backend/workagent/broker.py:43-63` routes any tool-grant-bound run through the gateway; revoked grants cannot select the historical fallback. Only reviewed legacy adapters are registered (`capabilities/registry.py:81-84`); unsupported proposal calls are denied by the regression above.
+- **Opted-in composition deny:** `products.py:327-339` checks operation permission before reuse or effect-specific paths. `capabilities/policy.py:36-42` rejects operations outside the initial allowlist. Migration053 `:310-319` independently rejects missing/uninstalled decisions and requires an exact observed gateway result for the supported read-result paths. `products.py:383-386` uses the gateway, not direct legacy execution.
+- **Discovery authority:** `capabilities/registry.py:43-48` wraps discovery through current policy. `capabilities/policy.py:91-124` checks scoped access, installations, grant pins, effects/privacy and egress rather than legacy hints. `test_capability_integration.py:191-199` confirms only the granted capability is available.
+- **Implementation pins:** `capabilities/registry.py:33-37,58-61` includes common gateway/policy/model/observation/service/model-base/migration053 bytes plus adapter dependencies. Current hashes are compared on continuation (`policy.py:18-33`) and exact installation on execution (`:45-61`); installation refuses overwriting a drifted installed version (`:147-156`). This is not a hot-reload or exhaustive transitive-dependency audit.
+- **Write-only late receipt disclosure:** migration053 `:212-226` verifies the receipt secret and recomputes authority before returning even an existing observation; stale replay strips output/hash, input/output/source refs and omissions. `:247-256` applies the same stripping before first stale settlement and appends cost history. Existing late-result tests cover generation/grant/cancellation/lease/source changes (`test_capability_gateway.py:106-131`). No dedicated stale-existing-receipt replay test was found in the inspected gateway tests; this specific replay correction was verified by source inspection, not claimed as executed regression coverage.
+
+## Evidence and boundaries
+
+- Read the retained `.local/batch3/b30a/capabilities-final-3.log`: **33 passed**, exit 0. This rereview did **not** rerun tests, migrate databases, invoke paid providers, perform external effects, commit, or change product source.
+- Mixed reservation tests cover both orderings, concurrency and historical carry (`test_capability_integration.py:117-167`); the real TCP/checkpoint/restart/revocation journey is in `test_capability_http_journey.py:24-97`.
+- Summary remains aggregate-only: `responses_ledger.py:412-457` selects accounting scalars, not model bodies; `capabilities/observations.py:40-51` aggregates tool cost metadata. No unrelated summary fix demanded: the retained accepted-base log reproduces the two decimal-string mismatches and obsolete event-row spy failure; the spy is visible at `test_ledger_summary_projection.py:36-44,63-64`.
+- SQL uninstalled-decision denial, common dependency pin coverage, and stale-existing-receipt redaction were inspected directly; absence of dedicated tests for each is disclosed, not represented as additional passing tests.
+
+Only the requested Markdown verdict and JSON manifest were created. A blocked unattended `execute_code` attempt did not run; ordinary read-only tools completed the review. No board transitions.

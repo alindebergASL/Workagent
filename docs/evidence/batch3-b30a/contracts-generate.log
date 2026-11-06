@@ -1,0 +1,6 @@
+npm notice run @workagent/contracts@0.1.0 generate
+npm notice run ../backend/.venv/bin/python ../backend/export_contracts.py && openapi-typescript openapi.json -o src/schema.d.ts && node alpha-types.mjs
+Exported OpenAPI, tool schemas, and illustrative examples.
+✨ openapi-typescript 7.8.0
+🚀 openapi.json → src/schema.d.ts [2.2s]
+EXIT=0

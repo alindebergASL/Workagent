@@ -1,0 +1,29 @@
+{
+  "source_commit": "1c36002cd2481ef2f3195ae4c52ba4dd05e0608c",
+  "source_manifest_sha256": "8ca13f7aba1ec796ca48c019dd81f217aabb2e54d9c825957c72b687add60176",
+  "source_files": 630,
+  "processes": [
+    {
+      "pid": 2718652,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "comm": "python",
+      "start_ticks": "116153143"
+    },
+    {
+      "pid": 2733711,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "comm": "next-server (v1",
+      "start_ticks": "116217928"
+    }
+  ],
+  "build_id": "-Ht3aou39ZL-34eAkNd-t",
+  "api": "http://127.0.0.1:18967",
+  "web": "http://127.0.0.1:3197",
+  "publicly_accessible": false,
+  "model_worker_started": false,
+  "provider_calls_added": 0,
+  "prior_stale_api_retained": {
+    "pid": 2688430,
+    "port": 18963
+  }
+}

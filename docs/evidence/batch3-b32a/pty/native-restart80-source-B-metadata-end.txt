@@ -1,0 +1,35 @@
+ Sources & citations · read only                                                
+ 2 sources on this page; end of list. Metadata refreshed only; no public fetch  
+ or draft changes.                                                              
+▊  Sources (25 per page)                                                  ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+                               Next source page                                 
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+                           Inspect selected source                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ semantics.                                                                 ▎  
+▊ Title Capacity bulletin B                                                  ▎  
+▊ URL https://fixture.example/source                                         ▎  
+▊ Final URL https://fixture.example/source                                   ▎  
+▊ Fetched 2026-10-29T01:09:51.568537+00:00 · HTTP 200                        ▎  
+▊ Extractor public-text-v2 · browser used False                           ▂▂ ▎  
+▊ Coverage complete extraction (not semantic verification)                   ▎  
+▊ Body complete True · text complete True                                    ▎  
+▊ ETag version-B · Last-Modified Wed, 28 Oct 2026 00:00:00 GMT               ▎  
+▊ Extraction omissions: none                                                 ▎▄▄
+▊ Snapshot coverage:                                                         ▎  
+▊ {"body_complete":true,"text_complete":true,"omissions":[]}              ▃▃ ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+ UTF-8 bytes [0, 217) of 217; end exclusive.                                    
+ Chunk SHA256                                                                   
+ ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb               
+ Omitted byte ranges: none                                                      
+ Controls escaped for display; citation offsets refer to original Unicode       
+ text, not escaped display.                                                     
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ Capacity bulletin B                                                        ▎  
+▊ Current public capacity: 12 units.                                         ▎  
+ esc Back  ^r Refresh details                                                   

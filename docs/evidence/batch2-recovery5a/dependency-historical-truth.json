@@ -1,0 +1,184 @@
+{
+  "before": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 8,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T20:37:33.370446Z",
+    "snapshot_cursor": "520086cb-70d6-472b-8ef9-6bfb7934f1db.1.nN6jq9h6GGAd1wKcrGSfbROd733pOd5p94BS73SFABg",
+    "execution": {
+      "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+      "state": "stopped",
+      "reason": null,
+      "phase": null,
+      "admitted_at": "2026-10-26T20:32:58.432215Z",
+      "last_progress_at": "2026-10-26T20:37:31.250611Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [
+      {
+        "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+        "state": "waiting_event",
+        "next_action": {
+          "kind": "await_event",
+          "description": "Review the next human change to garden options."
+        },
+        "next_check_in_at": null,
+        "historical_observation": {
+          "text": "Prepared context only; outcome remains unverified.",
+          "observed_at": "2026-10-26T20:37:33.146981Z"
+        },
+        "review_required": false
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Latest candidate keeps human notes",
+        "kind": "structured_table",
+        "current_revision_id": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+        "body_hash": "c3efa3ef98661114aa3313695c311e68eecbe4d637408ffee4800403f1f74976"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "after": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 8,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T20:37:33.717045Z",
+    "snapshot_cursor": "4f1c2bd5-9088-4cc8-8ac9-405dcca755e6.1.PsWckjggTLvdtdfy2bLCG4Zl2DnGeYc0vIvYlhA3oqg",
+    "execution": {
+      "run_id": "56e798b0-7dd9-4dc7-aa61-c1d5fb8bd0cf",
+      "state": "stopped",
+      "reason": null,
+      "phase": null,
+      "admitted_at": "2026-10-26T20:32:58.432215Z",
+      "last_progress_at": "2026-10-26T20:37:31.250611Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [
+      {
+        "assignment_id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+        "state": "blocked",
+        "next_action": {
+          "kind": "review_dependency",
+          "description": "Review changed saved context or the due check-in before continuing."
+        },
+        "next_check_in_at": null,
+        "historical_observation": {
+          "text": "Prepared context only; outcome remains unverified.",
+          "observed_at": "2026-10-26T20:37:33.146981Z"
+        },
+        "review_required": true
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Garden options \u2014 current human correction",
+        "kind": "structured_table",
+        "current_revision_id": "2025341e-254a-40ea-8f6a-de3a7dfc95f4",
+        "body_hash": "549f117d9266ffdbb39b08c613d724048ba12148f4ee84f976e5fe3025b3b2e5"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "responsibility": {
+    "assignment": {
+      "id": "e921371f-cd32-4f5b-8ca2-81fc537f68ae",
+      "workspace_id": "recovery5a-workspace",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "owner_id": "local-human",
+      "goal": "Keep the community garden plan current",
+      "completion_criteria": [
+        "Human confirms a usable garden plan; saved draft alone is not completion."
+      ],
+      "work_version": 3,
+      "state": "paused",
+      "selected_source_refs": [],
+      "artifact_ids": [],
+      "run_ids": [],
+      "responsibility": null,
+      "unresolved": [
+        "Ongoing responsibility recorded; execution is not admitted."
+      ],
+      "observed_at": "2026-10-26T20:37:33.470230Z"
+    },
+    "lifecycle": {
+      "current_outcome": "Prepared context only; outcome remains unverified.",
+      "next_action": {
+        "kind": "review_dependency",
+        "description": "Review changed saved context or the due check-in before continuing."
+      },
+      "dependencies": [
+        {
+          "kind": "artifact_revision",
+          "object_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "expected_version": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85"
+        }
+      ],
+      "wait": {
+        "kind": "dependency_change",
+        "reason": "Await a material human edit."
+      },
+      "next_check_in_at": null,
+      "schema_version": "responsibility/v1",
+      "state": "blocked",
+      "outcome_status": "needs_review",
+      "outcome_evidence": null,
+      "observations": [
+        {
+          "kind": "artifact_revision",
+          "object_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+          "expected_version": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+          "observed_version": "2025341e-254a-40ea-8f6a-de3a7dfc95f4",
+          "content_hash": "549f117d9266ffdbb39b08c613d724048ba12148f4ee84f976e5fe3025b3b2e5",
+          "changed": true
+        }
+      ],
+      "review_required": true,
+      "blocker": "grant_required",
+      "check_in_due": false,
+      "conversation_work_version": 8,
+      "wake_id": "1926b313-87f2-419d-8450-6034e5172803",
+      "wake_status": "queued",
+      "execution_status": "not_admitted",
+      "run_id": null,
+      "last_change_key": "872591f14edc9b2cc5e565205cc3c2ebb81ce401dbfe019a9a3e48c5e29fd7b5"
+    },
+    "local_review_eligible": true,
+    "provider_execution_queued": false
+  },
+  "prior_accepted_revision": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+  "current_revision": "2025341e-254a-40ea-8f6a-de3a7dfc95f4",
+  "historical_observation_unchanged": true,
+  "no_provider_admission": true
+}

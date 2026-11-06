@@ -1,0 +1,9 @@
+{
+  "owned_ports_refused": [
+    18236,
+    13236
+  ],
+  "compute_state": "LoadState=not-found\nActiveState=inactive\n",
+  "installed_data_maintenance": false,
+  "paid_product_calls": 0
+}

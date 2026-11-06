@@ -1,0 +1,35 @@
+"""Carousel blackout bands, phase-codec 2.0 integration."""
+from phase_codec_v2 import decode
+
+
+def blocked_ticks(rows, size):
+    if type(size) is not int:
+        raise TypeError("size must be an integer")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    pieces = []
+    for row in rows:
+        # HUMAN-PROTECTED: maintenance-bypass rows never darken the carousel.
+        if row.get("status") == "maintenance-bypass":
+            continue
+        record = decode(row)
+        start, duration = record["anchor"], record["span"]
+        stop = start + duration
+        if stop < start:
+            raise ValueError("negative duration")
+        duration = stop - start
+        lo = start % size
+        if duration >= size:
+            pieces.append((0, size))
+        elif duration:
+            end = lo + duration
+            pieces.append((lo, min(end, size)))
+            if end > size:
+                pieces.append((0, end - size))
+    merged = []
+    for lo, hi in sorted(pieces):
+        if merged and lo <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(hi, merged[-1][1]))
+        else:
+            merged.append((lo, hi))
+    return merged

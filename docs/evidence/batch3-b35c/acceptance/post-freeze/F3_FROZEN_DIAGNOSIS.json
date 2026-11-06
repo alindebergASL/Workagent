@@ -1,0 +1,251 @@
+{
+  "at": "2026-11-01T12:16:18.460801+00:00",
+  "proof": "READ ONLY retained frozen recipient state; estimates/allocations not bills",
+  "rows": [
+    {
+      "slot": "R02-E1",
+      "run_id": "6ccbf55c-f94b-4f17-9226-7d45f77845a0",
+      "state": "partial",
+      "stop_reason": "budget_limit",
+      "unresolved": [
+        "Execution stopped at the cumulative budget limit. No further provider call was made. Any local work and provider receipts remain retained; the requested goal is not marked complete."
+      ],
+      "grant_limits": [
+        {
+          "id": "1ebe81c7-adfd-4bfa-b49d-fb5cf27f39af",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        },
+        {
+          "id": "7e31af4a-f36b-419d-a05b-a1f6f893cf06",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        }
+      ],
+      "accounting": {
+        "allocation": "2",
+        "model_retained": "0.39428750000000000000",
+        "ancillary_count": 72
+      },
+      "event_counts": [
+        {
+          "kind": "count_result",
+          "n": 6
+        },
+        {
+          "kind": "count_send",
+          "n": 6
+        },
+        {
+          "kind": "dispatch",
+          "n": 6
+        },
+        {
+          "kind": "identity",
+          "n": 6
+        },
+        {
+          "kind": "read",
+          "n": 66
+        },
+        {
+          "kind": "result",
+          "n": 6
+        },
+        {
+          "kind": "tool_result",
+          "n": 6
+        }
+      ],
+      "configuration_general": [
+        {
+          "general": null
+        }
+      ]
+    },
+    {
+      "slot": "R03-E1",
+      "run_id": "a0e23fb9-e580-4d2a-b60d-5d5724741876",
+      "state": "partial",
+      "stop_reason": "step_limit",
+      "unresolved": [
+        "File operation retained with exact references. No human proposal accepted or overall task completion asserted."
+      ],
+      "grant_limits": [
+        {
+          "id": "07f0e4dc-0757-43f5-85e5-6a029928648e",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        },
+        {
+          "id": "a3c96689-5008-4c6a-b0ad-2f1ac32d7002",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        }
+      ],
+      "accounting": {
+        "allocation": "2",
+        "model_retained": "0.95457000000000000000",
+        "ancillary_count": 41
+      },
+      "event_counts": [
+        {
+          "kind": "count_result",
+          "n": 9
+        },
+        {
+          "kind": "count_send",
+          "n": 9
+        },
+        {
+          "kind": "dispatch",
+          "n": 9
+        },
+        {
+          "kind": "file_input_rejection",
+          "n": 2
+        },
+        {
+          "kind": "identity",
+          "n": 9
+        },
+        {
+          "kind": "read",
+          "n": 32
+        },
+        {
+          "kind": "result",
+          "n": 9
+        },
+        {
+          "kind": "tool_result",
+          "n": 6
+        }
+      ],
+      "configuration_general": [
+        {
+          "general": null
+        }
+      ]
+    },
+    {
+      "slot": "R01-E3",
+      "run_id": "2e8eb0b7-6b77-40a1-a74b-13b69fac822b",
+      "state": "partial",
+      "stop_reason": "step_limit",
+      "unresolved": [
+        "File operation retained with exact references. No human proposal accepted or overall task completion asserted."
+      ],
+      "grant_limits": [
+        {
+          "id": "c3a1c82a-0438-4080-9513-ef5c38bed8b4",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        },
+        {
+          "id": "d139b7a4-6f02-41d2-a01f-277dc7753548",
+          "limits": {
+            "max_steps": 8,
+            "read_limit": 4096,
+            "count_limit": 256,
+            "input_limit": 12800000,
+            "output_limit": 2097152,
+            "cost_limit_usd": "12.00",
+            "generation_limit": 256,
+            "runtime_extension": "general-alpha-v1",
+            "continuity_version": "sustained-v1"
+          }
+        }
+      ],
+      "accounting": {
+        "allocation": "4",
+        "model_retained": "2.51741500000000000000",
+        "ancillary_count": 92
+      },
+      "event_counts": [
+        {
+          "kind": "count_result",
+          "n": 9
+        },
+        {
+          "kind": "count_send",
+          "n": 9
+        },
+        {
+          "kind": "dispatch",
+          "n": 9
+        },
+        {
+          "kind": "file_input_rejection",
+          "n": 1
+        },
+        {
+          "kind": "identity",
+          "n": 9
+        },
+        {
+          "kind": "read",
+          "n": 22
+        },
+        {
+          "kind": "result",
+          "n": 9
+        },
+        {
+          "kind": "tool_result",
+          "n": 7
+        }
+      ],
+      "configuration_general": [
+        {
+          "general": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "paid_product_calls": 0,
+  "causal_benefit_claim": false,
+  "checks": {
+    "transfer": {
+      "file_id": "ddc1be52-603f-4662-b930-5ece9d1e466a",
+      "version_id": "32afa607-802c-45f1-bc29-ecb9ca173014",
+      "sha256": "c0b01b8262cc1d3c7d00d54d84ef3617b908a2ef4f488a3c6c2351760f413b35",
+      "bytes": 107
+    },
+    "editorial": {
+      "file_id": "c2f360cd-7e8c-480d-8ba5-63c78e48d575",
+      "version_id": "3644ff0c-d3c0-4ffc-a2bb-cc4794917893",
+      "sha256": "0cb5a5d85b274785ecca405a8b15c05612ee67dcf8031ed1801304206e9f53b2",
+      "bytes": 554
+    },
+    "unreviewed-transfer": {
+      "exact_usage_requests": 6,
+      "entries": 0,
+      "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af"
+    },
+    "reviewed-transfer-final": {
+      "exact_usage_requests": 6,
+      "entries": 6,
+      "run_id": "f23e2483-5917-46ff-bb62-41a526553dfb"
+    },
+    "editorial-transfer": {
+      "exact_usage_requests": 5,
+      "entries": 5,
+      "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2"
+    },
+    "irrelevant": {
+      "eligible_procedures": 0,
+      "kind": "real PG selection control, not model behavior"
+    },
+    "wrong_version": {
+      "eligible_procedures": 0,
+      "kind": "real PG selection control, not model behavior"
+    },
+    "web_rollback": {
+      "new_revision_id": "9027eae7-bf25-4336-bac2-1e2bf84cd5f9",
+      "history_revisions": 4,
+      "confidence_label": "inferred"
+    },
+    "native_rollback": {
+      "new_revision_id": "3b151a41-c611-41a8-a4a2-d12cd4740bc5",
+      "history_revisions": 4,
+      "confidence_label": "inferred"
+    }
+  },
+  "passed": true
+}

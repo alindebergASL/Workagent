@@ -1,0 +1,41 @@
+{
+  "mode": "before",
+  "actions": [
+    {
+      "keys": "\u001b[<0;30;4M\u001b[<0;30;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;5;15M\u001b[<0;5;15m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;5;15M\u001b[<0;5;15m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\u001b[B\u001b[B\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;5;44M\u001b[<0;5;44m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\u001b[B\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;5;40M\u001b[<0;5;40m"
+    },
+    {
+      "keys": "\u001b[200~/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/evidence/pty/before-patch.txt\u001b[201~"
+    },
+    {
+      "keys": "\u001b[<0;39;43M\u001b[<0;39;43m"
+    }
+  ],
+  "passed": true,
+  "patch_sha256": "2210fff0d69182dc5afc22c69c114d64021624c9971e3e7fed35e4a72e4ef7b1",
+  "export_id": "54936967-930a-4d37-acbd-482b6097a986"
+}

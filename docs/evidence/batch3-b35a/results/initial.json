@@ -1,0 +1,260 @@
+{
+  "batch": "initial.xml",
+  "sha256": "9bbf24cfc66b6d8a26c3199a382514837ef312e12c62cc25a05c401b3204234e",
+  "counts": {
+    "passed": 49,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 49,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_exact_transitive_dependencies_invalidate_before_counts_and_inspection[correct]",
+      "status": "passed",
+      "seconds": 1.054
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_exact_transitive_dependencies_invalidate_before_counts_and_inspection[narrow]",
+      "status": "passed",
+      "seconds": 0.647
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_exact_transitive_dependencies_invalidate_before_counts_and_inspection[expire]",
+      "status": "passed",
+      "seconds": 0.539
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_exact_transitive_dependencies_invalidate_before_counts_and_inspection[temporary]",
+      "status": "passed",
+      "seconds": 0.537
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_transitive_source_loss_is_not_a_count_or_read_side_channel[access]",
+      "status": "passed",
+      "seconds": 0.898
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_transitive_source_loss_is_not_a_count_or_read_side_channel[version]",
+      "status": "passed",
+      "seconds": 0.889
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_transitive_source_loss_is_not_a_count_or_read_side_channel[observed_at]",
+      "status": "passed",
+      "seconds": 0.645
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_transitive_source_loss_is_not_a_count_or_read_side_channel[unavailable]",
+      "status": "passed",
+      "seconds": 0.641
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_time_current_hash_owner_and_scope_intersection",
+      "status": "passed",
+      "seconds": 1.423
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_restricted_sql_cycle_forgery_and_private_erasure_denied",
+      "status": "passed",
+      "seconds": 1.087
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_forget_diamond_history_atomicity_tombstones_and_human_file_preservation",
+      "status": "passed",
+      "seconds": 1.249
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_cross_scope_source_suppression_enforced_in_sql",
+      "status": "passed",
+      "seconds": 0.347
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_explicit_applicability_and_procedure_details_correction",
+      "status": "passed",
+      "seconds": 1.015
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_restricted_sql_scope_laundering_and_ineligible_parents",
+      "status": "passed",
+      "seconds": 1.044
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_forget_serializes_against_new_descendant",
+      "status": "passed",
+      "seconds": 0.332
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_procedure_ancestor_evidence_reauth_before_omission_count",
+      "status": "passed",
+      "seconds": 7.835
+    },
+    {
+      "nodeid": "tests.test_memory_dependencies_pg::test_bounded_depth_fail_closed",
+      "status": "passed",
+      "seconds": 2.737
+    },
+    {
+      "nodeid": "tests.test_memory_parent_worker::test_parent_later_worker_request_manifest_correct_forget",
+      "status": "passed",
+      "seconds": 18.935
+    },
+    {
+      "nodeid": "tests.test_memory_parent_worker::test_parent_correction_during_model_io_fences_publication",
+      "status": "passed",
+      "seconds": 3.345
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_explicit_inferred_procedure_human_review_and_stale_cas",
+      "status": "passed",
+      "seconds": 0.571
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_permanent_temporary_and_independent_dispute",
+      "status": "passed",
+      "seconds": 0.789
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_explicit_project_binding_cross_project_user_and_narrowing",
+      "status": "passed",
+      "seconds": 0.57
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_source_loss_filters_before_count_query_and_history",
+      "status": "passed",
+      "seconds": 0.354
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_correction_cannot_silently_drop_source_eligibility",
+      "status": "passed",
+      "seconds": 0.324
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_file_exact_source_reauth_and_valid_time_expiry",
+      "status": "passed",
+      "seconds": 0.311
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_forget_all_payloads_tombstone_suppression_and_content_free_command_replay",
+      "status": "passed",
+      "seconds": 0.42
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_restricted_role_direct_writes_origin_and_run_forgery_denied",
+      "status": "passed",
+      "seconds": 0.731
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_later_scoped_runtime_manifest_usage_and_stale_unsent_invalidation",
+      "status": "passed",
+      "seconds": 1.045
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_exact_prepared_request_usage_and_later_synthetic_worker",
+      "status": "passed",
+      "seconds": 5.944
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_forgotten_source_fingerprint_suppresses_changed_keys",
+      "status": "passed",
+      "seconds": 0.414
+    },
+    {
+      "nodeid": "tests.test_memory_pg::test_http_typed_receipts_and_erased_inspection",
+      "status": "passed",
+      "seconds": 0.885
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_human_evidence_discovery_hash_http_review_and_worker_denied",
+      "status": "passed",
+      "seconds": 0.983
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_wrong_digest_assistant_and_cross_project_evidence_denied",
+      "status": "passed",
+      "seconds": 0.871
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_legacy_candidate_correction_requires_separate_review",
+      "status": "passed",
+      "seconds": 0.601
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_reviewed_rollback_retains_evidence_sources_and_narrow_scope",
+      "status": "passed",
+      "seconds": 1.337
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_forget_erases_details_and_suppresses_changed_keys_same_observation",
+      "status": "passed",
+      "seconds": 0.439
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_restricted_sql_details_cas_and_rollback_target_guards",
+      "status": "passed",
+      "seconds": 1.029
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_tool_event_evidence_reauthorizes_dependencies_before_counts[grant]",
+      "status": "passed",
+      "seconds": 2.693
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_tool_event_evidence_reauthorizes_dependencies_before_counts[source]",
+      "status": "passed",
+      "seconds": 4.3
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_tool_event_evidence_reauthorizes_dependencies_before_counts[generation]",
+      "status": "passed",
+      "seconds": 2.708
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_tool_event_evidence_reauthorizes_dependencies_before_counts[installation]",
+      "status": "passed",
+      "seconds": 2.975
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_failed_observation_has_server_failure_label",
+      "status": "passed",
+      "seconds": 1.612
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_runtime_selected_latest_human_and_unsent_fence",
+      "status": "passed",
+      "seconds": 0.897
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_runtime_nonmatching_excluded_omit_without_hiding_inspection[Write an invitation.]",
+      "status": "passed",
+      "seconds": 0.934
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_runtime_nonmatching_excluded_omit_without_hiding_inspection[Check a data join on version 1.]",
+      "status": "passed",
+      "seconds": 1.488
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_mid_io_procedure_correction_blocks_publication_and_keeps_exact_usage",
+      "status": "passed",
+      "seconds": 3.746
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_mcp_event_ref_rechecks_connector_and_processor_without_network[connector]",
+      "status": "passed",
+      "seconds": 1.927
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_mcp_event_ref_rechecks_connector_and_processor_without_network[processor]",
+      "status": "passed",
+      "seconds": 1.441
+    },
+    {
+      "nodeid": "tests.test_procedure_memory_pg::test_correction_union_and_rollback_cannot_launder_revoked_source",
+      "status": "passed",
+      "seconds": 0.996
+    }
+  ],
+  "seconds": 91.619,
+  "timestamp": "2026-10-29T12:45:26.162803+00:00"
+}

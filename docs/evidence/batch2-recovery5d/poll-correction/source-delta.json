@@ -1,0 +1,12 @@
+[
+  {
+    "path": "web/src/lib/client/work-stream.ts",
+    "before": "533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708",
+    "after": "21bc73963492b2486808d47d78db9aa4d36c5b9b379d9bf7daffffaadea23faa"
+  },
+  {
+    "path": "web/test/poll-scope.test.ts",
+    "before": null,
+    "after": "879a968dae7bf29354cc2106ca2b13aa41d150e29779663253ccc858510d5591"
+  }
+]

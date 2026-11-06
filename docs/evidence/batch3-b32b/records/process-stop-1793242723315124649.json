@@ -1,0 +1,16 @@
+[
+  {
+    "name": "api",
+    "pid": 4193717,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026",
+    "port": 18235,
+    "start": "122344359"
+  },
+  {
+    "name": "web",
+    "pid": 4193764,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32b/candidate/web",
+    "port": 13235,
+    "start": "122344560"
+  }
+]

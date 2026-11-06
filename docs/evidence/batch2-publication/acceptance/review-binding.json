@@ -1,0 +1,55 @@
+{
+  "existing_reviews": [
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step2-safety/acceptance/REVIEW.md",
+      "sha256": "b5551f884be8edf9949bb5ba0e3cfdc54f17d46fb7943cf93c23306ff225c999"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/REVIEW.md",
+      "sha256": "8b6964aa6906c08620658c4a7f46dc67ddace0f810251b6f5381f1650db79d71"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/source-impact.json",
+      "sha256": "6526232d234bc5e69f5128091160f44c3c2f50dcf7ad73d06f279bd81bb7a62b"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/reused-paired/FINAL-HANDOFF.md",
+      "sha256": "415cc459645bf99ccb1bf2d0ed719c3cdc0bb3ff6e35eb25989926ed48ccdf2e"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/p7-ux-closure/REPORT.md",
+      "sha256": "a55ce92f7e6b387b8a8ef1f0b2932564151b0c0d56b828448387e363bac0c222"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/independent-review.json",
+      "sha256": "753a8d366676f71dc1892ee4ba69046771a7b27edb102771f51553e6b0cf4819"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/focused-tests.log",
+      "sha256": "5248d1982e1879aeb14e65917721e5eaa8f9c01d146f91fad66c6ef7c2f11234"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/publication-regressions.log",
+      "sha256": "0a8a200bbe9ada3f0294198810db59a1f8d29f6ab39b4fdc64296b773402a69d"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/web-focused-verified.log",
+      "sha256": "1e03be2968b3b9cf59180ba3fca441dc3d204aef934a22e3c852e68450e299d5"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/checkpoint-projection-verification.json",
+      "sha256": "ca6c819a25f7069c72b331a58aeda8b783ec2a0d5bdb7cf0c9bc9b0ff125a2fe"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/build.log",
+      "sha256": "872858b0b2786344a30c6ed282442a5ff9cc57b82b3150d66e6dfb9eaaa2f87f"
+    },
+    {
+      "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/corrective-closure/CLAUDE-WEB-RESULT.md",
+      "sha256": "9c871eb038bb48b516f407fa7c9e767b2c07952136d45611bb33441a35667ec4"
+    }
+  ],
+  "new_broad_review": false,
+  "current_candidate_material_uncovered_defect": null,
+  "scope": "Step2/Step3 independently accepted proof plus exact observer051/native hydration and corrective052/Continue/mobile deltas. Reused bounded Astra review; no whole-suite-green claim. Historical inherited two budget-test failures unchanged."
+}

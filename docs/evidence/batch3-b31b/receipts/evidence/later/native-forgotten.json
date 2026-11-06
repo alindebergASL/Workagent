@@ -1,0 +1,31 @@
+{
+  "evidence": "real HTTP + production worker + restricted PG, controlled transport, zero paid calls",
+  "conversation_id": "b2440996-afa0-4110-b343-296bf0da738f",
+  "run_id": "e30186ab-7347-4b2d-874a-64e589c1bcc5",
+  "expected_revisions": [],
+  "usage": {
+    "items": [
+      {
+        "run_id": "e30186ab-7347-4b2d-874a-64e589c1bcc5",
+        "request_id": "e30186ab-7347-4b2d-874a-64e589c1bcc5",
+        "attempt_id": "40d61d55-efa8-4d44-a5d5-8f08e7a5b539",
+        "phase": "final",
+        "request_sha256": "8f9e3423503429a99bfbd1903de38a0581cd7c7142eb0702f75db60f56dc4200",
+        "entries": []
+      },
+      {
+        "run_id": "e30186ab-7347-4b2d-874a-64e589c1bcc5",
+        "request_id": "e30186ab-7347-4b2d-874a-64e589c1bcc5",
+        "attempt_id": "40d61d55-efa8-4d44-a5d5-8f08e7a5b539",
+        "phase": "selection",
+        "request_sha256": "20da8370feb40308873eb410556539df3334c7beb8750c78afc5bce503e7e8ff",
+        "entries": []
+      }
+    ]
+  },
+  "memory_context": {
+    "has_more": false,
+    "items": []
+  },
+  "memory_manifest": []
+}

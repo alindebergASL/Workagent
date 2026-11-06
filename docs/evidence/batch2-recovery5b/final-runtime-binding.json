@@ -1,0 +1,20 @@
+{
+  "pid": 3933826,
+  "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+  "argv": [
+    "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+    "-m",
+    "uvicorn",
+    "workagent.api:app",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "18965",
+    "--log-level",
+    "warning"
+  ],
+  "source_files_verified": 602,
+  "source_manifest_sha256": "1a969241aa7dfba5f77cf7382f2c521cb1d5fd12bb1ce831e230968fba89017f",
+  "database_fingerprint": "a765aef056d91c63c07f426c62e559a30d8d6449d87f6496e6a14eb8a4f12abb",
+  "provider_keys_present": false
+}

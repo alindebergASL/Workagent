@@ -1,0 +1,18 @@
+{
+  "backend_unique_passed": 508,
+  "frontend_passed": 470,
+  "focused_repeat_passed": 9,
+  "total_unique_passed": 978,
+  "all_final_steps_exit_zero": true,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "suite_selection_files": 41,
+  "final_serial_seconds": 2370.1849697618745,
+  "head": "c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d",
+  "branch": "hermes/b2-conversational-client",
+  "disk_available_gib": 15.26,
+  "final-source-manifest.json_sha256": "d01dd0dba881baac359e2f58007ab07671e135237f237f7143f09dccba8caeda",
+  "final-candidate-manifest.json_sha256": "e26404cbd25b2f31372ec084f724c9985fea62a9659bd4b394050ad8ad3cddaf",
+  "scoped-correction-manifest.json_sha256": "2f136336c8388566f08639926839f7e392369660aa99a018b3b4122fb37508d5"
+}

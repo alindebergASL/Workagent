@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "responses": [
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/work-areas/9ebbcc25-9b0a-4e5b-a101-8f3164bfbe5c/research/snapshots?limit=25",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/work-areas/9ebbcc25-9b0a-4e5b-a101-8f3164bfbe5c/research/snapshots?limit=25",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/research/snapshots/4b9fee47-9100-4a78-9289-d710d153c554",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/artifacts/50da8c74-368c-4eaa-adb8-cd887c38eb1e/revisions/5f69e0ab-43be-488e-9e40-f90e8ed4dec5/research/claims?body_hash=e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:13234/api/domain/v1/workspaces/b32a-f4b8adb0-83d6-426e-b393-618817c6abab/research/snapshots/81ba1403-31d9-415d-bd0f-051f150bbd26",
+      "status": 404
+    }
+  ],
+  "bindingBefore": {
+    "artifact": "50da8c74-368c-4eaa-adb8-cd887c38eb1e",
+    "revision": "5f69e0ab-43be-488e-9e40-f90e8ed4dec5",
+    "body_hash": "e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90",
+    "body": {
+      "title": "Synthetic current work",
+      "blocks": [
+        {
+          "block_id": "scope",
+          "kind": "paragraph",
+          "text": "Synthetic east-depot assessment. Evidence will be captured separately; no organization-wide conclusion.",
+          "checked": null
+        }
+      ]
+    }
+  },
+  "delayed_real_background_reads": true,
+  "bindingAfter": {
+    "revision": "5f69e0ab-43be-488e-9e40-f90e8ed4dec5",
+    "body_hash": "e7a4b450875bf5aa53dc994330c4ca3be8a806b200c5714115f71b6187b72b90"
+  },
+  "conversation_id": "9ebbcc25-9b0a-4e5b-a101-8f3164bfbe5c",
+  "revoked_source_grant": "4b818dd7-1053-4ca2-84f0-c1a8489a7217"
+}

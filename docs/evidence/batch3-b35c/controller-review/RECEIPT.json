@@ -1,0 +1,89 @@
+{
+  "allocations": 0,
+  "controller_manifest_sha256": "863e570706c1c6ce36df329481f074788166e5210cdce247b0afe20c97ab33be",
+  "development_model": "gpt-6-astra/openai-codex",
+  "development_tool_billing": "outside product ledger, unreconciled",
+  "execution_owner": "t_e07c8870",
+  "files": {
+    "docs/evidence/batch3-b35c/controller-review/REVIEW.md": "c4fb1e39824512708fe2882b3934b33045083404f2491e02d7fba63c3d29470b",
+    "docs/evidence/batch3-b35c/controller-review/baseline-verification.json": "1f901c1d5e2ab24cf662ccd05d09fccba70992bc05a6bc155097b34e59719dc0",
+    "docs/evidence/batch3-b35c/controller-review/existing-tests.log": "80bca74475bcf0015f3f408f94d5af2e126637d762e530f40d6aa42bccf2e338",
+    "docs/evidence/batch3-b35c/controller-review/independent-probes-01.log": "ad030f7019d5ec11c5bef8a0625db12f5e6afded05c35913a5bdfda72e1e33e6",
+    "docs/evidence/batch3-b35c/controller-review/independent-probes-02.log": "67723c968f6481cc3625e5988f5b1b96ec4fc62a44bc246103b9a6dd4cddb6c6",
+    "docs/evidence/batch3-b35c/controller-review/independent-probes-03.log": "b9d3fb963e01cf8d3c91b8754294fbde64e5e90db1be3b8d7c5cb5a04d28164d",
+    "docs/evidence/batch3-b35c/controller-review/package_review.py": "c9fe9529080dc2da9a2f134cf97adeab09b8ffc587a3b4fc5e99337e5c05071c",
+    "docs/evidence/batch3-b35c/controller-review/retained-verification.json": "ce2afb1b445c5f8d2cd16cffd277dad953921bc47362797ac4dcbbd3251079d1",
+    "docs/evidence/batch3-b35c/controller-review/source-verification.json": "a25e3fef0d6fbabd3b0f32613e5b973cab2d7b09334beb50794c01ef1339cee3",
+    "docs/evidence/batch3-b35c/controller-review/test_scoped_review.py": "68549fa05817392fb50da2429bc26e6fbf1ab259ac387f9da8c4b8e420d1b620"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "title": "Dropped environment pins and per-episode dependency rebaselining"
+    },
+    {
+      "id": "R2",
+      "priority": "P1",
+      "title": "Cold-start B0 source lacks accepted immutable anchor"
+    },
+    {
+      "id": "R3",
+      "priority": "P1",
+      "title": "Aliased official longitudinal scopes admitted"
+    },
+    {
+      "id": "R4",
+      "priority": "P2",
+      "title": "Substituted scoring packet passes verifier"
+    }
+  ],
+  "implementation_edited": false,
+  "installed_mutations": 0,
+  "integration_owner": "t_fedd7a60",
+  "ledger_recollections": 0,
+  "live_episodes": 0,
+  "new_full_worker_campaign": false,
+  "original_run102_closure": "parent verified; not a new independent PASS",
+  "paid_calls": 0,
+  "postgresql_databases_provisioned": 0,
+  "publication_owner": "t_82b30c02",
+  "retained_additive_binding_sha256": "ca8bf41a2fdfba56ef436439b1f99cf7188b5b8b6dd9152d31cbdecd4be410a4",
+  "retained_scripted_verification": {
+    "blinded_unscored_packets": 72,
+    "client_usefulness": "unmeasured",
+    "duplicate_create_sends": 0,
+    "episodes": 72,
+    "installed_mutations": 0,
+    "kind": "scripted_mechanisms_not_usefulness",
+    "live_episodes": 0,
+    "loopback_requests": 504,
+    "m1_memory_context_request_counts_by_episode": {
+      "2": 12,
+      "3": 12,
+      "4": 12,
+      "5": 16
+    },
+    "model_quality": "unmeasured",
+    "new_allocations": 0,
+    "normal_max_output_tokens": 8192,
+    "paid_calls": 0,
+    "scripted_generations": 252,
+    "status": "PASS",
+    "trajectories": 12,
+    "worker_interruption_resumes": 12
+  },
+  "review_outcome": "changes_required_before_live_ready_approval",
+  "review_phase": "complete",
+  "reviewed_head": "1762d69f0b2b0d0773cb4bb8ce3a319932032df4",
+  "task_id": "t_f251a5a9",
+  "tests": {
+    "accepted_baseline_files": 103,
+    "controller_manifest_files": 13,
+    "defect_reproducer_tests": 5,
+    "existing_tests_rerun": 15,
+    "independent_probes": 11,
+    "retained_guard_tests": 6,
+    "run102_additive_files": 57
+  }
+}

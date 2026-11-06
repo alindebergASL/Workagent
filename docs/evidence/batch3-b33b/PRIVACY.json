@@ -1,0 +1,27 @@
+{
+  "credential_customer_pattern_hits": 0,
+  "exact_source_template_exemptions": [
+    {
+      "path": "backend/dev_db.py",
+      "reason": "Exact inspected Python f-string; no literal credential",
+      "template_sha256": "00e01c72b9177e07ddbf5d071856390194e3283b277c336f3b15b104d93a52c2"
+    },
+    {
+      "path": "backend/dev_db.py",
+      "reason": "Exact inspected Python f-string; no literal credential",
+      "template_sha256": "08e37747278d75c6de5b608ba182c16e5a5127db9727220e05197ba837436cac"
+    },
+    {
+      "path": "backend/dev_db.py",
+      "reason": "Exact inspected Python f-string; no literal credential",
+      "template_sha256": "41c7a80eed76dd273b016b64d740b4033548542cc0e434d2fddce0b4cc174800"
+    }
+  ],
+  "files_scanned": 196,
+  "known_private_value_hits": 0,
+  "known_private_values": 33,
+  "paid_product_calls": 0,
+  "passed": true,
+  "positive_control_sql_including_braces_github_bearer": true,
+  "raw_context_env_vault_agent_logs": "private/excluded"
+}

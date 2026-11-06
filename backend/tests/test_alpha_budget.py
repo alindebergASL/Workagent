@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from decimal import Decimal
 from hashlib import sha256
+from unittest.mock import patch
 import pytest
 import psycopg
 from pydantic import ValidationError
@@ -43,7 +44,11 @@ def prepared(ctx,tmp_path,*,project=None,**limits):
     s,p,ws,_,admin=ctx
     cv=conversation(ctx); g=grant_for(ctx,[cv],project,**limits)
     configure_grant(Database(admin),g)
-    q=post(ctx,cv,'Answer within the explicitly bounded budget.')
+    # Isolated ledger/SQL probes include historical already-admitted work whose
+    # budget no longer fits. Atomic admission refusal is independently covered
+    # by test_generation_feasibility; bypass only that precheck in this fixture.
+    with patch('workagent.responsibility_execution.check_admission_budget', lambda *_: None):
+        q=post(ctx,cv,'Answer within the explicitly bounded budget.')
     fake=AlphaProvider([{'kind':'reply','text':'A retained answer.'}]); w=worker(ctx,fake,tmp_path)
     captured={}
     def capture(ledger,request,cap,deadline):
@@ -63,8 +68,14 @@ def raw(x,kind,data=None):
         return x['ledger'].event(c,x['request'].phase,kind,data or {})
 
 
-def count(x,fake):
-    reserve(x,'count_send')
+def count(x,fake,*,prior_count=False):
+    if prior_count:
+        # Prove fresh counting is forbidden, then model a historical retained
+        # count via restricted SQL so the independent dispatch guard is reached.
+        raises('budget_exhausted',lambda:reserve(x,'count_send'))
+        raw(x,'count_send',{'input_token_limit':RESERVED_INPUT})
+    else:
+        reserve(x,'count_send')
     r=x['request']
     x['ledger'].retain(r,'count_result',dict(request_sha256=r.sha256,count_sha256=sha256(r.count_body()).hexdigest(),
         input_tokens=700,metadata=r.metadata.model_dump(),provenance=asdict(fake.transport().provenance)))
@@ -85,7 +96,7 @@ DISPATCH=dict(reserved_input_tokens=RESERVED_INPUT,reserved_output_tokens=RESERV
     ('input_limit',19999,'dispatch'),('output_limit',8191,'dispatch'),('cost_limit_usd','0.131919','dispatch')])
 def test_each_limit_python_and_direct_sql(context,tmp_path,field,value,kind):
     g,f,x=prepared(context,tmp_path,**{field:value})
-    if kind!='count_send': count(x,f)
+    if kind!='count_send': count(x,f,prior_count=kind=='dispatch')
     if kind=='read': reserve(x,'dispatch'); identity(x,f)
     raises('budget_exhausted',lambda:reserve(x,kind))
     with pytest.raises(psycopg.Error,match='(request limit|reservation limit|project budget exhausted)'):
@@ -142,7 +153,7 @@ def test_cross_grant_shared_limits(context,tmp_path,field,value,kind):
     g1,f1,x1=prepared(context,tmp_path/'one',project=project)
     count(x1,f1); reserve(x1,'dispatch'); identity(x1,f1); reserve(x1,'read')
     g2,f2,x2=prepared(context_fixture.__wrapped__(),tmp_path/'two',project=project,**{field:value})
-    if kind!='count_send': count(x2,f2)
+    if kind!='count_send': count(x2,f2,prior_count=kind=='dispatch')
     if kind=='read': reserve(x2,'dispatch'); identity(x2,f2)
     raises('budget_exhausted',lambda:reserve(x2,kind))
     with pytest.raises(psycopg.Error,match='(request limit|reservation limit|project budget exhausted)'):
@@ -158,7 +169,7 @@ def test_carry_applies_to_alpha_lower_cost(context,tmp_path):
             source_manifest_sha256,reserved_cost_usd) VALUES (%s,'synthetic','isolated_prior_database',%s,%s,1)''',
             (project,new_id(),'a'*64))
     g,f,x=prepared(context,tmp_path,project=project,cost_limit_usd='1.131919')
-    count(x,f)
+    count(x,f,prior_count=True)
     raises('budget_exhausted',lambda:reserve(x,'dispatch'))
     with pytest.raises(psycopg.Error,match='project budget exhausted'): raw(x,'dispatch',DISPATCH)
     with context[0].db.transaction() as c:

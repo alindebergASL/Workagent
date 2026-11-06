@@ -1,0 +1,10 @@
+{
+  "http_denial": 404,
+  "attempts": 1,
+  "retained_unpublished_exports": 1,
+  "cost_kinds": [
+    "reserved"
+  ],
+  "nonempty_input": true,
+  "replay_denied": true
+}

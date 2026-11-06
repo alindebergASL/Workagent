@@ -1,0 +1,14 @@
+{
+  "database_kind": "disposable workagent_test_*",
+  "database_identity_sha256": "b605953af2297820fb6a119b6ee99cdcbf70fbcda130aa7c3fd80d81fac88a97",
+  "role_identity_sha256": "97e16fb8b4293453acd5c9e223aae633d63558b45412eb109b22ec9f345a4b85",
+  "runtime_superuser": false,
+  "runtime_bypassrls": false,
+  "installed_feature_tables": [
+    "conversation_documents",
+    "conversation_intents",
+    "run_checkpoints",
+    "work_events"
+  ],
+  "fixture_strategy": "test_domain.context seeds fresh synthetic workspace per test; loopback live_client starts current in-process ASGI app on ephemeral port and closes server after test"
+}

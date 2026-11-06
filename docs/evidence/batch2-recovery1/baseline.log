@@ -1,0 +1,523 @@
+...........F............................................................ [ 42%]
+.............FFFF......................F.....F.......................F.. [ 85%]
+........................                                                 [100%]
+=================================== FAILURES ===================================
+_____________________ test_no_write_retry_or_secret_error ______________________
+
+client = <workagent.operator_client.OperatorClient object at 0x749a69a51f40>
+
+    def test_no_write_retry_or_secret_error(client):
+        class Fail:
+            calls=0
+            def open(self,request,timeout):
+                self.calls+=1
+                raise OSError('sensitive: '+client.token)
+        client.opener=Fail()
+        with pytest.raises(OperatorError) as exc:
+>           client.request('/w/conversations',{'command_id':'stable-command'})
+
+backend/tests/test_operator_client.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.operator_client.OperatorClient object at 0x749a69a51f40>
+path = '/w/conversations', body = {'command_id': 'stable-command'}
+
+    def request(self,path,body=None):
+        req=urllib.request.Request(self.base+('/v1/identity' if path=='/identity' else '/v1/workspaces'+path),
+            data=self.wire_body(body,document_upload=bool(re.fullmatch(r'/[^/]+/conversations/[^/]+/documents',path))) if body is not None else None,
+            headers={'Authorization':'Bearer '+self.token,'Content-Type':'application/json',
+>                    'X-Schema-Version':'workagent/v1','X-Request-Id':body['request_id'] if body is not None else str(uuid.uuid4())},
+            method='POST' if body is not None else 'GET')
+E       KeyError: 'request_id'
+
+backend/workagent/operator_client.py:69: KeyError
+_____ test_independent_reads_render_success_and_explicit_failures[context] _____
+
+failed = 'context'
+
+    @pytest.mark.parametrize('failed',['context','execution','catalog','conversation'])
+    def test_independent_reads_render_success_and_explicit_failures(failed):
+        async def scenario():
+            client=FakeClient();original=client.request
+            def request(path,body=None):
+                if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                    raise OperatorError('HTTP 500: internal_error')
+                if path.endswith('/conversation-work'):
+                    return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+                if path.endswith('/conversations/c1'):
+                    return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                        {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+                return original(path,body)
+            client.request=request
+            app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete();await pilot.pause()
+                app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+                if failed!='conversation':
+                    assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+                else:assert 'unavailable' in app.render_cache['timeline'] and 'Start' not in app.render_cache['timeline']
+                if failed!='catalog':assert 'a1' in app.query_one('#artifact',Select)._legal_values
+                else:assert 'unavailable' in app.render_cache['catalog-status']
+                assert failed in app.read_errors
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_b22_corrections.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        client=FakeClient();original=client.request
+        def request(path,body=None):
+            if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                raise OperatorError('HTTP 500: internal_error')
+            if path.endswith('/conversation-work'):
+                return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+            if path.endswith('/conversations/c1'):
+                return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                    {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+            return original(path,body)
+        client.request=request
+        app=WorkagentApp(client,'workspace')
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete();await pilot.pause()
+            app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+            if failed!='conversation':
+>               assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+E               AssertionError: assert ('FIRST MESSAGE' in 'Loading conversation…')
+
+backend/tests/test_tui_b22_corrections.py:78: AssertionError
+____ test_independent_reads_render_success_and_explicit_failures[execution] ____
+
+failed = 'execution'
+
+    @pytest.mark.parametrize('failed',['context','execution','catalog','conversation'])
+    def test_independent_reads_render_success_and_explicit_failures(failed):
+        async def scenario():
+            client=FakeClient();original=client.request
+            def request(path,body=None):
+                if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                    raise OperatorError('HTTP 500: internal_error')
+                if path.endswith('/conversation-work'):
+                    return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+                if path.endswith('/conversations/c1'):
+                    return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                        {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+                return original(path,body)
+            client.request=request
+            app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete();await pilot.pause()
+                app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+                if failed!='conversation':
+                    assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+                else:assert 'unavailable' in app.render_cache['timeline'] and 'Start' not in app.render_cache['timeline']
+                if failed!='catalog':assert 'a1' in app.query_one('#artifact',Select)._legal_values
+                else:assert 'unavailable' in app.render_cache['catalog-status']
+                assert failed in app.read_errors
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_b22_corrections.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        client=FakeClient();original=client.request
+        def request(path,body=None):
+            if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                raise OperatorError('HTTP 500: internal_error')
+            if path.endswith('/conversation-work'):
+                return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+            if path.endswith('/conversations/c1'):
+                return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                    {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+            return original(path,body)
+        client.request=request
+        app=WorkagentApp(client,'workspace')
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete();await pilot.pause()
+            app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+            if failed!='conversation':
+>               assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+E               AssertionError: assert ('FIRST MESSAGE' in 'Loading conversation…')
+
+backend/tests/test_tui_b22_corrections.py:78: AssertionError
+_____ test_independent_reads_render_success_and_explicit_failures[catalog] _____
+
+failed = 'catalog'
+
+    @pytest.mark.parametrize('failed',['context','execution','catalog','conversation'])
+    def test_independent_reads_render_success_and_explicit_failures(failed):
+        async def scenario():
+            client=FakeClient();original=client.request
+            def request(path,body=None):
+                if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                    raise OperatorError('HTTP 500: internal_error')
+                if path.endswith('/conversation-work'):
+                    return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+                if path.endswith('/conversations/c1'):
+                    return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                        {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+                return original(path,body)
+            client.request=request
+            app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete();await pilot.pause()
+                app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+                if failed!='conversation':
+                    assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+                else:assert 'unavailable' in app.render_cache['timeline'] and 'Start' not in app.render_cache['timeline']
+                if failed!='catalog':assert 'a1' in app.query_one('#artifact',Select)._legal_values
+                else:assert 'unavailable' in app.render_cache['catalog-status']
+                assert failed in app.read_errors
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_b22_corrections.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        client=FakeClient();original=client.request
+        def request(path,body=None):
+            if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                raise OperatorError('HTTP 500: internal_error')
+            if path.endswith('/conversation-work'):
+                return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+            if path.endswith('/conversations/c1'):
+                return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                    {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+            return original(path,body)
+        client.request=request
+        app=WorkagentApp(client,'workspace')
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete();await pilot.pause()
+            app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+            if failed!='conversation':
+>               assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+E               AssertionError: assert ('FIRST MESSAGE' in 'Loading conversation…')
+
+backend/tests/test_tui_b22_corrections.py:78: AssertionError
+__ test_independent_reads_render_success_and_explicit_failures[conversation] ___
+
+failed = 'conversation'
+
+    @pytest.mark.parametrize('failed',['context','execution','catalog','conversation'])
+    def test_independent_reads_render_success_and_explicit_failures(failed):
+        async def scenario():
+            client=FakeClient();original=client.request
+            def request(path,body=None):
+                if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                    raise OperatorError('HTTP 500: internal_error')
+                if path.endswith('/conversation-work'):
+                    return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+                if path.endswith('/conversations/c1'):
+                    return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                        {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+                return original(path,body)
+            client.request=request
+            app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete();await pilot.pause()
+                app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+                if failed!='conversation':
+                    assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+                else:assert 'unavailable' in app.render_cache['timeline'] and 'Start' not in app.render_cache['timeline']
+                if failed!='catalog':assert 'a1' in app.query_one('#artifact',Select)._legal_values
+                else:assert 'unavailable' in app.render_cache['catalog-status']
+                assert failed in app.read_errors
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_b22_corrections.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        client=FakeClient();original=client.request
+        def request(path,body=None):
+            if path.endswith({'context':'/work-context','execution':'/execution','catalog':'/conversation-work','conversation':'/conversations/c1'}[failed]):
+                raise OperatorError('HTTP 500: internal_error')
+            if path.endswith('/conversation-work'):
+                return {'items':[{'artifact_id':'a1','conversation_id':'c1','title':'Saved result'}]}
+            if path.endswith('/conversations/c1'):
+                return {'conversation':{'id':'c1','title':'Named work','work_version':2},'messages':[
+                    {'text':'FIRST MESSAGE','author_kind':'human'},{'text':'SECOND MESSAGE','author_kind':'assistant'}],'runs':[]}
+            return original(path,body)
+        client.request=request
+        app=WorkagentApp(client,'workspace')
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete();await pilot.pause()
+            app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+            if failed!='conversation':
+                assert 'FIRST MESSAGE' in app.render_cache['timeline'] and 'SECOND MESSAGE' in app.render_cache['timeline']
+>           else:assert 'unavailable' in app.render_cache['timeline'] and 'Start' not in app.render_cache['timeline']
+E           AssertionError: assert ('unavailable' in 'Loading conversation…')
+
+backend/tests/test_tui_b22_corrections.py:79: AssertionError
+__ test_pending_follow_restart_readback_keeps_edits_and_created_conversation ___
+
+    def test_pending_follow_restart_readback_keeps_edits_and_created_conversation():
+        async def scenario():
+            client=FakeClient();client.fail=True;app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete()
+                composer=app.query_one('#composer',TextArea);composer.load_text('retained')
+                await pilot.press('f5');await app.workers.wait_for_complete();await pilot.pause()
+                assert app.conversation=='new1' and app.pending_command
+                command=app.pending_command
+            restarted=WorkagentApp(client,'workspace')
+            async with restarted.run_test(size=(80,24)) as pilot:
+                await restarted.workers.wait_for_complete();await pilot.pause();await restarted.workers.wait_for_complete()
+                assert restarted.conversation=='new1' and restarted.pending_command==command, str(restarted.query_one('#status',Static).content)
+                composer=restarted.query_one('#composer',TextArea)
+                assert composer.text=='retained'
+                await pilot.press('f5');await pilot.pause()
+                assert sum(c[1]=='chat' for c in client.calls)==1
+                assert sum(c[1]=='follow' for c in client.calls)==1
+                client.fail=False
+                restarted.start_write(restarted.recover('replay'))
+                await restarted.workers.wait_for_complete();await pilot.pause()
+                assert restarted.pending_command is None and composer.text==''
+                assert sum(c[1]=='chat' for c in client.calls)==1
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_composer.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+backend/tests/test_tui_composer.py:164: in scenario
+    await restarted.workers.wait_for_complete();await pilot.pause();await restarted.workers.wait_for_complete()
+backend/.venv/lib/python3.12/site-packages/textual/worker_manager.py:179: in wait_for_complete
+    await asyncio.gather(*[worker.wait() for worker in (workers or self)])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Worker ERROR name='refresh_read' group='reads' description='<coroutine object WorkagentApp.refresh_read at 0x749a68720a50>'>
+
+    async def wait(self) -> ResultType:
+        """Wait for the work to complete.
+    
+        Raises:
+            WorkerFailed: If the Worker raised an exception.
+            WorkerCancelled: If the Worker was cancelled before it completed.
+    
+        Returns:
+            The return value of the work.
+        """
+        try:
+            if active_worker.get() is self:
+                raise DeadlockError(
+                    "Can't call worker.wait from within the worker function!"
+                )
+        except LookupError:
+            # Not in a worker
+            pass
+    
+        if self.state == WorkerState.PENDING:
+            raise WorkerError("Worker must be started before calling this method.")
+        if self._task is not None:
+            try:
+                await self._task
+            except asyncio.CancelledError as error:
+                self.state = WorkerState.CANCELLED
+                self._error = error
+        if self.state == WorkerState.ERROR:
+            assert self._error is not None
+>           raise WorkerFailed(self._error)
+E           textual.worker.WorkerFailed: Worker raised exception: AssertionError('/workspace/work-snapshot?conversation_id=new1')
+
+backend/.venv/lib/python3.12/site-packages/textual/worker.py:452: WorkerFailed
+________ test_redirect_label_uses_selected_conversation_execution_only _________
+
+    def test_redirect_label_uses_selected_conversation_execution_only():
+        from textual.widgets import Button
+        async def scenario():
+            client=FakeClient();original=client.request;active_run='other-run'
+            def request(path,body=None):
+                result=original(path,body)
+                if path.endswith('/execution'):
+                    return {'state':'working','checked_at':'now','runs':[{'run_id':active_run,'state':'working'}]}
+                if '/conversations/c1' in path and not path.endswith('/work-context'):
+                    result['runs']=[{'id':'own-run','state':'queued','observed_at':'now'}]
+                return result
+            client.request=request
+            app=WorkagentApp(client,'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete()
+                app.query_one('#work',Select).value='c1';await pilot.pause();await app.workers.wait_for_complete()
+                assert str(app.query_one('#send',Button).label)=='Send · F5'
+                active_run='own-run';app.action_refresh();await app.workers.wait_for_complete()
+                assert str(app.query_one('#send',Button).label)=='Redirect · F5'
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_composer.py:309: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+backend/tests/test_tui_composer.py:307: in scenario
+    active_run='own-run';app.action_refresh();await app.workers.wait_for_complete()
+backend/.venv/lib/python3.12/site-packages/textual/worker_manager.py:179: in wait_for_complete
+    await asyncio.gather(*[worker.wait() for worker in (workers or self)])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Worker ERROR name='refresh_read' group='reads' description='<coroutine object WorkagentApp.refresh_read at 0x749a68723e10>'>
+
+    async def wait(self) -> ResultType:
+        """Wait for the work to complete.
+    
+        Raises:
+            WorkerFailed: If the Worker raised an exception.
+            WorkerCancelled: If the Worker was cancelled before it completed.
+    
+        Returns:
+            The return value of the work.
+        """
+        try:
+            if active_worker.get() is self:
+                raise DeadlockError(
+                    "Can't call worker.wait from within the worker function!"
+                )
+        except LookupError:
+            # Not in a worker
+            pass
+    
+        if self.state == WorkerState.PENDING:
+            raise WorkerError("Worker must be started before calling this method.")
+        if self._task is not None:
+            try:
+                await self._task
+            except asyncio.CancelledError as error:
+                self.state = WorkerState.CANCELLED
+                self._error = error
+        if self.state == WorkerState.ERROR:
+            assert self._error is not None
+>           raise WorkerFailed(self._error)
+E           textual.worker.WorkerFailed: Worker raised exception: AssertionError('/workspace/work-snapshot?conversation_id=c1')
+
+backend/.venv/lib/python3.12/site-packages/textual/worker.py:452: WorkerFailed
+_________ test_exact_attachment_unknown_post_replay_and_displayed_cas __________
+
+context = (<workagent.service.Service object at 0x749a6850de50>, Principal(id='local-human', kind='human'), 'test-8c6f7a21-09d1-...me.datetime(2026, 10, 26, 16, 57, 11, 834441, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x749a6850d1f0>
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-50/test_exact_attachment_unknown_0')
+
+    def test_exact_attachment_unknown_post_replay_and_displayed_cas(context,monkeypatch,tmp_path):
+        service,principal,workspace,_,_=context
+        token='synthetic-tui-api-'+('x'*40)
+        monkeypatch.setenv('LOCAL_BEARER_TOKEN',token)
+        monkeypatch.setenv('WORKAGENT_OPERATOR_URL','http://127.0.0.1:8765')
+        monkeypatch.setenv('WORKAGENT_OPERATOR_JOURNAL',str(tmp_path/'commands'))
+        with TestClient(create_app(Settings(service.db.dsn,True,token,principal.id))) as api:
+            client=OperatorClient();opener=ASGIOpener(api);client.opener=opener
+            created=client.run(workspace,'chat',['TUI exact snapshots'],principal_id=principal.id)
+            conversation=created['receipt']['id'];version=created['readback']['conversation']['work_version']
+            file=tmp_path/'evidence.txt';raw=b'\xef\xbb\xbfretained\r\nexact\r\n';file.write_bytes(raw)
+            snapshots=[a.payload() for a in stage_text_files([file])]
+            original_open=opener.open;lost=False;calls=[]
+            def lose_ack(request,timeout):
+                nonlocal lost
+                calls.append(request.method)
+                response=original_open(request,timeout)
+                if request.method=='POST' and request.full_url.endswith('/messages') and not lost:
+                    lost=True
+                    raise OSError('synthetic lost acknowledgement after server commit')
+                return response
+            opener.open=lose_ack
+            with pytest.raises(OperatorError,match='outcome/readback'):
+                client.run(workspace,'follow',[conversation,' \n雪\r\n '],command_id='retained-message',
+                           expected_work_version=version,attachments=snapshots,principal_id=principal.id)
+            assert calls==['POST'] # absolutely no invisible fresh CAS GET
+            original_post=opener.posts[-1]
+            file.unlink()
+            restarted=OperatorClient();restarted.opener=opener
+>           result=restarted.run(workspace,'replay',['retained-message'],principal_id=principal.id)
+
+backend/tests/test_tui_http_pg.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/operator_client.py:168: in run
+    return self.execute(record,announce)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.operator_client.OperatorClient object at 0x749a687f74a0>
+record = {'action': 'follow', 'args': ['91c9fcaa-81d1-4bbc-ae54-d4a0516e6dc4', ' \n雪\r\n '], 'base': 'http://127.0.0.1:8765', '...xt/plain'}], 'command_id': 'retained-message', 'expected_work_version': 1, 'request_id': 'retained-message', ...}, ...}
+announce = <function OperatorClient.<lambda> at 0x749a6d21f100>
+
+    def execute(self,record,announce):
+        cid=record['command_id']
+        retained=self.journal.read(cid)
+        if retained['record']!=record:raise OperatorError('Dispatch differs from exact reserved journal record')
+        prior=retained['outcome']
+        if prior['state'] in ('rejected','abandoned_rejection'):
+            raise OperatorError('Definitively rejected command; explicitly abandon, refresh and send a new attempt')
+        announce({'command_id':cid,'mode':'admission_only','state':'sending','automatic_retry':False,
+                  'replay':'replay '+cid,'inspect':'command '+cid,
+                  'journal':'Private disk record contains unredacted prompts and receipts, never the bearer token'})
+        self.journal.outcome(cid,'outcome_unknown')
+        try:
+            try:
+                saved=self.request(record['path'],record['body'])
+            except DomainRejection as exc:
+                # A later rejection cannot settle an earlier ambiguous POST.
+                if prior['state']=='prepared':
+                    self.journal.outcome(cid,'rejected',rejection=exc.rejection)
+                    raise OperatorError(str(exc)+'; explicit abandonment is available in Recovery') from None
+                raise
+            self.journal.outcome(cid,'readback_unknown',saved)
+            observed=self.readback(record,saved)
+            self.journal.outcome(cid,'confirmed',saved)
+        except (OperatorError,KeyError,TypeError,ValueError) as exc:
+            # The durable record already states the last confirmed boundary. Do
+            # not delete it, refresh a precondition, or send another write.
+            if self.journal.read(cid)['outcome']['state']=='rejected':
+                raise OperatorError(f'Command {cid} rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent') from None
+            reason=str(exc) if isinstance(exc,OperatorError) else 'Invalid response'
+>           raise OperatorError(f'{reason}. Command {cid}: outcome/readback may be unknown. Inspect with command {cid}; explicit exact replay: replay {cid}. No automatic retry was sent') from None
+E           workagent.operator_journal.OperatorError: HTTP 422: unsupported_operation; inspect saved state before any new command. Command retained-message: outcome/readback may be unknown. Inspect with command retained-message; explicit exact replay: replay retained-message. No automatic retry was sent
+
+backend/workagent/operator_client.py:361: OperatorError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/recovery1/baseline.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_operator_client.py::test_no_write_retry_or_secret_error
+FAILED backend/tests/test_tui_b22_corrections.py::test_independent_reads_render_success_and_explicit_failures[context]
+FAILED backend/tests/test_tui_b22_corrections.py::test_independent_reads_render_success_and_explicit_failures[execution]
+FAILED backend/tests/test_tui_b22_corrections.py::test_independent_reads_render_success_and_explicit_failures[catalog]
+FAILED backend/tests/test_tui_b22_corrections.py::test_independent_reads_render_success_and_explicit_failures[conversation]
+FAILED backend/tests/test_tui_composer.py::test_pending_follow_restart_readback_keeps_edits_and_created_conversation
+FAILED backend/tests/test_tui_composer.py::test_redirect_label_uses_selected_conversation_execution_only
+FAILED backend/tests/test_tui_http_pg.py::test_exact_attachment_unknown_post_replay_and_displayed_cas
+8 failed, 160 passed, 1 warning in 123.09s (0:02:03)

@@ -1,0 +1,212 @@
+{
+  "label": "initial4",
+  "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+  "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+  "steps": [
+    {
+      "step": "exact human textarea",
+      "sha256": "f72e37e4a2e656e9dd9d6830cb089f5650f9a24c4fa4c12034cf176497d7b8bd"
+    },
+    {
+      "step": "citations mounted on exact saved revision/body hash"
+    },
+    {
+      "step": "claims rendered",
+      "count": 2
+    },
+    {
+      "step": "unsupported claim + potentially stale warning"
+    },
+    {
+      "step": "all cited quotes match exact captures",
+      "quotes": 1
+    },
+    {
+      "step": "A10/B12 exact hashes, versions, URLs, ranges, coverage shown",
+      "checked": 15
+    },
+    {
+      "step": "no horizontal overflow",
+      "width": 1440
+    },
+    {
+      "step": "no horizontal overflow",
+      "width": 390
+    },
+    {
+      "step": "no horizontal overflow",
+      "width": 320
+    },
+    {
+      "step": "refresh keeps exact saved textarea"
+    },
+    {
+      "step": "refresh never mutates unsaved human text or rebinds citations"
+    }
+  ],
+  "file": {
+    "workspace_file_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+    "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+    "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "filename": "research-conclusion.txt",
+    "mime_type": "text/plain",
+    "storage": "artifact_revision",
+    "current": {
+      "workspace_file_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+      "version_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+      "sha256": "f72e37e4a2e656e9dd9d6830cb089f5650f9a24c4fa4c12034cf176497d7b8bd"
+    },
+    "byte_length": 228,
+    "editable": true
+  },
+  "artifact": {
+    "id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+    "title": "Working file",
+    "kind": "file",
+    "current_revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+    "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50"
+  },
+  "human_utf8_sha256": "f72e37e4a2e656e9dd9d6830cb089f5650f9a24c4fa4c12034cf176497d7b8bd",
+  "claims": {
+    "artifact_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+    "revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+    "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+    "items": [
+      {
+        "claim": {
+          "artifact_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+          "revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+          "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+          "claim": "The entire organization has expanded to 99 units.",
+          "evidence": [],
+          "claim_id": "1fd06878-f147-43a9-afc6-14703cd58a49",
+          "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+          "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+          "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "tool_attempt_id": "1fd06878-f147-43a9-afc6-14703cd58a49",
+          "created_at": "2026-10-29T00:35:44.788253Z",
+          "attribution": "exact_quotes_only",
+          "semantic_status": "unsupported"
+        },
+        "freshness": "current",
+        "newer_snapshot_ids": [],
+        "coverage": []
+      },
+      {
+        "claim": {
+          "artifact_id": "af15eddc-cb9e-4e39-b010-b380e7e9f7ba",
+          "revision_id": "5f0ee19e-3b1f-4e68-b15f-ed31d54c469c",
+          "body_hash": "1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+          "claim": "The source reports 10 units for the synthetic east depot.",
+          "evidence": [
+            {
+              "workspace_file_id": "97e68878-3d1d-454a-9467-5e1306a2a6f0",
+              "snapshot_id": "d5bde35a-86ad-4daf-87a4-d082243d7b2d",
+              "text_sha256": "9363f305ceceef4dbd3e87c9ea8e36b9cc4ebad985f193fdd3b46eff4bc8954d",
+              "start": 20,
+              "end": 54,
+              "quote": "Current public capacity: 10 units.",
+              "relation": "supports"
+            }
+          ],
+          "claim_id": "79ccb056-a00c-4702-8ceb-02fec29c319f",
+          "workspace_id": "b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7",
+          "conversation_id": "a9d861d9-a339-449b-9cb8-e62461b0618d",
+          "run_id": "ad1aecb3-ba0a-4b01-b91a-bf1b76e61e38",
+          "tool_attempt_id": "79ccb056-a00c-4702-8ceb-02fec29c319f",
+          "created_at": "2026-10-29T00:35:34.579375Z",
+          "attribution": "exact_quotes_only",
+          "semantic_status": "not_assessed"
+        },
+        "freshness": "potentially_stale",
+        "newer_snapshot_ids": [
+          "dcff1ac2-cc81-4535-b6a3-9d8334e598b6"
+        ],
+        "coverage": [
+          "extracted"
+        ]
+      }
+    ],
+    "semantic_notice": "Exact quotes verify attribution, not claim truth."
+  },
+  "sources": [
+    {
+      "snapshot_id": "d5bde35a-86ad-4daf-87a4-d082243d7b2d",
+      "version_number": 1,
+      "original_sha256": "b8a97f264aa68a5dfb402cf2b8eac65bdcb575d9da624d52814473d20c0c9370",
+      "extraction_sha256": "9363f305ceceef4dbd3e87c9ea8e36b9cc4ebad985f193fdd3b46eff4bc8954d",
+      "url": "https://fixture.example/source",
+      "final_url": "https://fixture.example/source",
+      "coverage": {
+        "body_complete": true,
+        "text_complete": true,
+        "omissions": []
+      },
+      "extraction_status": "extracted"
+    },
+    {
+      "snapshot_id": "dcff1ac2-cc81-4535-b6a3-9d8334e598b6",
+      "version_number": 2,
+      "original_sha256": "f8f15d385bbc5269b7e6c82e67eb26ab40b6c4e019d392ffc1606f48726537fa",
+      "extraction_sha256": "ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb",
+      "url": "https://fixture.example/source",
+      "final_url": "https://fixture.example/source",
+      "coverage": {
+        "body_complete": true,
+        "text_complete": true,
+        "omissions": []
+      },
+      "extraction_status": "extracted"
+    }
+  ],
+  "collapsedAfterRefresh": [
+    false,
+    true
+  ],
+  "requests": [
+    "GET /api/domain/v1/session",
+    "GET /api/domain/v1/workspaces?limit=100",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d/queued-messages",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d/checkpoints",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d/documents",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-snapshot?conversation_id=a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-20fefd2f-16e7-4d5a-998a-76e9d207d6d9/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-25a60b59-4002-450d-91c1-137ed75a06a9/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-277ae860-9f78-4551-99ee-7cf3abd5410d/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-4e5d18b2-7457-46d6-8cf8-88006b448e06/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-59c79ffd-5996-439b-8824-6a05edba9b15/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-63fc3f5d-3685-437a-8820-f85c9606e177/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-659d124b-da7d-4985-ab96-d8dee0f8ce7e/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-6784cf95-a4de-4121-b167-8e2ccd0aef1c/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-6c81b45c-90fa-4ace-a7eb-927d20ebc91d/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-6dd9bf28-2aec-407f-801f-1f1fe4a17a20/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-82f65581-2d3e-4c83-9d3b-b2e2cbae237f/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-8c918fba-a627-424b-820b-aeb2e7a311df/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-a6495b32-c635-42e8-bc5e-83bdf63dca7b/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-a7ab8bc8-14cd-4571-a69b-4c87495900ed/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-b463f518-7a13-4b75-b8c5-701619af8434/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-d5601b83-4346-4728-ac60-0e6c9b459631/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/test-f38cd1a8-8730-4860-b225-4c5e9867f32b/work-areas?limit=100",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/execution",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/attention?conversation_id=a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/events/stream?conversation_id=a9d861d9-a339-449b-9cb8-e62461b0618d&after=[cursor-redacted]",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/conversations/a9d861d9-a339-449b-9cb8-e62461b0618d/checkpoints",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-areas/a9d861d9-a339-449b-9cb8-e62461b0618d/research/snapshots?limit=25",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-areas/a9d861d9-a339-449b-9cb8-e62461b0618d/files?limit=100",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/memory?conversation_id=a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/runs/7c05674d-f172-433a-91a2-f4277dcb251c/memory-usage",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/memory/scope-bindings/a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/files/af15eddc-cb9e-4e39-b010-b380e7e9f7ba/versions/5f0ee19e-3b1f-4e68-b15f-ed31d54c469c?sha256=f72e37e4a2e656e9dd9d6830cb089f5650f9a24c4fa4c12034cf176497d7b8bd&offset=0&limit=8192",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-snapshot?conversation_id=a9d861d9-a339-449b-9cb8-e62461b0618d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/artifacts/af15eddc-cb9e-4e39-b010-b380e7e9f7ba/revisions/5f0ee19e-3b1f-4e68-b15f-ed31d54c469c/research/claims?body_hash=1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/research/snapshots/dcff1ac2-cc81-4535-b6a3-9d8334e598b6",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/research/snapshots/d5bde35a-86ad-4daf-87a4-d082243d7b2d",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/artifacts/af15eddc-cb9e-4e39-b010-b380e7e9f7ba/revisions/5f0ee19e-3b1f-4e68-b15f-ed31d54c469c/research/claims?body_hash=1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-areas/a9d861d9-a339-449b-9cb8-e62461b0618d/research/snapshots?limit=25",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/artifacts/af15eddc-cb9e-4e39-b010-b380e7e9f7ba/revisions/5f0ee19e-3b1f-4e68-b15f-ed31d54c469c/research/claims?body_hash=1c69d66ee30e34106ea248e67752e6bde6f8149bd55befa27ab872c7aac34e50",
+    "GET /api/domain/v1/workspaces/b32a-5d09866f-cba2-4282-9be3-2a28a9c6b5c7/work-areas/a9d861d9-a339-449b-9cb8-e62461b0618d/research/snapshots?limit=25"
+  ],
+  "passed": true
+}

@@ -1,0 +1,21 @@
+▲ Next.js 16.3.4 (webpack)
+⨯ Failed to load next.config.ts, see more info here https://nextjs.org/docs/messages/next-config-error
+
+> Build error occurred
+Error: Cannot find module './src/lib/security-headers.mjs'
+Require stack:
+- /home/ubuntu/workagent-continuation-20261026/.local/batch3/b34a/web-lane/web/next.config.compiled.js
+- /home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/server/config.js
+- /home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/cli/next-test.js
+- /home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/bin/next
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/ubuntu/workagent-continuation-20261026/.local/batch3/b34a/web-lane/web/next.config.compiled.js',
+    '/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/build/next-config-ts/transpile-config.js',
+    '/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/server/config.js',
+    '/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/cli/next-test.js',
+    '/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/next@16.3.4_@playwright+test@1.62.0_@types+node@22.20.4_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/bin/next'
+  ]
+}

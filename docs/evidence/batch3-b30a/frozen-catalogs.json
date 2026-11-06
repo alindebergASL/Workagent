@@ -1,0 +1,9 @@
+{
+  "accepted_base": "26e599b3db8a61b73eeeaea4f87a1d3de0b296d9",
+  "unchanged": {
+    "contracts/tool-registry.json": "d7db4cb5c2dadbd52d99c28178e367bf890c2508ee0ea24106e99ff7ce9eb115",
+    "contracts/alpha-capability-catalog.json": "b22360f4cd618bcb285d4f1dc9ad1f3fae68b879c58676bb57f2a700a1169d40",
+    "contracts/responses-tool-registry.json": "e9cec0996ae31fcb42eff15fdff3645c8249ffec36f53420efa5f9a1e1e319a3",
+    "contracts/general-tool-registry.json": "b4cf8c68433c19dc84579da863bccc5867868b99597930e3c00959a740a351b4"
+  }
+}

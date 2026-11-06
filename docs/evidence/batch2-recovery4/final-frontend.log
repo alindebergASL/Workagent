@@ -1,0 +1,66 @@
+npm notice run @workagent/web@0.1.0 test
+npm notice run vitest run --maxWorkers=1 --reporter=default --reporter=junit --outputFile.junit=../docs/evidence/batch2-recovery4/final-frontend.xml
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.3 [39m[90m/home/ubuntu/workagent-continuation-20261026/web[39m
+
+ [32m✓[39m test/work-events.test.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 1275[2mms[22m[39m
+   [32m✓[39m subscribeWork [2m(8)[22m
+     [33m[2m✓[22m[39m a malformed event forces a reset instead of inventing state[33m 353[2mms[22m[39m
+   [32m✓[39m CurrentWork render [2m(2)[22m
+     [33m[2m✓[22m[39m shows current facts, labelled earlier check-in, review link and exact revision in details[33m 441[2mms[22m[39m
+ [32m✓[39m test/adaptive-presentation.test.ts [2m([22m[2m36 tests[22m[2m)[22m[32m 246[2mms[22m[39m
+ [32m✓[39m test/products.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 457[2mms[22m[39m
+ [32m✓[39m test/batch2-controls.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 881[2mms[22m[39m
+ [32m✓[39m test/b2-correction.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 476[2mms[22m[39m
+ [32m✓[39m test/continuation.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 88[2mms[22m[39m
+ [32m✓[39m test/work-areas.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 95[2mms[22m[39m
+ [32m✓[39m test/natural-admission.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 299[2mms[22m[39m
+ [32m✓[39m test/activity.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 231[2mms[22m[39m
+ [32m✓[39m test/batch2-durable.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 118[2mms[22m[39m
+ [32m✓[39m test/conversation-work.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32m✓[39m test/space-view.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 197[2mms[22m[39m
+ [32m✓[39m test/proposal-review.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 325[2mms[22m[39m
+ [32m✓[39m test/worker.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m test/rich-text.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 122[2mms[22m[39m
+ [32m✓[39m test/outcome-preview.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 99[2mms[22m[39m
+ [32m✓[39m test/operation-state.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 61[2mms[22m[39m
+ [32m✓[39m test/service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 179[2mms[22m[39m
+ [32m✓[39m test/execution-view.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m test/scope.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 172[2mms[22m[39m
+ [32m✓[39m test/responsibility-outputs.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 186[2mms[22m[39m
+ [32m✓[39m test/result-links.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m test/command-cache.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m test/flexible.test.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 173[2mms[22m[39m
+ [32m✓[39m test/thread.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 119[2mms[22m[39m
+ [32m✓[39m test/home-destination.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+ [32m✓[39m test/doc-read.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 109[2mms[22m[39m
+ [32m✓[39m test/attachment-vectors.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 169[2mms[22m[39m
+ [32m✓[39m test/cell-authors.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+ [32m✓[39m test/conversation.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m test/table-notes.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+ [32m✓[39m test/responsibility-view.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32m✓[39m test/responsibility-recording.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 245[2mms[22m[39m
+ [32m✓[39m test/proposal-changes.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m test/sandbox.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 131[2mms[22m[39m
+ [32m✓[39m test/assignment-summary.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m test/diff.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m test/work-state.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 119[2mms[22m[39m
+ [32m✓[39m test/product-summary.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 113[2mms[22m[39m
+ [32m✓[39m test/since-you-left.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m test/recommendation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m test/draft-carry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m test/post-message-types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m test/send-error.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m test/titles.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32m✓[39m test/note-authors.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m46 passed[39m[22m[90m (46)[39m
+[2m      Tests [22m [1m[32m470 passed[39m[22m[90m (470)[39m
+[2m   Start at [22m 20:06:27
+[2m   Duration [22m 79.87s[2m (import 43%, transform 30%, tests 23%, worker 4%)[22m
+
+[2m     Import [22m [33m129 modules were evaluated 209 times[39m[2m · 14.46s total, 43% of tracked time[22m
+[2m            [22m [2m~5.54s faster with [22m[33misolate: false[39m[2m — shared modules are evaluated once per worker instead of once per file[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-isolation[22m
+
+JUNIT report written to /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery4/final-frontend.xml

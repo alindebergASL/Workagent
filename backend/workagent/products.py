@@ -16,6 +16,20 @@ def byte_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+def is_builtin_operation(operation):
+    """Closed classification, not authority; each built-in keeps its own guards.
+
+    The gateway routing table is not the universe of admitted operations. Use
+    exact classes, never the shared read base class or an arbitrary kind string.
+    """
+    from .composition import (ReadSavedWork, DiscoverSavedWork, SearchWorkContext,
+                              RecordResponsibility, AdvanceResponsibility)
+    from .retained_results import ReadResult, ReadAttachment
+    from .model_discovery import DiscoverRetainedReferences, SearchWorkContextPage
+    return type(operation) in (DiscoverRetainedReferences, SearchWorkContextPage, ReadResult, ReadAttachment, ReadSavedWork,
+        DiscoverSavedWork, SearchWorkContext, RecordResponsibility, AdvanceResponsibility)
+
+
 def explanation_readback(c,run,attempt):
     from .general_schema import GeneralExplanation
     from .general_alpha_models import ExplanationReadback
@@ -67,7 +81,20 @@ def adaptive_readback(c,run,attempt):
 
 
 def turn_state(run,c=None):
+    visible=c is None or c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+            (run.workspace_id,run.id)).fetchone()['ok']
+    return _turn_state_from_visibility(run,c,visible)
+
+
+def _turn_state_from_visibility(run,c,visible):
+    # Internal projection only: caller supplies a current SQL visibility result
+    # from this read. Standalone callers must use turn_state's ordinary guard.
     from .service import encoded
+    if not visible:
+        # Hide every model-authored projection, not just the assistant message.
+        # Immutable provider accounting is retained separately, without payload.
+        return TurnState(run_id=run.id,state='unavailable',profile=run.profile,
+            reason='Generated content withheld because its memory or source dependencies changed. Human work and accounting are retained.')
     if run.profile=='general-responses-v1':
         from .responses_ledger import observations
         attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone() if c else None
@@ -273,12 +300,38 @@ class Products:
             except ValueError as exc: raise DomainError('unsupported_operation') from exc
         operation_hash=digest(operation)
         results=[]
-        # Initial product creates a typed editable body plus exact download file.
-        # Revised product proposes only that body; download its accepted revision.
+        advance=False
+        if base:
+            row,owner=self._artifact(c,p,run.workspace_id,operation.artifact_id)
+            # Recheck at the write boundary, including a human save/accept race.
+            # Multiple retained preparations can share the frozen base, but only
+            # this run's own intervening revisions may be crossed.
+            if row['current_revision_id']!=base.id:
+                self._own_revision_chain(c,p,run,row,owner,base.id)
+            else:
+                self._cas(row,base.id)
+            # Responsibility dependencies keep their original exact-current fence.
+            # This slice advances ordinary preparation only, not responsibility work.
+            responsibility=c.execute("SELECT 1 FROM run_configurations WHERE workspace_id=%s "
+                "AND run_id=%s AND data ? 'responsibility'",(run.workspace_id,run.id)).fetchone()
+            advance=(isinstance(operation,PublishArtifact) and not responsibility
+                and self._agent_owned_draft(c,run.workspace_id,row))
+            if advance:
+                from .flexible_models import check_document_model_edit
+                current=self._revision(c,p,run.workspace_id,row,owner)
+                self._validate_flexible_edit(current.body,body)
+                try: check_document_model_edit(current.body,body)
+                except ValueError as exc: raise DomainError('unsupported_operation') from exc
+        # Human-edited/accepted work remains proposed. Worker preparation advances
+        # via immutable revisions; a protected_note never means human acceptance.
         for material in ([body] if base or file is None else [body,file]):
             aid=operation.artifact_id if base else new_id()
             rid=pid=None
-            if base:
+            if base and advance:
+                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,
+                    cv.selected_source_refs,'worker',producer_run_id=run.id,advance_current=False)
+                rid=artifact.current_revision_id
+            elif base:
                 proposal=Proposal(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,
                     artifact_id=aid,base_revision_id=base.id,base_work_version=cv.work_version,
                     body=material,body_hash=digest(material),source_dependencies=cv.selected_source_refs,
@@ -290,7 +343,7 @@ class Products:
             else:
                 c.execute('INSERT INTO artifacts(workspace_id,id,conversation_id) VALUES (%s,%s,%s)',(run.workspace_id,aid,cv.id))
                 row,owner=self._artifact(c,p,run.workspace_id,aid)
-                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker')
+                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker',producer_run_id=run.id)
                 rid=artifact.current_revision_id
             observation=ProductObservation(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,run_id=run.id,
                 artifact_id=aid,revision_id=rid,proposal_id=pid,base_revision_id=base.id if base else None,
@@ -298,6 +351,16 @@ class Products:
                 evidence_origin='local_tool' if binding else 'controlled_transport',model_selection=binding)
             c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
                 (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
+            if base and advance:
+                # Authorize the receipt while the old base is still current;
+                # subsequent authority checks require the receipt-bound chain.
+                # This ordering is necessary but not sufficient without the
+                # forward authority migration (090_receipt_bound_draft_advancement.sql).
+                changed=c.execute('UPDATE artifacts SET current_revision_id=%s '
+                    'WHERE workspace_id=%s AND id=%s AND current_revision_id=%s RETURNING id',
+                    (rid,run.workspace_id,aid,row['current_revision_id'])).fetchone()
+                if not changed:
+                    raise DomainError('version_conflict')
             results.append(ProductResult(kind=getattr(material,'kind','document'),artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
         if materials_only:
             return results
@@ -326,6 +389,20 @@ class Products:
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            from .capabilities.policy import require_operation
+            gateway_rejection=False
+            try:
+                if not is_builtin_operation(operation):
+                    require_operation(c,run,operation)
+            except DomainError as exc:
+                from .adaptive import enabled as adaptive_enabled
+                from .general_responses import check_pins
+                # Schema membership is not execution authority. Retain this exact
+                # denied legacy choice as feedback; never translate or execute it.
+                if (exc.code.value!='unsupported_operation' or not isinstance(operation,PublishArtifact)
+                    or not adaptive_enabled(check_pins(c,run))):
+                    raise
+                gateway_rejection=True
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
@@ -335,8 +412,37 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
+        from .capabilities.file_adapters import FILE_OPERATIONS
+        from .capabilities.compute_adapters import ComputePython
+        from .capabilities.delegation import VerifyDelegate
+        from .capabilities.research_adapters import RESEARCH_OPERATIONS
+        from .capabilities.github_adapters import GITHUB_OPERATIONS
+        from .capabilities.mcp_adapters import MCPRead
+        from .capabilities.office_adapters import ArtifactsOfficeExport
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
-        if isinstance(operation,AdvanceResponsibility):
+        from .retained_results import ReadResult, ReadAttachment, read as read_retained
+        if gateway_rejection:
+            diagnostic={'code':'gateway_operation_rejected','detail':
+                'Legacy publish_artifact is unavailable with the installed capability gateway. '
+                'Choose an authorized files_create_draft or files_propose_patch operation; '
+                'no artifact was created or changed by this rejected choice.'}
+            staged={'status':'rejected','body':None,'file':None,'output':None,'binding':binding,
+                    'diagnostic':diagnostic,'reason':diagnostic['detail']}
+        elif is_builtin_operation(operation) and operation.kind in ('discover_retained_references','search_work_context_page'):
+            from .model_discovery import execute as discover_page
+            from .general_responses import check_pins
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=discover_page(self,c,current[0],current[1],current[2],check_pins(c,current[1]),operation,phase,binding)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,'capability_result':read}
+        elif isinstance(operation,(ReadResult,ReadAttachment)):
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=read_retained(self,c,current[0],current[1],current[2],operation,phase,binding)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,'capability_result':read}
+        elif isinstance(operation,AdvanceResponsibility):
             from .responsibility_action import authorize_advance
             from .general_responses import check_pins
             with self.db.transaction() as c:
@@ -371,10 +477,10 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS):
-            context=self.conversation_worker_context(cap)
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport, MCPRead, VerifyDelegate) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
+            from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
-                    'capability_result':execute_read(operation,context)}
+                    'capability_result':execute_composition(self,cap,operation,phase)}
         elif operation is None:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
         else:
@@ -407,11 +513,32 @@ class Products:
                 if prior!=staged: raise DomainError('command_conflict')
             else:
                 ledger.event(c,phase,'tool_result',staged)
+                from .run_checkpoints import record
+                record(self,c,current[1],current[2],phase,'stage')
             self._publish_new_draft(c,staged,current)
         with self.db.transaction() as c:
             resolve_selection(self,c,cap,receipt,phase)
             if ledger._events(c,phase).get('tool_result')!=staged: raise DomainError('action_unresolved')
         return staged
+
+    def _agent_owned_draft(self,c,ws,row):
+        """Fail closed on legacy/unknown provenance; never infer ownership from text."""
+        revisions=c.execute('SELECT data,producer_run_id FROM revisions WHERE workspace_id=%s AND artifact_id=%s',
+                            (ws,row['id'])).fetchall()
+        return bool(revisions) and all(r['data']['author_kind']=='worker' and r['producer_run_id'] for r in revisions)
+
+    def _own_revision_chain(self,c,p,run,row,owner,ancestor):
+        """Only exact receipt-bound revisions of this run may follow an old receipt."""
+        revision=self._revision(c,p,run.workspace_id,row,owner)
+        while revision.id!=ancestor:
+            linked=c.execute("SELECT 1 FROM revisions r JOIN product_observations po "
+                "ON po.workspace_id=r.workspace_id AND po.artifact_id=r.artifact_id "
+                "AND po.data->>'revision_id'=r.id WHERE r.workspace_id=%s AND r.id=%s "
+                "AND r.producer_run_id=%s AND po.run_id=%s AND po.data->>'body_hash'=%s",
+                (run.workspace_id,revision.id,run.id,run.id,revision.body_hash)).fetchone()
+            if revision.author_kind!='worker' or not linked or not revision.parent_revision_id:
+                raise DomainError('version_conflict',current_revision_id=row['current_revision_id'])
+            revision=self._revision(c,p,run.workspace_id,row,owner,revision.parent_revision_id)
 
     def _new_draft_results(self,c,run,binding):
         """Exact immutable selection -> material mapping (never content dedupe)."""
@@ -424,7 +551,7 @@ class Products:
         for record in rows:
             observation=ProductObservation.model_validate(record['data'])
             row,owner=self._artifact(c,p,run.workspace_id,observation.artifact_id)
-            self._cas(row,observation.revision_id)
+            self._own_revision_chain(c,p,run,row,owner,observation.revision_id)
             revision=self._revision(c,p,run.workspace_id,row,owner,observation.revision_id)
             if revision.body_hash!=observation.body_hash:
                 raise DomainError('source_changed')
@@ -434,7 +561,11 @@ class Products:
         return results
 
     def _publish_new_draft(self,c,staged,resolved):
-        """Atomic early preparation on ordinary sustained turns; no explanation/settlement."""
+        """Publish new identities early; revise frozen targets atomically at settlement.
+
+        Targeted edits must not change the frozen context while other selections
+        are still being authorized. Settlement publishes all retained revisions.
+        """
         from .composition import continuity_enabled
         from .general_responses import check_pins
         p,run,cv,operation,base,binding,origin=resolved
@@ -450,6 +581,11 @@ class Products:
             raise DomainError('action_unresolved')
         self._publish_product(c,p,run,cv,operation,None,type(operation.body).model_validate(staged['body']),
             None,DraftObservation.model_validate(staged['output']),staged['reason'],origin,binding,materials_only=True)
+        from .run_checkpoints import record
+        from .service import encoded
+        phase=c.execute("SELECT phase FROM responses_events WHERE attempt_id=%s AND kind='tool_result' "
+            "AND data->'binding'=%s",(binding['attempt_id'],encoded(binding))).fetchone()['phase']
+        record(self,c,run,cv,phase,'publication')
 
     def _own_new_drafts(self,c,p,run,cv):
         """Only exact own receipt-bound additions may leave the frozen catalogs.
@@ -470,22 +606,26 @@ class Products:
         for record in rows:
             o,stage=record['data'],record['stage']
             row,owner=self._artifact(c,p,run.workspace_id,o['artifact_id'])
-            self._cas(row,o['revision_id'])
+            self._own_revision_chain(c,p,run,row,owner,o['revision_id'])
             revision=self._revision(c,p,run.workspace_id,row,owner,o['revision_id'])
             if (row.get('conversation_id')!=cv.id or stage['status']!='observed'
                     or stage.get('decision',{}).get('kind')!='publish_artifact'
-                    or stage['decision'].get('target') is not None
                     or o['conversation_id']!=cv.id or o['access_generation']!=run.access_generation
                     or revision.author_id!=run.principal_id
-                    or revision.author_kind!='worker' or revision.revision_number!=1
+                    or revision.author_kind!='worker'
                     or revision.body.model_dump(mode='json')!=stage['body']
                     or revision.body_hash!=o['body_hash'] or digest(stage['body'])!=o['body_hash']
                     or stage['output']!=o['output']):
                 raise DomainError('source_changed')
+            # Only new identities were absent from the frozen context. An edit
+            # must not exclude a pre-existing target from its original snapshot.
+            if stage['decision'].get('target') is not None:
+                continue
             materials.append({'phase':record['phase'],'binding':stage['binding'],
                 'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
                 'observation_id':o['id'],'body_hash':o['body_hash'],
                 'validation':'shape_only','goal_status':'needs_validation'})
+        materials.extend(self._own_file_drafts(c,p,run,cv))
         return materials
 
     def complete_general_product(self,cap,receipt,phase='selection'):
@@ -547,6 +687,11 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome)]
+                else:
+                    # P5: continuity text-only terminal answer with no saved worker
+                    # artifact gets an editable materialization before settlement.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
             elif staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
@@ -566,6 +711,12 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome or 'Local verification failed.') ]
+                else:
+                    # P5: a terminal text-only reply with no saved worker artifact
+                    # gets an editable materialization before the run settles,
+                    # so dependent transitions keep a selectable target.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
             if alpha and staged.get('decision',{}).get('work_area') is not None:
@@ -582,6 +733,8 @@ class Products:
                 from .responsibility_action import apply_advance
                 apply_advance(self,c,run,config)
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             if continuity:
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
         detail=self.get_conversation(p,run.workspace_id,cv.id)
@@ -608,11 +761,13 @@ class Products:
             body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(observation['body'])
             file=FileBody.model_validate(observation['file']) if observation['file'] else None
             output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(observation['output'])
-            prepared.append((p,operation,base,binding,body,file,output))
+            prepared.append((p,operation,base,binding,body,file,output,observation['phase']))
         results=[]
-        for p,operation,base,binding,body,file,output in prepared:
-            prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) and base is None else []
+        for p,operation,base,binding,body,file,output,phase in prepared:
+            prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) else []
             results.extend(prior or self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
+            from .run_checkpoints import record
+            record(self,c,run,cv,phase,'publication')
         return results
 
     def stop_general_budget(self,cap,receipt):
@@ -656,6 +811,8 @@ class Products:
                 run.execution.provider_observation='received'
                 run.execution.evidence_origin=origin
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             self._event(c,p,run.workspace_id,'general_budget_stop',run.id)
             acknowledge(c,run.workspace_id,run.id)
         observed=self.get_run(p,run.workspace_id,run.id)
@@ -680,6 +837,8 @@ class Products:
             if not row:
                 deny()
             observation=ProductObservation.model_validate(row['data'])
+            if not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+                (ws,observation.run_id)).fetchone()['ok']: deny()
             artifact,owner=self._artifact(c,p,ws,observation.artifact_id)
             current=self._revision(c,p,ws,artifact,owner)
             state='historical'
@@ -705,16 +864,26 @@ class Products:
             return ObservationReadback(observation=observation,binding_state=state,current_scope=scope_current)
 
     def download_product(self,p,ws,aid,revision_id=None,proposal_id=None):
-        if proposal_id is not None:
-            if revision_id is not None: raise DomainError('validation_error')
-            with self.db.transaction() as c:
-                self._scope(c,p,ws)
+        if proposal_id is not None and revision_id is not None:
+            raise DomainError('validation_error')
+        with self.db.transaction() as c:
+            self._scope(c,p,ws)
+            if proposal_id is not None:
                 proposal,_,_=self._proposal(c,p,ws,proposal_id)
                 if proposal.artifact_id!=aid: deny()
                 body=proposal.body
-        else:
-            artifact=self.get_artifact(p,ws,aid,revision_id)
-            body=(artifact.requested_revision or artifact.current_revision).body
+            else:
+                # Preserve get_artifact's current AND requested revision checks,
+                # in the same transaction as immutable delivery metadata.
+                artifact,owner=self._artifact(c,p,ws,aid)
+                current=self._revision(c,p,ws,artifact,owner)
+                requested=self._revision(c,p,ws,artifact,owner,revision_id) if revision_id else None
+                body=(requested or current).body
+            if isinstance(body,FileBody):
+                row=self._artifact_file_metadata(c,p,ws,aid)
+                if row is not None:
+                    from .workspace_files import native_download
+                    return native_download(body,row)
         if isinstance(body,FileBody):
             return body
         if isinstance(body,ToolBody):

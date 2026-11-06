@@ -16,6 +16,7 @@ import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { scopedHeaders } from "./lib/scope.mjs";
 
 const state = JSON.parse(await readFile(process.argv[2], "utf8"));
 const out = path.resolve(process.argv[3]);
@@ -23,9 +24,12 @@ const proto = process.argv[4] ? path.resolve(process.argv[4]) : null;
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const base = `${origin}/api/domain/v1/workspaces/local-workspace`;
+const headers = await scopedHeaders(origin, {
+  "X-Workagent-Client": "local-ui",
+});
 const api = async (p) => {
   const r = await fetch(base + p, {
-    headers: { "X-Workagent-Client": "local-ui" },
+    headers,
   });
   if (!r.ok) throw new Error(`${p} ${r.status}`);
   return r.json();

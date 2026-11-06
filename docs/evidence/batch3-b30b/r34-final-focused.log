@@ -1,0 +1,16 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner/web
+
+
+ Test Files  5 passed (5)
+      Tests  45 passed (45)
+   Start at  17:44:36
+   Duration  12.83s (tests 71%, import 15%, transform 11%, setup 3%, worker 1%)
+
+    Isolate  5 workers spawned · ~430ms startup each (spawn + environment, per file)
+             at least ~1.72s faster with isolate: false — reuses workers across files instead of one per file
+
+npm notice run @workagent/web@0.1.0 typecheck
+npm notice run tsc --noEmit
+npm notice run @workagent/web@0.1.0 lint
+npm notice run eslint . --max-warnings 0

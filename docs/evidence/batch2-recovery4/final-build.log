@@ -1,0 +1,38 @@
+npm notice run @workagent/web@0.1.0 build
+npm notice run next build --webpack
+▲ Next.js 16.3.4 (webpack)
+✓ Running next.config.ts took 376ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 15.7s
+  Running TypeScript ...
+  Finished TypeScript in 14.7s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/7) ...
+  Generating static pages using 1 worker (1/7) 
+  Generating static pages using 1 worker (3/7) 
+  Generating static pages using 1 worker (5/7) 
+✓ Generating static pages using 1 worker (7/7) in 3.8s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /activity
+├ ƒ /api/domain/[...path]
+├ ƒ /api/mock/[...path]
+├ ƒ /assignments/[id]
+├ ƒ /assignments/[id]/artifacts/[artifactId]
+├ ○ /conversations
+├ ƒ /conversations/[id]
+├ ƒ /conversations/[id]/artifacts/[artifactId]
+├ ○ /icon.svg
+├ ○ /spaces
+├ ƒ /spaces/[spaceId]
+└ ƒ /spaces/[spaceId]/work/[id]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

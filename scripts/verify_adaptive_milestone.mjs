@@ -9,12 +9,14 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import path from 'node:path';
 import { readProposal } from './adaptive_proposal_readback.mjs';
+import {scopedHeaders} from '../web/scripts/lib/scope.mjs';
+import {setNotes, expectNotes} from './notes_controls.mjs';
 const out=path.resolve(process.argv[2]);
 const config=JSON.parse(await readFile(path.join(out,'manifest.json'),'utf8'));
 const harnessRoot=path.resolve(import.meta.dirname,'..');
 const root=path.resolve(config.candidate_root ?? harnessRoot);
 const origin=config.origin, base=origin+'/api/domain/v1/workspaces/local-workspace';
-const headers={'X-Workagent-Client':'local-ui','Content-Type':'application/json'};
+const headers=await scopedHeaders(origin,{'X-Workagent-Client':'local-ui','Content-Type':'application/json'});
 const report={mode:'live_model_real_ui_postgresql_continuous_worker',origin,requests:[],errors:[],turns:[]};
 const save=async(name,data)=>writeFile(path.join(out,name),JSON.stringify(data,null,2),{mode:0o600});
 const get=async(p)=>{const r=await fetch(base+p,{headers});expect(r.ok).toBe(true);return r.json();};
@@ -117,7 +119,7 @@ try{
  await tool.getByText('Tool code',{exact:true}).click();
  await tool.getByLabel('WebAssembly text (WAT)').fill(faultyCode);
  await tool.getByText('Tool code',{exact:true}).click();
- await tool.getByLabel('Your notes (one per line)').fill(config.human_note);
+ await setNotes(tool,[config.human_note]);
  await tool.getByRole('button',{name:'Save my edits',exact:true}).click();
  await expect(tool.getByRole('button',{name:'Run saved tool',exact:true})).toBeVisible();
  await tool.getByRole('button',{name:'Run saved tool',exact:true}).click();
@@ -146,11 +148,11 @@ try{
  const before=spawnSync(config.python,[config.setup_program,'audit','before-resume'],{cwd:root,env:process.env,encoding:'utf8'});expect(before.status).toBe(0);
  await interruptWorker();
  // The edit during downtime is a real unsaved UI draft; the saved edit above is in the exact run base.
- await tool.getByLabel('Your notes (one per line)').fill(config.draft_note);
+ await setNotes(tool,[config.draft_note]);
  await tool.setViewportSize({width:390,height:844});
  await tool.getByRole('button',{name:'Conversation',exact:true}).click();
  await tool.getByRole('button',{name:'Work',exact:true}).click();await tool.reload();
- await expect(tool.getByLabel('Your notes (one per line)')).toHaveValue(config.draft_note);
+ await expectNotes(tool,[config.draft_note]);
  await shot(tool,'04-interrupted-phone-draft-preserved');
  await startWorker();
  const resumed=await terminal(ids.tool,resumeCount);
@@ -164,7 +166,7 @@ try{
  expect(repairedObservation.observation.output.value).toBe(choose(60,30));
  report.introduced_obstacle.resolved_by_changed_model_code=true;
  expect((await get('/artifacts/'+saved.id)).current_revision_id).toBe(saved.current_revision_id);
- await tool.reload();await expect(tool.getByLabel('Your notes (one per line)')).toHaveValue(config.draft_note);
+ await tool.reload();await expectNotes(tool,[config.draft_note]);
  await tool.setViewportSize({width:1440,height:1000});await shot(tool,'05-resumed-proposal-with-human-draft');
  const downloadPromise=tool.waitForEvent('download');
  await tool.getByRole('button',{name:'Download proposed file',exact:true}).click();

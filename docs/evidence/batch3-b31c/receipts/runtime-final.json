@@ -1,0 +1,40 @@
+{
+  "owned_processes": [
+    {
+      "name": "api",
+      "pid": 16436,
+      "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate",
+      "port": 18232,
+      "start": "617138",
+      "port_refused": true
+    },
+    {
+      "name": "web",
+      "pid": 16440,
+      "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/web",
+      "port": 13232,
+      "start": "0",
+      "port_refused": true
+    }
+  ],
+  "compute": "LoadState=not-found\nActiveState=inactive\n",
+  "installed_services": {
+    "workagent-dev-api": "MainPID=917\nActiveState=active\n",
+    "workagent-dev-web": "MainPID=918\nActiveState=active\n"
+  },
+  "lease_release": {
+    "released": "64d532c2-eef6-41f9-a046-6969f2f437b5"
+  },
+  "lease_status": {
+    "state": {
+      "boot": "85369732-8ce0-4c34-8720-ba6c4fb3e556",
+      "checked_uptime": 6689.85,
+      "cpu_busy": 51170,
+      "cpu_total": 2672648,
+      "last_activity_uptime": 6894.36
+    },
+    "leases": []
+  },
+  "installed_data_maintenance": false,
+  "public_deployment": false
+}

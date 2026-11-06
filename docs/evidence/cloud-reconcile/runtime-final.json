@@ -1,0 +1,34 @@
+{
+  "isolated_ports_closed": {
+    "13210": true,
+    "18210": true
+  },
+  "fixture_databases": {
+    "fixture.env": {
+      "remaining_database_sessions": 0
+    },
+    "fixture-2.env": {
+      "remaining_database_sessions": 0
+    },
+    "fixture-3.env": {
+      "remaining_database_sessions": 0
+    }
+  },
+  "preserved_services": {
+    "workagent-dev-api": [
+      "MainPID=906",
+      "ActiveState=active"
+    ],
+    "workagent-dev-web": [
+      "MainPID=907",
+      "ActiveState=active"
+    ],
+    "workagent-idle.timer": [
+      "ActiveState=active"
+    ]
+  },
+  "source_files_verified": 54,
+  "source_mismatches": [],
+  "product_provider_calls": 0,
+  "fixture_databases_retained": true
+}

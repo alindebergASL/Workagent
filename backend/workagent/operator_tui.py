@@ -1,7 +1,8 @@
-"""Actionable HTTP operator console; run with --help for script commands.
+"""Conversational Textual HTTP client; run with --help for script commands.
 
-Interactive: arrows select a Space, Enter opens; : begins a command; PgUp/PgDn
-scroll; r refreshes; q quits. Commands use the identical HTTP client as the CLI.
+Default: type a conversation, Enter adds a line, F5/Ctrl+Enter sends, Ctrl+Q detaches.
+Explicit curses fallback: arrows/Enter select; : begins a command; r refreshes; q quits.
+Script commands retain the existing HTTP client and immutable replay journal.
 """
 import argparse
 import curses
@@ -12,6 +13,8 @@ import sys
 from .operator_client import OperatorClient, OperatorError, identifier
 
 ACTIONS={
+    'connectors':(), 'connector-status':('connector',), 'connector-connect':(),
+    'connector-confirm':('flow',), 'connector-revoke':('connector','generation'),
     'areas':(), 'conversations':(), 'show':('conversation',), 'area':('conversation',),
     'create':('title','goal','kind'), 'chat':('title',),
     'follow':('conversation','text'), 'promote':('conversation','title','goal','kind'),
@@ -41,7 +44,9 @@ def parser():
                 help='Explicitly permit removed/replaced content after reviewing this exact candidate/base')
             sub.add_argument('--acknowledge-older-proposal',action='store_true',
                 help='Explicitly choose this older candidate after reviewing this exact candidate/base')
-    subs.add_parser('interactive')
+    subs.add_parser('interactive',help='Explicit legacy curses fallback')
+    subs.add_parser('curses',help='Explicit legacy curses fallback')
+    subs.add_parser('textual',help='Conversational UI (optional requirements-tui.lock)')
     return p
 
 
@@ -151,7 +156,13 @@ def main(argv=None):
     if not args.workspace: p.error('--workspace or WORKAGENT_WORKSPACE is required')
     try:
         client=OperatorClient()
-        if args.action in (None,'interactive'):
+        if args.action in (None,'textual'):
+            try:
+                from .tui.app import WorkagentApp
+            except ImportError:
+                raise OperatorError('Textual is optional: install requirements-tui.lock, or choose the explicit curses fallback') from None
+            WorkagentApp(client,identifier(args.workspace)).run()
+        elif args.action in ('interactive','curses'):
             if not sys.stdin.isatty(): raise OperatorError('Interactive console requires a terminal')
             curses.wrapper(interactive,client,identifier(args.workspace))
         else:

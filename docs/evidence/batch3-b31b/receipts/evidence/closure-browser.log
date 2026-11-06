@@ -1,0 +1,19 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+browserType.launch: Executable doesn't exist at /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/home/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     npx playwright install                                 ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+    at /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/browser_closure.mjs:11:30 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v22.23.4

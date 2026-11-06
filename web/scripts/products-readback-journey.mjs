@@ -2,6 +2,7 @@
 import { chromium, expect } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { scopedHeaders } from "./lib/scope.mjs";
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const out = path.resolve(process.argv[2]);
 await mkdir(out, { recursive: true });
@@ -13,7 +14,9 @@ const browser = await chromium.launch({
     ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
     : {}),
 });
-const headers = { "X-Workagent-Client": "local-ui" };
+const headers = await scopedHeaders(origin, {
+  "X-Workagent-Client": "local-ui",
+});
 try {
   const page = await browser.newPage();
   await page.goto(origin);

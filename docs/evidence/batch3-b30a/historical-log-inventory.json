@@ -1,0 +1,138 @@
+[
+  {
+    "path": ".local/batch3/b30a/capabilities-final-2.log",
+    "sha256": "6a55914b3cf745cb021f710ffae9c19d9e85f02b201af6fc0f5fa000afd57938",
+    "bytes": 3866,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/capabilities-final-3.log",
+    "sha256": "f308cc058324d9272c6db14094bd8a38f44b3688606615452cb5c00cc7fa0e52",
+    "bytes": 681,
+    "exit": 0,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/capabilities-final.log",
+    "sha256": "60fd2caefc9964072f80206d4bde28b424e6dea20f4da3d17401d51fdbcf60e2",
+    "bytes": 674,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/capabilities-full-first.log",
+    "sha256": "9b35133985f43577957bf00cc83cb5b73cb00cdcb4c397f0108411cd4cfabc66",
+    "bytes": 3099,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/contracts-check.log",
+    "sha256": "999c53b7c478423b54597831f3d376dcaa2f2b331d1d23517e77a14fc08f2948",
+    "bytes": 348,
+    "exit": 0,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/contracts-generate.log",
+    "sha256": "73e34afa579134bc5b5c19f87f0a1d8cdf15deb9f25ca7c81a5650e0e4ef3ab6",
+    "bytes": 343,
+    "exit": 0,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-fifth.log",
+    "sha256": "25a1a99e57379d7a3972b9820d6e1c26189f76e280ea3ba31683fabacfa8d604",
+    "bytes": 1225,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-first.log",
+    "sha256": "a891f4364eb6909fc4d76372a2461a231317da60bd7b22d290c14e9c6940a918",
+    "bytes": 1534,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-fourth.log",
+    "sha256": "085b58ff6fca143030ee74e16178ea0301fb5d5338d046257ebb52b2a3770bb6",
+    "bytes": 3466,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-integration-first.log",
+    "sha256": "5afe2ea38731a82aabf81bab84f6bc213615182beab0f655cd3410c691d8c1a9",
+    "bytes": 2878,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-second.log",
+    "sha256": "a059cbe270a108d5cb6b87e72be5ee63e6f2921f76ae38f1b77f7ffaf5a1014d",
+    "bytes": 15700,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/gateway-third.log",
+    "sha256": "15cb911b24562100b40a6dd439ec6c0d0076030c32bdf03d2f6dba762ea634ec",
+    "bytes": 11932,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/http-third.log",
+    "sha256": "e83c3188b4b8e0f1d9fe53c50c6df4383c75c5072b5435c2e2a88241ebe4029e",
+    "bytes": 5275,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/legacy-http-second.log",
+    "sha256": "5c96a4f170aff5bdf4312fbad47745f0aec81fb91d5b6eb4a2aaa5d687cffdd9",
+    "bytes": 677,
+    "exit": null,
+    "state": "retained_receipt",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/regressions-a.log",
+    "sha256": "63daedc2a37535ca1c5c122b3be0beb42a5a35c84d31708f5f7a0a38bca30bb8",
+    "bytes": 116,
+    "exit": null,
+    "state": "incomplete_or_timeout_not_a_passing_suite",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/regressions-b.log",
+    "sha256": "706175462dc34c062f0faa2324c72ed263a44fdec7857dec319d4525ec53cd88",
+    "bytes": 29,
+    "exit": null,
+    "state": "incomplete_or_timeout_not_a_passing_suite",
+    "summary_lines": []
+  },
+  {
+    "path": ".local/batch3/b30a/regressions.log",
+    "sha256": "4d29f1df9086ad5de0077fe5e4d243df5fdf35ff197743ee2410dcdb73ac738e",
+    "bytes": 112,
+    "exit": null,
+    "state": "incomplete_or_timeout_not_a_passing_suite",
+    "summary_lines": []
+  }
+]

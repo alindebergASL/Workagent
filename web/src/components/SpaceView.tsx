@@ -7,6 +7,7 @@ import { useResource } from "@/lib/client/hooks";
 import { productApi, isProduct } from "@/lib/client/products";
 import { conversationApi } from "@/lib/client/real-api";
 import { useHolds } from "@/lib/client/responsibility";
+import { scopedSession } from "@/lib/client/session-scope";
 import { useCurrentWorkspace, useScopedHref } from "@/lib/client/workspace";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
@@ -744,7 +745,7 @@ function SelectedWork({
   // The tab chosen for this work comes back when the person returns to it.
   useEffect(() => {
     try {
-      const kept = sessionStorage.getItem(facetKey) as Facet | null;
+      const kept = scopedSession.getItem(facetKey) as Facet | null;
       if (kept) setChosenFacet(kept);
     } catch {
       /* the default tab is fine */
@@ -756,7 +757,7 @@ function SelectedWork({
   const chooseFacet = (f: Facet) => {
     setChosenFacet(f);
     try {
-      sessionStorage.setItem(facetKey, f);
+      scopedSession.setItem(facetKey, f);
     } catch {
       /* the choice still holds while this page is open */
     }

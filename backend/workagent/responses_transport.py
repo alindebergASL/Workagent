@@ -165,10 +165,15 @@ class PreparedRequest:
         return _canonical({key: value for key, value in payload.items() if key in COUNT_FIELDS})
 
 
+_LEGACY_GENERAL_TOOL_DESCRIPTION = 'Choose reply, exact attached CSV reconciliation, or bounded local Wasm; no effects or approvals.'
+_GENERAL_TOOL_DESCRIPTION = ('Choose one action from the supplied decision schema: reply, publish a complete editable artifact, '
+                             'or use an available scoped capability. The schema describes choices, not permission; no human approval is implied.')
+
+
 def _tool(schema: FrozenSchema, policy='intake-v1') -> dict:
     return {'type': 'function', 'name': READ_TOOL if policy=='intake-v1' else 'choose_general_action',
             'description': ('Read only the consumer-approved frozen source scope.' if policy=='intake-v1' else
-                            'Choose reply, exact attached CSV reconciliation, or bounded local Wasm; no effects or approvals.'),
+                            _GENERAL_TOOL_DESCRIPTION),
             'strict': True, 'parameters': _json(schema.material)}
 
 
@@ -226,10 +231,31 @@ def _validate_request(request: PreparedRequest) -> dict:
             from .adaptive import DECISION_SCHEMA
             from .composition import (DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA,
                                       LEGACY_DECISION_SCHEMA, LEGACY_CONTINUITY_DECISION_SCHEMA)
-            if request.schema in (ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
+            from .retained_results import SCHEMA as RETAINED_SCHEMA
+            from .capabilities.file_composition import SCHEMA as FILE_SCHEMA
+            from .capabilities.compute_composition import SCHEMA as COMPUTE_SCHEMA
+            from .memory.runtime import SCHEMA as MEMORY_SCHEMA
+            from .capabilities.research_composition import SCHEMA as RESEARCH_SCHEMA
+            from .capabilities.office_composition import SCHEMA as OFFICE_SCHEMA
+            from .capabilities.github_composition import SCHEMA as GITHUB_SCHEMA
+            from .capabilities.mcp_composition import SCHEMA as MCP_SCHEMA
+            from .capabilities.delegation_composition import SCHEMA as DELEGATION_SCHEMA
+            from .discovery_composition import SCHEMA as DISCOVERY_SCHEMA
+            from .current_gateway import SCHEMA as CURRENT_SCHEMA
+            if request.schema in (CURRENT_SCHEMA,DISCOVERY_SCHEMA,DELEGATION_SCHEMA,MCP_SCHEMA,GITHUB_SCHEMA,OFFICE_SCHEMA,RESEARCH_SCHEMA,MEMORY_SCHEMA,COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
                                    LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True
+        from .legacy_document_schema import historical_schemas
+        if request.phase!='final' and request.schema!=DECISION_SCHEMA:
+            candidates=(DECISION_SCHEMA,)
+            if request.policy=='adaptive-local-v1':
+                candidates+=(CURRENT_SCHEMA,DISCOVERY_SCHEMA,DELEGATION_SCHEMA,MCP_SCHEMA,GITHUB_SCHEMA,OFFICE_SCHEMA,RESEARCH_SCHEMA,MEMORY_SCHEMA,COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA)
+            for candidate in candidates:
+                if request.schema in historical_schemas(candidate):
+                    DECISION_SCHEMA=request.schema
+                    alpha=request.policy=='adaptive-local-v1' and candidate not in (candidates[0],) or alpha
+                    break
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA
         if request.schema!=expected:
             raise TransportError('schema_validator_mismatch')
@@ -250,8 +276,14 @@ def _validate_request(request: PreparedRequest) -> dict:
         raise TransportError('invalid_request_policy')
     FrozenSchema.freeze(_json(request.schema.material), request.schema.model)
     if request.phase != 'final':
-        valid = (_canonical(payload['tools']) == _canonical([_tool(request.schema,request.policy)]) and
-                 payload['tool_choice'] == {'type': 'function', 'name': _tool(request.schema,request.policy)['name']})
+        tool = _tool(request.schema,request.policy)
+        supported_tools = [_canonical([tool])]
+        if request.policy != 'intake-v1':
+            # Retained requests/counts keep their exact historical bytes. Only
+            # this known description differs; schema and all controls stay exact.
+            supported_tools.append(_canonical([{**tool, 'description': _LEGACY_GENERAL_TOOL_DESCRIPTION}]))
+        valid = (_canonical(payload['tools']) in supported_tools and
+                 payload['tool_choice'] == {'type': 'function', 'name': tool['name']})
     else:
         valid = (payload['tools'] == [] and payload['tool_choice'] == 'none' and
                  _canonical(payload['text']) == _canonical({'format': {'type': 'json_schema',
@@ -329,6 +361,8 @@ class ParsedResponse:
     call_id: str | None = None
     output_items: bytes = field(default=b'[]', repr=False)
     issue: str | None = None
+    # Serialized rejected provider document, never a parsed/executable value.
+    rejection_diagnostic: str | None = field(default=None, repr=False)
 
 
 class _ResponseIdentity(TypedDict):
@@ -422,6 +456,35 @@ def _output_shape_counts(document):
     return counts
 
 
+def _provider_failure_issue(error: object) -> str:
+    """Bounded provider labels only; never persist free text or arbitrary tokens."""
+    allowed = {
+        'code': frozenset(('server_error', 'rate_limit_exceeded', 'insufficient_quota',
+            'invalid_prompt', 'content_policy_violation', 'invalid_request_error',
+            'context_length_exceeded', 'model_not_found', 'unsupported_parameter',
+            'invalid_value', 'request_timeout')),
+        'type': frozenset(('server_error', 'invalid_request_error', 'rate_limit_error',
+            'insufficient_quota')),
+        'param': frozenset(('model', 'input', 'max_output_tokens', 'reasoning.effort',
+            'service_tier', 'tools', 'tool_choice', 'temperature', 'background', 'store')),
+    }
+    unavailable = 'provider_failure:diagnostic_unavailable'
+    if not isinstance(error, dict):
+        return unavailable
+    labels = {}
+    for key, values in allowed.items():
+        value = error.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, str) or value not in values:
+            return unavailable
+        labels[key] = value
+    if not labels:
+        return unavailable
+    issue = 'provider_failure:' + _canonical(labels).decode()
+    return issue if len(issue) <= 256 else unavailable
+
+
 def parse_response(document: object, request: PreparedRequest, provenance: Provenance, *, require_correlation=False) -> ParsedResponse:
     """Pure parsing: never executes calls, repairs JSON, retries or resumes a model."""
     rid = _response_id(document.get('id')) if isinstance(document, dict) else None
@@ -438,7 +501,8 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
         usage = _usage(document.get('usage'))
         state = document.get('status')
         if state in ('queued', 'in_progress', 'incomplete', 'failed', 'cancelled'):
-            return ParsedResponse(**base, state=state, usage=usage)
+            return ParsedResponse(**base, state=state, usage=usage,
+                issue=_provider_failure_issue(document.get('error')) if state == 'failed' else None)
         if state != 'completed' or usage is None or document.get('error') is not None:
             raise TransportError('invalid_terminal_response')
         output = document.get('output')
@@ -472,7 +536,9 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
             'event':'provider_response_rejected','request_id':request.metadata.request_id,
             'attempt_id':request.metadata.attempt_id,'phase':request.phase,
             'code':error.code,'shape':_output_shape_counts(document)}))
-        return ParsedResponse(**base, state='malformed', usage=usage, issue=error.code)
+        return ParsedResponse(**base, state='malformed', usage=usage, issue=error.code,
+            rejection_diagnostic=_canonical(document).decode() if
+            error.code=='schema_validation_failed' and request.phase!='final' else None)
 
 
 @dataclass(frozen=True)

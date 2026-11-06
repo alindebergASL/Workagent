@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "processes_restarted": [
+    "web",
+    "api",
+    "dispatcher"
+  ],
+  "same_recovered_run": "f91c08f5-07a3-4bf3-8cbb-c30f4bc37a44",
+  "shipping_return": "4250",
+  "exact_i64_return": "9007199254740993",
+  "human_notes_preserved": true
+}

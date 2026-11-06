@@ -1,4 +1,5 @@
 import type { Block } from "@/lib/contract/types";
+import { scopedSession } from "@/lib/client/session-scope";
 
 /**
  * Unsaved-draft backup. A draft lives in component state; this is a per-tab
@@ -20,7 +21,7 @@ function key(artifactId: string): string {
 
 export function readDraft(artifactId: string): DraftRecord | null {
   try {
-    const raw = sessionStorage.getItem(key(artifactId));
+    const raw = scopedSession.getItem(key(artifactId));
     return raw ? (JSON.parse(raw) as DraftRecord) : null;
   } catch {
     return null;
@@ -29,7 +30,7 @@ export function readDraft(artifactId: string): DraftRecord | null {
 
 export function writeDraft(rec: DraftRecord): void {
   try {
-    sessionStorage.setItem(key(rec.artifact_id), JSON.stringify(rec));
+    scopedSession.setItem(key(rec.artifact_id), JSON.stringify(rec));
   } catch {
     /* storage unavailable: the in-memory draft still exists */
   }
@@ -37,7 +38,7 @@ export function writeDraft(rec: DraftRecord): void {
 
 export function clearDraft(artifactId: string): void {
   try {
-    sessionStorage.removeItem(key(artifactId));
+    scopedSession.removeItem(key(artifactId));
   } catch {
     /* ignore */
   }

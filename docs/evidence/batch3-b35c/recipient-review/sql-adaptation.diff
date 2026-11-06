@@ -1,0 +1,20 @@
+--- .local/batch3/b35c/recipient-lane/recipient_funding.sql
++++ evaluation/recipient_funding.sql
+@@ -47,14 +47,14 @@
+  IF current_database() !~ '^workagent_test_[a-z0-9_]+$' OR current_database()='workagent_test_47b87fe3b82e'
+  OR jsonb_typeof(grant_hashes) IS DISTINCT FROM 'object'
+  THEN RAISE EXCEPTION 'fresh_study_binding_required'; END IF;
+- IF (SELECT count(*) FROM jsonb_each(grant_hashes))<>8 OR
++ IF (SELECT count(*) FROM jsonb_each(grant_hashes))<>2 OR
+  (SELECT count(DISTINCT g.workspace_id) FROM public.provider_grants g
+    WHERE grant_hashes->>g.id=md5(g.data::text) AND g.data->'responses'->>'project_id'=project
+    AND g.data->'responses'->>'transport_mode'='official_api'
+-   AND (g.data->'responses'->>'cost_limit_usd')::numeric=50)<>8 OR
++   AND (g.data->'responses'->>'cost_limit_usd')::numeric=12)<>2 OR
+  EXISTS (SELECT 1 FROM public.provider_grants g WHERE g.data->'responses'->>'transport_mode'='official_api'
+    AND NOT grant_hashes ? g.id)
+- THEN RAISE EXCEPTION 'exact_eight_grants_required'; END IF;
++ THEN RAISE EXCEPTION 'exact_two_grants_required'; END IF;
+  h=encode(sha256(convert_to(jsonb_build_object('database',current_database(),'oid',db_oid::text,
+    'plan_sha256',plan,'project_id',project,'grants',grant_hashes)::text,'UTF8')),'hex');
+  SELECT * INTO old FROM study_funding.binding;

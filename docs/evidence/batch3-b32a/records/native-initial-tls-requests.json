@@ -1,0 +1,23 @@
+[
+  {
+    "method": "GET",
+    "path": "/search?q=fixture%20public%20capacity%20evidence",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Host": "127.0.0.1:41953",
+      "User-Agent": "Python-urllib/3.12",
+      "Connection": "close"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/source",
+    "headers": {
+      "Host": "fixture.example",
+      "User-Agent": "Workagent-PublicReader/1.0",
+      "Accept": "text/html, text/plain, application/xhtml+xml, application/json",
+      "Accept-Encoding": "identity",
+      "Connection": "close"
+    }
+  }
+]

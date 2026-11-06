@@ -1,0 +1,90 @@
+{
+  "docs/BATCH_2_RECOVERY_2_HANDOFF.md": {
+    "bytes": 7980,
+    "sha256": "a38f6a26bedc48208d55681650370842ed31354e76fb8f7d166825891074f93f"
+  },
+  "docs/evidence/batch2-recovery2/baseline-manifest.json": {
+    "bytes": 177832,
+    "sha256": "9e8ea78a6cd920eb7a8ee10cdcad76fd9b5bd29af79ac8421ec471254540ac75"
+  },
+  "docs/evidence/batch2-recovery2/confinement-first.log": {
+    "bytes": 207,
+    "sha256": "0988c5bb7eeb07278b583894eaa2b9ef97590da7ec24f98974eaa0f071c35438"
+  },
+  "docs/evidence/batch2-recovery2/confinement-first.xml": {
+    "bytes": 2051,
+    "sha256": "e2ff00b9b34cb5e195969245b665e2074bfdf9fe8e71c6aa005207c3bcd038b4"
+  },
+  "docs/evidence/batch2-recovery2/cpu-baseline.log": {
+    "bytes": 202,
+    "sha256": "84fdde5597e8e1dcf412efe7b0293463a087745120da30b39b04c7f7e16da06c"
+  },
+  "docs/evidence/batch2-recovery2/cpu-baseline.xml": {
+    "bytes": 342,
+    "sha256": "7e943ce9522fedeed47964689515a5643942910492e55ec1e926f285d6d59498"
+  },
+  "docs/evidence/batch2-recovery2/cpu-wall-negative.log": {
+    "bytes": 3620,
+    "sha256": "0ea296b0bfe9e9105300dcb389c46f49dc55d3edd671c47085384422a45b3614"
+  },
+  "docs/evidence/batch2-recovery2/cpu-wall-negative.xml": {
+    "bytes": 3585,
+    "sha256": "19eaa8261b7dbe1e14878195ad4eefdfb3cf774908f95e502f65df6f6c957e63"
+  },
+  "docs/evidence/batch2-recovery2/cpu_wall_negative.py": {
+    "bytes": 494,
+    "sha256": "ecc5071a3d365af01b5a47b5cfb7758f727240ef941c57e0d92e225ce2cff37c"
+  },
+  "docs/evidence/batch2-recovery2/database-proof.json": {
+    "bytes": 7678,
+    "sha256": "dee9da6aaf428905ab7bc41a62af6dcfeb5776208d95f74bf6a3650cd1521f08"
+  },
+  "docs/evidence/batch2-recovery2/final-campaign.log": {
+    "bytes": 860,
+    "sha256": "7691f60e2cad3886f533f65de13580830acc8a043fca24eec75209dd0a9f5f62"
+  },
+  "docs/evidence/batch2-recovery2/final-campaign.xml": {
+    "bytes": 21589,
+    "sha256": "c5771db4629cd16422974242bb0f5714c4142f90245bd3667b2988917a205ea7"
+  },
+  "docs/evidence/batch2-recovery2/historical-red.log": {
+    "bytes": 3458,
+    "sha256": "6da0a3d0d953cc58115e483ce0760b4ad2a93e90234fec7e55a640f3b7ed8d35"
+  },
+  "docs/evidence/batch2-recovery2/historical-red.xml": {
+    "bytes": 11743,
+    "sha256": "d3465bdaedd9a4be49a8159afec165a8ab273459f02573d928c47a2e4dded2af"
+  },
+  "docs/evidence/batch2-recovery2/reused-document-rereview.md": {
+    "bytes": 386,
+    "sha256": "cfd2906cc8ad0f3c834725d462d4efd92b65e4dace6685ca517cca262178bd98"
+  },
+  "docs/evidence/batch2-recovery2/review.md": {
+    "bytes": 3034,
+    "sha256": "8ae7106d78c4ff98c55423d3898439235459424dfdf352b129668f18519b1cdb"
+  },
+  "docs/evidence/batch2-recovery2/scoped-changes.json": {
+    "bytes": 220,
+    "sha256": "708be21149bb2e43605c7835e51e4886ef94507e8995762894ce42b292c604d7"
+  },
+  "docs/evidence/batch2-recovery2/scoped.diff": {
+    "bytes": 4571,
+    "sha256": "f97f1540de2afda7bea0458463af2ba121409f985ef3830bf890054358d9cf43"
+  },
+  "docs/evidence/batch2-recovery2/test-source-manifest.json": {
+    "bytes": 177832,
+    "sha256": "736458eef830088eb7b236f79f5e40cd0a5491db3cb61d80b8b700f3ef29175c"
+  },
+  "docs/evidence/batch2-recovery2/test-summary.json": {
+    "bytes": 1933,
+    "sha256": "519ce56518c663b2457f6b674c84339680daa2555add3c308f5dbd6d4e229a76"
+  },
+  "docs/evidence/batch2-recovery2/test_document_confinement.before.py": {
+    "bytes": 3810,
+    "sha256": "f1c7ce465c4e6f2f141ff2c6d41cf84f4efef6b9f78e49b86da388842c41c8d0"
+  },
+  "docs/evidence/batch2-recovery2/verify_database.py": {
+    "bytes": 1893,
+    "sha256": "74983d358323082607d2ed39ceb5751939b7dd7013f4748c0c99d7d4d36d959c"
+  }
+}

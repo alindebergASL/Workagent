@@ -1,0 +1,65 @@
+{
+  "owned_stopped": [
+    {
+      "name": "api",
+      "pid": 4097920,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "port": 18234,
+      "start": "121982688"
+    },
+    {
+      "name": "web",
+      "pid": 4097968,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32a/candidate/web",
+      "port": 13234,
+      "start": "121982888"
+    }
+  ],
+  "owned_ports_refused": [
+    18234,
+    13234
+  ],
+  "other_local_process_identities_unchanged": {
+    "2688430": {
+      "pid": 2688430,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "start": "97601715",
+      "comm": "python"
+    },
+    "2718652": {
+      "pid": 2718652,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "start": "116153143",
+      "comm": "python"
+    },
+    "2733711": {
+      "pid": 2733711,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "start": "116217928",
+      "comm": "next-server (v1"
+    },
+    "875172": {
+      "pid": 875172,
+      "cwd": "/home/ubuntu/workagent-candidates/general-review-20261023/backend",
+      "start": "70011888",
+      "comm": "python"
+    },
+    "875173": {
+      "pid": 875173,
+      "cwd": "/home/ubuntu/workagent-candidates/general-review-20261023/web",
+      "start": "70011888",
+      "comm": "next-server (v1"
+    },
+    "875174": {
+      "pid": 875174,
+      "cwd": "/home/ubuntu/workagent-candidates/general-review-20261023/backend",
+      "start": "70011888",
+      "comm": "python"
+    }
+  },
+  "installed_remote_services_touched": false,
+  "installed_data_maintenance": false,
+  "shared_root_next_build_in_closure": false,
+  "preexisting_untracked_contracts_lock_preserved": true,
+  "fixture_databases_deleted": false
+}

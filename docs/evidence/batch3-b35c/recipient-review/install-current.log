@@ -1,0 +1,18 @@
+Created isolated database workagent_test_92757d9368af; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-install-tests/ede9fcc999344948aa4148d882a5de7f/fixture/fresh.private.env. No credentials printed.
+{
+  "status": "PASS",
+  "scope": "disposable real product installation only",
+  "database": "workagent_test_92757d9368af",
+  "checks": [
+    "atomic deny-all to inactive gate",
+    "exact retry unchanged",
+    "wrong OID denied",
+    "current-run zero-cost tool installation/readback",
+    "tool retry no duplicate account/grant",
+    "wrong workspace denied",
+    "grant hashes unchanged"
+  ],
+  "provider_calls": 0,
+  "certificates": 0,
+  "evidence": ".local/batch3/b35c/recipient-install-tests/ede9fcc999344948aa4148d882a5de7f"
+}

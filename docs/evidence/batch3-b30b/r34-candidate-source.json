@@ -1,0 +1,5 @@
+{
+  "web/src/components/WorkspaceFiles.tsx": "0cb917393eff4ebed6c6ac1e55d728690b6006d8db5a508e60624ad2c9c3a26d",
+  "web/src/lib/file-draft.ts": "11ea527c7967fc917ba2c376607579aec4c5a7699a112e0615c6ffc3d54f5999",
+  "web/test/workspace-files-races.test.ts": "0888393be1bc353f447c2711436c63f4f3a21958efd45af8717332ae5b461fc4"
+}

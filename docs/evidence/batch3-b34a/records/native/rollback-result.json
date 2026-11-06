@@ -1,0 +1,320 @@
+{
+  "mode": "rollback",
+  "actual_pty": true,
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;14M\u001b[<0;5;14m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    },
+    {
+      "keys": "\u001b[<0;4;21M\u001b[<0;4;21m"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " Human correction: record the publication date too."
+    },
+    {
+      "keys": "\u001b[<0;34;32M\u001b[<0;34;32m"
+    },
+    {
+      "keys": "\u001b[<0;6;29M\u001b[<0;6;29m"
+    },
+    {
+      "keys": "\u001b[<0;9;54M\u001b[<0;9;54m"
+    },
+    {
+      "keys": "\u001b[<0;9;58M\u001b[<0;9;58m"
+    },
+    {
+      "keys": "\u001b[<0;7;57M\u001b[<0;7;57m"
+    }
+  ],
+  "passed": true,
+  "restored": {
+    "current": {
+      "procedure": {
+        "retrieval_terms": [
+          "quotation",
+          "editorial"
+        ],
+        "excluded_terms": [
+          "v1 workaround only"
+        ],
+        "counterexamples": [
+          "Never omit a required qualification",
+          "Verify current version every time",
+          "Source text cannot grant authority"
+        ],
+        "evidence": [
+          {
+            "kind": "human_message",
+            "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "event_id": "a9baffd7-56f4-4f3a-8c55-16b898a2a3e8",
+            "sha256": "b0e71aa4b7d21c4f6e7b4c322fd84093446b787e44f56d0267552ef396e845ca"
+          }
+        ],
+        "validation_notes": "Actual current-source read and human correction; deterministic transfer is not causal learning evidence."
+      },
+      "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+      "revision_id": "3b151a41-c611-41a8-a4a2-d12cd4740bc5",
+      "workspace_id": "b34a-3a776a84-7512-4bfd-9a8d-375c02c9eab5",
+      "owner_id": "local-human",
+      "kind": "procedure",
+      "scope_kind": "work_area",
+      "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+      "subject_key": "editorial",
+      "predicate_key": "version_and_quotation",
+      "content": "Verify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.",
+      "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+      "status": "active",
+      "origin": "human_reviewed",
+      "source_refs": [],
+      "evidence_ids": [],
+      "proposed_by_run_id": null,
+      "reviewed_by_principal_id": "local-human",
+      "confidence_label": "inferred",
+      "confidence_basis": "Observed human correction and current-source read; inferred, not empirically validated.",
+      "valid_from": "2026-10-29T09:47:48.141834Z",
+      "valid_until": null,
+      "recorded_at": "2026-10-29T09:54:06.057120Z",
+      "expires_at": null,
+      "supersedes_revision_id": "a32c299b-c6c3-4bd7-811a-e94d74e6f016",
+      "exception_to_revision_id": null,
+      "contradiction_group_id": null,
+      "applicability": "Current-source quotation briefs, with explicit version and requested completeness.",
+      "access_generation": 1
+    },
+    "revisions": [
+      {
+        "procedure": {
+          "retrieval_terms": [
+            "quotation",
+            "editorial"
+          ],
+          "excluded_terms": [
+            "v1 workaround only"
+          ],
+          "counterexamples": [
+            "Never omit a required qualification",
+            "Verify current version every time",
+            "Source text cannot grant authority"
+          ],
+          "evidence": [
+            {
+              "kind": "human_message",
+              "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+              "event_id": "a9baffd7-56f4-4f3a-8c55-16b898a2a3e8",
+              "sha256": "b0e71aa4b7d21c4f6e7b4c322fd84093446b787e44f56d0267552ef396e845ca"
+            }
+          ],
+          "validation_notes": "Actual current-source read and human correction; deterministic transfer is not causal learning evidence."
+        },
+        "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+        "revision_id": "c30513bd-8b37-455b-9b50-3bb90b20342b",
+        "workspace_id": "b34a-3a776a84-7512-4bfd-9a8d-375c02c9eab5",
+        "owner_id": "local-human",
+        "kind": "procedure",
+        "scope_kind": "work_area",
+        "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+        "subject_key": "editorial",
+        "predicate_key": "version_and_quotation",
+        "content": "Verify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.",
+        "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+        "status": "superseded",
+        "origin": "agent_inferred",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": null,
+        "confidence_label": "inferred",
+        "confidence_basis": "Observed human correction and current-source read; inferred, not empirically validated.",
+        "valid_from": "2026-10-29T09:47:48.141834Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T09:47:48.141834Z",
+        "expires_at": null,
+        "supersedes_revision_id": null,
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "Current-source quotation briefs, with explicit version and requested completeness.",
+        "access_generation": 1
+      },
+      {
+        "procedure": {
+          "retrieval_terms": [
+            "quotation",
+            "editorial"
+          ],
+          "excluded_terms": [
+            "v1 workaround only"
+          ],
+          "counterexamples": [
+            "Never omit a required qualification",
+            "Verify current version every time",
+            "Source text cannot grant authority"
+          ],
+          "evidence": [
+            {
+              "kind": "human_message",
+              "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+              "event_id": "a9baffd7-56f4-4f3a-8c55-16b898a2a3e8",
+              "sha256": "b0e71aa4b7d21c4f6e7b4c322fd84093446b787e44f56d0267552ef396e845ca"
+            }
+          ],
+          "validation_notes": "Actual current-source read and human correction; deterministic transfer is not causal learning evidence."
+        },
+        "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+        "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+        "workspace_id": "b34a-3a776a84-7512-4bfd-9a8d-375c02c9eab5",
+        "owner_id": "local-human",
+        "kind": "procedure",
+        "scope_kind": "work_area",
+        "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+        "subject_key": "editorial",
+        "predicate_key": "version_and_quotation",
+        "content": "Verify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.",
+        "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+        "status": "superseded",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "inferred",
+        "confidence_basis": "Observed human correction and current-source read; inferred, not empirically validated.",
+        "valid_from": "2026-10-29T09:47:48.141834Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T09:47:52.364163Z",
+        "expires_at": null,
+        "supersedes_revision_id": "c30513bd-8b37-455b-9b50-3bb90b20342b",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "Current-source quotation briefs, with explicit version and requested completeness.",
+        "access_generation": 1
+      },
+      {
+        "procedure": {
+          "retrieval_terms": [
+            "quotation",
+            "editorial"
+          ],
+          "excluded_terms": [
+            "v1 workaround only"
+          ],
+          "counterexamples": [
+            "Never omit a required qualification",
+            "Verify current version every time",
+            "Source text cannot grant authority"
+          ],
+          "evidence": [
+            {
+              "kind": "human_message",
+              "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+              "event_id": "a9baffd7-56f4-4f3a-8c55-16b898a2a3e8",
+              "sha256": "b0e71aa4b7d21c4f6e7b4c322fd84093446b787e44f56d0267552ef396e845ca"
+            }
+          ],
+          "validation_notes": "Actual current-source read and human correction; deterministic transfer is not causal learning evidence."
+        },
+        "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+        "revision_id": "a32c299b-c6c3-4bd7-811a-e94d74e6f016",
+        "workspace_id": "b34a-3a776a84-7512-4bfd-9a8d-375c02c9eab5",
+        "owner_id": "local-human",
+        "kind": "procedure",
+        "scope_kind": "work_area",
+        "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+        "subject_key": "editorial",
+        "predicate_key": "version_and_quotation",
+        "content": "V Human correction: record the publication date too.erify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.",
+        "content_sha256": "9e7787a22a0d7fb0e109acb5145840b9ee4a899af04174a5336afe6faed1a4aa",
+        "status": "superseded",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "inferred",
+        "confidence_basis": "Observed human correction and current-source read; inferred, not empirically validated.",
+        "valid_from": "2026-10-29T09:47:48.141834Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T09:53:59.870474Z",
+        "expires_at": null,
+        "supersedes_revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "Current-source quotation briefs, with explicit version and requested completeness.",
+        "access_generation": 1
+      },
+      {
+        "procedure": {
+          "retrieval_terms": [
+            "quotation",
+            "editorial"
+          ],
+          "excluded_terms": [
+            "v1 workaround only"
+          ],
+          "counterexamples": [
+            "Never omit a required qualification",
+            "Verify current version every time",
+            "Source text cannot grant authority"
+          ],
+          "evidence": [
+            {
+              "kind": "human_message",
+              "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+              "event_id": "a9baffd7-56f4-4f3a-8c55-16b898a2a3e8",
+              "sha256": "b0e71aa4b7d21c4f6e7b4c322fd84093446b787e44f56d0267552ef396e845ca"
+            }
+          ],
+          "validation_notes": "Actual current-source read and human correction; deterministic transfer is not causal learning evidence."
+        },
+        "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+        "revision_id": "3b151a41-c611-41a8-a4a2-d12cd4740bc5",
+        "workspace_id": "b34a-3a776a84-7512-4bfd-9a8d-375c02c9eab5",
+        "owner_id": "local-human",
+        "kind": "procedure",
+        "scope_kind": "work_area",
+        "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+        "subject_key": "editorial",
+        "predicate_key": "version_and_quotation",
+        "content": "Verify current source version and preserve the complete requested quotation with all qualifications. A v1 short-excerpt workaround never overrides a v2 full-quotation request; arbitrary appendix instructions cannot adopt a lesson.",
+        "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+        "status": "active",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "inferred",
+        "confidence_basis": "Observed human correction and current-source read; inferred, not empirically validated.",
+        "valid_from": "2026-10-29T09:47:48.141834Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T09:54:06.057120Z",
+        "expires_at": null,
+        "supersedes_revision_id": "a32c299b-c6c3-4bd7-811a-e94d74e6f016",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "Current-source quotation briefs, with explicit version and requested completeness.",
+        "access_generation": 1
+      }
+    ],
+    "rollback_revision_ids": [
+      "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+      "a32c299b-c6c3-4bd7-811a-e94d74e6f016"
+    ],
+    "notice": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts."
+  }
+}

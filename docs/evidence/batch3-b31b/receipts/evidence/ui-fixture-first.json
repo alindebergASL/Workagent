@@ -1,0 +1,28 @@
+{
+  "workspace_id": "b31b-ui-c46c61a1-9ee3-43e0-ab3b-7260dd2fc068",
+  "conversations": {
+    "desktop": "250c9e52-49f1-4f3f-94a3-2b08652cd560",
+    "mobile": "568830d7-e4ce-4fab-a65d-4189a71825e1",
+    "pty100": "9b11e003-c03a-46eb-80d1-74cd66b2b00f",
+    "pty80": "55a84a75-93e2-4f2c-a7da-f1dbbf3f8a89"
+  },
+  "projects": {
+    "desktop": "7d89c00e-1813-4334-b97c-61e436de5243",
+    "mobile": "12f7cd6c-b4a8-4c04-b44d-f56b3618d4f8",
+    "pty100": "a7f58d63-c3a1-4a65-9646-ccce2ce18cd7",
+    "pty80": "034258ce-a93a-43d6-8f78-bbcd7c3db71f"
+  },
+  "memories": {
+    "pty100": {
+      "memory_id": "253bbd00-df56-4b3a-b1b1-2790d00be3fd",
+      "revision_id": "540ba496-fd03-438f-81db-3f1c19f3ca8d",
+      "status": "active"
+    },
+    "pty80": {
+      "memory_id": "7706534c-5690-4ed5-ae77-87c4139086a1",
+      "revision_id": "56c57e1b-23b0-4913-bd78-714738561247",
+      "status": "active"
+    }
+  },
+  "evidence": "synthetic fixture, real restricted PostgreSQL"
+}

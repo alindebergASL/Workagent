@@ -1,0 +1,48 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+____ test_summary_preserves_accounting_without_response_bodies[False-False] ____
+backend/tests/test_ledger_summary_projection.py:58: in test_summary_preserves_accounting_without_response_bodies
+    assert actual==legacy_summary(c,g.id,shared)
+E   AssertionError: assert {'billed_cost...s': 400}, ...} == {'billed_cost...s': 400}, ...}
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing items:
+E     {'conservatively_calculated_cost_usd': '0.0075'} != {'conservatively_calculated_cost_usd': '0.00750'}
+E     Use -v to get more diff
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 149, "utf8_bytes": 407}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 4419, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18403, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "737f00736ea087b792a0e9b2cdea4d04865cd6b6e218a6c701a87ec897e3e861", "run_id": "6819bf5f-cbb2-46ce-b10f-f50193f3c7eb"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 213, "utf8_bytes": 645}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 149, "utf8_bytes": 407}, "other_context": {"estimated_tokens": 168, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 2100, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 9904, "phase": "final", "provider_count_authoritative": true, "request_sha256": "0cc1b4f9b5e6f9cc39b8636134ddf433850cc5eb36d605f1f994f7592f673f05", "run_id": "6819bf5f-cbb2-46ce-b10f-f50193f3c7eb"}
+____ test_summary_preserves_accounting_without_response_bodies[False-True] _____
+backend/tests/test_ledger_summary_projection.py:58: in test_summary_preserves_accounting_without_response_bodies
+    assert actual==legacy_summary(c,g.id,shared)
+E   AssertionError: assert {'billed_cost...s': 400}, ...} == {'billed_cost...s': 400}, ...}
+E     
+E     Omitting 8 identical items, use -vv to show
+E     Differing items:
+E     {'conservatively_calculated_cost_usd': '0.0075'} != {'conservatively_calculated_cost_usd': '0.00750'}
+E     Use -v to get more diff
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 146, "utf8_bytes": 407}, "other_context": {"estimated_tokens": 162, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 123, "utf8_bytes": 448}}, "estimated_input_tokens": 4408, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18403, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "f61b776917997daae9e04c32c895f1a64e72e8121529140357dc2f83dcad4535", "run_id": "638190b5-c067-453c-b612-cad8bd47f002"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 213, "utf8_bytes": 645}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 146, "utf8_bytes": 407}, "other_context": {"estimated_tokens": 162, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 123, "utf8_bytes": 448}}, "estimated_input_tokens": 2089, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 9904, "phase": "final", "provider_count_authoritative": true, "request_sha256": "325e121c7ae1aa46f50d8b1fd38048bf1ea0c412c221bc57660aa6cca7cc120a", "run_id": "638190b5-c067-453c-b612-cad8bd47f002"}
+____ test_summary_preserves_accounting_without_response_bodies[True-False] _____
+backend/tests/test_ledger_summary_projection.py:63: in test_summary_preserves_accounting_without_response_bodies
+    assert proxy.rows
+E   assert []
+E    +  where [] = <test_ledger_summary_projection.AccountingOnly object at 0x7b93c925fa10>.rows
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 1, "utf8_bytes": 4}, "composition": {"estimated_tokens": 1, "utf8_bytes": 4}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 1306, "utf8_bytes": 7082}, "messages": {"estimated_tokens": 149, "utf8_bytes": 407}, "other_context": {"estimated_tokens": 169, "utf8_bytes": 678}, "saved_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 2589, "utf8_bytes": 9376}, "work_area_context": {"estimated_tokens": 125, "utf8_bytes": 448}}, "estimated_input_tokens": 4420, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 18403, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "0e3ab28998a36ad630e8d0e4ca32caea21eb6b3d7cdab7617b3637dbde1458f7", "run_id": "4ca0d762-8b19-41c8-aa69-290b0f5aca19"}
+------------------------------ Captured log call -------------------------------
+WARNING  workagent.responses_worker:responses_worker.py:406 {"event": "provider_dispatch_problem", "run_id": "4ca0d762-8b19-41c8-aa69-290b0f5aca19", "attempt_id": "2da2b2e3-0a54-43bb-a6f6-995286f6671d", "phase": "selection", "code": "network_outcome_unknown"}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-False]
+FAILED backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[False-True]
+FAILED backend/tests/test_ledger_summary_projection.py::test_summary_preserves_accounting_without_response_bodies[True-False]
+3 failed, 1 warning in 39.17s
+
+EXIT=1

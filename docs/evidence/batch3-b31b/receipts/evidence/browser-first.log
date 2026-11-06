@@ -1,0 +1,15 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByLabel('Kind', { exact: true })
+
+    at remember (/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/browser_recovery.mjs:18:45)
+    at async file:///home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/browser_recovery.mjs:27:10 {
+  log: [ "  - waiting for getByLabel('Kind', { exact: true })" ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4

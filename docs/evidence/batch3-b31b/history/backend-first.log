@@ -1,0 +1,71 @@
+.........................F...                                            [100%]
+=================================== FAILURES ===================================
+__________ test_parent_correction_during_model_io_fences_publication ___________
+
+context = (<workagent.service.Service object at 0x7bd2f8138920>, Principal(id='local-human', kind='human'), 'test-c1afdd08-3b71-...me.datetime(2026, 10, 28, 20, 46, 55, 696057, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-40/test_parent_correction_during_0')
+
+    def test_parent_correction_during_model_io_fences_publication(context, tmp_path):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='task', scope_id=cv.id,
+            subject_key='writing', predicate_key='heading_style', content='Use concise headings'))
+        activated(context, cv)
+        q = post(context, cv, 'Prepare a summary')
+        class MidIOCorrection(AlphaProvider):
+            changed = False
+            def handle(self, request):
+                result = super().handle(request)
+                if request.method == 'POST' and not request.url.path.endswith('input_tokens') and not self.changed:
+                    self.changed = True
+                    s.correct_memory(p, ws, m.memory_id, cmd(CorrectMemory, expected_revision_id=m.revision_id,
+                        content='Use descriptive headings'))
+                return result
+        provider = MidIOCorrection([{'kind': 'reply', 'text': 'STALE RESULT MUST NEVER PUBLISH'}])
+        w = worker(context, provider, tmp_path)
+>       result = finish_safe_visits(context, w, q.run.id)
+
+backend/tests/test_memory_parent_worker.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_adaptive_execution.py:85: in finish_safe_visits
+    result=w.work(p,ws,run_id)
+backend/workagent/general_worker.py:119: in work
+    result=self._responses_work(p,ws,run)
+backend/workagent/general_worker.py:259: in _responses_work
+    return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
+backend/workagent/general_worker.py:334: in _adaptive_work
+    staged=s.stage_general_product(cap,receipt,phase)
+backend/workagent/products.py:328: in stage_general_product
+    p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+backend/workagent/general_responses.py:314: in resolve_selection
+    p,run,cv=service._check_capability(c,cap)
+backend/workagent/service.py:632: in _check_capability
+    revalidate_memory(self,c,p,r,context['data'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <workagent.service.Service object at 0x7bd2f8138920>
+c = <psycopg.Connection [BAD] at 0x7bd2f82064b0>
+p = Principal(id='local-human', kind='worker')
+run = Run(id='6b826739-e63e-4190-9dff-e90e891265cc', workspace_id='test-c1afdd08-3b71-4dbb-8029-e2695a382180', assignment_id..., proposal_id=None, unresolved=[], observed_at=datetime.datetime(2026, 10, 28, 20, 46, 57, 240340, tzinfo=TzInfo(UTC)))
+snapshot = {'context_sha256': 'b7cc59d8e8a75cadde2d8b95390425c5c8eb9c1e0ca0a7899a1816d5de326f21', 'evidence_context': {'attachmen...22-8de2-4ebc-b97b-0f92ea954b43', 'scope_id': 'ba4a2b30-e40b-43c7-baa8-e6cef11daf6b', ...}], 'source_manifest': [], ...}
+
+    def revalidate(service, c, p, run, snapshot):
+        if 'memory_manifest' not in snapshot:
+            return
+        page = service._recall_memory(c, p, run.workspace_id, run.conversation_id)
+        if [e.model_dump(mode='json') for e in manifest(page)] != snapshot['memory_manifest']:
+>           raise DomainError('source_changed')
+E           workagent.errors.DomainError: source_changed
+
+backend/workagent/memory/runtime.py:38: DomainError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3600, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 146, "utf8_bytes": 392}, "other_context": {"estimated_tokens": 1151, "utf8_bytes": 4309}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 6708, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 124, "utf8_bytes": 448}}, "estimated_input_tokens": 13472, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 58024, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "d4579db79f23d929f817bead921af6a7d00a29d81af7548a93f87891fa3a776e", "run_id": "6b826739-e63e-4190-9dff-e90e891265cc"}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_parent_worker.py::test_parent_correction_during_model_io_fences_publication
+1 failed, 28 passed, 1 warning in 104.39s (0:01:44)

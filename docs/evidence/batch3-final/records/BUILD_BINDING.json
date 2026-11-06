@@ -1,0 +1,8 @@
+{
+ "source_head": "286a29601b5ca6993b969a9f21449b22be0acd0c",
+ "build_id": "6ousZ-E7SXIa9bC3QGoIP",
+ "build_id_sha256": "5f73e0f013752f6f2a33ed1c7bc5d9b1ef2c6c55ead16375eb532bed22de4a3d",
+ "built_at_utc": "2026-11-03T01:43:21Z",
+ "command": "next build --webpack (fresh, .next removed first)",
+ "web_src_last_commit": "95c674f"
+}

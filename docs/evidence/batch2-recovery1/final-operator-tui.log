@@ -1,0 +1,59 @@
+........................................................................ [ 39%]
+........................................................................ [ 78%]
+.............F.........................                                  [100%]
+=================================== FAILURES ===================================
+___________ test_real_confined_container_rejection_can_be_abandoned ____________
+
+live_client = (<workagent.operator_client.OperatorClient object at 0x76067a25e270>, <workagent.service.Service object at 0x76067b2f3e90>, Principal(id='local-human', kind='human'), 'test-188ac160-8726-4f2e-9684-aee75467739f')
+context = (<workagent.service.Service object at 0x76067b2f3e90>, Principal(id='local-human', kind='human'), 'test-188ac160-8726-...me.datetime(2026, 10, 26, 17, 11, 19, 284776, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_real_confined_container_rejection_can_be_abandoned(live_client,context):
+        client,s,p,ws=live_client;cv=conversation(context)
+        output=io.BytesIO()
+        with zipfile.ZipFile(output,'w') as archive:archive.writestr('ordinary.txt','not an Office container')
+        raw=output.getvalue()
+        document={'filename':'wrong.docx','mime_type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  'content_base64':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest()}
+        session=selected(client,p,ws,cv,cv.work_version);session.edit(documents=[document])
+        record=session.prepare(session.draft,'document',[cv.id],document=document)
+        with pytest.raises(OperatorError,match='rejected'):client.execute(record,lambda _:None)
+        outcome=client.journal.read(record['command_id'])['outcome']
+        assert outcome['state']=='rejected' and outcome['rejection']['status']==422
+        assert outcome['rejection']['response']['code']=='validation_error'
+        assert s.list_documents(p,ws,cv.id).items==[]
+>       restored=Session(OperatorClient(),ws,p.id);restored.abandon_rejected(restored.draft)
+
+backend/tests/test_tui_recovery_http_pg.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/tui/session.py:128: in abandon_rejected
+    data=self.inspect(draft)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.tui.session.Session object at 0x76067b67c140>
+draft = {'attachments': [], 'continuity': None, 'conversation': '0214236b-df09-411d-b4d3-b464da77f7c0', 'delivery': None, ...}
+
+    def inspect(self,draft):
+        pending=draft['pending']
+        if not pending:return None
+        data=self.client.journal.find(pending['command_id'])
+        if data is not None:
+            self.client.validate_record(data['record'],self.workspace,principal_id=self.principal)
+            record=data['record']
+            if record['action']!=pending['action'] or (record['action'] in ('follow','queue','document','stop','continue','seen','queue-cancel') and record['args'][0]!=draft['conversation']):
+                raise OperatorError('Pending command/conversation binding mismatch')
+            if record['action']=='document':
+                delivery=draft['delivery']
+>               if delivery is None or len(delivery['refs'])>=len(delivery['documents']):raise OperatorError('Pending upload lifecycle missing')
+E               workagent.operator_journal.OperatorError: Pending upload lifecycle missing
+
+backend/workagent/tui/session.py:117: OperatorError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/recovery1/final-operator-tui.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_tui_recovery_http_pg.py::test_real_confined_container_rejection_can_be_abandoned
+1 failed, 182 passed, 1 warning in 120.51s (0:02:00)

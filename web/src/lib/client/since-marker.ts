@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ConversationWork } from "./conversation-work";
 import { highWater, later } from "@/lib/since-you-left";
+import { scopedLocal, scopedSession } from "./session-scope";
 
 /**
  * Where "Since you left" starts, kept on this device until the service
@@ -24,11 +25,11 @@ export function useSinceMarker(
     if (!scope) return;
     let start: string | null = null;
     try {
-      const tab = sessionStorage.getItem(sinceKey);
+      const tab = scopedSession.getItem(sinceKey);
       if (tab !== null) start = JSON.parse(tab) as string | null;
       else {
-        start = localStorage.getItem(seenKey);
-        sessionStorage.setItem(sinceKey, JSON.stringify(start));
+        start = scopedLocal.getItem(seenKey);
+        scopedSession.setItem(sinceKey, JSON.stringify(start));
       }
     } catch {
       start = null;
@@ -41,8 +42,8 @@ export function useSinceMarker(
   useEffect(() => {
     if (!scope || since === undefined || !newest) return;
     try {
-      if (later(newest, localStorage.getItem(seenKey)))
-        localStorage.setItem(seenKey, newest);
+      if (later(newest, scopedLocal.getItem(seenKey)))
+        scopedLocal.setItem(seenKey, newest);
     } catch {
       /* storage unavailable: the list just won't carry across visits */
     }
@@ -52,7 +53,7 @@ export function useSinceMarker(
     if (!newest) return;
     setSince(newest);
     try {
-      sessionStorage.setItem(sinceKey, JSON.stringify(newest));
+      scopedSession.setItem(sinceKey, JSON.stringify(newest));
     } catch {
       /* the choice holds for this page only */
     }

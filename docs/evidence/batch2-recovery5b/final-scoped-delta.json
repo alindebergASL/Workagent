@@ -1,0 +1,47 @@
+[
+  {
+    "path": "web/src/app/conversations/[id]/page.tsx",
+    "before": "d9f76b90bc1d078d46b93de3fc8dd7f84c97fb567b505615f30868df1f9dc2b0",
+    "after": "583ba46dd51f0b09a71e0a6265713c94cf3815d6aa50813a7b38eb18d142ef69"
+  },
+  {
+    "path": "web/src/components/Batch2Controls.tsx",
+    "before": "c7f567c75f98544b01cb1fbca841b4656d9260856d3c5ee14eb78c5d1f37d916",
+    "after": "c6403ceb186f5fef7a9910de553cfccaaf1f01e24753b074eb2cf8ba304db5da"
+  },
+  {
+    "path": "web/src/components/Composer.tsx",
+    "before": "54be7db66700024af3f0b5bd60962b88e80198cc719deaa148f8053db11ff82e",
+    "after": "664f007ba4a2344f7f8f3eebffa7c7a14c024b431809dd80762e6ce2d84220cf"
+  },
+  {
+    "path": "web/src/lib/batch2-view.ts",
+    "before": "88e13ca3358a896998a1cb7e33e4c3a80049889ceb4f1e28bcd33e38377e2ff6",
+    "after": "636d779449a582f31cfd8d37c4159219c07d604ba9dc740c141f4ed9f0c4f21a"
+  },
+  {
+    "path": "web/src/lib/client/conversation-reply.ts",
+    "before": "3b0d5fac6aefffacf3e868f3dc74a67eaf99a3f717d668501c96cf6dfb2b985a",
+    "after": "2bdef3569c41046948967db6d05ba2bd4e160e284f18a0d490d165c9cb3e67af"
+  },
+  {
+    "path": "web/src/styles/agent-first.css",
+    "before": "934ce77c8713da9d4c089924aa57fd1a2d102f067664eb322c7d21830ae663ae",
+    "after": "54387ffc67ee766ebbda0120e5c713970edfff1b04bcad04864f2c3df9cca503"
+  },
+  {
+    "path": "web/test/document-overflow.test.ts",
+    "before": null,
+    "after": "d625bb9b977abe87507409db579215ae06d97788160f6cdaa7e55a4745521ab6"
+  },
+  {
+    "path": "web/test/exact-message-text.test.ts",
+    "before": null,
+    "after": "a826377cfbde093400d0fd2081eedc6730bde0ecf0b50732c048257b51b9029f"
+  },
+  {
+    "path": "web/test/stop-offered.test.ts",
+    "before": null,
+    "after": "8b7d4ba19abf09e0dff537b572a32fd78632eb30371ed236c3697cb8762ff7d3"
+  }
+]

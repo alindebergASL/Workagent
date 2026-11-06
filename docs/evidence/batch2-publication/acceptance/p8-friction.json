@@ -1,0 +1,49 @@
+{
+  "literal_verdict": "PASS measured, not PASS faster",
+  "matched_comparisons": [
+    {
+      "task": "retained-followup",
+      "web_seconds": 55.684199,
+      "native_seconds": 58.493586,
+      "native_minus_web_seconds": "2.809387"
+    },
+    {
+      "task": "two-file-comparison",
+      "web_seconds": 99.782249,
+      "native_seconds": 118.411286,
+      "native_minus_web_seconds": "18.629037"
+    }
+  ],
+  "friction": [
+    {
+      "scope": "web comparison",
+      "observation": "Harness predicate waited roughly300s despite useful result; observation202.854079s after persistence is upper bound only, not model compute or first paint."
+    },
+    {
+      "scope": "native comparison",
+      "observation": "Pre-send screenshot assertion raced rendering; existing draft verified and sent once; no duplicate message."
+    },
+    {
+      "scope": "both matched tasks",
+      "observation": "No answer-repair prompt or original resupply; two ordinary task messages per client (comparison and specified follow-up)."
+    },
+    {
+      "scope": "outside matched ordinary timings",
+      "observation": "Web A01 harness revoked known-pending authority; later exact-ID observation and owner local publication recovered original answer. Delayed recovery remains negative, no latency laundering."
+    },
+    {
+      "scope": "longitudinal",
+      "observation": "W1 unsupported Continue422, selector/setup errors, one corrected-task human Continue, human API schedule setup. Corrected without erasing failures."
+    },
+    {
+      "scope": "historical replay",
+      "observation": "505.73 versus296.80 seconds and inferior PARTIAL planning result remain; unmatched tasks do not establish current speed improvement."
+    }
+  ],
+  "unavailable": [
+    "Exact historical first paint",
+    "Isolated model compute",
+    "Native first-render upper-bound measurement in aggregated timing rows"
+  ],
+  "qualification": "Four matched sequential trials share model/inputs/method, not a randomized causal benchmark. Provider dispatch/result spans include polling/transport; no claimed speed benefit."
+}

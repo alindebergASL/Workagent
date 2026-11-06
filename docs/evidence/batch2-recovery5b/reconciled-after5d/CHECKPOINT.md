@@ -1,0 +1,7 @@
+# Bounded 5b reconciliation checkpoint
+
+All 611 current source hashes match the final 5d poll-correction manifest (`194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07`). The latest parent comment was read in full; only evidence inspection/lightweight tooling is in scope. No browser, build, service restart, product source edit, model worker, paid call or reservation has occurred. Only this card owns the workspace; existing API/web are not writers.
+
+The controlling 35 detailed requirements and eight parent requirements have been read. Old broad test-name indexes are discovery aids, not proof. Current findings: A26's existing predispatch-revocation proof retains the reservation and forbids generation, but does not cover all expiry/admission/successor boundaries. A33's checkpoint-hash/scope rejection tests are not an incompatible-runtime-upgrade test. A13's actual retained barrier test uses two Python threads and separate PG connections; it does not itself record two independent client processes. These gaps will stay explicit rather than be relabelled live-provider blockers.
+
+Final deliverable will bind each original row to immutable receipt hashes, source-delta/reuse qualifications, concrete inspected test assertions and a smallest grouped missing-proof scope. Historical reds, reviews, matrices and handoffs remain untouched. Publication and full Batch2 acceptance remain HOLD.

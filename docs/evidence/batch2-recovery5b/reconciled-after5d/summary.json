@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-10-27T00:08:21.965515+00:00",
+  "head": "c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d",
+  "branch": "hermes/b2-conversational-client",
+  "source": {
+    "path": "docs/evidence/batch2-recovery5d/poll-correction/source-manifest.json",
+    "sha256": "194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07"
+  },
+  "verified_source_files": 611,
+  "counts": {
+    "PENDING": 23,
+    "PASS": 20
+  },
+  "pending_class_counts_nonexclusive": {
+    "b": 18,
+    "c": 7,
+    "a": 6
+  },
+  "pending_ids": [
+    "A01",
+    "A02",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A13",
+    "A20",
+    "A21",
+    "A22",
+    "A23",
+    "A25",
+    "A26",
+    "A27",
+    "A30",
+    "A33",
+    "A34",
+    "P4",
+    "P7",
+    "P8"
+  ],
+  "status_changes": [
+    {
+      "id": "A13",
+      "before": "PASS",
+      "after": "PENDING",
+      "why": "Retained test uses ThreadPoolExecutor and independent real PG connections, with delayed commit and rollback assertions. This is sound concurrent PG mechanism evidence, but not the explicitly required two-client-process barrier receipt."
+    },
+    {
+      "id": "P6",
+      "before": "PENDING",
+      "after": "PASS",
+      "why": "Literal obligation is preservation of the initial inferior planning grade, not a new live planning rerun. Historical evaluation explicitly retains omitted-note candidate, repair intervention and PARTIAL quality grade; current review warnings/consent and protected accepted notes pass A03/A28/A35. Historical live evaluation is replay for this candidate, never fresh usefulness evidence."
+    }
+  ],
+  "batch2_complete": false,
+  "publication": "HOLD",
+  "new_product_calls": 0,
+  "new_reservations": 0,
+  "new_product_tests": 0,
+  "new_browser_runs": 0,
+  "product_source_edits": [],
+  "validation": "Offline hash/schema/XML/unique-row reconciliation only; historical test results retained, not newly executed."
+}

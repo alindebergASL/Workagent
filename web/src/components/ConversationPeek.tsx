@@ -25,7 +25,12 @@ import {
 import { ErrorNotice } from "@/components/ui";
 import { useExecution } from "@/lib/client/execution";
 import { turnExecution, type ExecutionStatus } from "@/lib/execution-view";
-import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
+import {
+  AttachedFiles,
+  FileContext,
+  SentFiles,
+} from "@/components/AttachedFiles";
+import { contextForMessage } from "@/lib/attachment-context";
 import {
   AgentReply,
   RuntimeRequest,
@@ -327,6 +332,9 @@ export function ConversationPeek({
               )}
               {m.author === "person" ? (
                 <SentFiles files={m.attachments} />
+              ) : null}
+              {m.author !== "agent" ? (
+                <FileContext items={contextForMessage(d, m.id)} />
               ) : null}
               {(() => {
                 if (m.author !== "agent") return null;

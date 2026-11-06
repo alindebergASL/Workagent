@@ -1,0 +1,67 @@
+/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+.....F...                                                                [100%]
+=================================== FAILURES ===================================
+___________ test_restricted_sql_cannot_mutate_authority_or_receipts ____________
+
+context = (<workagent.service.Service object at 0x7b6243d87980>, Principal(id='local-human', kind='human'), 'test-588cfe50-2844-...time.datetime(2026, 10, 29, 7, 16, 7, 202288, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro..., 10, 29, 7, 21, 9, 768308, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+
+    def test_restricted_sql_cannot_mutate_authority_or_receipts(context,connector):
+        from psycopg import errors
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities.broker import CapabilityBroker
+        s,p,ws,_,_=context;cv,q,cap,request=install(context,connector)
+        assert CapabilityBroker(s,cap).call(request).status=='observed'
+        attacks=[
+            ("UPDATE connector_accounts SET principal_id='intruder' WHERE workspace_id=%s",(ws,)),
+            ("UPDATE connector_auth_flows SET consumed=false WHERE workspace_id=%s",(ws,)),
+            ("UPDATE tool_grants SET data=jsonb_set(data,'{resource_selectors}','[]') WHERE workspace_id=%s",(ws,)),
+            ("UPDATE tool_attempts SET call=jsonb_set(call,'{arguments,page}','2') WHERE workspace_id=%s",(ws,)),
+            ("UPDATE tool_attempt_events SET data='{}' WHERE workspace_id=%s",(ws,)),
+            ("SELECT connector_finish(%s,%s,%s,%s,%s,clock_timestamp()+interval '5 minutes')",(ws,'intruder',connector.connector_id,str(uuid4()),'forged-ref')),
+        ]
+        for statement,args in attacks:
+            with pytest.raises((errors.InsufficientPrivilege,errors.RaiseException,errors.CheckViolation)):
+>               with s.db.transaction() as c:c.execute(statement,args)
+
+backend/tests/test_connector_security_pg.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7b6243de41d0>
+query = "UPDATE tool_attempt_events SET data='{}' WHERE workspace_id=%s"
+params = ('test-588cfe50-2844-4705-94e1-bac7354a66f3',)
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedColumn: column "workspace_id" does not exist
+E           LINE 1: UPDATE tool_attempt_events SET data='{}' WHERE workspace_id=...
+E                                                                  ^
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: UndefinedColumn
+=============================== warnings summary ===============================
+.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_connector_security_pg.py::test_restricted_sql_cannot_mutate_authority_or_receipts
+1 failed, 8 passed, 1 warning in 82.96s (0:01:22)

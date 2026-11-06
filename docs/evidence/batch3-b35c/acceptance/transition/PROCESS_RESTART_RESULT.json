@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "database": "workagent_test_f3413dee8f3e",
+  "distinct_process_ids": [
+    3268944,
+    3269002
+  ],
+  "children_exit_codes": [
+    0,
+    0
+  ],
+  "identical_receipts": true,
+  "unchanged_snapshot_tables": 13,
+  "dependent_runs": 1,
+  "dispatch_queue_rows": 1,
+  "dependent_provider_attempts": 0,
+  "paid_calls": 0,
+  "receipt_sha256": "102591eb788116faa849826e70a8887e8170cb04a4bd3d2fe266ac5918f6c9fa",
+  "scope": "Actual OS recreation, admission and retained packet only; no dependent worker execution"
+}

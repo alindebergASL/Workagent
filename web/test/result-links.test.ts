@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resultLink } from "../src/lib/result-links";
+import { onePerArtifact, resultLink } from "../src/lib/result-links";
 import { versionAuthor } from "../src/components/EarlierVersion";
 
 const base = "/conversations/c";
@@ -106,6 +106,52 @@ describe("result links say what the records say now", () => {
         },
       ),
     ).toEqual({ label: "Open document", href: work });
+  });
+});
+
+describe("one result card per artifact in a message", () => {
+  const result = (artifact_id: string, revision_id: string) => ({
+    artifact_id,
+    revision_id,
+    observation_id: `ob-${revision_id}`,
+  });
+
+  it("repeated revisions of the same work collapse to its latest result", () => {
+    // Seen live: six worker revisions of one document gave six identical
+    // cards, burying the current work.
+    const six = ["r1", "r2", "r3", "r4", "r5", "r6"].map((r) =>
+      result("75e6e3a5", r),
+    );
+    expect(onePerArtifact(six)).toEqual([result("75e6e3a5", "r6")]);
+  });
+
+  it("keeps genuinely distinct artifacts, in the order they appeared", () => {
+    const products = [
+      result("a", "a-r1"),
+      result("b", "b-r1"),
+      result("a", "a-r2"),
+      result("c", "c-r1"),
+    ];
+    expect(onePerArtifact(products)).toEqual([
+      result("a", "a-r2"),
+      result("b", "b-r1"),
+      result("c", "c-r1"),
+    ]);
+  });
+
+  it("erases nothing from the record it reads", () => {
+    // Selection only: the message's recorded results, with every
+    // revision's receipt, stay exactly as they are for Details/history.
+    const products = [result("a", "r1"), result("a", "r2")];
+    const before = structuredClone(products);
+    onePerArtifact(products);
+    expect(products).toEqual(before);
+  });
+
+  it("handles absent and single-result messages unchanged", () => {
+    expect(onePerArtifact(undefined)).toEqual([]);
+    expect(onePerArtifact(null)).toEqual([]);
+    expect(onePerArtifact([result("a", "r1")])).toEqual([result("a", "r1")]);
   });
 });
 

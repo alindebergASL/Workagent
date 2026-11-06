@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "notes": [
+    "  first line\nsecond line  ",
+    "middle  ",
+    "third\n\nlast  "
+  ],
+  "empty_note_retained_but_save_refused": true,
+  "delayed_load": true,
+  "saved_and_reloaded": true,
+  "widths": {
+    "viewport": 390,
+    "document": 390
+  },
+  "page_errors": [],
+  "provider_calls": 0
+}

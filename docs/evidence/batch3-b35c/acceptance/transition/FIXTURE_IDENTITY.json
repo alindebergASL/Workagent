@@ -1,0 +1,8 @@
+{
+  "database": "workagent_test_f3413dee8f3e",
+  "runtime_role": "workagent_test_f3413dee8f3e_runtime",
+  "rolsuper": false,
+  "rolbypassrls": false,
+  "owns_db": false,
+  "migrations": 88
+}

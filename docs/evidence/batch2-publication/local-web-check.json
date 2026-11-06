@@ -1,0 +1,10 @@
+{
+  "typecheck": 0,
+  "lint": 0,
+  "format_check": 1,
+  "format_files": [
+    "web/src/lib/attachment-context.ts",
+    "web/test/attachment-context.test.ts"
+  ],
+  "tests": "not run due to format check failure"
+}

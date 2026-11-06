@@ -1,0 +1,19 @@
+{
+  "verdict": "PASS baseline binding only",
+  "source_files_verified": 611,
+  "acceptance_rows": 43,
+  "inherited_counts": {
+    "PENDING": 23,
+    "PASS": 20
+  },
+  "direct_evidence_refs_verified": 49,
+  "migration_checksums_verified": 49,
+  "source_stable_at_end": true,
+  "product_tests_run": 0,
+  "browser_runs": 0,
+  "builds": 0,
+  "product_source_changes": 0,
+  "paid_calls": 0,
+  "batch2_complete": false,
+  "publication": "HOLD"
+}

@@ -1,0 +1,5 @@
+# Parent execution — final source
+
+Final narrow harness on ordinary provisioned isolated database workagent_test_a11d706ab2f1: **4 PASS, no skips,181.95s**. `parent-pg-02.log/xml`; test SHA da8e34d74aca7fa9f1a276857abd24073e16c28687a91dac119e78e8472c02bf. Every SOURCE_HASHES_02.json binding matches after execution. Parent test and all child processes exited naturally.
+
+Actual ordinary HTTP admission → current-schema GeneralWorker → Markdown/CSV drafts+exports → authorized HTTP download succeeded; four separate worker PIDs interrupted/resumed/completed-replay/post-human-edit replay. Seven synthetic provider creates/counts, five native observed effects, two exports. Generated Markdown human edit preserved; old revision and old export byte-identical; no duplicate provider/native effects.401missing credential,404no-membership controls pass. No original store mutation or paid call; no runtime/web/schema change. Prior browser evidence and R1 reused, not rerun. All full acceptance limitations remain.

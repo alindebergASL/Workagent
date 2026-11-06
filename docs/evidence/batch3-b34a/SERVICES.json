@@ -1,0 +1,28 @@
+{
+  "compute_b34a": [
+    "MainPID=0",
+    "ActiveState=inactive"
+  ],
+  "disk_free_bytes": 25868079104,
+  "operations": "Read-only checks; no services started/stopped",
+  "owned_services": [
+    {
+      "connect_ex": 111,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b34a/web-lane/web",
+      "name": "web",
+      "pid": 695291,
+      "pid_absent": true,
+      "port": 13240,
+      "recorded_start": "125026101"
+    },
+    {
+      "connect_ex": 111,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "name": "api",
+      "pid": 716489,
+      "pid_absent": true,
+      "port": 18240,
+      "recorded_start": "125107936"
+    }
+  ]
+}

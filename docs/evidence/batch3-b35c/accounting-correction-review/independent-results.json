@@ -1,0 +1,39 @@
+{
+  "database": "workagent_test_correction_review_5971eab572a6",
+  "source_mutations": 0,
+  "provider_calls": 0,
+  "checks": {
+    "fresh_quarantined_restore": true,
+    "mid_batch_rollback": true,
+    "four_concurrent_first_release_inserts": true,
+    "exact_totals": true,
+    "delete_and_truncate_both_histories": true,
+    "runtime_schema_read_write_execute_and_connect_denied": true,
+    "nonfinite_negative_and_non_read_committed_denied": true,
+    "certificate_race_cap_and_replay_binding": true,
+    "all_original_public_rows_unchanged": true,
+    "no_remaining_disposable_sessions": true
+  },
+  "backup_sha256": "c72935850cfef1729ea6a0461030435c203c5f6205abfe370549eb187ee9e60e",
+  "public_tables": 35,
+  "public_rows": 8764,
+  "totals": {
+    "count": 186,
+    "reserved": "38.48712",
+    "retained": "6.94086000000000000000",
+    "released": "31.54626000000000000000",
+    "corrected_retained": "68.05970000000000000000",
+    "unallocated": "31.94030000000000000000"
+  },
+  "findings": {
+    "table_then_advisory_deadlock_reproduced": true,
+    "deadlock_victim": "sender"
+  },
+  "source_sha256": {
+    "evaluation/accounting_correction.sql": "d54caa75f8a2528b6469b2057ff6f6e06844740a855e444e66b4d02c892aab63",
+    "evaluation/test_accounting_correction.py": "03c84a36abd3e3fe48f7146d7acb519141ce0239929e4ebfe11c778d036da12c",
+    "evaluation/verify_accounting_correction.py": "3c1055ee1d1e1be7a4c6b44ff42f8fb290d3302f8e9b69ffbb092a189c3e079b",
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965"
+  },
+  "check_count": 10
+}

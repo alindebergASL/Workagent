@@ -1,0 +1,9 @@
+{
+  "workspace": "recovery5d-scope",
+  "private_workspace": "recovery5d-a-only",
+  "principal_a": "local-human",
+  "principal_b": "recovery5d-other",
+  "conversation": "bbac8ef2-1195-4445-85f9-45e14a2d995f",
+  "other_conversation": "6a0997ef-60a1-47c6-9c08-4e9ca4ddedc9",
+  "purpose": "Shared canonical access; local unsent drafts and staged originals must be private to authenticated principal+backend."
+}

@@ -1,0 +1,95 @@
+FF........F                                                              [100%]
+=================================== FAILURES ===================================
+_ test_definitive_control_rejection_restart_abandon_preserves_exact_draft[stop-action_unresolved-409] _
+
+action = 'stop', code = 'action_unresolved', status = 409
+
+    @pytest.mark.parametrize('action,code,status',[('stop','action_unresolved',409),('document','validation_error',422)])
+    def test_definitive_control_rejection_restart_abandon_preserves_exact_draft(action,code,status):
+        client,session,record=prepared(action);before=copy.deepcopy(session.draft)
+        response=DomainError(code).envelope(record['command_id']).model_dump(mode='json')
+        calls=reject(client,record,status=status,response=response)
+        with pytest.raises(OperatorError):client.execute(record,lambda _:None)
+        retained=client.journal.read(record['command_id'])
+>       assert retained['outcome']['state']=='rejected'
+E       AssertionError: assert 'outcome_unknown' == 'rejected'
+E         
+E         - rejected
+E         + outcome_unknown
+
+backend/tests/test_tui_recovery_controls.py:35: AssertionError
+_ test_definitive_control_rejection_restart_abandon_preserves_exact_draft[document-validation_error-422] _
+
+action = 'document', code = 'validation_error', status = 422
+
+    @pytest.mark.parametrize('action,code,status',[('stop','action_unresolved',409),('document','validation_error',422)])
+    def test_definitive_control_rejection_restart_abandon_preserves_exact_draft(action,code,status):
+        client,session,record=prepared(action);before=copy.deepcopy(session.draft)
+        response=DomainError(code).envelope(record['command_id']).model_dump(mode='json')
+        calls=reject(client,record,status=status,response=response)
+        with pytest.raises(OperatorError):client.execute(record,lambda _:None)
+        retained=client.journal.read(record['command_id'])
+>       assert retained['outcome']['state']=='rejected'
+E       AssertionError: assert 'outcome_unknown' == 'rejected'
+E         
+E         - rejected
+E         + outcome_unknown
+
+backend/tests/test_tui_recovery_controls.py:35: AssertionError
+_____________ test_stop_uses_exact_raw_lifecycle_not_worker_health _____________
+
+    def test_stop_uses_exact_raw_lifecycle_not_worker_health():
+        async def scenario():
+            app=WorkagentApp(FakeClient(),'workspace')
+            async with app.run_test() as pilot:
+                await app.workers.wait_for_complete();await pilot.pause()
+                app.read_authorized=True
+                app.canonical={'conversation_id':'c1','execution':{'run_id':'r1','state':'stale'}}
+                app.detail={'conversation':{'id':'c1'},'runs':[{'id':'r1','state':'running'}]}
+                for state in ('stale','blocked','unknown','running','queued'):
+                    app.canonical['execution']['state']=state;app.render_continuity_details()
+                    assert not app.query_one('#stop',Button).disabled,state
+                # Terminal raw runs can still project unknown/blocked. Never infer
+                # cancelability from their diagnostic label or another run's state.
+                for raw in ('ready','partial','blocked','cancelled'):
+                    app.detail['runs'][0]['state']=raw;app.render_continuity_details()
+                    assert app.query_one('#stop',Button).disabled,raw
+                app.detail['runs']=[{'id':'other','state':'running'}];app.render_continuity_details()
+                assert app.query_one('#stop',Button).disabled
+                app.detail['runs']=[{'id':'r1','state':'running'}];app.read_authorized=False
+                app.render_continuity_details();assert app.query_one('#stop',Button).disabled
+>       asyncio.run(scenario())
+
+backend/tests/test_tui_recovery_controls.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        app=WorkagentApp(FakeClient(),'workspace')
+        async with app.run_test() as pilot:
+            await app.workers.wait_for_complete();await pilot.pause()
+            app.read_authorized=True
+            app.canonical={'conversation_id':'c1','execution':{'run_id':'r1','state':'stale'}}
+            app.detail={'conversation':{'id':'c1'},'runs':[{'id':'r1','state':'running'}]}
+            for state in ('stale','blocked','unknown','running','queued'):
+                app.canonical['execution']['state']=state;app.render_continuity_details()
+>               assert not app.query_one('#stop',Button).disabled,state
+E               AssertionError: stale
+E               assert not True
+E                +  where True = Button(id='stop', classes='-style-default').disabled
+E                +    where Button(id='stop', classes='-style-default') = query_one('#stop', Button)
+E                +      where query_one = WorkagentApp(title='Workagent', classes={'-dark-mode'}, pseudo_classes={'dark', 'focus'}).query_one
+
+backend/tests/test_tui_recovery_controls.py:76: AssertionError
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/recovery1/review-red.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_tui_recovery_controls.py::test_definitive_control_rejection_restart_abandon_preserves_exact_draft[stop-action_unresolved-409]
+FAILED backend/tests/test_tui_recovery_controls.py::test_definitive_control_rejection_restart_abandon_preserves_exact_draft[document-validation_error-422]
+FAILED backend/tests/test_tui_recovery_controls.py::test_stop_uses_exact_raw_lifecycle_not_worker_health
+3 failed, 8 passed in 5.94s

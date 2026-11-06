@@ -1,0 +1,22 @@
+{
+  "mode": "before",
+  "passed": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "width": 390,
+      "pageWidth": 390
+    },
+    {
+      "width": 320,
+      "pageWidth": 320
+    }
+  ],
+  "download": {
+    "sha256": "534499eae5afc7b80cf61fc90720eba89c9cfc1395471eeba460e2eaf6807e57",
+    "bytes": 7202
+  }
+}

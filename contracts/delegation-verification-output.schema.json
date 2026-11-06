@@ -1,0 +1,230 @@
+{
+  "$defs": {
+    "ComputeResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_usec": {
+          "minimum": 0,
+          "title": "Cpu Usec",
+          "type": "integer"
+        },
+        "memory_peak_bytes": {
+          "minimum": 0,
+          "title": "Memory Peak Bytes",
+          "type": "integer"
+        },
+        "oom_kill": {
+          "minimum": 0,
+          "title": "Oom Kill",
+          "type": "integer"
+        },
+        "pids_peak": {
+          "minimum": 0,
+          "title": "Pids Peak",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cpu_usec",
+        "memory_peak_bytes",
+        "oom_kill",
+        "pids_peak"
+      ],
+      "title": "ComputeResources",
+      "type": "object"
+    },
+    "ExecutionEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "cleanup_verified": {
+          "const": true,
+          "title": "Cleanup Verified",
+          "type": "boolean"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "elapsed_ms": {
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Exit Code"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/StagedInput"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "profile_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Profile Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/ComputeResources"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "stdout_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Stdout Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "code_sha256",
+        "profile_sha256",
+        "inputs",
+        "elapsed_ms",
+        "resources",
+        "exit_code",
+        "cleanup_verified",
+        "stdout_sha256"
+      ],
+      "title": "ExecutionEvidence",
+      "type": "object"
+    },
+    "StagedInput": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "sha256",
+        "bytes"
+      ],
+      "title": "StagedInput",
+      "type": "object"
+    },
+    "VerificationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "child_attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Child Attempt Id",
+          "type": "string"
+        },
+        "execution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inspection": {
+          "title": "Inspection",
+          "type": "string"
+        },
+        "limitation": {
+          "default": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+          "title": "Limitation",
+          "type": "string"
+        },
+        "proposal": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Proposal"
+        },
+        "proposal_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Proposal Sha256",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "checks_passed",
+            "discarded",
+            "checks_failed",
+            "unavailable"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "child_attempt_id",
+        "proposal_sha256",
+        "inspection",
+        "checks",
+        "proposal",
+        "execution"
+      ],
+      "title": "VerificationResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capability": {
+      "const": "verify_delegate",
+      "title": "Capability",
+      "type": "string"
+    },
+    "result": {
+      "$ref": "#/$defs/VerificationResult"
+    },
+    "version": {
+      "const": "1",
+      "default": "1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "capability",
+    "result"
+  ],
+  "title": "VerificationOutput",
+  "type": "object"
+}

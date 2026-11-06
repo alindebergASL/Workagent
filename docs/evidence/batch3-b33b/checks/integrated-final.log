@@ -1,0 +1,212 @@
+/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+...................................FF...F.....                           [100%]
+=================================== FAILURES ===================================
+_____ test_scope_fences_source_context_publication_and_receipts[connector] _____
+
+context = (<workagent.service.Service object at 0x7d96fcdee9c0>, Principal(id='local-human', kind='human'), 'test-65941335-abfc-...ime.datetime(2026, 10, 29, 7, 46, 29, 149773, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 51, 30, 950163, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+fence = 'connector'
+
+    @pytest.mark.parametrize('fence',['connector','processor','generation','installation','expiry'])
+    def test_scope_fences_source_context_publication_and_receipts(context,connector,fence):
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities import policy,observations
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.db import Database
+        s,p,ws,_,admin=context;cv,q,cap,request=install(context,connector,expires_after=12 if fence=='expiry' else 300)
+        obs=CapabilityBroker(s,cap).call(request);sid=obs.output['result']['snapshot']['snapshot_id']
+        with s.db.transaction() as c:
+            grant=policy.grant(c,ws,q.run.id)
+            before=c.execute('SELECT data FROM tool_attempt_events WHERE attempt_id=%s ORDER BY created_at',(obs.attempt_id,)).fetchall()
+        if fence=='generation':
+            with Database(admin).transaction() as c:c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
+        elif fence=='installation':
+            with Database(admin).transaction() as c:c.execute("UPDATE capability_installations SET enabled=false WHERE id='connectors.mcp.read'")
+        elif fence=='expiry':
+            from workagent.models import now
+            time.sleep(max(0,(grant.expires_at-now()).total_seconds())+.1)
+        else:policy.restrict_resources(Database(admin),grant.id,[r for r in grant.resource_selectors if r.kind==fence])
+        assert s.list_workspace_files(p,ws,cv.id).items==[]
+>       assert next(x for x in policy.discover(s,p,ws,q.run.id).items if x.id=='connectors.mcp.read').availability_reason!='available'
+
+backend/tests/test_connector_security_pg.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <workagent.service.Service object at 0x7d96fcdee9c0>
+p = Principal(id='local-human', kind='human')
+ws = 'test-65941335-abfc-446b-bbff-ad0c4fde89d0'
+rid = '64ba64c0-0e70-4955-962c-c66e184fe2d3'
+
+    def discover(service,p,ws,rid):
+        with service.db.transaction() as c:
+            # Human API scope is authenticated separately; never trust an arbitrary ID.
+            service._scope(c,p,ws)
+            row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,rid)).fetchone()
+            if not row or row['data']['principal_id']!=p.id:
+                deny()
+            run=row['data']
+            if run.get('conversation_id'):
+                service._conversation(c,p,ws,run['conversation_id'],True)
+            else:
+                service._assignment(c,p,ws,run['assignment_id'],True)
+            try:
+                g=readable(service,c,p,ws,rid)
+            except DomainError:
+                g=None
+            items=[]
+            for adapter in registry.adapters().values():
+                d=adapter.descriptor
+                installed=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',
+                                    (d.id,d.version)).fetchone()
+                state='not_installed'; reason='not_installed'
+                if installed:
+                    state='installed' if installed['enabled'] else 'disabled'
+                    reason='temporarily_unavailable'
+                    if installed['enabled'] and installed['descriptor']==d.model_dump(mode='json'):
+                        reason='needs_consent' if g is None else 'blocked_by_scope'
+                        if g and any(pin.id==d.id and pin.version==d.version and pin.schema_sha256==d.schema_sha256
+                                     and pin.implementation_sha256==d.implementation_sha256 for pin in g.capabilities):
+                            if (set(d.effects)<=set(g.effects) and set(d.privacy_classes)<=set(g.privacy_classes)
+                                and (d.required_permission_template!='public_https' or g.egress=='public_https')):
+                                reason='available'
+                                if d.execution_profile == 'native-github-public-v1':
+                                    from .github_adapters import selector
+                                    from ..connectors.base import PROCESSOR
+                                    if (selector('processor',PROCESSOR) not in g.resource_selectors
+                                        or not any(ref.kind=='github_repository' and ref.version=='1' and ref.id==ref.sha256
+                                                   for ref in g.resource_selectors)):
+                                        reason='blocked_by_scope'
+                if d.execution_profile=='synthetic-mcp-v1':
+                    from ..connectors.registry import configured
+                    if not configured():reason='temporarily_unavailable'
+                    elif reason=='available':
+                        from .mcp_adapters import project
+                        offered={}
+>                       try:project(service,c,p,Run.model_validate(run),offered)
+E                       NameError: name 'Run' is not defined
+
+backend/workagent/capabilities/policy.py:149: NameError
+_____ test_scope_fences_source_context_publication_and_receipts[processor] _____
+
+context = (<workagent.service.Service object at 0x7d96fcca0860>, Principal(id='local-human', kind='human'), 'test-f5849eee-14da-...ime.datetime(2026, 10, 29, 7, 46, 34, 966699, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro..., 10, 29, 7, 51, 37, 50697, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+fence = 'processor'
+
+    @pytest.mark.parametrize('fence',['connector','processor','generation','installation','expiry'])
+    def test_scope_fences_source_context_publication_and_receipts(context,connector,fence):
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities import policy,observations
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.db import Database
+        s,p,ws,_,admin=context;cv,q,cap,request=install(context,connector,expires_after=12 if fence=='expiry' else 300)
+        obs=CapabilityBroker(s,cap).call(request);sid=obs.output['result']['snapshot']['snapshot_id']
+        with s.db.transaction() as c:
+            grant=policy.grant(c,ws,q.run.id)
+            before=c.execute('SELECT data FROM tool_attempt_events WHERE attempt_id=%s ORDER BY created_at',(obs.attempt_id,)).fetchall()
+        if fence=='generation':
+            with Database(admin).transaction() as c:c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
+        elif fence=='installation':
+            with Database(admin).transaction() as c:c.execute("UPDATE capability_installations SET enabled=false WHERE id='connectors.mcp.read'")
+        elif fence=='expiry':
+            from workagent.models import now
+            time.sleep(max(0,(grant.expires_at-now()).total_seconds())+.1)
+        else:policy.restrict_resources(Database(admin),grant.id,[r for r in grant.resource_selectors if r.kind==fence])
+        assert s.list_workspace_files(p,ws,cv.id).items==[]
+>       assert next(x for x in policy.discover(s,p,ws,q.run.id).items if x.id=='connectors.mcp.read').availability_reason!='available'
+
+backend/tests/test_connector_security_pg.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <workagent.service.Service object at 0x7d96fcca0860>
+p = Principal(id='local-human', kind='human')
+ws = 'test-f5849eee-14da-452b-92c7-ec81f0a10639'
+rid = 'a3641aea-0aab-4bbe-a611-ffdad0af1f51'
+
+    def discover(service,p,ws,rid):
+        with service.db.transaction() as c:
+            # Human API scope is authenticated separately; never trust an arbitrary ID.
+            service._scope(c,p,ws)
+            row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,rid)).fetchone()
+            if not row or row['data']['principal_id']!=p.id:
+                deny()
+            run=row['data']
+            if run.get('conversation_id'):
+                service._conversation(c,p,ws,run['conversation_id'],True)
+            else:
+                service._assignment(c,p,ws,run['assignment_id'],True)
+            try:
+                g=readable(service,c,p,ws,rid)
+            except DomainError:
+                g=None
+            items=[]
+            for adapter in registry.adapters().values():
+                d=adapter.descriptor
+                installed=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',
+                                    (d.id,d.version)).fetchone()
+                state='not_installed'; reason='not_installed'
+                if installed:
+                    state='installed' if installed['enabled'] else 'disabled'
+                    reason='temporarily_unavailable'
+                    if installed['enabled'] and installed['descriptor']==d.model_dump(mode='json'):
+                        reason='needs_consent' if g is None else 'blocked_by_scope'
+                        if g and any(pin.id==d.id and pin.version==d.version and pin.schema_sha256==d.schema_sha256
+                                     and pin.implementation_sha256==d.implementation_sha256 for pin in g.capabilities):
+                            if (set(d.effects)<=set(g.effects) and set(d.privacy_classes)<=set(g.privacy_classes)
+                                and (d.required_permission_template!='public_https' or g.egress=='public_https')):
+                                reason='available'
+                                if d.execution_profile == 'native-github-public-v1':
+                                    from .github_adapters import selector
+                                    from ..connectors.base import PROCESSOR
+                                    if (selector('processor',PROCESSOR) not in g.resource_selectors
+                                        or not any(ref.kind=='github_repository' and ref.version=='1' and ref.id==ref.sha256
+                                                   for ref in g.resource_selectors)):
+                                        reason='blocked_by_scope'
+                if d.execution_profile=='synthetic-mcp-v1':
+                    from ..connectors.registry import configured
+                    if not configured():reason='temporarily_unavailable'
+                    elif reason=='available':
+                        from .mcp_adapters import project
+                        offered={}
+>                       try:project(service,c,p,Run.model_validate(run),offered)
+E                       NameError: name 'Run' is not defined
+
+backend/workagent/capabilities/policy.py:149: NameError
+___________ test_same_user_cross_workspace_and_conversation_no_cache ___________
+
+context = (<workagent.service.Service object at 0x7d96fcf6fbc0>, Principal(id='local-human', kind='human'), 'test-23f79ee2-e452-...ime.datetime(2026, 10, 29, 7, 47, 13, 696235, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 52, 16, 801955, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+
+    def test_same_user_cross_workspace_and_conversation_no_cache(context,connector):
+        import json
+        from pathlib import Path
+        from test_synthetic_connectors_pg import install
+        from test_conversations import conversation
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.fixture import seed
+        from workagent.service import Principal
+        s,p,ws,_,admin=context;cv,q,cap,request=install(context,connector)
+        obs=CapabilityBroker(s,cap).call(request);sid=obs.output['result']['snapshot']['snapshot_id']
+        other=conversation(context)
+        assert s.list_workspace_files(p,ws,other.id).items==[]
+        from test_domain import cmd
+        from workagent.models import CreateWorkArea
+        project=s.create_work_area(p,ws,cmd(CreateWorkArea,title='Separate synthetic project',goal='Different scope',kind='project',selected_source_refs=[]))
+        assert s.list_workspace_files(p,ws,project.id).items==[]
+>       with pytest.raises(DomainError):CapabilityBroker(s,cap).call(request.model_copy(update={'scope_id':project.id}))
+E       Failed: DID NOT RAISE <class 'workagent.errors.DomainError'>
+
+backend/tests/test_connector_security_pg.py:183: Failed
+=============================== warnings summary ===============================
+.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_connector_security_pg.py::test_scope_fences_source_context_publication_and_receipts[connector]
+FAILED backend/tests/test_connector_security_pg.py::test_scope_fences_source_context_publication_and_receipts[processor]
+FAILED backend/tests/test_connector_security_pg.py::test_same_user_cross_workspace_and_conversation_no_cache
+3 failed, 43 passed, 1 warning in 161.59s (0:02:41)

@@ -1,0 +1,40 @@
+{
+  "at": "2026-10-29T17:05:54.614075+00:00",
+  "read_only": true,
+  "provider_requests": 0,
+  "scope": "Two historical stores; shape only, not allocation reconciliation or billing. Installed older schemas and Batch2 are not full-tool held-out A/B.",
+  "stores": [
+    {
+      "label": "installed",
+      "database": "workagent_test_47b87fe3b82e",
+      "read_only": "on",
+      "dispatched_steps": 373,
+      "known_usage_steps": 370,
+      "max_input": 31800,
+      "p95_input": 21537,
+      "max_output": 4257,
+      "p95_output": 2059,
+      "max_reads": 33,
+      "p95_reads": 11,
+      "steps_over_8_reads": 26,
+      "max_generations_per_attempt": "8",
+      "p95_generations_per_attempt": "6"
+    },
+    {
+      "label": "batch2_continuation",
+      "database": "workagent_test_942379a11eb1",
+      "read_only": "on",
+      "dispatched_steps": 25,
+      "known_usage_steps": 25,
+      "max_input": 28850,
+      "p95_input": 26390,
+      "max_output": 2348,
+      "p95_output": 1609,
+      "max_reads": 4,
+      "p95_reads": 4,
+      "steps_over_8_reads": 0,
+      "max_generations_per_attempt": "3",
+      "p95_generations_per_attempt": "3"
+    }
+  ]
+}

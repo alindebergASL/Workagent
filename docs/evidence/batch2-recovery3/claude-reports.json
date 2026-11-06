@@ -1,0 +1,122 @@
+[
+  {
+    "file": "claude-correction-result.json",
+    "session_id": "77bb3812-1b67-40fe-bbbc-3bba603ef4ed",
+    "subtype": "success",
+    "is_error": false,
+    "total_cost_usd": 2.9166573999999983,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 118,
+        "outputTokens": 51176,
+        "thinkingTokens": 15258,
+        "cacheReadInputTokens": 4546287,
+        "cacheCreationInputTokens": 122926,
+        "webSearchRequests": 0,
+        "costUSD": 2.9166573999999983,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "result": "I've fixed R1\u2013R4 in the lane, and they need your full suite, lint, build and re-review. `tsc --noEmit` exits 0 and the targeted tests pass, but the gating and recovery buttons have not been exercised in a browser or a React render. Nothing is committed; all edits are under `web/`.\n\n**Changed files**\n- `web/src/lib/client/documents.ts`, `doc-store.ts`, `staged-documents.ts`\n- `web/src/lib/client/conversation-reply.ts`, `web/src/components/Composer.tsx`, `web/src/components/Batch2Controls.tsx`\n- `web/src/lib/batch2-view.ts`, `web/src/app/conversations/[id]/page.tsx`\n- Tests: new `web/test/b2-correction.test.ts`; `web/test/batch2-controls.test.ts` updated for the new upload signatures.\n- My earlier three-file type fix is unchanged.\n\n**R1: upload identity survives a closed client**\n- Each staged document's IndexedDB record now holds the upload `command_id`, `request_id`, workspace and conversation. The sessionStorage journal and `uploadInDoubt` are gone.\n- A new identity must be written before the first upload is sent. If that write fails, nothing is sent and the document goes back to local.\n- The identity stays with the receipt. If the receipt write is lost, the record restores as unknown with the same identity and replays the same command.\n- An old in-doubt record without an identity, or an identity or ref bound to a different conversation (or to none, on Home), blocks the upload. It shows why and offers \"Use kept copy as a new upload\" (same bytes, new staging; the old copy is cleared only after the new one is written) or Remove.\n- Home's create/upload/send continuation is saved to localStorage when it carries documents. If that can't be saved, nothing is created or uploaded. Text-only starts still use sessionStorage.\n\n**R2: late results stay in their original draft**\n- The staging logic is now a plain controller that the hook renders. Each add, save, removal and recovery is tied to the draft it started in, captured before the file read.\n- A file read that finishes after a switch is discarded. A late upload update is saved only to its original draft.\n\n**R3: restore failures block until the person acts**\n- Nothing can be attached while documents are being restored.\n- A read failure blocks Send, Queue and hand-over, offering \"Read kept documents again\" or \"Continue without them\".\n- A damaged copy blocks until \"Discard damaged copy\".\n- A pending Home start with missing documents now unlocks the picker so the same files can be attached again. The match ignores order.\n\n**R4: Continue fence**\n- A new Continue is offered only when the snapshot is current, not stale, for this conversation and exactly the version shown. Its run must also match the thread's newest request, and the checkpoint read must not be in error or loading.\n- Otherwise no new Continue is offered. A pending uncertain Continue is still shown for exact replay.\n\n**Checks run (one at a time)**\n- `tsc --noEmit`: exit 0.\n- vitest on `b2-correction`, `batch2-controls`, `batch2-durable` and `post-message-types`: 40/40, three runs in a row. The waits are condition-based, not timed.\n- `draft-carry`: 4/4. `git diff --check`: clean.\n- `../correction-red.log`: before the fix, a restored unknown upload got a different `command_id`. This is the only true before-fix repro: the R2\u2013R4 tests use APIs that didn't exist before, so they have no pre-fix failure.\n- `../correction-green.log`: the verbose passing run.\n\n**Gaps**\n- There is no React renderer here, so the hook wiring, Send/Queue/hand-over disabling, picker locking and recovery buttons are type-checked but not rendered. Real IndexedDB and real localStorage were not exercised either; tests use the in-memory store.\n- One explicit-action trade-off: \"Use kept copy as a new upload\" after an ambiguous upload may leave an unattached document on the server. \"Continue without them\" sends without the unreadable documents, which stay on disk.\n- A ref saved before this change has no destination, so it now needs reconciliation even in its own conversation.\n- On Home, when the continuation is lost but its documents are bound to the earlier conversation, recovery is reattach or remove. It does not reopen that earlier conversation.\n- The Continue button disappears briefly while checkpoints refresh.\n- Pagination is unchanged, as instructed.\n\n**Cost:** I made no product or provider calls, so the product model cost counter is $0. I can't see this agent's own token meter."
+  },
+  {
+    "file": "claude-final-result.json",
+    "session_id": "77bb3812-1b67-40fe-bbbc-3bba603ef4ed",
+    "subtype": "success",
+    "is_error": false,
+    "total_cost_usd": 5.076407799999997,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 174,
+        "outputTokens": 88119,
+        "thinkingTokens": 25378,
+        "cacheReadInputTokens": 9217779,
+        "cacheCreationInputTokens": 183722,
+        "webSearchRequests": 0,
+        "costUSD": 5.076407799999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "result": "RR1 and RR2 are fixed in the lane. Typecheck is clean and 61/61 focused tests pass, but the new tests drive the transition and guard functions directly, not a mounted page, Composer or `useResource`. Nothing is committed; the comment you asked me to keep in `post-message-types.test.ts` is unchanged.\n\n**RR1: checkpoint freshness**\n- `useResource` (`hooks.ts`) gains one new field, `current` (`hooks.ts:15`, returned at `:188`). Existing fields, including `loading`, behave as before for every other caller.\n- `current` is set by a small transition function, `nextCurrent` (`resource-freshness.ts:15`), which the hook calls at each step:\n  - when a read starts (`:52`): false;\n  - when a read succeeds (`:60`): true, unless a newer read has since started, in which case the old answer is ignored;\n  - when a read fails (`:75`): false, under the same rule;\n  - when the key changes (`:116`): false;\n  - when data is replaced by a mutation's own response (`:199`): true.\n- `checkpointsCurrent()` (`batch2-view.ts:89`) treats checkpoints as current only when `current` is true, `reconnecting` is false and there is no error. The page now uses it at `page.tsx:369`.\n- The checkpoint read is now keyed to the conversation version shown (`page.tsx:126`). A version change resets it to not-current with no data until a fresh read succeeds. A pending uncertain Continue still replays exactly.\n\n**RR2: Home workspace switch**\n- `selectHome()` (`home-start.ts:140`) runs on every workspace change (`Composer.tsx:189, 202`). It starts a new selection and sets both the chat ref and the assignment ref to that workspace's own saved records, or to null. A start from the old workspace never stays current.\n- `settlesHere()` (`home-start.ts:158`) lets a start update the UI only when:\n  - the selection it began in is still the one shown (same workspace and same switch count);\n  - and the same start is still shown.\n- The start captures that selection before anything else (`Composer.tsx:378`), and both the success guard (`:467`) and the error guard (`:498`) use it.\n- A's saved Home-start record is still cleared or updated in A regardless.\n\n**Exact checks**\n- `prettier --write`, then `--check`, on the touched files: clean.\n- `tsc --noEmit`: exit 0.\n- vitest on `b2-correction`, `batch2-controls`, `batch2-durable`, `post-message-types` and `draft-carry`: 61/61, output in `../correction-green-3.log`. I ran nothing heavier.\n- `git diff --check`: clean.\n\n**New tests in `web/test/b2-correction.test.ts`**\n- RR2, `:548`\u2013`:640`:\n  - A switch to B with no saved record, and to B with only an assignment, each with a delayed A success and a delayed A error. The start never settles into B, and A's own record is cleared (success) or kept as uncertain (error).\n  - Switching away and back to A is a new selection.\n  - A stale clear can't remove a different start's record.\n  - These replace the old test that set the shown start to B by hand.\n- RR1, `:671`+: initial success \u2192 refresh pending \u2192 transport failure (cached data kept) \u2192 success; an older superseded read; a key/version reset; and an error or reconnecting state counting as not current.\n\n**Files changed this round:** `web/src/lib/client/hooks.ts`, `web/src/lib/client/resource-freshness.ts` (new), `web/src/lib/batch2-view.ts`, `web/src/app/conversations/[id]/page.tsx`, `web/src/lib/client/home-start.ts`, `web/src/components/Composer.tsx`, `web/test/b2-correction.test.ts`.\n\n**Known residuals**\n- The RR1 test models how the hook applies `nextCurrent`; it doesn't mount `useResource`.\n- Switching away from A and back while A's start is in flight leaves the restored copy shown as uncertain. A retry replays the same commands; it doesn't create anything new.\n- The workspace-switch effect now also clears both refs when the workspace becomes null.\n- Continue hides briefly on each checkpoint refresh and each version change.\n- The assignment hand-over path isn't bound to the selection like this; that was out of scope.\n- Browser and IndexedDB behaviour, lint and the build are still yours to run.\n\nI made no product or provider calls, so product model cost is $0."
+  },
+  {
+    "file": "claude-followup-result.json",
+    "session_id": "77bb3812-1b67-40fe-bbbc-3bba603ef4ed",
+    "subtype": "success",
+    "is_error": false,
+    "total_cost_usd": 4.098596399999997,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 150,
+        "outputTokens": 72936,
+        "thinkingTokens": 21376,
+        "cacheReadInputTokens": 7014742,
+        "cacheCreationInputTokens": 154541,
+        "webSearchRequests": 0,
+        "costUSD": 4.098596399999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "result": "I've closed all five residuals in the lane. Typecheck is clean and 52/52 focused tests pass. The Composer wiring is still only type-checked, not rendered, and nothing is committed or integrated.\n\n**1. Home send crash window**\n- Home's create/upload/send sequence now lives in a new helper, `web/src/lib/client/home-start.ts` (`runHomeStart`), which the Composer calls.\n- For a start carrying documents, the saved record is written and read back before create, before uploads and before the final send. If that fails, `NotKept` is thrown and the step isn't taken.\n- `NotKept` and unknown outcomes keep the exact `c.send` in memory. Only a definite server refusal clears it for a new send.\n- Regressions: when the send record can't be saved, nothing is sent; the retry sends the same `command_id` and creates nothing new. After a closed session (only localStorage survives), an unknown send replays the same `command_id`.\n\n**2. Home scope isolation**\n- Every save and clear is keyed by the start's own workspace, not the one currently shown. A clear only removes the record if it still holds that start's create `command_id`.\n- On success, the record, draft text and sent documents are cleared only in the starting workspace. Sent documents are removed with a new `forgetRefs`, which reads that draft's own stored records rather than whatever is on screen.\n- The on-screen chat, files and navigation change only if the start still shown is the same one (same workspace and create command).\n- The conversation reply now uses `forgetRefs` too.\n- Regression: a delayed completion in Space A writes only A's record, leaves B's untouched, and a stale clear can't remove B's. This test stands in for what the Composer shows with a local variable; it doesn't drive the real component.\n\n**3. Continue fence**\n- `continueLatestRun` now takes the run named by the current snapshot. That snapshot must be fresh, for this conversation, at exactly the version shown, and the checkpoint read must be current.\n- A successor run with no newer request now gets Continue. No run in the snapshot means no Continue, and there is no fallback to an earlier run from the thread. The thread-run comparison is removed from the page.\n- Tests cover a successor run, no run (missing or null), an older snapshot, stale, a failed checkpoint read, a missing snapshot and a different conversation.\n\n**4. Type test**\n- The request types still use `PostMessage-Input`.\n- The test comment now says Input and Output are structurally identical, so the test proves compatibility with the endpoint's request body, not that the names are distinguished.\n- I added a check that the messages POST request body equals `PostMessage-Input`. It does not, and cannot, make swapping in Output fail to compile.\n\n**5. Write ordering**\n- Both problems reproduced first (`../correction-red-2.log`): a delayed earlier write brought back a removed document, and a delayed \"uploading\" write overwrote the \"uploaded\" receipt.\n- Fix: each staging controller now runs its device saves, removals and lookups one at a time, in order. Both regressions now pass.\n\n**Checks run**\n- `prettier --write` on the touched files, then `prettier --check` on all changed and new files: clean.\n- `tsc --noEmit`: exit 0.\n- vitest on `b2-correction`, `batch2-controls`, `batch2-durable`, `post-message-types` and `draft-carry`: 52/52 (`../correction-green-2.log`).\n- `git diff --check`: clean.\n\n**Remaining gaps**\n- Not run: Composer and conversation-page rendering, the real IndexedDB and localStorage adapters, and the browser.\n- Two existing behaviours are unchanged:\n  - A start running in Space A keeps the shared Send/hand-over controls disabled after switching to Space B until it settles.\n  - Switching to a workspace with no saved start doesn't clear an earlier start from another Space; it's refused with \"Return to the original Space\".\n- Old sessionStorage upload records are now ignored and left behind; they're harmless.\n\nNew untracked files: `web/src/lib/client/home-start.ts` and `web/test/b2-correction.test.ts`, plus the earlier `web/test/post-message-types.test.ts`.\n\nThe parent build, full suite, lint and independent re-review are still needed. I made no product or provider calls (product model cost $0)."
+  },
+  {
+    "file": "claude-lifecycle-result.json",
+    "session_id": "77bb3812-1b67-40fe-bbbc-3bba603ef4ed",
+    "subtype": "success",
+    "is_error": false,
+    "total_cost_usd": 5.649097399999997,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 188,
+        "outputTokens": 96634,
+        "thinkingTokens": 26544,
+        "cacheReadInputTokens": 10641847,
+        "cacheCreationInputTokens": 198412,
+        "webSearchRequests": 0,
+        "costUSD": 5.649097399999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "result": "Both lifecycle gaps are fixed in the lane. Typecheck is clean and 64/64 focused tests pass. The tests drive the same transition and guard functions the hook and Composer call, not a mounted hook or Composer. Nothing is committed.\n\n**1. Checkpoint freshness tied to the key (`hooks.ts`, `resource-freshness.ts`)**\n- The hook now records which key its freshness evidence was read for, alongside whether it is current (`hooks.ts:35`). Each event is tagged with the key of the read it came from: start, success, failure, reset and set (`nextEvidence`, `resource-freshness.ts:26`).\n- It reports `current` as true only when that key equals the key requested in this render (`currentFor`, `hooks.ts:189`, `resource-freshness.ts:45`). So after a key change (such as a new checkpoint version), the very first render is already not current, before any effect runs.\n- A late success or failure from a read that has been replaced is ignored, as before. Other users of the hook are unaffected; only the new `current` field changed.\n\n**2. Home selection and unmount (`Composer.tsx`, `home-start.ts`)**\n- The selection now changes in a `useLayoutEffect` (`Composer.tsx:193`), so it updates in the same commit as the workspace change. Storage is only read there, never written.\n- Its cleanup sets the selection to `leaveHome(live.current)` (`Composer.tsx:218`, `home-start.ts:157`). That cleanup runs both on a workspace switch and on unmount.\n- `leaveHome` starts a new epoch with no workspace selected. So a late A success or error, after a switch or after navigating away, fails the existing success and error guards: no UI change, no error shown, no `router.push`. A's own saved record is still cleared on success or kept as uncertain on error.\n- On SSR: React is 19.2.8 and the Composer already used `useLayoutEffect`, but I haven't run a build.\n\n**Checks**\n- `prettier --write`, then `--check`, on the 5 touched files: clean.\n- `tsc --noEmit`: exit 0.\n- vitest on `b2-correction`, `batch2-controls`, `batch2-durable`, `post-message-types` and `draft-carry`: 64/64, output in `../correction-green-4.log`.\n- `git diff --check`: clean.\n\n**New or changed tests (`web/test/b2-correction.test.ts`)**\n- RR1, from `:741`:\n  - a key change is not current from its first render, with no reset applied, and a late answer for the old key doesn't change that;\n  - pending \u2192 failed \u2192 recovered refresh of the same key;\n  - an older superseded read;\n  - no key, an error, or reconnecting is never current.\n- RR2, `:653`\u2013`:715`:\n  - a delayed A success or error after Home unmounts never settles, while A's saved record is still handled;\n  - the switch cleanup invalidates the selection even while the chat ref still holds A, and it stays invalid after B is selected.\n\n**Files changed this round:** `web/src/lib/client/hooks.ts`, `web/src/lib/client/resource-freshness.ts`, `web/src/lib/client/home-start.ts`, `web/src/components/Composer.tsx`, `web/test/b2-correction.test.ts`.\n\n**Residuals**\n- No mounted hook or Composer test and no browser run.\n- The RR1 test mirrors how the hook applies these events rather than calling the hook itself.\n- The assignment hand-over path is still not bound to the selection (out of scope, as before).\n- The full suite, lint and build are yours.\n\nI made no product or provider calls, so product model cost is $0."
+  },
+  {
+    "file": "claude-result.json",
+    "session_id": "77bb3812-1b67-40fe-bbbc-3bba603ef4ed",
+    "subtype": "success",
+    "is_error": false,
+    "total_cost_usd": 0.500472,
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 40,
+        "outputTokens": 5565,
+        "cacheReadInputTokens": 710700,
+        "cacheCreationInputTokens": 30859,
+        "webSearchRequests": 0,
+        "costUSD": 0.500472,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 931,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "result": "The typing fix is in: `tsc` now exits 0 with no output, down from 4 errors. Nothing is committed.\n\n**What changed (web only)**\n- `web/src/lib/client/products.ts`: `Operation` is now built from `S[\"PostMessage-Input\"][\"operation\"]`. Every user of it (`OperationComposer`, the artifact page's run action, and the saved-retry payload in `operation-state.ts`) builds something the client sends, so it is request data. This also fixed the implicit-any `field` at `OperationComposer.tsx:66`: the saved `run_wasm` payload is typed again, and the component itself didn't need editing.\n- `web/src/lib/client/real-api.ts`: the `send()` parameter `operation` and the `stablePayload` body type now use `S[\"PostMessage-Input\"]`. Both message endpoints (send and queue) take `PostMessage-Input` as their request body.\n  - I also removed the `as object` cast on `document_refs` and its \"generated type follows at contract regeneration\" comment. The regenerated schema now includes `document_refs?: DocumentRef[]` with the same `{document_id, sha256}` shape, so the cast was just hiding a typed field. This is the only change beyond the 4 diagnostics.\n- `web/test/post-message-types.test.ts` (new): a compile-time check run by both `tsc` and vitest. It asserts that:\n  - `Operation` equals the non-null `PostMessage-Input` operation;\n  - its `publish_artifact` variant equals `PublishArtifact-Input`;\n  - the `operation` parameter of `send()` equals the Input operation or `undefined`.\n\n**Request vs. response**\n- `PostMessage-Input` is what the client sends.\n- `PostMessage-Output` and `PublishArtifact-Output` are server data the client only reads: the queued intent, `QueuedMessage.operation`, and observations.\n- The two differ only inside the publish-artifact `body` (the Input vs. Output versions of the structured-table and custom-view bodies).\n- No web code refers to the `-Output` types by name.\n\n**Checks I ran (one after another)**\n- `npm run -s typecheck` (`tsc --noEmit`) exited 0 with empty output.\n- `npx --no-install vitest run test/post-message-types.test.ts`: 1 file, 1 test passed.\n\n**Gaps**\n- I didn't run the full suite, lint, format or production build; those are yours.\n- `send()` still builds `attachments`/`target` from a hand-written type with the old \"mirrors the contract until it is generated\" comment. It type-checks against the generated Input, but I left it alone because it was outside this fix.\n- I didn't confirm the new test fails when pointed at the Output types. The publish bodies differ structurally, so it should.\n\nGenerated contracts, backend, dependencies and `node_modules` are unchanged."
+  }
+]

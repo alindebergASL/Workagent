@@ -1,0 +1,59 @@
+{
+  "final_build_id": "sVDEPH9Pel_-AQAeUFWDH",
+  "fresh_proof": "final-smoke/browser connect and human plus real current worker journey",
+  "limits": "Older restart/revoke screenshots reused, not final-build proof. Native mtime/checkpoint continuity is supporting evidence, not a historical hash attestation. Final suite and current source manifest are separate.",
+  "native_source": [
+    {
+      "path": "backend/workagent/tui/app.py",
+      "sha256": "99583f6c377004ae998603161cb0cde654fc7daa29e20773c6d05a3828f817af",
+      "source_mtime_ns": 1793259498542143272
+    },
+    {
+      "path": "backend/workagent/tui/connectors_screen.py",
+      "sha256": "e1286a45d9410b9c60ab16fe5ea5fa68e73fed890699560a9e342881b45ecb68",
+      "source_mtime_ns": 1793259497971703748
+    },
+    {
+      "path": "backend/workagent/tui/connectors.py",
+      "sha256": "e6124f11f2d4991d6e1cb7588285c70662dd889f2c690dac22511970e2e0c3d3",
+      "source_mtime_ns": 1793256932132771410
+    },
+    {
+      "path": "backend/workagent/operator_client.py",
+      "sha256": "7852275280800e2d76ffd61ad05d1d1cce415369299bb17d0ed31d48f2a817a8",
+      "source_mtime_ns": 1793256932132547773
+    }
+  ],
+  "retained_proofs": [
+    "browser/after-result.json",
+    "browser/revoke-result.json",
+    "pty/result.json",
+    "pty/restart-result.json"
+  ],
+  "web_owner_source_matches": [
+    {
+      "path": "web/src/app/connections/page.tsx",
+      "sha256": "e8c8a9bbaef7c86daf618d0051180f96dc10146bf140ea7aed31b4d94c05f0b9"
+    },
+    {
+      "path": "web/src/components/ConnectorPanel.tsx",
+      "sha256": "782035960058eda8dfa5905fb575b3bfedbf516806949197eac89b3352d92e66"
+    },
+    {
+      "path": "web/src/components/Shell.tsx",
+      "sha256": "7689250c2786828e8e4448a4815646234df636f91f8e568064f17a7033a62214"
+    },
+    {
+      "path": "web/src/lib/client/connectors.ts",
+      "sha256": "5ef6fdb95cfa38826e21cc274491d6df29d43900627f6f5833a8319feab1ffc7"
+    },
+    {
+      "path": "web/src/styles/products.css",
+      "sha256": "5c52b8c63addd9628d9aec233fa1e892557cffec77db11d56e302b54a5fbd736"
+    },
+    {
+      "path": "web/test/connectors.test.ts",
+      "sha256": "80671995ef26622a4ea7ec95618a17e1bba5be8dcb7ecebe331898357f9d2852"
+    }
+  ]
+}

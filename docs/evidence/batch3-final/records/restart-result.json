@@ -1,0 +1,8 @@
+{
+  "r1_restart_new_pids": true,
+  "r2_output_identical_after_restart": true,
+  "r3_download_exact_bytes": true,
+  "r4_loopback_200": true,
+  "r4_external_not_serving": true,
+  "external_http": "000"
+}

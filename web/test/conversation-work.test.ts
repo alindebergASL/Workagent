@@ -32,6 +32,7 @@ vi.mock("../src/lib/client/capabilities", () => ({
 vi.mock("../src/lib/client/hooks", () => ({ useResource: vi.fn() }));
 
 import {
+  actionableDecision,
   loadConversationWork,
   loadHomeWork,
 } from "../src/lib/client/conversation-work";
@@ -165,6 +166,24 @@ describe("conversation-owned work on Home and Spaces", () => {
   it("surfaces real failures instead of hiding them", async () => {
     get.mockRejectedValue(down());
     await expect(loadConversationWork("w")).rejects.toThrow("Down.");
+  });
+
+  it("never presents obsolete-only proposals as a decision waiting on the person", async () => {
+    // Home groups by this: a pending proposal made before the latest save
+    // can only be dismissed, so its work belongs with the saved results
+    // (where its row still says the proposal is out of date), never under
+    // "Needs you". A proposal against the current saved version does.
+    const rows = await loadConversationWork("w");
+    const fresh = rows.find((r) => r.artifact_id === "a-fresh")!;
+    const stale = rows.find((r) => r.artifact_id === "a-stale")!;
+    const plain = rows.find((r) => r.artifact_id === "a-plain")!;
+    expect(actionableDecision(fresh)).toBe(true);
+    expect(actionableDecision(stale)).toBe(false);
+    expect(actionableDecision(plain)).toBe(false);
+    // The obsolete proposal stays discoverable: its work still lists its
+    // decision record and sorts ahead of plainly saved work.
+    expect(stale.decision).not.toBeNull();
+    expect(rows.indexOf(stale)).toBeLessThan(rows.indexOf(plain));
   });
 });
 
