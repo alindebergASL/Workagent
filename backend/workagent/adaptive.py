@@ -373,7 +373,10 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
                           f'Execution stopped ({outcome}); the requested goal is not verified. '+unresolved_summary(value.decision.text))
     elif operation is not None and operation.kind=='publish_artifact' and staged['status']=='observed':
         outcome=('continue' if ordinal<max_steps else 'step_limit') if continuity else 'needs_validation'
-        staged['reason']='Draft artifact retained; only its data shape was checked. Generated content and code are unverified; the requested goal needs validation. Changes to existing work require human acceptance.'
+        staged['reason']=('Draft artifact retained; only its data shape was checked, not semantic correctness or external outcomes. '
+                          'Human-edited or human-accepted work requires a proposal; agent-owned drafts can advance without acceptance. '
+                          'If the saved artifact includes all requested content in the requested format, choose reply to finish. '
+                          'Otherwise correct the specific omission or format in one complete replacement; do not republish to seek verification.')
     elif observation['verification']['satisfied']:
         outcome='completed'
         if automatic['checker_version']=='team-selection-v1':

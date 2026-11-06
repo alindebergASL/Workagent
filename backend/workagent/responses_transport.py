@@ -165,10 +165,15 @@ class PreparedRequest:
         return _canonical({key: value for key, value in payload.items() if key in COUNT_FIELDS})
 
 
+_LEGACY_GENERAL_TOOL_DESCRIPTION = 'Choose reply, exact attached CSV reconciliation, or bounded local Wasm; no effects or approvals.'
+_GENERAL_TOOL_DESCRIPTION = ('Choose one action from the supplied decision schema: reply, publish a complete editable artifact, '
+                             'or use an available scoped capability. The schema describes choices, not permission; no human approval is implied.')
+
+
 def _tool(schema: FrozenSchema, policy='intake-v1') -> dict:
     return {'type': 'function', 'name': READ_TOOL if policy=='intake-v1' else 'choose_general_action',
             'description': ('Read only the consumer-approved frozen source scope.' if policy=='intake-v1' else
-                            'Choose reply, exact attached CSV reconciliation, or bounded local Wasm; no effects or approvals.'),
+                            _GENERAL_TOOL_DESCRIPTION),
             'strict': True, 'parameters': _json(schema.material)}
 
 
@@ -261,8 +266,14 @@ def _validate_request(request: PreparedRequest) -> dict:
         raise TransportError('invalid_request_policy')
     FrozenSchema.freeze(_json(request.schema.material), request.schema.model)
     if request.phase != 'final':
-        valid = (_canonical(payload['tools']) == _canonical([_tool(request.schema,request.policy)]) and
-                 payload['tool_choice'] == {'type': 'function', 'name': _tool(request.schema,request.policy)['name']})
+        tool = _tool(request.schema,request.policy)
+        supported_tools = [_canonical([tool])]
+        if request.policy != 'intake-v1':
+            # Retained requests/counts keep their exact historical bytes. Only
+            # this known description differs; schema and all controls stay exact.
+            supported_tools.append(_canonical([{**tool, 'description': _LEGACY_GENERAL_TOOL_DESCRIPTION}]))
+        valid = (_canonical(payload['tools']) in supported_tools and
+                 payload['tool_choice'] == {'type': 'function', 'name': tool['name']})
     else:
         valid = (payload['tools'] == [] and payload['tool_choice'] == 'none' and
                  _canonical(payload['text']) == _canonical({'format': {'type': 'json_schema',
