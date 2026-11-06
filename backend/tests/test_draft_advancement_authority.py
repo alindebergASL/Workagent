@@ -201,4 +201,3 @@ def test_protected_note_alteration_cannot_publish_even_forged_stage(context,tmp_
     with s.db.transaction() as c:
         assert c.execute('SELECT count(*) n FROM revisions WHERE workspace_id=%s AND artifact_id=%s',
             (ws,art.id)).fetchone()['n']==1
-
