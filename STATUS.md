@@ -12,7 +12,7 @@
 - **Verified:** parent targeted run: 233 passed, one pre-existing missing-import test excluded; separate restricted-fixture run: 15 passed (one overlaps). Historical decoding, strict block semantics, versioned recovery/drift rejection, protected human work and native settlement covered. Controlled fixtures are not live model-quality proof. Earlier web checks/build/browser results remain unchanged.
 - **Next outcome:** reliable continuing responsibilities after Andrew's first-use loop, then unified tools/context, memory and learned methods. Scope has not been dropped.
 - **Studies:** ended; historical cards are not active instructions. No new evaluation campaign is authorized.
-- **Budget:** $275 cumulative ceiling; latest issuer read shows $240.0597 allocated/encumbered, not spent. Approved isolated probe: one generation, 3,284 input / 267 output tokens, $0.010880 estimated additional; owner total estimated usage $1.062795 versus $7.44912 reserved, with zero unknown-usage steps. These are not billed cost. Actual billing remains unverified. Existing $40 owner grant unchanged; no new certificate.
+- **Budget:** $275 cumulative ceiling; latest issuer read shows $240.0597 allocated/encumbered, not spent. Approved isolated probe: one generation, 3,284 input / 267 output tokens, $0.010880 estimated additional; owner total estimated usage $1.062795 versus $7.44912 reserved, with zero unknown-usage steps. These are not billed cost. Current ordinary check has two dispatches and one not-yet-accounted response; owner reserved liability is now $7.86296. No reservation has been released. Actual billing remains unverified. Existing $40 owner grant unchanged; no new certificate.
 
 ## Remaining gaps
 
