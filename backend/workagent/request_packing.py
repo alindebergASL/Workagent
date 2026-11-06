@@ -81,7 +81,7 @@ def request_metrics(request):
             'components':components}
 
 
-def _deduplicate_bodies(context):
+def _deduplicate_bodies(context,*,include_publications=False):
     """Only recognized body slots; never replace arbitrary human text/JSON keys."""
     seen={}
     def visit(parent,key,path):
@@ -100,6 +100,11 @@ def _deduplicate_bodies(context):
     for i,artifact in enumerate(context.get('work_area_context',{}).get('artifacts',[])):
         visit(artifact,'body',f'#/work_area_context/artifacts/{i}/body')
     for i,observation in enumerate(context.get('adaptive',{}).get('observations',[])):
+        if include_publications:
+            visit(observation,'body',f'#/adaptive/observations/{i}/body')
+            decision=observation.get('decision') or {}
+            if decision.get('kind')=='publish_artifact':
+                visit(decision,'body',f'#/adaptive/observations/{i}/decision/body')
         result=(observation.get('capability_result') or {}).get('result',{})
         capability=(observation.get('capability_result') or {}).get('capability')
         if capability=='read_saved_work':
@@ -111,7 +116,31 @@ def _deduplicate_bodies(context):
                 visit(artifact,'body',f'#/adaptive/observations/{i}/capability_result/result/value/artifacts/{j}/body')
 
 
-def project_context(context):
+def project_observations(context,version):
+    """Same deterministic projection for new input and retained-request recovery.
+
+    Only exact repeated fixed values move out of observation envelopes. Unknown
+    fields, verification, source/target bindings, errors and effect status survive.
+    Body deduplication touches recognized slots only and preserves full content.
+    """
+    if version not in (None,'compact-input-v1','compact-input-v2'):
+        raise DomainError('command_conflict')
+    if version=='compact-input-v2':
+        adaptive=context.get('adaptive',{})
+        observations=adaptive.get('observations',[])
+        for key in ('goal','success_criteria'):
+            values=[o[key] for o in observations if key in o]
+            if values and all(value==values[0] for value in values):
+                adaptive[key]=deepcopy(values[0])
+                for observation in observations:
+                    observation.pop(key,None)
+        for capability in context.get('composition',{}).get('capabilities',[]):
+            capability.pop('handler',None)  # Internal dispatch name, not a model action.
+    _deduplicate_bodies(context,include_publications=version=='compact-input-v2')
+    return context
+
+
+def project_context(context,*,version='compact-input-v1'):
     projected=deepcopy({k:v for k,v in context.items() if k not in ('instructions','tools')})
     # Evidence bodies are available through read_context; send only their bounded
     # manifest initially, avoiding duplicate attachments/proposals in every prompt.
@@ -127,7 +156,7 @@ def project_context(context):
     # Full detail reads stay full in observations; summarize ONLY the initial index.
     for item in projected.get('work_area_context',{}).get('responsibilities',[]):
         life=item.get('lifecycle')
-        if (not isinstance(life,dict) or life.get('state') not in _INACTIVE
+        if (version=='compact-input-v2' or not isinstance(life,dict) or life.get('state') not in _INACTIVE
             or item.get('assignment_id')==(projected.get('responsibility') or {}).get('assignment_id')):
             continue
         summary={k:deepcopy(life[k]) for k in ('state','outcome_status','next_check_in_at','check_in_due','blocker','execution_status') if k in life}
@@ -145,8 +174,8 @@ def project_context(context):
         summary['truncated_fields']=shortened
         item.update(lifecycle=None,lifecycle_omitted=True,lifecycle_summary=summary,
                     details={'kind':'read_context','section':'work_area'})
-    _deduplicate_bodies(projected)
-    projected['input_projection']={'version':'compact-input-v1','notice':_NOTICE}
+    project_observations(projected,version)
+    projected['input_projection']={'version':version,'notice':_NOTICE}
     return projected
 
 
@@ -168,14 +197,19 @@ def prepare_selection(context,*,instructions,read_schema,metadata,policy='genera
     limit=MAX_INPUT_TOKENS if input_limit is None else input_limit
     # 10% estimate/formatting margin plus room for the next tool/response history.
     ceiling=limit-max(2500,limit//10)-_GROWTH_HEADROOM
-    projected=project_context(context)
+    from .composition import CONTINUITY_DECISION_SCHEMA
+    version='compact-input-v2' if read_schema==CONTINUITY_DECISION_SCHEMA else 'compact-input-v1'
+    projected=project_context(context,version=version)
     messages=projected.get('messages',[])
     current_run=projected.get('run_id')
     protected={id(m) for m in messages if m.get('run_id')==current_run and m.get('author_kind') in ('human','system')}
     human=next((m for m in reversed(messages) if m.get('author_kind')=='human'),None)
     if human is not None:protected.add(id(human))
     # Trim whole oldest assistant messages first, then old human/system history.
-    candidates=[m for kind in ('assistant','system','human') for m in messages
+    # Core continuity never removes human/system history to hit an estimate.
+    # Exact provider count/admission handles an input that cannot fit losslessly.
+    kinds=('assistant',) if version=='compact-input-v2' else ('assistant','system','human')
+    candidates=[m for kind in kinds for m in messages
                 if m.get('author_kind')==kind and id(m) not in protected]
     for index in range(len(candidates)+1):
         request=build_tool_selection(instructions=instructions,source_context=canonical(projected),

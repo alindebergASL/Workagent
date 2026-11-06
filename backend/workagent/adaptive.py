@@ -178,9 +178,12 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if discovery_enabled(config): model=GatewayDiscoveryDecision
         from .current_gateway import enabled as current_enabled, GatewayCurrentDecision
         if current_enabled(config): model=GatewayCurrentDecision
-    value=model.model_validate(result['value'],strict=True)
-    first_row=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND kind='result' AND data->>'state'='function_call' ORDER BY CASE WHEN phase='selection' THEN 1 ELSE substring(phase from 11)::integer END LIMIT 1",(ledger.receipt.attempt_id,)).fetchone()
-    first=model.model_validate(first_row['data']['value'],strict=True)
+    # A retained selection must use its own exact historical decoder, including
+    # the older nullable checklist contract. Never reinterpret it as a fresh DTO.
+    from .legacy_document_schema import decode_retained
+    value=decode_retained(c,ledger.receipt.attempt_id,phase,model,result['value'])
+    first_row=c.execute("SELECT phase,data FROM responses_events WHERE attempt_id=%s AND kind='result' AND data->>'state'='function_call' ORDER BY CASE WHEN phase='selection' THEN 1 ELSE substring(phase from 11)::integer END LIMIT 1",(ledger.receipt.attempt_id,)).fetchone()
+    first=decode_retained(c,ledger.receipt.attempt_id,first_row['phase'],model,first_row['data']['value'])
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
         raise DomainError('source_changed')
     staged=ledger._events(c,phase).get('tool_result')

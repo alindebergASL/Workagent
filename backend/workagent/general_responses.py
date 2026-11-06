@@ -33,7 +33,7 @@ def consumer_hash():
     names += ('capabilities/mcp_adapters.py','capabilities/mcp_composition.py','connectors/mcp_client.py','connectors/registry.py','connectors/synthetic-tools.json','connectors/service.py','connectors/oauth.py','connectors/vault.py','connectors/revocation.py')
     names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
     names += ('capabilities/delegation.py','capabilities/delegation_composition.py')
-    names += ('capabilities/implementation_releases.py','capabilities/boundary_policy.py','request_packing.py')
+    names += ('capabilities/implementation_releases.py','capabilities/boundary_policy.py','request_packing.py','legacy_document_schema.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 
@@ -336,8 +336,9 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
     from .composition import enabled as alpha_enabled, continuity_enabled, READ_DECISIONS, RecordResponsibility, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, InspectJSON, FetchPublicURL
+    from .legacy_document_schema import decode_retained
     decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config),continuity=continuity_enabled(config)).decision if enabled(config) else
-              GeneralDecision.model_validate(result['value'],strict=True).decision)
+              decode_retained(c,receipt.attempt_id,phase,GeneralDecision,result['value']).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
     from .retained_results import ReadResult, ReadAttachment, material as retained_material, enabled as retained_enabled, authorize as authorize_retained

@@ -38,11 +38,14 @@ POLICY=CONTINUITY_POLICY+''' Retained evidence v1: retained_results offers exact
 POLICY += ' Original attachments: use read_attachment with message_id, ref and sha256 offered in evidence_context.attachments.items, offset and limit (at most 8192). This reads original UTF-8 bytes, including omitted bodies, not truncated tool output. BOM and CRLF are preserved. Use next_offset for safe UTF-8 boundaries. The eight-page/32768-byte budget is shared with read_result. Never claim an omitted body was read without its range receipt.'
 
 
+from .legacy_document_schema import matches_schema_pin
+
+
 def enabled(config):
     from .capabilities.file_composition import enabled as file_enabled
     if file_enabled(config): return True
     return (config.get('responses',{}).get('continuity_version')=='sustained-v1'
-            and config.get('responses',{}).get('scope_tool_sha256')==sha256(SCHEMA.material).hexdigest())
+            and matches_schema_pin(config.get('responses',{}).get('scope_tool_sha256'),SCHEMA))
 
 
 def redact(value):

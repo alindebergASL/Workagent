@@ -13,8 +13,11 @@ SCHEMA = FrozenSchema.freeze(GatewayFilesDecision.model_json_schema(), GatewayFi
 POLICY = RETAINED_POLICY + ''' Workspace files v1: use files_list only within your installed exact resource selectors. Files are opaque IDs and exact version/SHA256 refs, never paths. Read bounded UTF-8 byte ranges and disclose omitted ranges. files_create_draft creates an inert draft. files_propose_patch proposes a full replacement against an exact base; never accepts or overwrites human work. files_compare compares exact versions. artifacts_export creates a real basic downloadable export of an exact revision, preserving annotations or reporting visible omissions. Export/adapter success does not mean task completion. A newly created file does not grant arbitrary additional input access; later reads still require installed exact selectors.'''
 
 
+from ..legacy_document_schema import matches_schema_pin
+
+
 def enabled(config):
     from .compute_composition import enabled as compute_enabled
     if compute_enabled(config): return True
     return (config.get('responses', {}).get('continuity_version') == 'sustained-v1'
-            and config.get('responses', {}).get('scope_tool_sha256') == sha256(SCHEMA.material).hexdigest())
+            and matches_schema_pin(config.get('responses', {}).get('scope_tool_sha256'),SCHEMA))

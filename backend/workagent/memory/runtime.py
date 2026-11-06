@@ -15,6 +15,9 @@ GUIDANCE = ''' Typed memory v1: memory_context contains bounded owner-private re
 POLICY = BASE_POLICY + GUIDANCE
 
 
+from ..legacy_document_schema import matches_schema_pin
+
+
 def enabled(config):
     binding = config.get('responses', {})
     if binding.get('continuity_version') != 'sustained-v1':
@@ -24,8 +27,8 @@ def enabled(config):
         from ..discovery_composition import SCHEMA as DISCOVERY_SCHEMA
         from ..current_gateway import SCHEMA as CURRENT_SCHEMA
         return (binding['memory_recall'] == 'reviewed-v1' and
-                binding.get('scope_tool_sha256') in {sha256(s.material).hexdigest() for s in (FULL_SCHEMA, DISCOVERY_SCHEMA, CURRENT_SCHEMA)})
-    return binding.get('scope_tool_sha256') == sha256(SCHEMA.material).hexdigest()
+                any(matches_schema_pin(binding.get('scope_tool_sha256'),s) for s in (FULL_SCHEMA, DISCOVERY_SCHEMA, CURRENT_SCHEMA)))
+    return matches_schema_pin(binding.get('scope_tool_sha256'),SCHEMA)
 
 
 def selected(service, c, p, run, cid):

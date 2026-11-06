@@ -26,21 +26,14 @@ def request():
 
 
 def assert_outbound_contract(payload):
-    policy=payload['instructions']
-    assert 'no body-level kind' in policy
-    assert 'Every block requires block_id, kind, text and checked' in policy
-    assert 'each task is kind=checklist with checked=false' in policy
-    assert 'body is a complete document, not an append operation or a one-block patch' in policy
-    assert 'choose reply to finish the turn' in policy
-    assert 'revised products are proposals requiring explicit acceptance' not in policy
-    assert 'Saved changes remain proposals until human acceptance' not in policy
-    assert 'publish a complete editable artifact' in payload['tools'][0]['description']
     definitions=payload['tools'][0]['parameters']['$defs']
-    branches=definitions['DraftDocument']['properties']['blocks']['items']['anyOf']
-    assert {b['$ref'] for b in branches}=={'#/$defs/DraftTextBlock','#/$defs/DraftChecklistBlock'}
-    assert definitions['DraftChecklistBlock']['properties']['kind']['const']=='checklist'
-    assert definitions['DraftChecklistBlock']['properties']['checked']['type']=='boolean'
-    assert definitions['DraftTextBlock']['properties']['checked']['type']=='null'
+    assert definitions['DraftDocument']['properties']['blocks']['items']=={'$ref':'#/$defs/DraftBlock'}
+    block=definitions['DraftBlock']
+    assert block['additionalProperties'] is False
+    assert set(block['required'])=={'block_id','kind','text','checked'}
+    assert block['properties']['kind']['enum']==['heading','paragraph','checklist','protected_note']
+    assert block['properties']['checked']['anyOf']==[{'type':'boolean'},{'type':'null'}]
+    assert 'DraftTable' in definitions and 'DraftView' in definitions
 
 
 def test_outbound_schema_and_effective_policy_agree():
@@ -67,7 +60,7 @@ def test_legacy_description_does_not_allow_other_contract_changes(change):
     tool=payload['tools'][0]
     tool['description']=_LEGACY_GENERAL_TOOL_DESCRIPTION
     if change=='description': tool['description']='Unrecognized tool contract'
-    elif change=='schema': tool['parameters']['$defs']['DraftChecklistBlock']['properties']['checked']['type']='null'
+    elif change=='schema': tool['parameters']['$defs']['DraftBlock']['properties']['checked']['type']='null'
     else: tool['strict']=False
     with pytest.raises(TransportError):
         replace(original,body=canonical(payload).encode()).count_body()

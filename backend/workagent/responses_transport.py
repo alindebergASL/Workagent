@@ -246,6 +246,16 @@ def _validate_request(request: PreparedRequest) -> dict:
                                    LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True
+        from .legacy_document_schema import historical_schemas
+        if request.phase!='final' and request.schema!=DECISION_SCHEMA:
+            candidates=(DECISION_SCHEMA,)
+            if request.policy=='adaptive-local-v1':
+                candidates+=(CURRENT_SCHEMA,DISCOVERY_SCHEMA,DELEGATION_SCHEMA,MCP_SCHEMA,GITHUB_SCHEMA,OFFICE_SCHEMA,RESEARCH_SCHEMA,MEMORY_SCHEMA,COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA)
+            for candidate in candidates:
+                if request.schema in historical_schemas(candidate):
+                    DECISION_SCHEMA=request.schema
+                    alpha=request.policy=='adaptive-local-v1' and candidate not in (candidates[0],) or alpha
+                    break
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA
         if request.schema!=expected:
             raise TransportError('schema_validator_mismatch')

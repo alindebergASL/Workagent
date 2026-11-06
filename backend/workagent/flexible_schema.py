@@ -10,19 +10,19 @@ from .flexible_models import (Block,Body,TableField,StructuredTableBody,ViewSour
 from .model_base import Text
 
 
-class DraftTextBlock(Block):
-    # Express the durable validator in the provider grammar. A shared bool|null
-    # field falsely permitted checkbox state on paragraphs/headings/notes.
-    kind: Literal['heading', 'paragraph', 'protected_note']
-    checked: None
+class DraftBlock(Block):
+    # One closed array-item shape; semantic validation is not delegated to the
+    # provider grammar. Durable Block/Body and their historical bytes stay put.
+    kind: Literal['heading', 'paragraph', 'checklist', 'protected_note'] = Field(
+        description='heading: section title; paragraph: prose; checklist: task; protected_note: verbatim human constraint.')
+    checked: bool | None = Field(
+        description='For checklist tasks: false unless completed. For headings, prose and protected notes: null.')
 
-
-class DraftChecklistBlock(Block):
-    kind: Literal['checklist']
-    checked: bool = Field(description='Explicit completion state: false for an unfinished task, true only when actually completed.')
-
-
-DraftBlock = DraftTextBlock | DraftChecklistBlock
+    @model_validator(mode='after')
+    def required_checklist_state(self):
+        if self.kind == 'checklist' and self.checked is None:
+            raise ValueError('checklist blocks require an explicit boolean checked state')
+        return self
 
 
 class DraftDocument(Body):

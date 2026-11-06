@@ -423,7 +423,7 @@ class GeneralWorker:
         from .acceptance_checks import for_model
         from .responses_transport import PreparedRequest,RequestMetadata
         from .service import canonical
-        from .composition import continuity_enabled,LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA
+        from .legacy_document_schema import restore_schema
         from .adaptive import CAPABILITY
         if pending_phase and settled_prefix:raise ValueError('one resume boundary required')
         destination=None if settled_prefix else pending_phase or 'final'
@@ -453,10 +453,7 @@ class GeneralWorker:
         if pending_phase:
             from hashlib import sha256
             pending_row=next(r for r in rows if r['phase']==pending_phase)
-            schema=decision_schema
-            legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
-            if canonical(json.loads(pending_row['request_bytes'])['tools'][0]['parameters']).encode()==legacy.material:
-                schema=legacy
+            schema=restore_schema(json.loads(pending_row['request_bytes'])['tools'][0]['parameters'],decision_schema)
             final=PreparedRequest(pending_row['request_bytes'].encode(),
                 RequestMetadata.model_validate(pending_row['metadata']),pending_phase,schema,CAPABILITY)
             count_bytes=final.count_body()
@@ -471,7 +468,7 @@ class GeneralWorker:
                 raise DomainError('command_conflict')
         if pending_phase or settled_prefix:
             from .adaptive import retained,continuation_context
-            from .request_packing import _deduplicate_bodies
+            from .request_packing import project_observations
             with s.db.transaction() as c:
                 observations=retained(c,ledger.receipt.attempt_id,include_rejections=True)
             def validate_continuation(request,index):
@@ -497,17 +494,14 @@ class GeneralWorker:
                             if first is None:observation.pop(key,None)
                             else:observation[key]=first[key]
                 projected=continuation_context(deepcopy(context),prior,config['responses']['max_steps'])
-                _deduplicate_bodies(projected)
+                project_observations(projected,context.get('input_projection',{}).get('version'))
                 if context.get('adaptive')!=projected['adaptive']:
                     raise DomainError('command_conflict')
             if pending_phase:validate_continuation(final,count+1)
         for index in range(1,count+1):
             phase=phase_name(index)
             row,events=history[phase]
-            schema=decision_schema
-            legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
-            if canonical(json.loads(row['request_bytes'])['tools'][0]['parameters']).encode()==legacy.material:
-                schema=legacy
+            schema=restore_schema(json.loads(row['request_bytes'])['tools'][0]['parameters'],decision_schema)
             selection=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),
                                       phase,schema,CAPABILITY)
             if settled_prefix:validate_continuation(selection,index)

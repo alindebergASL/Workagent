@@ -98,7 +98,12 @@ def test_multistep_growth_keeps_receipts_goal_and_current_notes():
                 'result':{'text':('Synthetic public evidence. '*150),'trust':'untrusted_external_content','status':'ok'}}})
         complete=continuation_context(context,observations,8)
         request=build(complete); projected=json.loads(json.loads(request.body)['input'][0]['content'])
-        assert projected['adaptive']['observations']==observations
+        expected=deepcopy(observations)
+        for observation in expected:
+            observation.pop('goal');observation.pop('success_criteria')
+        assert projected['adaptive']['observations']==expected
+        assert projected['adaptive']['goal']=='Preserve the requested outcome'
+        assert projected['adaptive']['success_criteria']==[]
         assert projected['messages'][-1]['text']==context['messages'][-1]['text']
         assert request_metrics(request)['estimated_input_tokens']<=37000
 

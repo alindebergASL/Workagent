@@ -1,5 +1,6 @@
 """Production worker + restricted disposable DB, controlled HTTP (not live quality)."""
 from copy import deepcopy
+import pytest
 from test_domain import context,cmd
 from test_work_area_context import saved
 from test_general_alpha_runtime import activate,AlphaProvider
@@ -70,13 +71,17 @@ def test_inactive_handover_retrieval_cannot_expose_another_conversation(context,
     assert s.get_work_area_context(p,ws,cv.id).responsibilities[0].lifecycle.current_outcome==long_outcome
 
 
-def test_already_prepared_old_schema_restores_exact_bytes(context,tmp_path,monkeypatch):
+@pytest.mark.parametrize('schema_version',['legacy_read','previous','previous_nullable'])
+def test_already_prepared_old_schema_restores_exact_bytes(context,tmp_path,monkeypatch,schema_version):
     from test_alpha_budget import prepared
     import workagent.request_packing as packing
-    from workagent.composition import LEGACY_DECISION_SCHEMA
+    from workagent.composition import LEGACY_DECISION_SCHEMA,DECISION_SCHEMA
+    from workagent.legacy_document_schema import previous_schema
+    schema=(LEGACY_DECISION_SCHEMA if schema_version=='legacy_read' else
+            previous_schema(DECISION_SCHEMA,nullable_checklist=schema_version=='previous_nullable'))
     original=packing.prepare_selection
     def historical(*args,**kwargs):
-        kwargs['read_schema']=LEGACY_DECISION_SCHEMA
+        kwargs['read_schema']=schema
         return original(*args,**kwargs)
     with monkeypatch.context() as change:
         change.setattr(packing,'prepare_selection',historical)
@@ -84,6 +89,6 @@ def test_already_prepared_old_schema_restores_exact_bytes(context,tmp_path,monke
     before=x['request'].body
     restored,events=x['ledger'].snapshot('selection',x['cap'])
     assert restored.body==before and restored.sha256==x['request'].sha256
-    assert restored.schema==LEGACY_DECISION_SCHEMA
+    assert restored.schema==schema
     assert restored.count_body()==x['request'].count_body()
     assert fake.calls==[] and events=={}

@@ -1,4 +1,4 @@
-"""Provider grammar must express document invariants, not hide them in validators."""
+"""Uniform provider shape with strict canonical semantic validation, no repair."""
 import json
 import pytest
 from pydantic import ValidationError
@@ -24,13 +24,13 @@ def exported_checkbox_types(schema, kind):
 
 @pytest.mark.parametrize('kind',['heading','paragraph','protected_note','checklist'])
 @pytest.mark.parametrize('checked',[None,False,True])
-def test_provider_schema_and_runtime_agree_on_checkbox_state(kind,checked):
+def test_uniform_shape_retains_strict_checkbox_semantics(kind,checked):
     data={'title':'Synthetic opening checklist','blocks':[
         {'block_id':'opening','kind':kind,'text':'Confirm station coverage.','checked':checked}]}
     expected=(checked is not None) if kind=='checklist' else checked is None
-    # The previous exported JSON schema accepted checked=False on paragraphs,
-    # while Pydantic rejected it only after the paid response was generated.
-    assert (('null' if checked is None else 'boolean') in exported_checkbox_types(DraftDocument.model_json_schema(),kind))==expected
+    # One item shape intentionally expresses types, not cross-field semantics.
+    # Invalid combinations still fail locally, never coerced into valid output.
+    assert exported_checkbox_types(DraftDocument.model_json_schema(),kind)=={'boolean','null'}
     if expected:
         draft=DraftDocument.model_validate(data,strict=True)
         assert Body.model_validate(draft.model_dump()).model_dump()==data
@@ -52,7 +52,7 @@ def test_live_failure_shape_rejected_before_selection_schema_generation():
                'text':'Eight volunteers; no external contact.','checked':False}]}}}
     schema=json.loads(CONTINUITY_DECISION_SCHEMA.material)
     doc={**schema['$defs']['DraftDocument'],'$defs':schema['$defs']}
-    assert exported_checkbox_types(doc,'paragraph')=={'null'}
+    assert exported_checkbox_types(doc,'paragraph')=={'boolean','null'}
     with pytest.raises(Exception):CONTINUITY_DECISION_SCHEMA.validate(json.dumps(value))
     value['decision']['body']['blocks'][0]['checked']=None
     assert CONTINUITY_DECISION_SCHEMA.validate(json.dumps(value)).decision.body.blocks[0].checked is None
