@@ -437,7 +437,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         from .reply_artifact import materialize
         return materialize(self,c,p,run,cv,text)
 
-    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind,producer_run_id=None):
+    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind,producer_run_id=None,*,advance_current=True):
         office=c.execute('SELECT office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',(ws,row['id'])).fetchone()
         if office and office['office_source_snapshot_id']:
             from .office_content import validate
@@ -450,7 +450,10 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
                      parent_revision_id=previous.id if previous else None,author_id=p.id,author_kind=author_kind,
                      body=body,body_hash=digest(body),source_dependencies=deps)
         c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data,producer_run_id) VALUES (%s,%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev),producer_run_id))
-        c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
+        # Product advancement retains its receipt before moving the pointer.
+        # The returned Artifact describes the candidate until that caller's CAS.
+        if advance_current:
+            c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
         return Artifact(id=row['id'],workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=rev.id,current_revision=rev)
 
     def human_save(self,p,ws,artifact_id,cmd):

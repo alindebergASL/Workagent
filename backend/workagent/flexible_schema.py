@@ -19,7 +19,7 @@ class DraftTextBlock(Block):
 
 class DraftChecklistBlock(Block):
     kind: Literal['checklist']
-    checked: bool | None
+    checked: bool = Field(description='Explicit completion state: false for an unfinished task, true only when actually completed.')
 
 
 DraftBlock = DraftTextBlock | DraftChecklistBlock

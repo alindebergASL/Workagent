@@ -27,7 +27,7 @@ def exported_checkbox_types(schema, kind):
 def test_provider_schema_and_runtime_agree_on_checkbox_state(kind,checked):
     data={'title':'Synthetic opening checklist','blocks':[
         {'block_id':'opening','kind':kind,'text':'Confirm station coverage.','checked':checked}]}
-    expected=kind=='checklist' or checked is None
+    expected=(checked is not None) if kind=='checklist' else checked is None
     # The previous exported JSON schema accepted checked=False on paragraphs,
     # while Pydantic rejected it only after the paid response was generated.
     assert (('null' if checked is None else 'boolean') in exported_checkbox_types(DraftDocument.model_json_schema(),kind))==expected
@@ -36,7 +36,12 @@ def test_provider_schema_and_runtime_agree_on_checkbox_state(kind,checked):
         assert Body.model_validate(draft.model_dump()).model_dump()==data
     else:
         with pytest.raises(ValidationError):DraftDocument.model_validate(data,strict=True)
-        with pytest.raises(ValidationError):Body.model_validate(data,strict=True)
+        # Legacy durable checklist nulls remain readable; new model output must
+        # select a real checkbox state rather than rely on UI interpretation.
+        if kind!='checklist':
+            with pytest.raises(ValidationError):Body.model_validate(data,strict=True)
+        else:
+            assert Body.model_validate(data,strict=True).model_dump()==data
 
 
 def test_live_failure_shape_rejected_before_selection_schema_generation():
