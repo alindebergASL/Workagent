@@ -9,6 +9,7 @@ import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useHomeOverview } from "@/lib/client/overview";
 import {
+  actionableDecision,
   useHomeWork,
   type ConversationWork,
 } from "@/lib/client/conversation-work";
@@ -238,8 +239,12 @@ function AgentHome() {
   const conversationWork = useHomeWork(workspaceIds);
   const made = conversationWork.data?.items ?? [];
   const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
-  const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
-  const madeSaved = made.filter((w) => !w.decision);
+  // Only a decision the person can act on needs them. Work whose pending
+  // proposals are all out of date stays with its saved result below.
+  const madeDecisions = made.filter(
+    (w) => actionableDecision(w) && w !== leadDecision,
+  );
+  const madeSaved = made.filter((w) => !actionableDecision(w));
   // What changed since this device last showed Home; the decision already
   // shown in full below isn't repeated.
   const marker = useSinceMarker(
