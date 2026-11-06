@@ -412,6 +412,9 @@ def observations(c,attempt_id):
             if active(c,attempt_id,step['phase'],kind):
                 state='counting' if kind=='count_send' else 'dispatching'
         if e.get('problem',{}).get('received') and not receipt: state='invalid'
+        if state=='invalid' and 'selection_rejection' in e:
+            from .selection_rejection import valid
+            if valid(c,attempt_id,step['phase']):state='received'
         decision=(receipt.get('value') or {}).get('decision',{})
         if (target is not None and receipt.get('state')=='function_call' and 'tool_result' not in e
                 and decision.get('kind') in ('publish_artifact','reconcile_csv','run_wasm')

@@ -292,7 +292,9 @@ class ProviderAttempts:
                 if any(active(c,attempt.id,phase,kind) for kind in ('count_send','dispatch','read','cancel')):return False
                 if 'cancel' in events or 'problem' in events:return False
                 if 'count_send' in events and 'count_result' not in events:return False
-                if 'result' in events and events['result'] not in ('function_call','completed'):return False
+                if 'result' in events and events['result'] not in ('function_call','completed'):
+                    from .selection_rejection import valid
+                    if events['result']!='malformed' or not valid(c,attempt.id,phase):return False
                 # A durable response ID after returned transport can be polled
                 # under the next fenced lease. Never regenerate this request.
                 if 'dispatch' in events and 'result' not in events and 'identity' not in events:return False

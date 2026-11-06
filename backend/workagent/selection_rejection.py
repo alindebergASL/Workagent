@@ -56,6 +56,46 @@ def observation(request,result_row,raw,bound,worker_fence):
         response_id=original['response_id'],attempt_id=request.metadata.attempt_id,phase=request.phase,
         diagnostic_sha256=digest(raw),terminal_outcome='step_limit' if number==bound else 'continue',feedback=feedback(raw))
 
+def valid(c,attempt_id,phase):
+    """Read-only binding of the SQL-authenticated, known-unexecuted receipt.
+
+    An event name alone is not proof. Keep the original malformed result and
+    usage intact; this recognizes its disposition, not an executable choice.
+    """
+    step=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+        (attempt_id,phase)).fetchone()
+    rows=c.execute('SELECT id,kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s',
+        (attempt_id,phase)).fetchall()
+    events={r['kind']:r['data'] for r in rows}
+    if (not step or not {'count_send','count_result','dispatch','identity','result','selection_rejection'}<=events.keys()
+            or {'tool_result','file_input_rejection','corrected_readback','cancelled_unapplied','cancel','problem'} & events.keys()):
+        return False
+    result=events['result'];proof=events['selection_rejection'];identity=events['identity'];count=events['count_result']
+    original=next(r for r in rows if r['kind']=='result')
+    raw=result.get('rejection_diagnostic')
+    if raw is None:
+        imported=c.execute('SELECT diagnostic_bytes FROM selection_rejection_diagnostics WHERE result_event_id=%s',
+            (original['id'],)).fetchone()
+        raw=imported['diagnostic_bytes'] if imported else None
+    if (result.get('state')!='malformed' or result.get('issue')!='schema_validation_failed'
+            or not isinstance(result.get('usage'),dict) or result.get('value') is not None
+            or result.get('call_id') is not None or result.get('output_items')!='[]'
+            or not identity.get('response_id') or result.get('response_id')!=identity['response_id']
+            or count.get('input_tokens') is None or count.get('count_sha256')!=step['count_sha256']
+            or any(events[k].get('request_sha256')!=step['request_sha256'] or events[k].get('metadata')!=step['metadata']
+                   for k in ('result','identity','count_result'))
+            or proof.get('version')!='selection-rejection/v1' or proof.get('attempt_id')!=attempt_id
+            or proof.get('phase')!=phase or proof.get('result_event_id')!=original['id']
+            or proof.get('result_sha256')!=digest(canonical(result))
+            or proof.get('request_sha256')!=step['request_sha256'] or proof.get('response_id')!=identity['response_id']
+            or proof.get('terminal_outcome') not in ('continue','step_limit')
+            or not isinstance(raw,str) or proof.get('diagnostic_sha256')!=digest(raw)):
+        return False
+    return not c.execute('SELECT 1 FROM tool_attempts t JOIN provider_attempts a '
+        'ON a.workspace_id=t.workspace_id AND a.run_id=t.run_id WHERE a.id=%s AND t.call_id=%s',
+        (attempt_id,phase)).fetchone()
+
+
 def retain(ledger,request,cap):
     from .general_responses import check_pins
     from .responses_ledger import encoded
