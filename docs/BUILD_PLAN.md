@@ -1,35 +1,47 @@
 # Current build priorities
 
-We are building the product, not certifying a production release. Hermes owns the
-complete integration outcome; Claude remains the sole web owner. [STATUS](../STATUS.md)
-is the single checkpoint source. Choose implementation order from dependencies.
+Andrew approved execution on November 6, 2026. Build a general, persistent work
+partner through staged replacement, retaining saved work and proven protections,
+not every old protocol. Hermes owns the installed outcome; Claude owns web.
+[STATUS](../STATUS.md) distinguishes installed behavior from published code.
 
-Deliver a usable continuing work experience:
+## Ordered delivery
 
-1. Make ordinary Home requests executable under bounded standing authorization.
-   Replace the lifetime eight-turn ceiling with bounded context and continuation.
-2. Let the agent retain useful intermediate work, continue pursuing the request,
-   and update a responsibility's next action/check-in or evidenced outcome.
-3. Add practical reusable capabilities, beginning with public retrieval and scoped
-   working-file/computation support. Implement and validate capabilities separately
-   from permission to access new private data or perform external effects.
-4. Fix known progress, polling-latency and malformed-turn recovery defects so work
-   advances dependably and failures have a useful resolution.
-5. Integrate Claude's approved design direction into this real path: clear Home,
-   recognizable work, conversation beside results, secondary Source/Changes,
-   accessible steering and coherent desktop/phone behavior.
+1. **One useful current result — active.** Let agent-owned preparation advance
+   through immutable revisions, retain one current candidate without erasing
+   history, preserve human edits/acceptance and produce real checklist blocks.
+   Put current work before obsolete proposals. Fix API/web stream shutdown.
+   Install the coherent increment; Andrew uses it and his first findings are
+   fixed or explicitly scheduled before new-capability slices begin.
+2. **Dependable continuing work.** One persisted work loop continues, waits for
+   a meaningful dependency, resumes on change and recovers after restart.
+   Renew worker ownership safely without extending access or spending authority.
+3. **One activated tool/context path.** Unify rich editable work, files,
+   computation, retrieval and interactive views. Replace repeated context
+   materialization, not fresh permission checks. Retain historical interpreters
+   while moving new work off accidental profile limits.
+4. **Natural scoped memory.** Remember, recall, correct and stop using information
+   through ordinary conversation. Keep source-linked history and explicit scope;
+   do not promise deletion or provider erasure that did not happen.
+5. **Learned methods and useful specialists.** Transfer verified approaches across
+   tasks and add bounded specialists where a real outcome benefits. Preserve the
+   shared budget and parent ownership; no agent committee for routine work.
 
-These are implementation priorities, not a required serial ceremony. Publish
-coherent increments and use unfamiliar variations to reveal missing general
-mechanisms. Do not add business-specific handlers merely to pass the next example.
+## Delivery discipline
 
-Verify continued use across a later event, changed input and restart, with human
-work preserved. Share the working candidate and candid limitations early. Andrew's
-experience feedback is product evidence, not something test totals can overrule.
+- One writer per ownership stream, one integrated user outcome at a time.
+- Stop automatic decomposition and unchanged-card requeues for this project;
+  keep historical studies as reference, not active work.
+- Run focused changed-behavior checks and one normal installed journey. Reuse
+  unchanged checks. At most one independent risk-focused review where warranted.
+- Keep an active successor or report a genuine stop. Awaiting owner feedback
+  does not stop unrelated authorized first-use fixes or imply acceptance.
+- Install coherent increments on the existing private host. Preserve both owner
+  work and old-alpha isolation. Prepare migrations and seek installed-data
+  approval when actually needed; do not gate unrelated reversible engineering.
+- Keep true allocations, known usage, unknown liabilities and bills distinct.
+  No new paid providers, private access, external effects or public deployment
+  are authorized by this sequence.
 
-Specialist coordination, broader integrations and memory/learning remain part of
-the mission. Sequence them against useful outcomes; avoid another framework,
-vision-reset or mandatory review program as a prerequisite to implementation.
-
-[Previous build plan, retained as history](https://github.com/alindebergASL/Workagent/blob/3c537b7f366369879069379ddcb9735b19fe9fed/docs/BUILD_PLAN.md).
-Old “active” sequences, candidate hashes and approval checkpoints are superseded.
+The complete action plan was supplied to Andrew on November 6. These are its
+active delivery priorities, not a certification program or a narrowed product.

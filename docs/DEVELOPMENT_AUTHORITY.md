@@ -1,69 +1,43 @@
 # Development direction — Workagent
 
-Andrew's direction, November 5, 2026. It replaces every earlier version of this file. The old text is history, not instruction ([previous version](https://github.com/alindebergASL/Workagent/blob/2f3c5dd447bf92fb34978f8960333c6fe1d165ba/docs/DEVELOPMENT_AUTHORITY.md)). Read it with `../AGENTS.md` and `GENERAL_MODEL_AUTHORIZATION.md`. A newer direct instruction from Andrew overrides it.
+Andrew approved execution of the November 6, 2026 action plan (“Ok execute this plan”). This replaces completed install/merge instructions and conflicting historical sequences. Read with `../AGENTS.md`, `BUILD_PLAN.md` and `GENERAL_MODEL_AUTHORIZATION.md`. A newer direct instruction from Andrew overrides this file. History remains in git.
 
-## The goal
+## Goal and current milestone
 
-Build a Workagent that Andrew actually uses for real work, on desktop and phone. Andrew using it, and saying what helps, is the measure of progress. Test totals, acceptance matrices, evaluation studies and reviews are tools for getting there. None of them counts as progress on its own.
+Build a general, persistent work partner Andrew actually uses on desktop and phone. Follow staged replacement of the execution, context and presentation paths; existing architecture has no preservation right. Keep saved human work, access isolation, receipts and financial truth.
 
-## Current milestone: Andrew uses the current build
+The owner installation is already running privately on the Hermes host with a separate database and the approved model route. Do not recreate or reset it. Keep the old alpha, its database and its services untouched.
 
-1. **Take Claude's web head:** the tip of `aslcl/elegant-clarke-e22pab`. It includes the web work through `b5d5183`, the `products-journey.mjs:315` verifier fix (`3a48072`) and this direction. Merge it into #18.
-   - In `web/src/components/MemoryPanel.tsx`, combine both sides. Claude can do this merge on request.
-   - In `STATUS.md`, `docs/DEVELOPMENT_AUTHORITY.md` and `docs/GENERAL_MODEL_AUTHORIZATION.md`, keep this branch's version.
-2. **Install #18 fresh on the Linux server you've been working on.**
-   - Use a new database.
-   - Don't migrate, change or delete the old alpha database or its services. Leave them as they are.
-   - One exception: the budget ledger. The issuer in the old alpha database stays the single ledger for the $275 ceiling. You may add budget certificates there to fund new installations, within the ceiling and after a backup (`pg_dump` kept under `.local/`). Change nothing else in that database, and tell Andrew in one line each time.
-   - Andrew's conversations get model answers through the approved route, within the budget in `GENERAL_MODEL_AUTHORIZATION.md`.
-3. **Tell Andrew how to open it** on desktop and phone, the same private way he reached the old alpha. Keep it to a few lines.
-4. **Fix what Andrew finds.** Hermes fixes the backend, Claude fixes the web. Ship each fix to the install as soon as it works.
+**Active slice:** deliver one complete editable result, agent-owned preparation that can advance without ceremonial approval, protected human changes, understandable proposal history, real checklist blocks and reliable stream shutdown. Hermes owns backend/integration; Claude owns web. Ship each coherent fix to the owner installation after focused checks.
 
-The milestone is done when Andrew has used the current build and his first round of findings is fixed or explicitly scheduled.
+The first-use milestone finishes when Andrew has used the build and his first findings are fixed or explicitly scheduled. Before then, do not start the later new-capability slices. Next come reliable continuation, unified tools/context, scoped memory, and learned methods/specialists, as ordered in `BUILD_PLAN.md`. Full product scope remains intact.
 
-**Until it's done:**
-- **Don't start new capabilities.**
-- **Cancel queued work that doesn't serve the milestone.** That includes the B3.5g re-run (card `t_4ccebe23`) and any other study, acceptance or audit card.
-- **Treat older "next" and "successor" entries as history.** Any such entry from before November 5, in STATUS.md, a handoff, a task card or `docs/evidence/`, is not an instruction.
-- **Connecting the approved model to Andrew's install is routine engineering.** Use the existing grant mechanism. Don't build new authority or accounting machinery to do it.
-- **If you're stuck, tell Andrew.** If something blocks the install for a working day, or the same check fails twice after a fix, send Andrew three lines: what's blocked, what you tried, the options.
+## How work proceeds
 
-## How to work
+- **Standing build authority:** change development APIs, schemas, policies, tools and architecture when needed. Reversible implementation, targeted checks, owned development services and feature-branch publication need no routine reapproval.
+- **One installed outcome:** one writer per ownership stream in isolated branches; Hermes integrates, Claude owns all of `web/`, including scripts. Preserve concurrent work and agree the interface before divergent changes.
+- **Few reviews:** use at most one independent review when a change risks human data, security or money. No per-task review cascades, agent fleets or broad audit habit.
+- **Proportionate checks:** test changed behavior and one ordinary installed journey. Do not rerun a whole suite or reverify unchanged published work by habit. Test counts and maintainer walkthroughs do not establish owner acceptance.
+- **Continuous ownership:** preserve an actual active successor or report a genuine stop. Resume a blocker after its code, dependency, evidence or direction changes—not by requeuing the same instructions. Awaiting Andrew does not stop unrelated authorized first-use fixes.
+- **Simplify project scheduling:** no automatic decomposition or unchanged-card requeues for Workagent. Do not alter unrelated/global tooling. Record the active increment, next increment and real blockers without resurrecting historical cards.
+- **No studies:** the memory A/B program and queued study/acceptance/audit work are ended. No cohorts, longitudinal campaigns or new evaluation studies unless Andrew asks. Old handoffs, evidence and STATUS entries are reference only.
+- **No new process tooling:** do not add guards, boundary inventories, acceptance matrices, document-wording tests or another approval mechanism. Remove contradictory current wording instead of appending precedence essays.
+- **Keep records lean:** no new `docs/evidence/` files. Logs/screenshots/run output belong in `.local/` or CI. Keep STATUS under 100 lines, naming the actual installed build, enabled behavior and next outcome; distinguish PR publication from installation.
+- **Updates:** at most 10 lines to Andrew or on a PR: what he can do, how to try it, what remains broken. State only checked facts; correct wrong claims plainly.
+- **Blocked work:** notify Andrew promptly. If an install is blocked for a working day, or the same check fails twice after a fix, send three lines: the blocker, what was tried, the options. Do not silently churn.
 
-- **Build-mode authority stands.** Change APIs, schemas, policies, tools and architecture whenever they get in the way of the product. Implementing, testing, running development services and publishing feature branches need no approval.
-- **Verify in proportion to the risk.** Run the tests for what you changed, plus one real end-to-end check when behavior a user sees changes. Don't re-verify published work unless it changed. Don't run a whole-suite rerun, a broad audit, an extra review layer or an all-model review by habit.
-- **No acceptance gates.** Don't build pass-rate matrices, HOLD verdicts or batch acceptance programs. A known gap is a line in the next update, not a gate on the rest of the work.
-- **No new process tooling.** Don't add guards, boundary inventories, anti-drift checks or tests that check the wording of documents. Don't extend `evaluation/development_boundary_guard.py` or its inventory.
-- **One worker, few reviews.** Work as a single writer. Use at most one independent review, and only for changes that risk data loss, security or money. Don't fan out agent fleets unless Andrew asks.
-- **No evaluation studies unless Andrew asks for one.** That includes A/B cohorts, longitudinal studies and synthetic-episode campaigns. The memory A/B program is ended. Its results stay as history.
-- **Keep evidence out of git.** Screenshots, terminal logs, run dumps and manifests go under `.local/` or into CI artifacts. A change gets at most one short note in the repository. Don't add new files under `docs/evidence/`.
-- **Keep STATUS.md under 100 lines**, describing the current state only. History lives in git.
-- **Send web failures to Claude.** Claude owns everything under `web/`, including `web/scripts`. Report a failing web check to Claude instead of carrying it as a hold.
-- **Keep updates short and about the user.** Each update to Andrew or on a PR is at most 10 lines:
-  - what Andrew can now do;
-  - how to try it;
-  - what's still broken.
+## Budget, data and effects
 
-  Hashes, test counts and accounting go in a linked file if they're needed at all.
-- **State only what you've checked.** If you haven't checked something, say "not checked". Correct a wrong claim in one line and carry on.
+Use the approved route and existing grant mechanism within the $275 cumulative ceiling; no new consent/accounting machinery is needed to connect it. Read the ledger before paid use. The old alpha's issuer remains the single ledger. New certificates within the ceiling are permitted only after a `pg_dump` backup kept in `.local/`; change nothing else in that database and tell Andrew in one line each time.
 
-## Safety
+Current product spending is for Andrew's use and the smallest real-model fix check, not studies. Allocations, known usage, uncertain liabilities and verified bills are different. Reconcile the synthetic-only declaration and actual data handling before broader real-data use; execution approval does not silently authorize new private accounts or confidential datasets.
 
-- **Never bypass a refusal.** If git, the filesystem, the database or a permission check refuses an action, don't force it, find a way around it or delete the thing refusing. Stop and tell Andrew. Bypassing git's worktree refusal on November 4 deleted the shared repository.
-- **For disk space, delete only build output and caches that you created and can regenerate.** Ask Andrew before removing anything that contains `.git`, a database, credentials, uncommitted work or anyone else's files.
-- **Preserve what people made.** That covers human edits, saved work, credentials, access isolation between people and conversations, and duplicate-effect protection, so an uncertain external request is never blindly re-sent.
-- **These still need Andrew's explicit approval:**
-  - maintenance on installed data (migrating, vacuuming or bulk-editing an existing database);
-  - destructive cleanup;
-  - access to new private accounts or data;
-  - effects outside Workagent (sending, posting or buying);
-  - merging to the default branch (`hermes/s0-s1-backend`);
-  - any public deployment.
+## Non-negotiable preservation
 
-  A fresh database for a fresh install doesn't need approval.
+- Never bypass a git, filesystem, database or permission refusal. Do not force it or delete what refuses; stop and tell Andrew.
+- Delete only build output/caches you created and can regenerate. No bulk deletion of repositories, history, databases, credentials, uncommitted work or other people's files.
+- Preserve human edits and acceptance, isolation between users/conversations, immutable historical receipts and duplicate-effect protection. Never blindly re-send an uncertain external request.
+- These still need explicit approval: installed-data maintenance (migration, VACUUM or bulk edits), destructive cleanup, new private access, new paid providers, external sending/posting/buying, merging to the default branch (`hermes/s0-s1-backend`), and public deployment.
+- A fresh isolated database for development or a fresh installation is allowed; that is not permission to reset an existing database. Prepare migrations and backups before requesting any needed installed-data approval, and continue unrelated engineering.
 
-## Open technical items, after the milestone
-
-- **P7, revocation targeting.** Make one focused fix, or record a reproduction as a known gap. No further evaluation runs.
-- **The 21 untracked files under `evaluation/`, and `contracts/pnpm-lock.yaml`, in the canonical checkout.** Check them for private paths and credentials, then archive them outside the repository with a one-line note. Don't commit them.
-- **Archived source directories with `.git` guards.** Leave them as they are unless Andrew asks.
+Historical untracked evaluation files and archived source directories are not cleanup targets for this slice. Leave `.git`-guarded archives alone.

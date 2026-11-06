@@ -1,20 +1,24 @@
 # Workagent status
 
-Current state only, kept under 100 lines. History is in git: the previous long version is at [2f3c5dd](https://github.com/alindebergASL/Workagent/blob/2f3c5dd447bf92fb34978f8960333c6fe1d165ba/STATUS.md). Direction is in [docs/DEVELOPMENT_AUTHORITY.md](docs/DEVELOPMENT_AUTHORITY.md).
+## Current (November 6, 2026)
 
-## Now (November 5)
-
-- **Milestone:** install #18 fresh on the Linux development server, with a new database. Andrew uses it on desktop and phone, and we fix what he finds.
-- **Code:**
-  - PR #18 (`hermes/b2-conversational-client`) is at `2f3c5dd`. It isn't merged anywhere, and nothing is deployed.
-  - Claude's web head is `aslcl/elegant-clarke-e22pab`. It contains the verifier fix and this direction.
-  - Merging the two conflicts only in `web/src/components/MemoryPanel.tsx`.
-- **Installed alpha:** still runs `d4d019c4` (October 23). Leave it and its database untouched.
-- **Studies:** the memory A/B program has ended, and no study or acceptance work is queued.
-- **Budget:** $275 cumulative ceiling. Read the ledger before paid use.
+- **Direction:** Andrew approved execution of the action plan on November 6. Staged replacement, not another study or a ground-up rebuild. See [build priorities](docs/BUILD_PLAN.md).
+- **Active outcome:** one complete editable result, protected human changes, clear proposal history and graceful shutdown. Hermes owns backend/integration; Claude owns web.
+- **Installed:** the private owner installation is running on the Hermes host, at `147b025`, with a separate database, existing approved model grant and loopback web/API ports 3300/8300. The old alpha and its database remain separate and untouched.
+- **Published versus installed:** PR #18 is still at `147b025`. Claude published `aa18170`, collapsing obsolete proposals and suppressing empty citation summaries. It is included in both Slice 1 working branches but is **not installed yet**.
+- **Implementation:** the independent web/stream increment is being integrated. Web focused tests, typecheck, production build and real open-stream shutdown passed. The model-backed draft-advancement change is isolated and blocked by existing SQL publication guards; it is not in this release.
+- **Next outcome:** reliable continuing responsibilities, after Andrew's first-use loop. Unified tools/context, memory and learned methods follow; they have not been dropped.
+- **Studies:** ended; historical study/acceptance cards are not active instructions. No new evaluation campaign is authorized.
+- **Budget:** $275 cumulative ceiling, existing issuer and approved route. Read the live ledger before paid use; allocations are not billed spending.
 
 ## Known gaps
 
-- **P7, revocation targeting.** It's proven to deny a request aimed at the wrong target, not that it chose the specific revoked attachment. Next step: one focused fix, or a recorded reproduction.
-- **"Execution status:"** still shows in conversation previews. It needs a typed preview field.
-- **The repository deletion on November 4.** Published history is restored from GitHub, but some local-only commits from before it may be lost. Details: `docs/evidence/repository-recovery-20261104/REPORT.md`.
+- Checklist generation can retain a placeholder or paragraph tasks and competing proposals instead of one complete checkable result. Human edits must remain protected while agent preparation advances.
+- Open event streams can prevent graceful API/web shutdown.
+- Current installed tool binding does not activate every capability present in source. Switching to the newest gateway blindly would remove rich artifact publication.
+- Worker recovery, efficient context and continuing responsibilities are later delivery slices, not completed behavior.
+- Resource-specific revocation (P7), actual provider billing and physical-phone behavior remain unverified.
+- The synthetic-only binding/data-handling scope needs reconciliation before broader real-data use. No new private-account access is implied.
+- Some unpublished historical Git work may be missing after the November 4 deletion. Published-history recovery is not proof of full local recovery.
+
+The milestone finishes only when Andrew uses the build and his first findings are fixed or explicitly scheduled. A test pass, PR or maintainer walkthrough is not user acceptance.

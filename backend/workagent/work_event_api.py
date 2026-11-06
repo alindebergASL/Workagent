@@ -21,6 +21,10 @@ from .work_snapshot import read
 
 POLL_SECONDS = 2
 HEARTBEAT_SECONDS = 15
+# Uvicorn waits for response tasks BEFORE lifespan teardown. A shutdown event
+# set by lifespan is too late for an endless SSE response. Lease each stream;
+# EOF means reconnect with the last delivered cursor, not a snapshot reset.
+STREAM_SECONDS = 20
 
 
 def frame(name, data, cursor=None):
@@ -31,7 +35,8 @@ def frame(name, data, cursor=None):
 async def stream(events, p, ws, cid, after, limit, request, authenticate, initial):
     page = initial
     last_heartbeat = time.monotonic()
-    while True:
+    deadline = last_heartbeat + STREAM_SECONDS
+    while time.monotonic() < deadline:
         if await request.is_disconnected():
             return
         try:
@@ -46,7 +51,7 @@ async def stream(events, p, ws, cid, after, limit, request, authenticate, initia
             return
         _, generation = events.codec.decode(page.next_cursor,ws,p.id,cid)
         for event in page.events:
-            if await request.is_disconnected():
+            if time.monotonic() >= deadline or await request.is_disconnected():
                 return
             cursor = events.token(event.event_id,p,ws,cid,generation)
             try:
@@ -71,7 +76,9 @@ async def stream(events, p, ws, cid, after, limit, request, authenticate, initia
         more = page.has_more
         page = None
         if not more:
-            await asyncio.sleep(min(POLL_SECONDS,max(0,HEARTBEAT_SECONDS-(time.monotonic()-last_heartbeat))))
+            await asyncio.sleep(max(0,min(POLL_SECONDS,
+                deadline-time.monotonic(),
+                HEARTBEAT_SECONDS-(time.monotonic()-last_heartbeat))))
 
 
 def register(app, service, settings, principal, query_meta, errors):
