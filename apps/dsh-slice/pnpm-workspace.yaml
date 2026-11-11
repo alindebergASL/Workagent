@@ -1,0 +1,6 @@
+packages:
+  - .
+# Same reviewed native dependency policy as the pinned DSH release.
+allowBuilds:
+  koffi: true
+  node-addon-require-builtin: false

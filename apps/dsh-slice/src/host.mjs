@@ -1,0 +1,97 @@
+import { mkdir, readFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+import { Context } from '@deepseek-ai/cordis';
+import Llm from '@deepseek-ai/dsh-llm';
+import Sessions from '@deepseek-ai/dsh-session';
+import Projections from '@deepseek-ai/dsh-session-projection';
+import SystemPrompt from '@deepseek-ai/dsh-system-prompt';
+import FsLocal from '@deepseek-ai/dsh-fs-local';
+import WorkingDirectory from '@deepseek-ai/dsh-working-directory';
+import Tools from '@deepseek-ai/dsh-tools';
+import * as NativeTools from '@deepseek-ai/dsh-tool-executor-native';
+import Agents from '@deepseek-ai/dsh-agent';
+import * as Persistence from '@deepseek-ai/dsh-session-persistence-jsonl';
+import * as Checkpoints from '@deepseek-ai/dsh-session-checkpoint-policy';
+import { TYPERT as sessionContract } from '@deepseek-ai/dsh-api-session-controller/typert';
+import AgentLoop from '@deepseek-ai/dsh-agent-loop';
+import AgentDefaultModel from '@deepseek-ai/dsh-agent-default-model';
+import Storage from '@deepseek-ai/dsh-storage';
+import * as StorageJson from '@deepseek-ai/dsh-storage-json';
+import * as StorageDomain from '@deepseek-ai/dsh-storage-domain';
+import Workspace from '@deepseek-ai/dsh-workspace';
+import SessionQuery from '@deepseek-ai/dsh-session-query-sqlite';
+import Attachments from '@deepseek-ai/dsh-attachment-local';
+import * as Connection from '@deepseek-ai/dsh-client-connection';
+import Subagents from '@deepseek-ai/dsh-subagent';
+import * as SpawnChildren from '@deepseek-ai/dsh-subagent-spawn-in-process';
+import Schedule from '@deepseek-ai/dsh-schedule';
+import { FixtureInferenceJournal } from './inference-journal.mjs';
+import { FakeEffectConnector } from './fake-effect.mjs';
+import Commands from '@deepseek-ai/dsh-commands';
+import FileUploads from '@deepseek-ai/dsh-client-file-upload';
+import Typert from '@deepseek-ai/dsh-typert-registry';
+import RemoteAccess from '@deepseek-ai/dsh-api-remote-access';
+import Gateway from '@deepseek-ai/dsh-api-gateway';
+import SessionController from '@deepseek-ai/dsh-api-session-controller';
+import { createLaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment';
+import FixtureCredentials from './fixture-credentials.mjs';
+import { FixtureProvider, PROVIDER, MODEL } from './fixture-provider.mjs';
+import * as WorkagentFixture from './workagent-plugin.mjs';
+
+export async function bootHost({ stateRoot, concurrentWorkers = false, beforeFixtureStream, fakeEffectOptions }) {
+  const root = resolve(stateRoot);
+  const workDir = join(root, 'work');
+  await mkdir(workDir, { recursive: true });
+  const ctx = new Context();
+  const journal = await new FixtureInferenceJournal(root).load();
+  const provider = new FixtureProvider({ concurrentWorkers, beforeStream: beforeFixtureStream, journal });
+  const fakeEffects = await new FakeEffectConnector(root, fakeEffectOptions).load();
+  const constraints = new Map();
+  try {
+    const product = JSON.parse(await readFile(join(root, 'product/responsibility.json'), 'utf8'));
+    if (product.sessionId && product.constraint) constraints.set(product.sessionId, product.constraint);
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const toolCalls = [];
+  const errors = [];
+  ctx.provide('launchEnvironment', createLaunchEnvironmentSnapshot([]));
+  ctx.on('agent/error', ({ error }) => errors.push(error));
+  try {
+    await ctx.plugin(Llm);
+    await ctx.plugin(Sessions);
+    await ctx.plugin(Projections);
+    await ctx.plugin(SystemPrompt, { includeRuntimeContext: false, personaPrefix: 'This is an explicitly scripted, fictional Workagent compatibility fixture.' });
+    await ctx.plugin(FsLocal, { cwd: workDir });
+    await ctx.plugin(WorkingDirectory);
+    await ctx.plugin(Tools);
+    await ctx.plugin(NativeTools);
+    await ctx.plugin(Agents);
+    await ctx.plugin(Persistence, { root: join(root, 'sessions'), compression: 'none', listConcurrency: 1 });
+    await ctx.plugin(Checkpoints);
+    await ctx.plugin(AgentLoop, { agents: [] });
+    await ctx.plugin(Subagents, { maxDepth: 1, maxActiveSubagents: 2 });
+    await ctx.plugin(SpawnChildren, { providerName: 'spawn' });
+    await ctx.plugin(WorkagentFixture, { provider, toolCalls, fakeEffects, constraints });
+    await ctx.plugin(AgentDefaultModel, { provider: PROVIDER, model: MODEL });
+    await ctx.plugin(Storage);
+    await ctx.plugin(StorageJson, { root: join(root, 'storage') });
+    await ctx.plugin(StorageDomain, { backend: 'json' });
+    await ctx.plugin(Workspace);
+    await ctx.plugin(SessionQuery, { path: join(root, 'query.sqlite'), openAt: 'never' });
+    await ctx.plugin(Attachments, { dshHome: root, imageCompressionConcurrency: 1 });
+    await ctx.plugin(FixtureCredentials);
+    await ctx.plugin(Connection);
+    await ctx.plugin(Commands);
+    await ctx.plugin(FileUploads);
+    await ctx.plugin(Typert);
+    ctx.typert.register(sessionContract);
+    await ctx.plugin(RemoteAccess);
+    await ctx.plugin(Gateway, {});
+    await ctx.plugin(SessionController, { nativeOpen: false });
+    await ctx.plugin(Schedule, {});
+    if (!ctx.sessionController) throw new Error('SessionController did not activate');
+    return { ctx, provider, journal, fakeEffects, constraints, toolCalls, errors, workDir, controller: ctx.sessionController, close: () => ctx.fiber.dispose() };
+  } catch (error) {
+    await ctx.fiber.dispose();
+    throw error;
+  }
+}
