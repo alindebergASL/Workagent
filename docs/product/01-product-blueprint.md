@@ -2,7 +2,7 @@
 
 **Version:** 1.1 · 12 November 2026 · canonical repository direction
 
-**Status:** Revised product specification adopted by the bounded cleanup. Product implementation is not activated by this approval; no rebuild or deployment is claimed.
+**Status:** B01 activated by owner START, followed by B02 and B03 as prerequisites permit. P01–P16 remains full scope; implementation/verification state is recorded in STATUS.
 
 **Basis:** Owner feedback and the accepted November 12 research/audit corrections. Those dated materials are reference, not a separate instruction set.
 
@@ -26,7 +26,7 @@ The old build and the DSH workshop demonstrated internal execution but did not d
 
 Retain the useful engineering: public DSH integration, concurrency, steering, recovery, provider fidelity work, retained human contributions, accounting, and ambiguous-effect handling. Retire the fixed workshop as the product model, budget-only steering, global edit conflicts, suppressed agent updates, and setup-first navigation.
 
-The client is rebuilt from the ground up. No imports from the rejected component trees. Old saved work remains preserved; preservation does not mean retaining the old UX.
+The client is rebuilt from the ground up. No imports from the rejected component trees. Pre-pivot application data is disposable and needs no migration/compatibility; this run deletes none of it. Historical financial records remain authoritative and new human work must persist safely.
 
 ## 3. Experience principles
 
@@ -183,7 +183,7 @@ Do not build another fixed showcase, workflow editor, generic agent platform, se
 
 Keep the existing spending authority and historical receipts. The cumulative product ceiling is $275, not new funding; reread live accounting before paid work. New paid routes, SDK purchases, private access, external effects, installed-data maintenance, destructive cleanup, default-branch merge, and public deployment retain their actual approval requirements. Ordinary reversible work should not acquire invented per-step approval gates.
 
-This cleanup does not activate implementation, purchase a license, restart the stopped legacy installation or authorize broader data use. Product-model data remains synthetic-only until scope and handling are reconciled. Later authorized increments continue without per-packet consent, while real effects retain their genuine authority requirements.
+B01 implementation is active, then B02 resilience and B03 background usefulness. Codex/Astra owns frontend and backend; Parent owns publication, private installation, financial operations, paid calls and final browser verification. No license purchase, stopped legacy service restart, default merge, public deployment or broader data use is activated. Product inputs remain synthetic-only; routine reversible work continues without per-task consent.
 
 ## 10. Source anchors and unresolved dependencies
 
@@ -192,4 +192,4 @@ This cleanup does not activate implementation, purchase a license, restart the s
 - [Interactive connectors](https://support.claude.com/en/articles/13454812-use-interactive-connectors-in-claude) · [Duet](https://support.claude.com/en/articles/17631495-get-started-with-claude-duet)
 - [Univer pricing](https://univer.ai/pricing/) · [License](https://univer.ai/legal/license-agreement/)
 
-These links anchor the November 12, 2026 reference; no fresh competitor or license verification is claimed by this cleanup. Univer fit/licensing, file fidelity, resources, partner access, formula/language coverage, the ledger bridge and DSH/provider compatibility remain qualification dependencies. A coherent rc1 product path is allowed if rc2 qualification blocks. Dependencies constrain affected capabilities; they do not stop independent core work. The architecture specifies their technical boundaries and the build document schedules their implementation.
+These links anchor the November 12, 2026 reference; no fresh competitor or license verification is claimed by this implementation. Univer fit/licensing, file fidelity, resources, partner access, formula/language coverage, the ledger bridge and DSH/provider compatibility remain qualification dependencies. Use the coherent public DSH 0.2.2-rc.1 set for B01 without an rc2 upgrade detour. Dependencies constrain affected capabilities; they do not stop independent core work. The architecture specifies their technical boundaries and the build document schedules their implementation.

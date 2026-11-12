@@ -6,17 +6,18 @@ The canonical versioned product direction is the [blueprint](docs/product/01-pro
 [architecture](docs/product/02-architectural-plan.md), and [build steps](docs/product/03-build-steps.md).
 Read these before product work. Product scope is not execution or spending approval.
 
-The current authorized increment is the November 12 bounded instruction/documentation
-cleanup and historical CI relocation. It does not activate the product rebuild.
-For later authorized increments, continue reversible implementation, targeted checks,
-integration, owned development-service operation and feature-branch publication without
-per-packet consent. A review, commit or session boundary creates no new approval gate.
+B01 is activated by the owner's START, followed by B02 resilience and B03 background
+usefulness as prerequisites permit. Routine reversible engineering, tests/fixes,
+integration, feature-branch publication and private operation on the existing dedicated
+server are authorized without per-task consent. Default merge, public deployment and
+new purchases are not activated. A review, commit or session boundary creates no gate.
 
-Hermes owns backend/runtime/integration. The existing Claude Code owner owns web,
-including the future client. Use isolated branches, preserve concurrent work and agree
-shared interfaces. If that owner is unavailable, surface the client blocker immediately
-and request reassignment for that stream; continue independent backend work without
-silently taking over web.
+Codex/Astra owns frontend and backend and is initially the sole integration writer.
+Claude availability is no longer a dependency. Parent Hermes owns commits/publication,
+test-server setup, accounting reconciliation, live issuer operations, paid product calls
+and final browser verification. This child run must not commit/push, operate host services,
+SSH, access databases/credentials, make paid calls, delete retained data, change profile
+skills or spawn agents. Preserve concurrent work and use isolated branches.
 
 Use one writer per stream, changed-behavior checks and at most one useful independent
 risk review. Skills may load as references; apply compatible techniques without activating
@@ -25,8 +26,10 @@ full-suite-every-edit loops. Higher-priority instructions and tool safeguards st
 Repository prose does not update profile skills; scoped profile maintenance is separate.
 
 Build mode permits replacing development APIs, schemas, runtime policies, tools and UI
-when they obstruct the product. Preserve saved human work with migrations/backups or
-isolated environments and regenerate affected clients. The rejected UX, old designs,
+when they obstruct the product. Start fresh product state: pre-pivot application data is disposable and requires no
+migration/compatibility. Do not delete it in this run. Preserve all historical financial
+receipts, allocations and unknown liabilities; the budget does not reset. New human work
+must be safe and persistent. Regenerate affected clients. The rejected UX, old designs,
 first-use checklist and historical runtime are not implementation requirements. Keep the
 old owner services stopped under current direction; do not use the old launcher for the
 new product. Preserve the alpha and historical rc1 compatibility slice.
@@ -39,4 +42,4 @@ database or permission refusal; stop and report the refused action.
 Older plans, research, audits, cards, handoffs and evidence are reference, not additional
 authority. Remove contradictory active wording instead of accumulating overrides.
 Keep STATUS under 100 lines and state what actually ran. No new guards, matrices,
-evidence files, studies or documentation-wording tests are needed for this cleanup.
+evidence files, studies or documentation-wording tests are needed for this increment.

@@ -2,7 +2,7 @@
 
 **Version:** 1.1 · 12 November 2026 · canonical repository direction
 
-**Status:** Technical design revised through the accepted cleanup. New-product implementation is not activated or claimed; component qualifications and procurement remain open.
+**Status:** B01 is active under owner START; B02/B03 follow as prerequisites permit. Component qualification is distinct from completion; no procurement is activated.
 
 **Goal:** Deliver the [product blueprint](01-product-blueprint.md) through one persistent agent workspace, native collaborative artifacts, and continuing responsibilities.
 
@@ -14,9 +14,9 @@
 
 ## 1. Baseline and design constraints
 
-Source baseline: `0ceb9818eb5278b54c37b3cf72c1fec2a8325b1d`, containing `apps/dsh-slice/`, legacy `web/` and `backend/workagent/`. New application/package paths below describe future implementation; this cleanup creates none of them. Create only paths with a real consumer or ownership/trust boundary, not all packages upfront.
+Source baseline: `0ceb9818eb5278b54c37b3cf72c1fec2a8325b1d`, containing `apps/dsh-slice/`, legacy `web/` and `backend/workagent/`. B01 source base is `bbd9631afd34fa915233f6f4f32428635b5dc6b4`; paths below are created as consumed. Create only paths with a real consumer or ownership/trust boundary, not all packages upfront.
 
-The slice uses actual public DSH 0.2.2-rc.1 packages with scripted inference. Its execution and recovery checks are useful regressions, not proof of the proposed product. The old client and workshop remain separate, with saved state preserved. The last verified check found the old services stopped and disabled. Keep them stopped under current direction; this cleanup performs no process check or service operation.
+The slice uses actual public DSH 0.2.2-rc.1 packages with scripted inference. Its execution and recovery checks are useful regressions, not proof of the proposed product. The old client and workshop remain separate. Pre-pivot application data is disposable with no migration requirement; no retained data is deleted in this run. Financial history remains authoritative and new work is protected. The last verified check found the old services stopped and disabled. Keep them stopped under current direction; this child performs no process check or service operation.
 
 The inspected repository authority documents retain the $275 cumulative spending ceiling and existing accounting route. Older first-use sequencing and UI designs are superseded by the owner's redirection. Safety, saved work, receipts, and actual authorization boundaries are not superseded.
 
@@ -26,7 +26,17 @@ The inspected repository authority documents retain the $275 cumulative spending
 
 DSH owns model/tool iteration, native sessions, cancellation, child work, curated skills, compaction, and execution lifecycle. Workagent does not implement a second model/tool loop or a separate agent team coordinator.
 
-Keep the verified rc1 fixture. Qualify **0.2.2-rc.2** at `ddac96760b6edf8fa0fe17cbdcf0b512f4c12b2c` for the new product. Upgrade cooperating packages/processes coherently; never mix prereleases to make individual tests pass. If rc2 has a blocking regression, use a coherent rc1 product composition for the affected outcome and record the limitation. There is no mandatory upgrade/retry loop. Reject a composition that cannot preserve provider identity/replay, cancellation or accounting for enabled calls; block only the affected capability and do not restart broad harness shopping or fork reflexively.
+Keep the verified rc1 fixture and use one coherent published **0.2.2-rc.1** set for
+B01. No rc2 upgrade detour or prerelease mixing. Preserve native tool IDs, opaque replay
+metadata, cancellation and accounting. OpenRouter is the inference route, default
+`typesafe/jev-router` with explicit-model overrides for debugging/capability calls.
+Retain opaque `session_id`, resolved response model and available routing metadata.
+Jev include preferences are not hard allowlists; cost tiers are not monetary caps.
+`typesafe/jev-1.14` is a separate structured Decisions API; no chat substitution or
+silent direct-TypeSafe calls. Leave it disabled until its exact contract and accounting
+are connected, with at most one bounded correction/intent seam in B01. No classifier
+framework or probabilistic permissions. Disable unaccounted optional inference paths.
+
 
 Disable feedback-triggered session sharing and DeepSeek log contribution explicitly. Do not route through the nanoMuse relay. Configure search deliberately rather than inheriting a new paid default.
 
@@ -38,7 +48,7 @@ Conversation stays available during work. Product events drive outcome updates; 
 
 ### A03 — Native editing through one Office engine
 
-Select Univer for Sheets, Docs, Slides, and Boards, subject to practical qualification and legitimate licensing. Use public Facade APIs and matching headless/editor/server versions. Its authoritative collaboration service owns Office operation order and content revisions.
+Select Univer for Sheets, Docs, Slides, and Boards, subject to practical qualification and legitimate licensing. Use public Facade APIs and matching headless/editor/server versions. For collaboration, its authoritative collaboration service owns Office operation order and content revisions. B01 can use a private single-owner native editor with revision-checked durable snapshots, without claiming collaboration or OT. Agent operations and proposal acceptance must commit against the same snapshot authority.
 
 Do not add a parallel Yjs/CRDT authority to the same content. Workagent adds provenance, human intent, change proposals, bindings, ACLs, and sharing—not another editor engine.
 
@@ -192,7 +202,7 @@ Minimum proposed routes:
 - `POST /api/responsibilities/:id/pause`: prevent new occurrences and reconcile in-flight work honestly.
 - `POST /api/browser/takeover`: obtain an exclusive short-lived lease; do not return provider credentials.
 
-The editor's native collaboration protocol remains separate; these routes do not replace OT with whole-document JSON PUTs. Reject mismatches explicitly rather than coercing malformed identifiers into different resources.
+For multi-human collaboration, the native collaboration protocol remains separate; these routes do not replace OT. The initial single-owner B01 snapshot path is explicitly narrower and does not claim OT or collaborative convergence. Reject mismatches explicitly rather than coercing malformed identifiers into different resources.
 
 ## 6. Execution, durability, and recovery
 
@@ -262,7 +272,7 @@ Generated apps use restricted data/action capabilities and explicit personal/sha
 
 ## 10. Environment, authentication, and resource control
 
-For authorized private remote use, require authenticated access and encrypted transport, with owner-controlled enrollment/session recovery. An established suitable authentication mechanism can support the first proof; a whole passkey product is not a prerequisite. Use dedicated product/runner/broker processes, the qualified accounting bridge, PostgreSQL and dedicated volumes as needed by the enabled path. A Workagent test server is an explicitly isolated product environment, never the operator Hermes host/profile. Use a disposable development database; do not reuse or reset installed databases. The current cleanup activates no deployment.
+For authorized private remote use, require authenticated access and encrypted transport, with owner-controlled enrollment/session recovery. An established suitable authentication mechanism can support the first proof; a whole passkey product is not a prerequisite. Use dedicated product/runner/broker processes, the qualified accounting bridge, PostgreSQL and dedicated volumes as needed by the enabled path. A Workagent test server is an explicitly isolated product environment, never the operator Hermes host/profile. Use a disposable development database; do not reuse or reset installed databases. Parent owns private operation on the dedicated `workagent-dev` server at `10.0.14.244`; the child does not operate it. No public deployment is activated.
 
 Introduce actual isolation with each enabled tool: run untrusted code and parsers in rootless OCI environments with no host socket, operator-home mount, ambient credentials or trusted database access. The whole final tool fleet and full browser takeover need not precede a file/editing result. Keep browser cookies/profile in a separate broker-controlled browser environment, inaccessible to shell tools. Treat local MCP code execution as untrusted too.
 
@@ -300,7 +310,7 @@ Use at most one independent risk-focused review when appropriate. No review casc
 
 ## 14. Decisions still requiring qualification or authority
 
-- Coherent DSH rc1 or qualified rc2 composition and real provider replay/cancellation/accounting fidelity; the minimal ledger seam remains unproven.
+- Coherent DSH rc1 composition and real provider replay/cancellation/accounting fidelity; the minimal ledger seam remains unproven.
 - Univer native editing, commit-time preconditions and durable shared-transaction or revision/snapshot propagation; collaboration/mobile quality and legitimate license capacity/procurement.
 - Export fidelity and the exact supported formula/language baseline.
 - Secure private remote access and recovery, without requiring passkeys specifically before useful proof.

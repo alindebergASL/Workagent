@@ -1,0 +1,35 @@
+{
+  "name": "workagent-b01",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.9.0"
+  },
+  "scripts": {
+    "test": "npm run test:mechanisms && npm run test:http && npm run test:integration",
+    "typecheck": "tsc -p apps/workagent-client/tsconfig.json",
+    "build": "vite build --config apps/workagent-client/vite.config.ts",
+    "start": "node apps/workagent-server/src/main.mjs",
+    "test:mechanisms": "node apps/workagent-server/tests/access.test.mjs && node apps/workagent-server/tests/workspace.test.mjs && node apps/workagent-runner/tests/provider-contract.test.mjs",
+    "test:integration": "node apps/workagent-runner/tests/host.test.mjs && node apps/workagent-client/tests/native.test.mjs",
+    "provision": "node apps/workagent-server/src/provision.mjs",
+    "test:http": "node apps/workagent-server/tests/http.test.mjs"
+  },
+  "dependencies": {
+    "@univerjs/presets": "1.4.0",
+    "@univerjs/preset-sheets-core": "1.4.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "pg": "8.16.3",
+    "@univerjs/core": "1.4.0"
+  },
+  "devDependencies": {
+    "vite": "7.2.2",
+    "typescript": "5.9.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2"
+  },
+  "workspaces": [
+    "apps/workagent-runner"
+  ]
+}

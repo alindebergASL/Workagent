@@ -2,7 +2,7 @@
 
 **Version:** 1.1 · 12 November 2026 · canonical repository direction
 
-**Status:** Concrete implementation units revised by the bounded cleanup. None of the new-product units below has run or is claimed complete. Cleanup approval does not activate the rebuild.
+**Status:** B01 is activated by owner START, followed by B02 and B03 as prerequisites permit. STATUS records actual implementation and checks; activation is not completion.
 
 **Goal:** Implement the complete [P01–P16 blueprint](01-product-blueprint.md) using the [technical architecture](02-architectural-plan.md).
 
@@ -10,19 +10,25 @@
 
 The first useful outcome is a real unfamiliar-input DSH/model result in one native sheet **or** document, direct human correction, a visible proposal where appropriate, and useful continuation. B01 includes only dependencies of that path. B02 adds steering/restart and independent work; B03 keeps a result current with all clients closed. Broad office/data-suite completion follows these outcomes.
 
-Hermes owns backend/runtime/integration. The existing Claude web owner owns the fresh client, including `apps/workagent-client/`. One writer per stream; agree interfaces and preserve concurrent work on isolated branches. If the web owner is unavailable, report that blocker immediately and request reassignment for that stream. Continue independent backend/integration work; do not silently take over client code.
+Codex/Astra owns frontend and backend and is initially the sole integration writer.
+Claude availability is no longer a dependency. Parent Hermes owns commits/publication,
+test-server setup, accounting reconciliation, live issuer operations, paid calls and
+final browser verification. This child does not commit/push, operate services, SSH,
+access databases/credentials, issue paid calls, delete retained data, change profile
+skills or spawn agents. One writer per stream; preserve concurrent work.
 
-Within a later authorized increment, continue reversible implementation, targeted checks, integration and feature-branch publication without consent at each unit, review, commit or restart. Use changed-behavior checks and at most one useful independent risk review. Skills can supply compatible techniques without activating mandatory fresh-agent, two-stage/per-task review, clean-commit-every-task or full-suite-every-edit cascades. Higher-priority/tool safeguards remain. Profile maintenance is separate; repository prose does not claim to change effective profile files.
 
-Read [development direction](../DEVELOPMENT_AUTHORITY.md), [model spending](../GENERAL_MODEL_AUTHORIZATION.md) and [STATUS](../../STATUS.md). Preserve stopped owner services, alpha data/services, saved work, historical receipts and the rc1 slice. Product-model inputs remain synthetic-only until scope and handling are reconciled. Read actual accounting before paid use under the existing $275 cumulative authority; no balance, provider entitlement, certificate or new funding is assumed. Preserve certificate issuance backup/notification rules. This cleanup makes no product-model call or accounting change; development-agent use is separate.
+Within the activated increments, continue reversible implementation, targeted checks, integration and feature-branch publication without consent at each unit, review, commit or restart. Use changed-behavior checks and at most one useful independent risk review. Skills can supply compatible techniques without activating mandatory fresh-agent, two-stage/per-task review, clean-commit-every-task or full-suite-every-edit cascades. Higher-priority/tool safeguards remain. Profile maintenance is separate; repository prose does not claim to change effective profile files.
+
+Read [development direction](../DEVELOPMENT_AUTHORITY.md), [model spending](../GENERAL_MODEL_AUTHORIZATION.md) and [STATUS](../../STATUS.md). Preserve stopped owner services, the alpha financial authority, historical receipts/allocations/unknown liabilities and the rc1 slice. Pre-pivot application data is disposable with no migration/compatibility requirement; no deletion is part of this run. Start fresh state and protect new human work. Product-model inputs remain synthetic-only until scope and handling are reconciled. Read actual accounting before paid use under the existing $275 cumulative authority; no balance, provider entitlement, certificate or new funding is assumed. Preserve certificate issuance backup/notification rules. Parent owns actual accounting and paid proof; this child makes no paid call or installed accounting change. Development-agent use is separate.
 
 New paid providers, SDK purchases, private accounts, external business effects, installed-data maintenance, destructive cleanup, default merge and public deployment retain their genuine authority requirements. Never force or reroute a git/filesystem/database/permission refusal. Delete only owned regenerable output. A Workagent test server is a deliberately isolated product environment, never the operator Hermes host/profile. No operator-home mounts or credential-file reuse.
 
-Source baseline is `0ceb9818eb5278b54c37b3cf72c1fec2a8325b1d`. All new paths below are implementation targets, not existing artifacts or passing tests. Use a small workspace root/shared contract only where immediately consumed. Do not create empty packages, an all-package scaffold or a generic root toolchain first. Start with the client, service, DSH runner and their necessary shared types; extract packages when a real consumer, ownership or trust boundary warrants it. Paths may be adjusted coherently as code establishes those boundaries.
+Source baseline is `0ceb9818eb5278b54c37b3cf72c1fec2a8325b1d`. B01 starts from `bbd9631afd34fa915233f6f4f32428635b5dc6b4`; paths below become real only as consumed. STATUS records which exist and what passed. Use a small workspace root/shared contract only where immediately consumed. Do not create empty packages, an all-package scaffold or a generic root toolchain first. Start with the client, service, DSH runner and their necessary shared types; extract packages when a real consumer, ownership or trust boundary warrants it. Paths may be adjusted coherently as code establishes those boundaries.
 
 File shorthand below is relative to these concrete targets: server = `apps/workagent-server/`, runner = `apps/workagent-runner/`, client = `apps/workagent-client/`, artifact = `packages/workagent-artifacts/`, broker = `packages/workagent-broker/`, and app host = `packages/workagent-app-host/`. Keep B01 modules beside their first consumer; extract to these package locations only when used. Each named test lives with the implementation it exercises.
 
-Use the actual package-local toolchain and focused scripts established with each implementation. For example, after the relevant package and script exist, `pnpm --dir apps/workagent-server exec vitest run tests/command-admission.test.ts` or the client equivalent can run a named test. No new-package command is reported as available now. Database checks use explicit disposable data; browser checks use an explicit test URL and synthetic identities. Keep logs/screenshots in `.local/` or CI, not new evidence files. Attach targeted CI to new-client/runtime paths when code exists; current legacy frontend CI does not cover them. The retired $100 boundary checker is historical tooling, not a prerequisite or financial authority.
+Use the actual package-local toolchain and focused scripts established with each implementation. For example, after the relevant package and script exist, `pnpm --dir apps/workagent-server exec vitest run tests/command-admission.test.ts` or the client equivalent can run a named test. Use only scripts actually present in the checkout. Database checks use explicit disposable data; browser checks use an explicit test URL and synthetic identities. Keep logs/screenshots in `.local/` or CI, not new evidence files. Attach targeted CI to new-client/runtime paths when code exists; current legacy frontend CI does not cover them. The retired $100 boundary checker is historical tooling, not a prerequisite or financial authority.
 
 ## First useful private work
 
@@ -39,10 +45,10 @@ Use the actual package-local toolchain and focused scripts established with each
 - `backend/workagent/workspace_accounting_bridge.py` and a consumed model-broker module for the qualified seam; shared command/revision types only where client/service/runner use them.
 - If parsing or computation is enabled, the smallest needed isolated worker under `services/workagent-execution/` and its scoped broker; do not scaffold the final tool fleet.
 
-**Implement as one vertical unit, with backend/editor work proceeding concurrently under their owners:**
+**Implement as one vertical unit, with coherent backend/editor interfaces under the initial sole writer:**
 
 1. Qualify the smallest accounting/provider path early. Inspect `backend/workagent/{responses_ledger,provider_attempts,responses_io,responses_recovery}.py` and existing tests before defining signatures. They are coupled to old run/profile/schema semantics. Adapt only authorization, reservation, stable dispatch identity, usage/settlement and uncertain-liability handling in disposable data. Do not import legacy task selection, schemas, dispatcher, scheduler or runtime to make DSH fit; do not introduce another financial authority. A needed installed schema/grant change is a precise activation dependency to prepare and report, not something to bypass.
-2. Use public DSH APIs with one coherent rc1 or qualified rc2 package set. Preserve provider identity, tool IDs, attachments and opaque replay fields. Disable session sharing, feedback/log contribution and unintended paid search/default routes. Account for every enabled inference path, including retries, children, compaction and auxiliary calls; keep unaccounted paths disabled. Bound rc2 qualification to required behavior. A failing rc2 contract permits coherent rc1 product delivery, not prerelease mixing or repeated mandatory upgrades.
+2. Use public DSH APIs with one coherent published 0.2.2-rc.1 package set. Preserve provider identity, tool IDs, attachments and opaque replay fields. Disable session sharing, feedback/log contribution and unintended paid search/default routes. Account for every enabled inference path, including retries, children, compaction and auxiliary calls; keep unaccounted paths disabled. Do not detour into rc2 qualification or mix prereleases. Product inference uses OpenRouter `typesafe/jev-router`; `typesafe/jev-1.14` is a separate Decisions API, not a chat model. No silent direct-TypeSafe calls, classifier framework or probabilistic permission gates.
 3. Establish a small authenticated workspace identity, source ownership/grants, stable command IDs, separate content/intent/grant revisions and atomic command/outbox admission. Secure transport and suitable authenticated access are required for any enabled remote use; passkeys specifically are not required before the private proof. Preserve originals/provenance and limit sources to permitted synthetic inputs.
 4. Qualify **one** genuine native sheet or document: create, directly edit, select, save and reopen with human and agent contributions. Match editor/headless/server SDK versions. Evaluation allows three editing connections (agents count), ten exports/month, watermarks and restricted modules. Diagnose those license limits separately from bugs; do not purchase or evade limits. Reject/restrict an adapter that loses content, permits unauthorized access or cannot protect commits. Keep a safe working editor path and scope the blocker; do not begin framework shopping or substitute generated HTML for native editing.
 5. Serialize relevant read-set, intent, grant and cancellation preconditions with the authoritative mutation commit, including transformed operations. A preflight-only CAS followed by OT submission is insufficient. If serialization cannot be enforced, keep agent changes uncommitted as visible proposals; accepting a proposal requires safe commit validation too. Detecting a human overwrite after it happens is not protection.
@@ -220,17 +226,23 @@ Bind richer voice/messaging channels to the same work/memory scope and notificat
 
 **Verify:** Real authorized channel/device journeys, identity binding, desktop → phone/device → desktop edits, revoked folder access and no duplicate effects. Physical-phone claims need physical testing; unavailable devices block dependent checks only.
 
-### B17 — Connected outcome and preservation of old work
+### B17 — Connected outcome and preservation of new work
 
 **Scope:** Integrated P01–P16 behavior as delivered, with explicit remaining coverage. **Depends on:** only the components exercised by the journey; it is not an approval gate for later engineering.
 
-**Files:** client `e2e/connected-project.spec.ts`; server `src/import-legacy.ts`, `tests/import-legacy.test.ts` when legacy import is implemented.
+**Files:** client `e2e/connected-project.spec.ts`; focused saved-work recovery tests for the new product.
 
 Exercise unfamiliar brief → board/budget → analysis → document/deck/video → maintained result, using available authorized components. Change a source with all clients closed, preserve human overrides and share only the permitted result. Report missing formula families, languages, named integrations and platform behavior in normal delivery status; do not create a new matrix or parity claim.
 
-Test legacy import only on copied isolated fixtures. Retain human/generated contributions, identifiers, receipts and accounting references with idempotent import. Prepare backup/import/rollback instructions before any separately authorized installed-data operation. Do not reinterpret historical outcomes or change the stopped installation for a demonstration.
+Preserve new human/generated contributions and retained financial references. No
+pre-pivot application migration or compatibility is required; do not delete retained
+data in this run or alter historical financial outcomes. Do not change stopped services
+for a demonstration.
 
-**Verify:** Relevant integrated journey and isolated import checks. Obtain owner feedback when available and state its actual verdict; maintainer tests are not owner acceptance. Missing feedback does not halt independent implementation. No paid comparative study is implied.
+**Verify:** The relevant integrated journey and saved new-work recovery. Obtain owner
+feedback when available; maintainer checks are not acceptance. Missing feedback does
+not halt independent implementation. No paid comparative study is implied.
+
 
 ### B18 — Broader hosting, coherent restore and handover
 
@@ -250,4 +262,4 @@ A unit is complete when its concrete behavior exists and the relevant checks est
 
 Report briefly what can now be done, what ran, where it is actually available, remaining limits and the active next increment or genuine stopped-work reason. Surface ownership, authorization, license and technical blockers distinctly and promptly. Continue independent authorized work. No new review chain, study, full-suite-per-document loop or repeated plan pass is needed.
 
-**Next implementation unit after scope authorization: B01**, integrating the minimal accounting-backed real model and native editing path in the same useful outcome. The current task finishes with the bounded documentation and workflow cleanup, not product execution.
+**Active implementation unit: B01**, integrating accounting-backed OpenRouter/DSH and native editing. B02 resilience and B03 background usefulness follow as their prerequisites permit. Parent performs actual paid integration after financial reconciliation; no fixture substitutes for that proof.

@@ -1,0 +1,26 @@
+name: Workagent B01
+on:
+  pull_request:
+    paths: ['apps/workagent-*/**', 'packages/workagent-contract/**', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'backend/workagent/workspace_accounting*.py', 'backend/tests/test_workspace_accounting*.py', '.github/workflows/workagent-b01.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=3072
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.28.5'
+      - run: pnpm install --frozen-lockfile
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+      - run: PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_workspace_accounting*.py' -v
