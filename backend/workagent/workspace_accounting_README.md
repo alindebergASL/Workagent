@@ -4,8 +4,10 @@ This target subaccount has only its imported issuer certificate. Its full amount
 stays encumbered centrally under the existing cumulative $275 authority. Local
 settlement never changes alpha, releases historical liabilities, or refunds or
 reissues a certificate. No database/socket/live checks were run for this revision.
-**Parent's PostgreSQL file-read refusal remains unresolved; do not retry or work
-around that operation without its separately required clearance.**
+The initial SQL read failed because the file was under Ubuntu's private home. Parent
+may correct non-secret SQL staging within existing fresh-target provisioning authority,
+after verifying target identity and partial effects. Home isolation and alpha's retained
+financial data remain protected; this document grants no additional access or spending.
 
 ## Envelope and documented basis
 
@@ -108,8 +110,8 @@ PYTHONPATH=backend python -c 'import json; from workagent.workspace_accounting_p
 Parent sets `WORKSPACE_ACCOUNTING_ADMIN_DSN`, `WORKSPACE_ACCOUNTING_RUNTIME_DSN`,
 `ACCOUNTING_RUNTIME_ROLE`, `BINDING_FILE`, `CERTIFICATE_FILE`,
 `ACCOUNTING_SOCKET_DIR`, `ACCOUNTING_SOCKET` through the existing configuration.
-The following are prepared instructions, **not permission to retry the refused
-PostgreSQL file-read operation**:
+The following are fresh-target setup instructions for Parent, subject to verified
+target identity, existing authority and appropriately readable non-secret SQL staging:
 
 ```sh
 psql "$WORKSPACE_ACCOUNTING_ADMIN_DSN" -v ON_ERROR_STOP=1 -f apps/workagent-server/migrations/0002_accounting.sql
@@ -139,7 +141,8 @@ Existing endpoints are never deleted/replaced, including at shutdown.
 
 Policy format changed to v2 and the migration now includes settlement. If any
 previous schema/binding actually exists, stop for Parent's assessment; do not drop,
-rewrite binding, re-import funding or bypass the recorded file-read refusal.
+rewrite binding or re-import funding. An existing financial binding is not disposable
+application state; verify partial effects before continuing setup.
 
 ## Contract and checks
 
@@ -158,7 +161,7 @@ PYTHONPATH=backend python -m unittest discover -s backend/tests -p 'test_workspa
 The gated suite needs a NEW empty `workagent_accounting_test_*` database plus
 `WORKSPACE_ACCOUNTING_TEST_DSN`, `WORKSPACE_ACCOUNTING_TEST_RUNTIME_DSN`,
 `WORKSPACE_ACCOUNTING_TEST_RUNTIME_ROLE`, `WORKSPACE_ACCOUNTING_TEST_DATABASE`.
-Only Parent, after clearance, may set `WORKSPACE_ACCOUNTING_RUN_DB_TESTS=1` for
+Only Parent, after verifying the authorized fresh empty test target, may set `WORKSPACE_ACCOUNTING_RUN_DB_TESTS=1` for
 that same unittest command. It installs in the empty target, uses a synthetic
 certificate and actual configured Jev route, exercises settlement/replay/row-lock
 concurrency/rollback/socket behavior, and preserves its records. No issuer or

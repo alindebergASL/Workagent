@@ -15,8 +15,8 @@ new purchases remain outside this activation.
 
 Codex/Astra owns frontend and backend, initially as sole integration writer. Parent
 Hermes owns Git commits/publishing, test-server setup, accounting reconciliation, live
-issuer grants/certificates, paid calls and final browser verification. This child run
-must not commit/push, manipulate host services, SSH, access databases or credentials,
+issuer grants/certificates, paid calls and final browser verification. Delegated coding/review
+workers, not Parent Hermes, must not commit/push, manipulate host services, SSH, access databases or credentials,
 issue paid calls, delete retained data, change profile skills or spawn agents.
 
 The old owner experience was rejected. Its stopped/disabled services must stay stopped.
@@ -60,26 +60,36 @@ At most one bounded correction/intent seam belongs in B01; leave it disabled unt
 exact contract and accounting are connected. No silent direct-TypeSafe calls. Account
 for every enabled path; disable unaccounted auxiliaries, children, retries and compaction.
 Routing preferences/tiers are not hard allowlists or monetary caps. Hard permissions,
-spending, human-edit commits and cancellation remain deterministic. Parent verified
-credential authentication, but headroom is unreconciled and this child has no paid-call
-authority. Synthetic data does not establish genuine execution.
+spending, human-edit commits and cancellation remain deterministic. Parent reconciles
+actual headroom before paid use; dated observations belong in STATUS, not standing
+authority. Delegated coding workers have no paid-call authority. Synthetic data does
+not establish genuine execution.
 
 The old alpha's issuer remains the single ledger. New certificates within the ceiling
 are permitted only after a `pg_dump` backup kept in `.local/`; change nothing else in that
 database and tell Andrew in one line each time. Parent owns live certificate operations;
-this child must not access the issuer database. Keep the alpha's services and financial
+delegated coding workers must not access the issuer database. Keep the alpha's services and financial
 data otherwise unchanged. Qualify the new accounting seam without importing legacy execution
 or creating a second financial authority.
 
 Synthetic-only product-model data remains the boundary until the declared scope and
 actual handling are reconciled. Execution approval does not authorize confidential data
 or new private accounts. The dedicated test server is `workagent-dev` (`i-0cb1c20ccf6e55c21`, private
-`10.0.14.244`), separate from Hermes. Parent reports it started and SSH-verified. Keep
+`10.0.14.244`), separate from Hermes. Parent verifies its state before operating it. Keep
 new services private/loopback and auth-protected, with no public endpoint or operator
-home/credential mounts. This run neither rechecks nor operates that server.
+home/credential mounts. Delegated coding workers do not operate that server; Parent
+owns its already-authorized private setup and verification.
 
-- Never bypass a git, filesystem, database or permission refusal. Stop and report it;
-  do not force or reroute the refused operation.
+- Stop a failed operation and diagnose its actor, resource, authority and possible
+  partial effects using bounded checks. Never force, disable safeguards, broaden access,
+  or use an indirect route to bypass an explicit user/tool denial or security boundary.
+  Correct reversible setup errors within existing authority, preserving isolation,
+  retained data and accounting. A sandboxed worker reports its limitation; Parent may
+  perform its separately authorized operation in Parent's permitted context, not lend
+  the worker an escape route. Escalate the specific action when authority is missing or
+  material risk remains unresolved after diagnosis; uncertainty alone is not an owner
+  gate. Use a bounded independent model judgment when useful, not an automatic review
+  cascade; models cannot grant authority. Continue independent authorized work.
 - Delete only build output/caches you created and can regenerate. Preserve repositories,
   history, databases, credentials, uncommitted work and others' files. No retained-data deletion is authorized in this run.
 - Preserve human edits/acceptance, access isolation, immutable receipts and unknown

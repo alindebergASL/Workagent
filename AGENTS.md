@@ -15,7 +15,8 @@ new purchases are not activated. A review, commit or session boundary creates no
 Codex/Astra owns frontend and backend and is initially the sole integration writer.
 Claude availability is no longer a dependency. Parent Hermes owns commits/publication,
 test-server setup, accounting reconciliation, live issuer operations, paid product calls
-and final browser verification. This child run must not commit/push, operate host services,
+and final browser verification. Delegated coding/review workers, not Parent Hermes,
+must not commit/push, operate host services,
 SSH, access databases/credentials, make paid calls, delete retained data, change profile
 skills or spawn agents. Preserve concurrent work and use isolated branches.
 
@@ -36,8 +37,10 @@ new product. Preserve the alpha and historical rc1 compatibility slice.
 
 Preserve human edits/acceptance, access isolation, truthful state, financial accounting,
 historical receipts and duplicate-effect protection. Follow the actual spending and
-effect limits in the linked authority documents. Never bypass a git, filesystem,
-database or permission refusal; stop and report the refused action.
+effect limits in the linked authority documents. Respect explicit user/tool denials and
+security boundaries. Diagnose ordinary setup failures and correct them within existing
+authority; a worker's sandbox limitation does not revoke Parent's separately authorized
+operations. Follow the scoped failure-handling rule in development direction.
 
 Older plans, research, audits, cards, handoffs and evidence are reference, not additional
 authority. Remove contradictory active wording instead of accumulating overrides.
