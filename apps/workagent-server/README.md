@@ -1,4 +1,4 @@
-# B01 checkpoint
+# B01 / independent B02 checkpoint
 
 Concrete implementation, **not a completed B01**. The UI uses native Univer Sheets;
 production persistence is PostgreSQL, with a single owner and a single runner. There
@@ -147,5 +147,47 @@ Immediate remaining verification: browser formula/value save/reopen with a human
 correction, active-cell refresh recovery, switching and concurrent agent updates;
 qualify transactions against disposable PostgreSQL and the implemented accounting
 adapter/socket with certificate funding; then Parent's bounded paid unfamiliar-input journey. Restart marks an active
-job interrupted without replay; B02 recovery/steering and B03 responsibilities are not
+job interrupted when execution may have begun; B02 live/browser proof and B03 responsibilities are not
 complete. No physical-phone, multi-user, server installation or acceptance claim is made.
+
+
+## B02 recovery and independent dispatch
+
+The service retains one PostgreSQL leadership lock and runs two worker slots. Claims
+exclude another active job for the same work. New intent supersedes queued older
+intent and interrupts only older live handles; unrelated work has separate native
+sessions, accepted context and source lists. Shutdown stops claiming, cancels native
+activity and drains job settlement before releasing leadership.
+
+Jobs persist `admitted`, `session_ready`, `prompt_accepted`, `execution_started` and
+`completed` phases, fixed session IDs, accepted context and native request-step IDs
+(`sessionId:step:sequence`). These step IDs do not replace financial request hashes,
+provider IDs, one-use dispatch or immutable receipts. No financial contract changed.
+Public DSH persistence reads reconcile existing native logs before create/resume.
+Session creation and pending inbox acceptance each cross a public flush barrier.
+The public API has no wake-only inbox operation: after the durable execution marker,
+the same pending message ID moves through `followup`. Any crash beyond that marker
+is conservatively interrupted, even if no provider call ultimately happened. Native
+request/history evidence also prohibits automatic replay. Explicit new continuation
+is a new intent/session; it does not retry the old uncertain request. Completed
+messages recover without duplicate contributions. No retained runtime data is deleted.
+
+`GET /api/events?after=<nonnegative integer>` authenticates before reading the owner
+snapshot and returns `{kind:'events'|'reset',cursor,events,works,snapshots}`. Omitted,
+future, expired (more than 256 events) or gapped cursors yield a full snapshot reset.
+The replay window limits responses without deleting retained events. Every result
+shares one committed watermark. Client polling is single-flight; this is JSON replay,
+not SSE. Native drafts, composer/source drafts and unresolved command/source IDs are
+stored per work on the device. Switching keeps drafts; late replies cannot replace
+later navigation. Local storage failure blocks draft-discarding navigation.
+
+B02 tests use actual installed DSH with scripted local inference and file storage,
+including subprocess loss without cleanup at durability boundaries, concurrency,
+shutdown and intent targeting. Route tests use handlers without opening listeners.
+They do not establish PostgreSQL, financial, browser, remote or phone behavior.
+In the B02 child checkout the production build stopped on `EROFS` writing Vite's
+temporary config through read-only `node_modules/.vite-temp`; no retry or workaround
+was attempted. Build remains STOPPED pending owner clearance; neither child nor
+Parent may retry or reroute the denied write, including through a different config
+loader/path, permission change, dependency location or symlink. Parent has notified
+the owner and retains final browser verification responsibility.

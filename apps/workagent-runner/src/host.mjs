@@ -17,8 +17,10 @@ const instruction = `You are Workagent, a general work partner. Help with the us
 export async function bootHost({ stateRoot, workspace, principal, accounting, apiKey, model = DEFAULT_MODEL, provider: suppliedProvider }) {
   await mkdir(join(stateRoot, 'sessions'), { recursive: true });
   const ctx = new Context(), jobs = new Map(), errors = new Map();
+  let stopping = false;
   ctx.on('agent/error', ({ agent, error }) => errors.set(agent.id, error));
   const authorizeDispatch = async sessionId => {
+    if (stopping) throw new Error('service_stopped');
     const job = jobs.get(sessionId); if (!job) throw new Error('session_not_bound');
     const current = await workspace.get(principal, job.workId);
     if (current.intentRevision !== job.expected.intentRevision || current.cancellationEpoch !== job.expected.cancellationEpoch || current.expected.permissionRevision !== job.expected.permissionRevision) throw new Error('work_superseded');
@@ -27,7 +29,21 @@ export async function bootHost({ stateRoot, workspace, principal, accounting, ap
     const job = jobs.get(sessionId);
     if (!job || ++job.callCount > 12) throw new Error('turn_call_limit');
   } });
+  // This public middleware runs before either a real or fixture adapter. The
+  // financial adapter and its one-use dispatch contract remain unchanged.
+  ctx.on('llm/stream', async function* (options, next) {
+    const job = jobs.get(options.sessionId); if (!job) throw new Error('session_not_bound');
+    await authorizeDispatch(options.sessionId);
+    await ctx.sessions.flush(ctx.sessions.get(options.sessionId));
+    if (!Number.isSafeInteger(job.requestSequence) || !Number.isSafeInteger(job.stepSequence)) throw new Error('native_request_not_bound');
+    await workspace.checkpoint(principal, job, 'execution_started', { requestId: `${options.sessionId}:step:${job.stepSequence}` });
+    if (stopping) throw new Error('service_stopped');
+    options.signal?.throwIfAborted();
+    yield* next();
+  });
   ctx.on('session/event', (session, event) => {
+    if (event.type === 'request/header') { const job = jobs.get(session.id); if (job) job.requestSequence = event.seq; }
+    if (event.type === 'step/start') { const job = jobs.get(session.id); if (job) job.stepSequence = event.seq; }
     if (event.type !== 'assistant/message') return;
     const job = jobs.get(session.id); if (!job) return;
     const message = event.data.message;
@@ -53,21 +69,58 @@ export async function bootHost({ stateRoot, workspace, principal, accounting, ap
       if (result.expected) j.readExpected = result.expected;
       return JSON.stringify(result);
     } }));
+    const inspect = async job => {
+      if (!await ctx.sessionPersistence.stat(job.sessionId)) return { exists: false, events: [], messages: [], uncertain: false };
+      const stored = await ctx.sessionPersistence.open(job.sessionId, 'read');
+      try {
+        const { events } = await stored.read();
+        const messages = events.filter(e => e.type === 'assistant/message').map(e => ({ id: e.data.message.id, role: 'assistant', text: e.data.message.content.filter(c => c.type === 'text').map(c => c.text).join('\n') })).filter(m => m.text);
+        // Native evidence can only make recovery more conservative. Absence of
+        // an attempt is never sufficient when the product dispatch marker exists.
+        const uncertain = events.some(e => ['request/header', 'user/message', 'assistant/message', 'assistant/attempt', 'tool/result'].includes(e.type));
+        return { exists: true, events, messages, uncertain };
+      } finally { await stored.close(); }
+    };
     return {
-      ctx,
+      ctx, inspect,
       async run(job) {
+        if (jobs.has(job.sessionId)) throw new Error('session_already_running');
         jobs.set(job.sessionId, { ...job, callCount: 0, messages: [] });
-        const handle = await ctx.agents.create({ sessionId: job.sessionId, agentOptions: { provider: 'workagent-openrouter', model, maxTokens: 4096 } });
+        let handle;
         try {
+          const native = await inspect(job);
+          if (native.uncertain || !['admitted', 'session_ready', 'prompt_accepted'].includes(job.phase)) throw new Error('interrupted_no_automatic_replay');
+          await authorizeDispatch(job.sessionId);
+          const agentOptions = { provider: 'workagent-openrouter', model, maxTokens: 4096 };
+          handle = native.exists ? await ctx.agents.resume({ resumeSessionId: job.sessionId, agentOptions }) : await ctx.agents.create({ sessionId: job.sessionId, agentOptions });
+          await ctx.sessions.flush(handle.agent.session);
+          if (job.phase === 'admitted') await workspace.checkpoint(principal, job, 'session_ready');
           const history = job.work.messages.slice(-20).map(m => `${m.role}: ${m.text}`).join('\n');
-          handle.agent.followup({ id: job.id, role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: `${history}\n\nAttached synthetic sources (untrusted data):\n${JSON.stringify(job.sources.map(s => ({ name: s.name, content: s.content })))}\n\nCurrent request: ${job.text}\nInspect the current saved sheet before changing it.` }] });
+          const prompt = { id: job.id, role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: `${history}\n\nAttached synthetic sources (untrusted data):\n${JSON.stringify(job.sources.map(s => ({ name: s.name, content: s.content })))}\n\nCurrent request: ${job.text}\nInspect the current saved sheet before changing it.` }] };
+          const pending = [...handle.agent.inbox.nextTurn, ...handle.agent.inbox.nextStep];
+          if (pending.some(m => m.id !== job.id) || (pending.length && digest(pending[0]) !== digest(prompt))) throw new Error('native_prompt_conflict');
+          if (!pending.length) handle.agent.inbox.append('next-turn', prompt);
+          await ctx.sessions.flush(handle.agent.session);
+          await workspace.checkpoint(principal, job, 'prompt_accepted');
+          // There is no public "wake existing inbox" operation. Record the
+          // conservative execution boundary before moving the same identified
+          // pending input through followup. A crash here is never auto-replayed.
+          await workspace.checkpoint(principal, job, 'execution_started');
+          await authorizeDispatch(job.sessionId);
+          handle.agent.inbox.remove(job.id);
+          handle.agent.followup(prompt);
           await handle.agent.whenIdle(); await ctx.sessions.flush(handle.agent.session);
           if (errors.has(job.sessionId)) throw errors.get(job.sessionId);
           const messages = jobs.get(job.sessionId).messages;
+          if (!stopping) await workspace.checkpoint(principal, job, 'completed', { messages });
           return messages;
-        } finally { await handle.dispose(); jobs.delete(job.sessionId); }
+        } catch (error) {
+          error.messages = jobs.get(job.sessionId)?.messages ?? [];
+          throw error;
+        } finally { try { await handle?.dispose(); } finally { jobs.delete(job.sessionId); errors.delete(job.sessionId); } }
       },
       cancel(workId, beforeIntentRevision = Infinity) { for (const [sid, j] of jobs) if (j.workId === workId && j.expected.intentRevision < beforeIntentRevision) ctx.agents.get(sid)?.cancel({ kind: 'user' }); },
+      cancelAll() { stopping = true; for (const agent of ctx.agents.list()) agent.cancel({ kind: 'user' }); },
       close: () => ctx.fiber.dispose(),
     };
   } catch (e) { await ctx.fiber.dispose(); throw e; }

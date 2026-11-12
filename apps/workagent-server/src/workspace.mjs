@@ -12,11 +12,23 @@ function dedup(s, key, input, fn) {
   if (old) { if (old.hash !== hash) throw new Fault('command_conflict'); return old.result; }
   const result = fn(); s.commands[key] = { hash, result }; return result;
 }
-function snapshot(s, w) { return { ...structuredClone(w), expected: preconditions(s, w) }; }
+function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.sequence, expected: preconditions(s, w) }; }
 export class Workspace {
   constructor(store) { this.store = store; }
   async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })); }); }
   async get(principal, workId) { return this.store.transaction(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
+  async events(principal, after) { return this.store.transaction(s => {
+    authorize(s, principal);
+    if (after !== undefined && (!Number.isSafeInteger(after) || after < 0)) throw new Fault('invalid_cursor', 400);
+    // Bound the replay response, without deleting retained events or contributions.
+    const events = s.events.filter(e => e.eventId > (after ?? s.sequence));
+    const reset = after === undefined || after > s.sequence || s.sequence - after > 256
+      || events.length !== s.sequence - after || events.some((e, i) => e.eventId !== after + i + 1);
+    const changed = new Set(events.map(e => e.workId));
+    return { kind: reset ? 'reset' : 'events', cursor: s.sequence, events: reset ? [] : events,
+      works: Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })),
+      snapshots: Object.values(s.works).filter(w => reset || changed.has(w.id)).map(w => snapshot(s, w)) };
+  }); }
   async source(principal, input) {
     id(input.commandId); text(input.name, 200); text(input.content, 200000);
     if (input.synthetic !== true) throw new Fault('synthetic_data_required', 400);
@@ -45,8 +57,8 @@ export class Workspace {
         for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.status === 'queued') j.status = 'superseded';
         if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
-          w.messages.push({ id: input.commandId, role: 'user', text: input.text }); w.status = 'queued';
-          s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, status: 'queued', expected: preconditions(s, w), sessionId: randomUUID() };
+          w.messages.push({ id: input.commandId, role: 'user', text: input.text }); w.status = 'queued'; delete w.errorCode;
+          s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
         }
         event(s, w, input.kind); return { workId: w.id, commandId: input.commandId, intentRevision: w.intentRevision };
       });
@@ -107,24 +119,63 @@ export class Workspace {
     });
   }
   async claim(principal) { return this.store.transaction(s => {
-    authorize(s, principal); const j = Object.values(s.jobs).find(j => j.status === 'queued'); if (!j) return null;
-    const w = work(s, j.workId); j.status = 'running'; w.status = 'working'; event(s, w, 'working');
-    return { ...j, work: snapshot(s, w), sources: w.sourceIds.map(k => s.sources[k]) };
+    authorize(s, principal);
+    const running = new Set(Object.values(s.jobs).filter(j => j.status === 'running').map(j => j.workId));
+    const j = Object.values(s.jobs).find(j => {
+      if (j.status !== 'queued' || running.has(j.workId)) return false;
+      const w = work(s, j.workId);
+      if (!same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) { j.status = 'superseded'; return false; }
+      return true;
+    }); if (!j) return null;
+    const w = work(s, j.workId); j.phase ??= 'admitted'; j.status = 'running'; w.status = 'working'; event(s, w, 'working');
+    // Freeze the accepted context before native creation; recovery must use this same input.
+    j.work ??= snapshot(s, w); j.sources ??= w.sourceIds.map(k => structuredClone(s.sources[k]));
+    return j;
+  }); }
+  async checkpoint(principal, job, phase, details = {}) { return this.store.transaction(s => {
+    authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId);
+    if (!j || j.status !== 'running' || j.sessionId !== job.sessionId) throw new Fault('job_not_running');
+    if (phase !== 'completed' && !same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) throw new Fault('work_superseded');
+    const phases = ['admitted', 'session_ready', 'prompt_accepted', 'execution_started', 'completed'];
+    if (!phases.includes(phase) || phases.indexOf(phase) < phases.indexOf(j.phase)) throw new Fault('invalid_job_phase');
+    j.phase = phase;
+    if (details.requestId && !(j.requestIds ??= []).includes(details.requestId)) j.requestIds.push(details.requestId);
+    if (phase === 'completed') j.messages = details.messages ?? [];
+    return null;
   }); }
   async finish(principal, job, messages, status, errorCode) { return this.store.transaction(s => {
     authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId);
     if (j.status !== 'running') return null;
     j.status = w.cancellationEpoch !== job.expected.cancellationEpoch ? 'stopped'
       : w.intentRevision !== job.expected.intentRevision ? 'superseded' : status;
-    j.errorCode = errorCode;
-    w.messages.push(...messages);
-    if (w.status === 'cancellation_requested') w.status = 'stopped';
+    j.errorCode = errorCode ?? (j.status === 'stopped' && j.requestIds?.length ? 'cancelled_check_receipt' : undefined);
+    for (const message of messages) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
+    if (w.status === 'cancellation_requested') { w.status = 'stopped'; w.errorCode = j.errorCode; }
     if (w.intentRevision === job.expected.intentRevision) { w.status = status; w.errorCode = errorCode; }
     event(s, w, 'work_finished'); return null;
   }); }
-  async recover(principal) { return this.store.transaction(s => {
+  async recover(principal, inspectNative) { return this.store.transaction(async s => {
     authorize(s, principal);
-    for (const j of Object.values(s.jobs)) if (j.status === 'running') { j.status = 'interrupted'; const w = work(s, j.workId); w.status = 'interrupted'; w.errorCode = 'interrupted_no_automatic_replay'; event(s, w, 'interrupted'); }
+    for (const j of Object.values(s.jobs)) if (j.status === 'running') {
+      const w = work(s, j.workId);
+      // No callback means no native-storage evidence, including for old B01 jobs.
+      const native = inspectNative ? await inspectNative(j) : null;
+      for (const message of native?.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
+      const current = same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch });
+      if (j.phase === 'completed') {
+        for (const message of j.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
+        j.status = current ? 'ready' : w.cancellationEpoch !== j.expected.cancellationEpoch ? 'stopped' : 'superseded';
+        if (j.status === 'stopped' && j.requestIds?.length) j.errorCode = 'cancelled_check_receipt';
+      } else if (native && !native.uncertain && ['admitted', 'session_ready', 'prompt_accepted'].includes(j.phase)) {
+        j.status = current ? 'queued' : w.cancellationEpoch !== j.expected.cancellationEpoch ? 'stopped' : 'superseded';
+      } else { j.status = 'interrupted'; j.errorCode = 'interrupted_no_automatic_replay'; }
+      // An older job must not overwrite a newer intent's queued state.
+      if (current || w.status === 'cancellation_requested') {
+        w.status = w.status === 'cancellation_requested' && j.status !== 'interrupted' ? 'stopped' : j.status;
+        w.errorCode = j.errorCode;
+      }
+      event(s, w, 'recovered');
+    }
     return null;
   }); }
 }

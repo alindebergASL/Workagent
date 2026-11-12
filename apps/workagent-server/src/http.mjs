@@ -48,6 +48,11 @@ export function createHandler({ workspace, owner, token, origin, clientRoot, onC
         return send(200, { authenticated: true });
       }
       const principal = auth.authenticate(req);
+      if (path === '/api/events' && req.method === 'GET') {
+        const after = new URL(req.url, origin).searchParams.get('after');
+        if (after !== null && !/^\d+$/.test(after)) throw new Fault('invalid_cursor', 400);
+        return send(200, await workspace.events(principal, after === null ? undefined : Number(after)));
+      }
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
       if (path === '/api/sources' && req.method === 'POST') return send(200, await workspace.source(principal, await body(req)));
