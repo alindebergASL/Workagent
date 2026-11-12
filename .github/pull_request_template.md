@@ -1,27 +1,12 @@
-## User outcome
+## Outcome
 
-What can the person now do, and how does it serve `docs/PRODUCT_CONTRACT.md`?
+What changed for the user or developer, and why?
 
-## Product breadth and experience
+## Changed-behavior verification
 
-Which `docs/PRODUCT_ACCEPTANCE.md` cases changed/were exercised? Does this introduce
-intake-only defaults into a general contract? Explain temporary capability limits
-and where they live. Include actual-app evidence for UI changes and explain
-whether primary copy exposes unnecessary machinery.
+What checks or user paths actually ran? Distinguish fixtures, real execution and human use.
 
-## Verification
+## Remaining limits and real effects
 
-| Verdict | PASS / FAIL / NOT TESTED | Evidence and candidate SHA |
-| --- | --- | --- |
-| Engineering | | |
-| Usefulness | | |
-| Experience | | |
-
-Separate controlled fixtures, live execution and human review. State remaining
-gaps; passing checks cannot supply usefulness/experience verdicts.
-
-## Migration and coordination
-
-Note compatibility, surviving edits/permissions/recovery, generated-client changes
-and backend/frontend agreement. State new execution authority actually needed;
-do not turn routine implementation into approvals.
+What remains incomplete? Note relevant data/migration, access, spending, external effects
+and ownership coordination, including any actual authority still needed.

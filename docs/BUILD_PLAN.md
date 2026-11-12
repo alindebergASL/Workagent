@@ -1,47 +1,30 @@
-# Current build priorities
+# Current work
 
-Andrew approved execution on November 6, 2026. Build a general, persistent work
-partner through staged replacement, retaining saved work and proven protections,
-not every old protocol. Hermes owns the installed outcome; Claude owns web.
-[STATUS](../STATUS.md) distinguishes installed behavior from published code.
+The canonical [build steps](product/03-build-steps.md) contain implementation units, files,
+dependencies and changed-behavior checks for the [blueprint](product/01-product-blueprint.md)
+and [architecture](product/02-architectural-plan.md). This page is the entry summary.
 
-## Ordered delivery
+**Authorized now:** bounded November 12 instruction/document cleanup and byte-preserving
+relocation of obsolete CI. Product implementation, paid calls and service operations are
+not activated by this cleanup. The parent handles publication, mirrors, profile skills
+and final verification. [STATUS](../STATUS.md) records the actual state.
 
-1. **One useful current result — active.** Let agent-owned preparation advance
-   through immutable revisions, retain one current candidate without erasing
-   history, preserve human edits/acceptance and produce real checklist blocks.
-   Put current work before obsolete proposals. Fix API/web stream shutdown.
-   Install the coherent increment; Andrew uses it and his first findings are
-   fixed or explicitly scheduled before new-capability slices begin.
-2. **Dependable continuing work.** One persisted work loop continues, waits for
-   a meaningful dependency, resumes on change and recovers after restart.
-   Renew worker ownership safely without extending access or spending authority.
-3. **One activated tool/context path.** Unify rich editable work, files,
-   computation, retrieval and interactive views. Replace repeated context
-   materialization, not fresh permission checks. Retain historical interpreters
-   while moving new work off accidental profile limits.
-4. **Natural scoped memory.** Remember, recall, correct and stop using information
-   through ordinary conversation. Keep source-linked history and explicit scope;
-   do not promise deletion or provider erasure that did not happen.
-5. **Learned methods and useful specialists.** Transfer verified approaches across
-   tasks and add bounded specialists where a real outcome benefits. Preserve the
-   shared budget and parent ownership; no agent committee for routine work.
+**Next implementation outcome once authorized:** one real unfamiliar-input DSH/model
+result in a native sheet or document, a human correction/proposal, save/reopen and useful
+continuation. Only its accounting/provider, identity/source scope, native editing and
+enabled-tool isolation dependencies come first.
 
-## Delivery discipline
+The implementation sequence then makes steering/restart and independent work reliable,
+keeps one useful result current with all clients closed, expands shared native work, and
+completes connected data/apps/media/channels. No later unit waits for acceptance of a
+whole milestone. Owner feedback, physical-phone proof and unavailable credentials affect
+the relevant claims or capabilities while independent authorized work continues.
 
-- One writer per ownership stream, one integrated user outcome at a time.
-- Stop automatic decomposition and unchanged-card requeues for this project;
-  keep historical studies as reference, not active work.
-- Run focused changed-behavior checks and one normal installed journey. Reuse
-  unchanged checks. At most one independent risk-focused review where warranted.
-- Keep an active successor or report a genuine stop. Awaiting owner feedback
-  does not stop unrelated authorized first-use fixes or imply acceptance.
-- Install coherent increments on the existing private host. Preserve both owner
-  work and old-alpha isolation. Prepare migrations and seek installed-data
-  approval when actually needed; do not gate unrelated reversible engineering.
-- Keep true allocations, known usage, unknown liabilities and bills distinct.
-  No new paid providers, private access, external effects or public deployment
-  are authorized by this sequence.
+Hermes owns backend/integration and the existing Claude owner owns web, including the
+new client. Surface unavailable ownership immediately and request scoped reassignment.
+Use one writer per stream, changed-behavior checks and at most one useful risk review;
+no per-packet consent, mandatory review chain or full-suite-every-edit loop.
 
-The complete action plan was supplied to Andrew on November 6. These are its
-active delivery priorities, not a certification program or a narrowed product.
+Follow [development direction](DEVELOPMENT_AUTHORITY.md) and the unchanged
+[financial authority](GENERAL_MODEL_AUTHORIZATION.md). Preserve the stopped owner
+installation, alpha, rc1 slice, saved work and historical receipts.
