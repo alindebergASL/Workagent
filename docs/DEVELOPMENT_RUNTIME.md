@@ -1,5 +1,10 @@
 # Supported private development runtime
 
+> **Legacy runtime reference — not new-product startup.** These instructions describe
+> the preserved previous owner stack. Its services must remain stopped under current
+> [development direction](DEVELOPMENT_AUTHORITY.md); this guide does not authorize a restart.
+> See [STATUS](../STATUS.md) for recorded state and the canonical product documents.
+
 This starts the real shared API, ResponsesDispatcher/GeneralWorker and browser.
 It does not provision fixtures, grant authority, reset a database or replace the
 older saved preview. The existing dispatcher still services explicitly labeled

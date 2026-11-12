@@ -31,8 +31,8 @@ and `configure_grant(..., predecessor_id=...)`. Installation atomically revokes 
 predecessor and inserts its successor; do **not** pre-revoke the old grant in a
 separate transaction. Old configurations, request identities and receipts stay put.
 
-The existing development authorization is **$100 cumulative**, not $100 of new
-capacity. Reconcile actual current capacity; never substitute the limit for the
+The current cumulative ceiling is defined in [model spending](GENERAL_MODEL_AUTHORIZATION.md),
+not a fresh allowance. Reconcile actual current capacity; never substitute the limit for the
 available balance. Shared reservations, reported usage and unknown outcomes carry
 forward. The helper copies the predecessor's ceilings unless an explicit authorized
 change is supplied. Historical scoped bindings keep their original limits.

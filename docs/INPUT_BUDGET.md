@@ -85,5 +85,6 @@ retains its conservative existing status and liability. No provider result is
 fabricated to complete a rejected step.
 
 These changes do not reset spending, forgive unknown sends, create a second
-allowance, or change the cumulative $100 development ceiling. Activation and live
-verification are recorded separately in STATUS.md.
+allowance, or change the cumulative ceiling defined in
+[model spending](GENERAL_MODEL_AUTHORIZATION.md). Activation and live verification
+are recorded separately in STATUS.md.
