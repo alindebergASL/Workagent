@@ -14,7 +14,7 @@ import AgentLoop from '@deepseek-ai/dsh-agent-loop';
 import { OpenRouterProvider } from './provider.mjs';
 import { DEFAULT_MODEL, DEFAULT_MAX_OUTPUT_TOKENS, outputAllowance } from './wire.mjs';
 import { digest } from '../../workagent-server/src/workspace.mjs';
-import { withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
+import { createSheetReader } from './sheet-read.mjs';
 // Native turn closure is not evidence of successful user-visible completion.
 export function nativeOutcome(events) {
   const end = events.findLast(e => e.type === 'turn/end');
@@ -38,6 +38,7 @@ export async function bootHost({ stateRoot, workspace, principal, accounting, ap
     const job = jobs.get(sessionId); if (!job) throw new Error('session_not_bound');
     const current = await workspace.get(principal, job.workId);
     if (current.intentRevision !== job.expected.intentRevision || current.cancellationEpoch !== job.expected.cancellationEpoch || current.expected.permissionRevision !== job.expected.permissionRevision) throw new Error('work_superseded');
+    return current;
   };
   const provider = suppliedProvider ?? new OpenRouterProvider({ accounting, apiKey, requestTimeoutMs, authorize: authorizeDispatch, beforeRequest(sessionId) {
     const job = jobs.get(sessionId);
@@ -71,12 +72,14 @@ export async function bootHost({ stateRoot, workspace, principal, accounting, ap
     await ctx.plugin(Persistence, { root: join(stateRoot, 'sessions'), compression: 'none', listConcurrency: 1 });
     await ctx.plugin(AgentLoop, { agents: [] });
     ctx.llm.registerAdapter(['workagent-openrouter'], provider);
-    ctx.tools.register(defineTool({ name: 'read_sheet', description: 'Read saved workbook and exact revisions before planning edits. Formula cells without v have invalidated results awaiting native calculation; missing results are not zero.', parameters: {}, output: { schema: { type: 'string' }, render: (_, result) => [{ type: 'text', text: result }] }, async execute(_, exec) {
-      const j = jobs.get(exec.agent.id); if (!j) throw new Error('session_not_bound'); await authorizeDispatch(exec.agent.id);
-      const w = requireSheet(await workspace.get(principal, j.workId)); j.readExpected = w.expected; j.readKind = 'sheet';
-      // Legacy native saves have no trustworthy cache provenance either. The
-      // model receives formulas, never an unverified persisted result as fact.
-      return JSON.stringify({ book: withoutFormulaResults(w.book), expected: w.expected, protectedCells: w.humanCells });
+    ctx.tools.register(defineTool({ name: 'read_sheet', description: 'Read current saved sheet and exact revisions before edits. Small books may return book/protectedCells; larger reads return a workbook/tab overview and sparse bounded cells. Formula results are unknown. Use sheetId and zero-based inclusive range to read any tab/dependency, or cursor alone to continue. complete refers only to requested coverage; workbookComplete is separate. Cell fragments are incomplete JSON: concatenate by offset and parse only after complete. Pass expected from an earlier read to pin cross-tab reads; stale cursors/revisions refuse and require restarting. Selection guides defaults only, never write authority.', parameters: { query: { type: 'string', description: 'Optional JSON object: {sheetId?,range?:{startRow,endRow,startColumn,endColumn},expected?:{contentRevision,intentRevision,permissionRevision,cancellationEpoch},overview?:boolean}, or {cursor}. Omit for bounded default. Unknown keys and invalid bounds refuse.' } }, output: { schema: { type: 'string' }, render: (_, result) => [{ type: 'text', text: result }] }, async execute(args, exec) {
+      if (Object.keys(args).some(k => k !== 'query')) throw new Error('invalid_read_arguments');
+      const j = jobs.get(exec.agent.id); if (!j) throw new Error('session_not_bound');
+      const w = requireSheet(await authorizeDispatch(exec.agent.id));
+      j.sheetReader ??= createSheetReader(j.workId, j.selection);
+      const result = j.sheetReader(w, args.query);
+      j.readExpected = w.expected; j.readKind = 'sheet';
+      return result;
     } }));
     ctx.tools.register(defineTool({ name: 'edit_sheet', description: 'Create or update the native sheet. Pass patch as JSON: {title?, addSheets?: [{id,name}], cells:[{sheetId,row,column,value,formula?}]}. Read first. Changes to human cells or stale reads become visible proposals.', parameters: { patch: { type: 'string', required: true, description: 'JSON patch, at most 2000 cells; formula starts with =; value may be null.' } }, output: { schema: { type: 'string' }, render: (_, result) => [{ type: 'text', text: result }] }, async execute({ patch }, exec) {
       const j = jobs.get(exec.agent.id); if (!j?.readExpected || j.readKind !== 'sheet') throw new Error('read_sheet_required'); exec.signal.throwIfAborted();

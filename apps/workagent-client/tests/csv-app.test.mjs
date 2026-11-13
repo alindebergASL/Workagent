@@ -663,3 +663,19 @@ test('review regression: foreign draft at ACK keeps exact retry until its owning
   const recovered = JSON.parse(await draftRaw(storage, 'old')); assert.equal(recovered.revision, 2); assert.equal(recovered.book.sheets.sheet1.cellData[0][0].v, 'foreign B');
   await reload.save(); assert.equal(receipts.size, 2); assert.equal(await draftRaw(storage, 'old'), null); reload.unmount();
 });
+
+// Keep tests below the prefix consumed by native-document App fixtures.
+for (const [errorCode, status, message] of [
+  ['request_too_large', 'blocked', 'This request reached a technical size limit before the next model call was sent. Your saved work is safe. Send a narrower request to continue.'],
+  ['execution_interrupted_check_receipt', 'interrupted', 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.'],
+]) test(`App displays ${errorCode} accurately without replaying the command`, async () => {
+  const api = server(() => assert.fail('rendering an error must not submit a command'));
+  Object.assign(api.works.old, { status, errorCode });
+  const view = mount(disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old');
+    assert.ok(view.text().includes(message));
+    assert.equal(view.text().includes(errorCode === 'request_too_large' ? 'uncertain model request' : 'technical size limit'), false);
+    assert.equal(api.calls.some(call => call.input), false);
+  } finally { view.unmount(); }
+});

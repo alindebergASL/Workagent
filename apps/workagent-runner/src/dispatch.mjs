@@ -11,7 +11,7 @@ export function createDispatcher({ workspace, principal, host, maintenance, capa
       await workspace.finish(principal, job, messages, closing ? 'interrupted' : messages.outcome?.status ?? 'ready', closing ? 'service_stopped' : messages.outcome?.errorCode);
     } catch (error) {
       if (job.kind === 'maintenance') throw error; // Keep durable claim for restart; no external effect to replay.
-      const known = ['accounting_bridge_not_connected', 'openrouter_not_configured', 'work_superseded', 'turn_call_limit', 'interrupted_no_automatic_replay', 'provider_budget_exhausted', 'provider_http_402', 'provider_http_403', 'provider_http_429'];
+      const known = ['accounting_bridge_not_connected', 'openrouter_not_configured', 'work_superseded', 'turn_call_limit', 'interrupted_no_automatic_replay', 'provider_budget_exhausted', 'provider_http_402', 'provider_http_403', 'provider_http_429', 'request_too_large'];
       const code = closing ? 'service_stopped' : known.includes(error.message) ? error.message : 'execution_interrupted_check_receipt';
       await workspace.finish(principal, job, error.messages ?? [], closing || !known.includes(error.message) || error.message === 'interrupted_no_automatic_replay' ? 'interrupted' : 'blocked', code);
     }
