@@ -12,7 +12,7 @@
     "build": "vite build --config apps/workagent-client/vite.config.ts",
     "start": "node apps/workagent-server/src/main.mjs",
     "test:mechanisms": "node apps/workagent-server/tests/access.test.mjs && node apps/workagent-server/tests/workspace.test.mjs && node apps/workagent-runner/tests/provider-contract.test.mjs && node apps/workagent-runner/tests/provider-budget.test.mjs && node apps/workagent-server/tests/event-resume.test.mjs && node apps/workagent-client/tests/resume.test.mjs && npm run test:background && npm run test:exchange && npm run test:native-context && npm run test:documents",
-    "test:integration": "node apps/workagent-runner/tests/host.test.mjs && node apps/workagent-runner/tests/live-outcome.test.mjs && node apps/workagent-client/tests/native.test.mjs && node apps/workagent-runner/tests/dispatch-recovery.test.mjs",
+    "test:integration": "node apps/workagent-runner/tests/host.test.mjs && node apps/workagent-runner/tests/live-outcome.test.mjs && node apps/workagent-client/tests/native.test.mjs && npm run test:formatting && node apps/workagent-runner/tests/dispatch-recovery.test.mjs",
     "provision": "node apps/workagent-server/src/provision.mjs",
     "test:http": "node apps/workagent-server/tests/http.test.mjs",
     "test:background": "node apps/workagent-server/tests/responsibilities.test.mjs && node apps/workagent-client/tests/maintenance-actions.test.mjs",
@@ -25,7 +25,8 @@
     "test:docx": ".local/docx-python/bin/python -I services/workagent-execution/docx/test_codec.py && node apps/workagent-server/tests/docx.test.mjs && node apps/workagent-client/tests/docx-exchange.test.mjs && node apps/workagent-client/tests/docx-native.test.mjs",
     "test:docx-isolation": "node apps/workagent-server/tests/docx-isolation.test.mjs",
     "test:pdf": "python3 -I services/workagent-execution/pdf/test_render.py && node apps/workagent-server/tests/pdf.test.mjs && node apps/workagent-client/tests/pdf-export.test.mjs",
-    "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs"
+    "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs",
+    "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",

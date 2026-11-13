@@ -46,7 +46,7 @@ function mountEditor(book, editing = {}) {
     if (name === './drafts') return { isHumanSheetMutation, pendingCell };
     if (name.endsWith('.css')) return {};
     if (name === '@univerjs/preset-sheets-core/locales/en-US') return {};
-    if (name === '@univerjs/preset-sheets-core') return { CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
+    if (name === '@univerjs/preset-sheets-core') return { ...require('@univerjs/sheets'), CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       e = engine(options.presets[0].formula);
       // Headless SDK has no DOM cell-editor events; retain those callbacks while

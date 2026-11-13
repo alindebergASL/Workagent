@@ -679,3 +679,69 @@ for (const [errorCode, status, message] of [
     assert.equal(api.calls.some(call => call.input), false);
   } finally { view.unmount(); }
 });
+
+for (const abort of [false, true]) test(`format provenance survives lost ACK, reload, newer format and atomic settlement abort=${abort}`, async () => {
+  const storage = disk(); let saves = 0;
+  const api = server((path, input, works) => {
+    saves++;
+    if (saves === 1) {
+      works.old = { ...works.old, book: input.book, contentRevision: 2, eventSequence: 2, expected: { ...works.old.expected, contentRevision: 2 } };
+      throw new Error('lost acknowledgement');
+    }
+    return { contentRevision: saves < (abort ? 4 : 3) ? 2 : 3, permissionRevision: 1 };
+  });
+  const attachFormatting = view => {
+    const props = view.native(), book = structuredClone(props.book), formats = structuredClone(props.formatEdits ?? {});
+    props.onReady({ save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false, formatEdits: () => structuredClone(formats) });
+    return column => {
+      book.sheets.sheet1.cellData[0] ??= {}; book.sheets.sheet1.cellData[0][column] = { f: '=1+1', s: { n: { pattern: '0.00%' } } };
+      formats.sheet1 = [...new Set([...(formats.sheet1 ?? []), column])].sort((a, b) => a - b);
+      props.onEdit(structuredClone(book));
+    };
+  };
+  let view = mount(storage, api.fetch); await view.flush(); await view.open('old');
+  const format = attachFormatting(view); format(0); await view.flush(); await view.save();
+  const original = await saveActions(storage, 'old').read(); assert.deepEqual(original.input.formatEdits, { sheet1: [0] });
+  format(1); await view.flush(); view.unmount();
+  view = mount(storage, api.fetch); await view.flush(); await view.open('old'); attachFormatting(view);
+  assert.deepEqual(view.native().formatEdits, { sheet1: [0, 1] });
+  if (abort) artifactFixture(storage).complete = async (key, slot) => { if (key === 'save:old' && slot.value === null) throw new Error('abort settlement'); };
+  await view.save();
+  if (abort) {
+    assert.deepEqual(await saveActions(storage, 'old').read(), original);
+    assert.deepEqual(JSON.parse(await draftRaw(storage, 'old')).formatEdits, { sheet1: [0, 1] });
+    artifactFixture(storage).complete = async () => {};
+    await view.save();
+  }
+  const posted = api.calls.filter(c => c.path.endsWith('/save'));
+  for (const call of posted) assert.deepEqual(call.input, original.input, 'exact original body including provenance');
+  assert.equal(await saveActions(storage, 'old').read(), null);
+  const draft = JSON.parse(await draftRaw(storage, 'old'));
+  assert.equal(draft.revision, 2); assert.deepEqual(draft.formatEdits, { sheet1: [0, 1] });
+  await view.save();
+  const last = api.calls.filter(c => c.path.endsWith('/save')).at(-1).input;
+  assert.notEqual(last.commandId, original.input.commandId); assert.equal(last.contentRevision, 2); assert.deepEqual(last.formatEdits, { sheet1: [0, 1] });
+  assert.equal(await draftRaw(storage, 'old'), null); view.unmount();
+});
+
+test('Open saved version archives live formatting provenance with the complete native draft', async () => {
+  const storage = disk(), api = server(() => assert.fail('no Save')), view = mount(storage, api.fetch);
+  await view.flush(); await view.open('old');
+  const props = view.native(), book = structuredClone(props.book);
+  book.sheets.sheet1.cellData = { 0: { 0: { v: 3, s: { bl: 1 } } } };
+  props.onReady({ save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false, formatEdits: () => ({ sheet1: [0] }) });
+  props.onEdit(book); await view.flush();
+  // Trigger the existing recovery controls without dispatching a Save.
+  await view.open('imported'); await view.open('old');
+  const current = view.native(); current.onReady({ save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false, formatEdits: () => ({ sheet1: [0] }) });
+  // A saved revision conflict exposes Open saved version.
+  api.works.old.contentRevision = 2;
+  await view.open('imported'); await view.open('old');
+  view.native().onReady({ save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false, formatEdits: () => ({ sheet1: [0] }) });
+  await view.click('Open saved version');
+  const entries = [...artifactFixture(storage).rows].filter(([key]) => key.startsWith('recovery:old:'));
+  assert.equal(entries.length, 1);
+  const archived = JSON.parse(entries[0][1].value.raw);
+  assert.deepEqual(archived.formatEdits, { sheet1: [0] }); assert.deepEqual(archived.book, book);
+  view.unmount();
+});

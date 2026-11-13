@@ -13,14 +13,14 @@ import { MaintenanceActions } from '../src/maintenance-actions.ts';
 const localRequire = createRequire(import.meta.url);
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
 const core = require('@univerjs/core'), { FUniver } = require('@univerjs/core/facade');
-const { UniverSheetsPlugin } = require('@univerjs/sheets');
+const sheets = require('@univerjs/sheets'), { UniverSheetsPlugin } = sheets;
 const { UniverFormulaEnginePlugin, FormulaExecutedStateType } = require('@univerjs/engine-formula');
 const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets-formula');
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 const compile = file => ts.transpileModule(readFileSync(new URL(file, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
 const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src/main.tsx');
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
-export function mountNative(props) {
+export function mountNative(props, plugins = []) {
   let cleanup, handle, api, univer, edits = 0;
   let starts = [], ends = [];
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
@@ -29,18 +29,19 @@ export function mountNative(props) {
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
-    if (name === '@univerjs/preset-sheets-core') return { CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
+    if (name === '@univerjs/preset-sheets-core') return { ...sheets, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
       univer.registerPlugin(UniverSheetsPlugin); univer.registerPlugin(UniverFormulaEnginePlugin);
       univer.registerPlugin(UniverSheetsFormulaPlugin, options.presets[0].formula);
+      for (const plugin of plugins) univer.registerPlugin(plugin);
       api = FUniver.newAPI(univer);
       api.getFormula().calculationStart(force => starts.push(force));
       api.getFormula().calculationEnd(state => ends.push(state));
       // Adapters supply only the absent DOM editor seam. Calculation, commands,
       // snapshots and selection methods remain bound to the installed SDK.
       const adapter = new Proxy(api, { get(target, key) {
-        if (key === 'Event') return { ...target.Event, SheetEditChanging: 'headless-changing', SheetEditEnded: 'headless-ended', CommandExecuted: target.Event.CommandExecuted };
+        if (key === 'Event') return { ...target.Event, SheetEditChanging: 'headless-changing', SheetEditEnded: 'headless-ended', BeforeCommandExecute: target.Event.BeforeCommandExecute, CommandExecuted: target.Event.CommandExecuted };
         if (key === 'addEvent') return (event, fn) => event.startsWith('headless-') ? { dispose() {} } : target.addEvent(event, fn);
         if (key === 'createWorkbook') return data => new Proxy(target.createWorkbook(data), { get(workbook, property) {
           if (property === 'isCellEditing') return () => false;
@@ -102,7 +103,7 @@ export function mountApp(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { flush, native: () => nodes(tree).find(n => n.type === NativeEditor)?.props, text: () => text(tree),
+  return { flush, get tree() { return tree; }, native: () => nodes(tree).find(n => n.type === NativeEditor)?.props, text: () => text(tree),
     async open(id) { await flush(); nodes(tree).find(n => n.props['aria-label'] === 'Saved work').props.onChange({ target: { value: id } }); await flush(); },
     async save() { await flush(); const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === 'Save sheet'); assert.ok(button); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     unmount() { mounted = false; hooks.forEach(h => h?.cleanup?.()); },

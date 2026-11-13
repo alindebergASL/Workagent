@@ -29,6 +29,24 @@ export function validateWorkbook(book) {
   }
   return structuredClone(book);
 }
+// Owner-save provenance only. Coordinates are row * 200 + column, matching
+// workbook bounds; sparse numbers avoid carrying a second workbook in recovery.
+export function validateFormatEdits(value, book) {
+  if (value === undefined) return undefined; // Legacy clients have unknown provenance.
+  const bad = () => { throw new Fault('invalid_format_edits', 400); };
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length > 20) bad();
+  let count = 0;
+  for (const [sid, cells] of Object.entries(value)) {
+    const sheet = Object.hasOwn(book.sheets, sid) && book.sheets[sid];
+    if (!book.sheetOrder.includes(sid) || !sheet || !Array.isArray(cells) || (count += cells.length) > 100000) bad();
+    let last = -1;
+    for (const cell of cells) {
+      if (!Number.isSafeInteger(cell) || cell <= last || cell < 0 || Math.floor(cell / 200) >= sheet.rowCount || cell % 200 >= sheet.columnCount) bad();
+      last = cell;
+    }
+  }
+  return value;
+}
 export function blankWorkbook(workId, title = 'Working sheet') {
   return { id: workId, name: title, appVersion: '1.4.0', locale: 'enUS', styles: {}, sheetOrder: ['sheet1'], sheets: { sheet1: { id: 'sheet1', name: 'Sheet 1', rowCount: 200, columnCount: 26, cellData: {}, defaultColumnWidth: 110, defaultRowHeight: 24 } } };
 }

@@ -1,6 +1,6 @@
 import { blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID, createHash } from 'node:crypto';
-import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
+import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validateFormatEdits, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
 import { bindSelection } from './selection.mjs';
 export const digest = data => createHash('sha256').update(JSON.stringify(canonical(data))).digest('hex');
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
@@ -96,6 +96,8 @@ export class Workspace {
     const document = input.document === undefined ? undefined : validateDocument(input.document);
     const book = document ? undefined : validateWorkbook(input.book);
     if (document && input.book !== undefined) throw new Fault('artifact_type_mismatch', 400);
+    const formatEdits = book ? validateFormatEdits(input.formatEdits, book) : undefined;
+    if (document && input.formatEdits !== undefined) throw new Fault('invalid_format_edits', 400);
     revision(input.contentRevision); revision(input.permissionRevision);
     return this.store.transaction(s => {
       authorize(s, principal); const w = work(s, workId);
@@ -109,11 +111,22 @@ export class Workspace {
           return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
         }
         const human = new Set(w.humanCells);
-        const cellMeaning = c => c?.f ? { f: c.f } : c?.si ? { si: c.si } : c ?? null;
+        for (const [sid, cells] of Object.entries(formatEdits ?? {})) for (const cell of cells) human.add(`${sid}:${Math.floor(cell / 200)}:${cell % 200}`);
+        const cellMeaning = (c, snapshot) => {
+          if (!c) return null;
+          // Formula results/shared-formula cache metadata are derived, but a
+          // human's formatting is not. Compare resolved styles: SDK snapshots
+          // may reference the style table instead of embedding the style.
+          // Explicit provenance protects manual formatting even when it equals a
+          // generated format. Unknown legacy saves conservatively compare styles.
+          const s = formatEdits === undefined ? (typeof c.s === 'string' ? snapshot.styles?.[c.s] ?? c.s : c.s) : undefined;
+          const value = c.f ? { f: c.f, s } : c.si ? { si: c.si, s } : { ...c, s };
+          return Object.values(value).every(v => v == null) ? null : value;
+        };
         for (const sid of new Set([...w.book.sheetOrder, ...book.sheetOrder])) {
           const old = w.book.sheets[sid]?.cellData ?? {}, next = book.sheets[sid]?.cellData ?? {};
           for (const r of new Set([...Object.keys(old), ...Object.keys(next)])) for (const c of new Set([...Object.keys(old[r] ?? {}), ...Object.keys(next[r] ?? {})])) {
-            if (digest(cellMeaning(old[r]?.[c])) !== digest(cellMeaning(next[r]?.[c]))) human.add(`${sid}:${r}:${c}`);
+            if (digest(cellMeaning(old[r]?.[c], w.book)) !== digest(cellMeaning(next[r]?.[c], book))) human.add(`${sid}:${r}:${c}`);
           }
         }
         for (const r of w.responsibilities ?? []) {
@@ -121,6 +134,13 @@ export class Workspace {
           const structureChanged = digest(w.book.sheets[sid]?.rowData ?? {}) !== digest(book.sheets[sid]?.rowData ?? {})
             || w.book.sheets[sid]?.rowCount !== book.sheets[sid]?.rowCount || w.book.sheets[sid]?.columnCount !== book.sheets[sid]?.columnCount || !book.sheets[sid];
           if (human.has(anchor(r.target)) || structureChanged) { r.detached = true; r.lastOutcome = 'protected'; }
+        }
+        // Structural saves retire coordinates outside the surviving sheets.
+        // Keep valid prior protections conservative; relocated styles arrive in
+        // formatEdits, including blank cells with no value diff to identify them.
+        for (const cell of human) {
+          const [sid, row, column] = cell.split(':'), sheet = book.sheets[sid];
+          if (!book.sheetOrder.includes(sid) || !sheet || +row >= sheet.rowCount || +column >= sheet.columnCount) human.delete(cell);
         }
         w.humanCells = [...human]; w.book = book; w.contentRevision++; event(s, w, 'human_saved');
         return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };

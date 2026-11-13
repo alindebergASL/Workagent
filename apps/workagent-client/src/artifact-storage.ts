@@ -1,3 +1,5 @@
+import { validateFormatEdits } from '../../../packages/workagent-contract/index.mjs';
+import type { IWorkbookData } from '@univerjs/core';
 import { actionWasRejected, type Pending } from './maintenance-actions.ts';
 
 export type Payload = { id: string; raw: string };
@@ -123,6 +125,9 @@ export class ArtifactStorage {
     if (request?.key !== 'save' || request.path !== `/work/${workId}/save` || !request.input || typeof request.input.commandId !== 'string'
       || !request.input.commandId || !Number.isInteger(request.input.contentRevision) || !Number.isInteger(request.input.permissionRevision)
       || ((request.input.book as { id?: string } | undefined)?.id !== workId && (request.input.document as { id?: string } | undefined)?.id !== workId) || (request.workId !== undefined && request.workId !== `sheet-save:${workId}`)) throw new Error('invalid_pending_save');
+    try {
+      if (request.input.formatEdits !== undefined) validateFormatEdits(request.input.formatEdits, request.input.book as IWorkbookData);
+    } catch { throw new Error('invalid_pending_save'); }
     return { record, request: { ...request, workId: `sheet-save:${workId}` } };
   }
   readSave(workId: string) {

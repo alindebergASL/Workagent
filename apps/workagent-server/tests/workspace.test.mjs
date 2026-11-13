@@ -136,6 +136,22 @@ test('shared formula result refresh does not acquire human ownership; a formula 
   await ws.save('owner', wid, { commandId: 'human-formula', book: refreshed.book, contentRevision: refreshed.contentRevision, permissionRevision: 1 });
   assert.deepEqual((await ws.get('owner', wid)).humanCells, ['sheet1:1:1']);
 });
+test('style-table edits protect literal, formula and shared-formula cells without treating style ID changes as edits', async () => {
+  const { ws, wid, store } = await setup();
+  await store.transaction(s => {
+    const book = s.works[wid].book;
+    book.styles = { original: { bl: 1 } };
+    book.sheets.sheet1.cellData = { 0: { 0: { v: 10, t: 2, s: 'original' }, 1: { f: '=A1*2', si: 'group', v: 20, t: 2, s: 'original' }, 2: { si: 'group', v: 20, t: 2, s: 'original' } } };
+  });
+  const before = await ws.get('owner', wid);
+  before.book.styles.equivalent = { bl: 1 };
+  for (const cell of Object.values(before.book.sheets.sheet1.cellData[0])) cell.s = 'equivalent';
+  await ws.save('owner', wid, { commandId: 'same-style', book: before.book, contentRevision: before.contentRevision, permissionRevision: 1 });
+  const same = await ws.get('owner', wid); assert.deepEqual(same.humanCells, []);
+  same.book.styles.equivalent.it = 1;
+  await ws.save('owner', wid, { commandId: 'changed-style', book: same.book, contentRevision: same.contentRevision, permissionRevision: 1 });
+  assert.deepEqual((await ws.get('owner', wid)).humanCells, ['sheet1:0:0', 'sheet1:0:1', 'sheet1:0:2']);
+});
 test('formula cache invalidation keeps the original workbook cap on the resulting content', async () => {
   const { ws, wid } = await setup(), { book } = await ws.get('owner', wid);
   book.sheets.sheet1.cellData = { 0: { 0: { v: 1, t: 2 }, 1: { f: '=REPT("x",20000)', v: 'x'.repeat(20000), t: 1 } } };
@@ -174,4 +190,19 @@ test('SQL contract fixture: PostgreSQL locks before application and rolls back o
   const store = new PostgresStore({ connect: async () => client }, 'owner');
   await assert.rejects(store.transaction(() => { throw new Error('denied'); }), /denied/);
   assert.deepEqual(statements, ['BEGIN', 'SELECT data FROM workagent_b01.workspace WHERE id = $1 FOR UPDATE', 'ROLLBACK']); assert.equal(released, true);
+});
+
+test('owner format provenance is bounded, additive, immutable under retry, and cannot erase protection', async () => {
+  const { ws, wid } = await setup(), before = await ws.get('owner', wid);
+  before.book.sheets.sheet1.cellData = { 0: { 0: { f: '=1+1', v: 2, t: 2, s: { n: { pattern: '0.00' } } } } };
+  const input = { commandId: 'provenance', book: before.book, contentRevision: before.contentRevision, permissionRevision: 1, formatEdits: { sheet1: [0] } };
+  for (const formatEdits of [null, [], { missing: [0] }, { sheet1: [-1] }, { sheet1: [0, 0] }, { sheet1: [1, 0] }, { sheet1: [26] }, { sheet1: [40000] }, { sheet1: [0.5] }, { sheet1: Array(100001).fill(0) }]) {
+    await assert.rejects(ws.save('owner', wid, { ...input, formatEdits }), /invalid_format_edits/);
+  }
+  const saved = await ws.save('owner', wid, input);
+  assert.deepEqual(await ws.save('owner', wid, input), saved);
+  await assert.rejects(ws.save('owner', wid, { ...input, formatEdits: {} }), /command_conflict/);
+  await ws.save('owner', wid, { ...input, commandId: 'cache-only', contentRevision: saved.contentRevision, formatEdits: {} });
+  assert.deepEqual((await ws.get('owner', wid)).humanCells, ['sheet1:0:0']);
+  await assert.rejects(ws.save('intruder', wid, { ...input, commandId: 'intruder' }), /access_denied/);
 });
