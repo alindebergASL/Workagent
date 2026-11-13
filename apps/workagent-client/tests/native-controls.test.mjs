@@ -14,9 +14,134 @@ import { initialState } from '../../workagent-server/src/store.mjs';
 import { FileFixtureStore } from '../../workagent-server/tests/support/file-fixture.mjs';
 import { blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
+import { trustedCodec } from '../../workagent-server/tests/support/xlsx-fixture.mjs';
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-data-validation'));
 require('@univerjs/sheets-data-validation/facade');
 const plugins = [require('@univerjs/data-validation').UniverDataValidationPlugin, require('@univerjs/sheets-data-validation').UniverSheetsDataValidationPlugin];
+test('real XLSX inline lists load into installed SDK, validate literals/blanks, Save and cold reopen', async () => {
+  const book=blankWorkbook('xlsx-native');
+  book.sheets.sheet1.cellData={0:{0:{v:'=1+1',t:1},2:{f:'=1+2'}},1:{0:{v:'Invalid',t:1}}};
+  book.resources=[{name:CONTROL_RESOURCE,data:JSON.stringify({sheet1:[{uid:'list',type:'list',formula1:'["=1+1","Ready"]',allowBlank:false,showDropDown:true,showErrorMessage:true,errorStyle:1,ranges:[{startRow:0,endRow:2,startColumn:0,endColumn:0}]}]})}];
+  const raw=trustedCodec({op:'export',book}); const imported=trustedCodec({op:'import',base64:raw.base64}).book;
+  let view=mountNative({book:imported,version:'xlsx'},plugins), saved;
+  try {
+    await view.settle(); const sheet=view.api.getActiveWorkbook().getActiveSheet();
+    assert.deepEqual(await sheet.getRange('A1:A3').getValidatorStatus(),[['valid','invalid','invalid']]);
+    saved=view.handle.save(); validateWorkbook(saved);
+    assert.equal(saved.sheets.sheet1.cellData[0][0].v,'=1+1'); assert.equal(saved.sheets.sheet1.cellData[0][0].f,undefined);
+    assert.deepEqual(sheetControls(saved),sheetControls(imported)); assert.equal(view.edits,0); assert.deepEqual(view.handle.formatEdits(),{});
+  } finally {await delay(1100);view.dispose();}
+  view=mountNative({book:saved,version:'cold'},plugins);
+  try {await view.settle(); assert.deepEqual(sheetControls(view.handle.save()),sheetControls(saved));
+    assert.deepEqual(await view.api.getActiveWorkbook().getActiveSheet().getRange('A1:A3').getValidatorStatus(),[['valid','invalid','invalid']]);
+  } finally {await delay(1100);view.dispose();}
+});
+for (const imported of [false, true]) test(`${imported ? 'imported' : 'new native'} dropdown commands preserve literal options, scope, undo, cold Save and XLSX reimport`, async () => {
+  const choices = ['0012', 'TRUE', 'FALSE', '2026-11-13', '1e3', '$12.00', '=1+1', 'Ready'];
+  const state = initialState('owner');
+  const ws = new Workspace({ transaction: async fn => fn(state), read: async fn => fn(state) });
+  const { workId } = await ws.createBlank('owner', { commandId: 'literal-new', title: 'Literal dropdowns' });
+  let book = blankWorkbook(workId);
+  book.sheets.sheet1.cellData = { 0: { 0: { v: 42, t: 2, s: { ff: 'Georgia', bl: 1, n: { pattern: '0.00' } } }, 2: { f: '=1+2' } },
+    10: { 0: { v: 12, t: 2 } }, 11: { 0: { v: true, t: 3 } } };
+  book.sheetOrder.push('second'); book.sheets.second = { ...structuredClone(book.sheets.sheet1), id: 'second', name: 'Second', cellData: {} };
+  const rules = { sheet1: [{ uid: 'literal', type: 'list', formula1: JSON.stringify(choices), allowBlank: false,
+    ranges: [{ startRow: 0, endRow: 19, startColumn: 0, endColumn: 0 }] }] };
+  if (imported) {
+    book.resources = [{ name: CONTROL_RESOURCE, data: JSON.stringify(rules) }];
+    book = trustedCodec({ op: 'import', base64: trustedCodec({ op: 'export', book }).base64 }).book;
+  }
+  book.id = workId;
+  state.works[workId].book = structuredClone(book);
+  const secondId = book.sheetOrder[1];
+  let view = mountNative({ book, version: 'literal' }, plugins), saved, humanCells;
+  const payload = v => ({ v, p: null, f: null, si: null });
+  const command = (value, row, column = 0, endRow = row, endColumn = column, sheetId = 'sheet1', unitId = book.id) =>
+    view.api.executeCommand(require('@univerjs/sheets').SetRangeValuesCommand.id, {
+      unitId, subUnitId: sheetId, range: { startRow: row, endRow, startColumn: column, endColumn }, value,
+    });
+  try {
+    await view.settle(); assert.equal(view.edits, 0); assert.deepEqual(view.handle.formatEdits(), {});
+    const wb = view.api.getActiveWorkbook(), sheet = wb.getActiveSheet();
+    if (!imported) sheet.getRange('A1:A20').setDataValidation(view.api.newDataValidation().requireValueInList(choices).build());
+    const style = sheet.getRange('A1').getCellStyleData();
+    const initial = view.handle.save();
+    assert.equal(initial.sheets.sheet1.cellData[10][0].v, 12); assert.equal(initial.sheets.sheet1.cellData[10][0].t, 2);
+    assert.equal(initial.sheets.sheet1.cellData[11][0].t, 3);
+    for (const [row, choice] of choices.entries()) assert.equal(await command(payload(choice), row), true);
+    assert.deepEqual(await sheet.getRange('A1:A8').getValidatorStatus(), [choices.map(() => 'valid')]);
+    await wb.undo(); assert.equal(view.handle.save().sheets.sheet1.cellData[7]?.[0]?.v ?? null, null);
+    await wb.redo(); assert.equal(view.handle.save().sheets.sheet1.cellData[7][0].v, 'Ready');
+    assert.deepEqual(sheet.getRange('A1').getCellStyleData(), style);
+    // Scalar broadcasts, relative arrays and absolute sparse matrices all mix
+    // controlled and ordinary cells; no payload object is shared after typing.
+    await command(payload('0012'), 14, 0, 14, 1);
+    await command([[payload('TRUE'), payload('TRUE')]], 15, 0, 15, 1);
+    await command({ 16: { 0: payload('1e3'), 1: payload('1e3') } }, 0);
+    await command({ v: '0012' }, 17); // Ordinary entry, even inside the list.
+    await command(payload(12), 18); // Typed numeric payload is not an option string.
+    await command({ ...payload('0012'), t: 2 }, 19);
+    await command(payload('0012'), 0, 0, 0, 0, secondId);
+    let snapshot = view.handle.save();
+    for (const [row, literal, numeric, type] of [[14, '0012', 12, 2], [15, 'TRUE', 1, 3], [16, '1e3', 1000, 2]]) {
+      assert.equal(snapshot.sheets.sheet1.cellData[row][0].v, literal);
+      assert.equal(snapshot.sheets.sheet1.cellData[row][0].t, 1);
+      assert.equal(snapshot.sheets.sheet1.cellData[row][1].v, numeric);
+      assert.equal(snapshot.sheets.sheet1.cellData[row][1].t, type);
+    }
+    for (const row of [10, 17, 18, 19]) { assert.equal(snapshot.sheets.sheet1.cellData[row][0].v, 12); assert.equal(snapshot.sheets.sheet1.cellData[row][0].t, 2); }
+    assert.equal(snapshot.sheets[secondId].cellData[0][0].v, 12);
+    // Resolve the current rule on its target sheet, including changed/removed rules.
+    const other = wb.getSheetBySheetId(secondId);
+    other.getRange('A1').setDataValidation(view.api.newDataValidation().requireValueInList(['FALSE']).build());
+    await command(payload('FALSE'), 0, 0, 0, 0, secondId);
+    assert.equal(view.handle.save().sheets[secondId].cellData[0][0].v, 'FALSE');
+    await command(payload('0012'), 0, 0, 0, 0, secondId);
+    assert.equal(view.handle.save().sheets[secondId].cellData[0][0].v, 12, 'a non-option string keeps normal SDK inference');
+    other.getRange('A1').setDataValidation(null);
+    await command(payload('FALSE'), 0, 0, 0, 0, secondId);
+    assert.equal(view.handle.save().sheets[secondId].cellData[0][0].t, 3);
+    // Native checkbox payloads and their history remain numeric, not list strings.
+    sheet.getRange('B2').setDataValidation(view.api.newDataValidation().requireCheckbox().build());
+    wb.setActiveSheet(sheet);
+    await view.api.executeCommand(require('@univerjs/sheets').SetRangeValuesCommand.id, {
+      range: { startRow: 1, endRow: 1, startColumn: 1, endColumn: 1 }, value: { v: 1, p: null },
+    });
+    assert.equal(view.handle.save().sheets.sheet1.cellData[1][1].t, 2);
+    await wb.undo(); assert.equal(view.handle.save().sheets.sheet1.cellData[1]?.[1]?.v ?? null, null);
+    await wb.redo(); assert.equal(view.handle.save().sheets.sheet1.cellData[1][1].v, 1);
+    // An additional workbook in this same SDK instance must not inherit the hook.
+    const foreign = blankWorkbook('foreign'); foreign.resources = [{ name: CONTROL_RESOURCE, data: JSON.stringify(rules) }];
+    view.api.createWorkbook(foreign);
+    await command(payload('0012'), 0, 0, 0, 0, 'sheet1', foreign.id);
+    assert.equal(view.api.getActiveWorkbook().save().sheets.sheet1.cellData[0][0].v, 12);
+    saved = view.handle.save(); validateWorkbook(saved);
+    assert.equal(saved.sheets.sheet1.cellData[0][2].f, '=1+2');
+    assert.equal(saved.sheets.sheet1.cellData[11][0].t, 3);
+    await ws.save('owner', workId, { commandId: 'literal-save', book: saved, formatEdits: view.handle.formatEdits(), contentRevision: 1, permissionRevision: 1 });
+    const persisted = await ws.get('owner', workId);
+    saved = persisted.book; humanCells = persisted.humanCells;
+    for (const row of choices.keys()) assert.ok(humanCells.includes(`sheet1:${row}:0`));
+    assert.ok(!humanCells.includes('sheet1:0:2'), 'calculation does not acquire human provenance');
+  } finally { await delay(1100); view.dispose(); }
+  view = mountNative({ book: saved, humanCells, version: 'literal-cold' }, plugins);
+  try {
+    await view.settle(); assert.equal(view.edits, 0); assert.deepEqual(view.handle.formatEdits(), {});
+    const cold = view.handle.save();
+    assert.deepEqual(await view.api.getActiveWorkbook().getActiveSheet().getRange('A1:A8').getValidatorStatus(), [choices.map(() => 'valid')]);
+    for (const [row, choice] of choices.entries()) { assert.equal(cold.sheets.sheet1.cellData[row][0].v, choice); assert.equal(cold.sheets.sheet1.cellData[row][0].t, 1); }
+    assert.equal(cold.sheets.sheet1.cellData[1][1].v, 1); assert.equal(cold.sheets.sheet1.cellData[1][1].t, 2);
+    assert.deepEqual(sheetControls(cold), sheetControls(saved));
+    // Checkbox file mapping remains explicitly unsupported; remove that rule by
+    // its actual command before exercising the supported XLSX list round trip.
+    view.api.getActiveWorkbook().getActiveSheet().getRange('B2').setDataValidation(null);
+    const xlsx = trustedCodec({ op: 'export', book: view.handle.save() });
+    const reimported = trustedCodec({ op: 'import', base64: xlsx.base64 }).book;
+    for (const [row, choice] of choices.entries()) { assert.equal(reimported.sheets.sheet1.cellData[row][0].v, choice); assert.equal(reimported.sheets.sheet1.cellData[row][0].t, 1); }
+    assert.equal(reimported.sheets.sheet1.cellData[0][2].f, '=1+2');
+    assert.equal(reimported.sheets.sheet1.cellData[10][0].t, 2); assert.equal(reimported.sheets.sheet1.cellData[11][0].t, 3);
+  } finally { await delay(1100); view.dispose(); }
+});
 for (const axis of ['row', 'column']) test(`removed blank control survives ${axis} deletion undo/redo, cold reopen, move and stale agent`, async () => {
   const state = initialState('owner');
   const ws = new Workspace({ transaction: async fn => fn(state), read: async fn => fn(state) });

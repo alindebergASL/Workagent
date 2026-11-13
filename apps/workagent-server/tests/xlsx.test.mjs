@@ -13,12 +13,74 @@ import { initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
 import { trustedWorker, trustedCodec, originalXlsx, xlsxInput } from './support/xlsx-fixture.mjs';
+import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
+import { validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 async function fixture(worker = trustedWorker) {
   const root = await mkdtemp(join(tmpdir(), 'workagent-xlsx-')), path = join(root, 'state.json');
   await writeFile(path, JSON.stringify(initialState('owner')));
   const store = new FileFixtureStore(path), workspace = new Workspace(store), files = new OwnedFiles(root);
   return { root, path, store, workspace, files, exchange: new CsvExchange({workspace, files}), xlsx: new XlsxExchange({workspace, files, worker}), state: async () => JSON.parse(await readFile(path, 'utf8')) };
 }
+function dropdownBook() {
+  const book = trustedCodec({op:'import',base64:originalXlsx.toString('base64')}).book;
+  book.resources = [{name:CONTROL_RESOURCE,data:JSON.stringify(Object.fromEntries(book.sheetOrder.map(sid => [sid,[{
+    uid:'list',type:'list',formula1:JSON.stringify(['Ready & <now>','=1+1','雪']),allowBlank:false,showDropDown:true,showErrorMessage:true,errorStyle:1,
+    ranges:[{startRow:5,endRow:7,startColumn:2,endColumn:2,unitId:book.id,sheetId:sid}]
+  }]])))}, {name:'SHEET_DEFINED_NAME_PLUGIN',data:'{}'}];
+  return book;
+}
+test('dropdown XLSX import protects blank cells, rebinds IDs, exact-retries and preserves originals after Save/restart', async () => {
+  const bytes = Buffer.from(trustedCodec({op:'export',book:dropdownBook()}).base64,'base64');
+  const f = await fixture({run:async input => {
+    const result = trustedCodec(input), controls = sheetControls(result.book);
+    for (const [sid,rules] of Object.entries(controls)) for (const r of rules[0].ranges) Object.assign(r,{unitId:result.book.id,sheetId:sid});
+    result.book.resources[0].data = JSON.stringify(controls); return result;
+  }});
+  const input = {...xlsxInput('dropdown-import'),base64:bytes.toString('base64')};
+  const imported = await f.xlsx.import('owner',input); let w = await f.workspace.get('owner',imported.workId);
+  validateWorkbook(w.book);
+  for (const sid of w.book.sheetOrder) {
+    const rule = sheetControls(w.book)[sid][0]; assert.equal(rule.ranges[0].unitId,w.id);
+    assert.deepEqual(JSON.parse(rule.formula1),['Ready & <now>','=1+1','雪']);
+    assert.ok(w.humanCells.includes(`${sid}:7:2`));
+  }
+  const other = await f.workspace.createBlank('owner',{commandId:'unrelated',title:'Other work'});
+  const otherBefore = await f.workspace.get('owner',other.workId);
+  const book = structuredClone(w.book), controls = sheetControls(book); delete controls.sheet1;
+  book.resources[0].data = JSON.stringify(controls); book.sheets.sheet2.cellData[5] = {2:{v:'=1+1',t:1}};
+  const save = {commandId:'dropdown-save',book,contentRevision:1,permissionRevision:1,formatEdits:{}};
+  const saved = await f.workspace.save('owner',w.id,save);
+  assert.deepEqual(await f.workspace.save('owner',w.id,save),saved);
+  const restarted = new Workspace(new FileFixtureStore(f.path)); w = await restarted.get('owner',w.id);
+  assert.equal((await restarted.mutate('owner',w.id,{commandId:'blank-overwrite',expected:w.expected,patch:{cells:[{sheetId:'sheet1',row:7,column:2,value:'No'}]}})).status,'proposed');
+  const retry = new XlsxExchange({workspace:restarted,files:f.files,worker:{run(){throw new Error('retry must not parse');}}});
+  assert.deepEqual(await retry.import('owner',input),imported);
+  assert.deepEqual((await f.exchange.original('owner',w.id,imported.original.id)).bytes,bytes);
+  const {eventSequence: _oldCursor, ...otherContent} = otherBefore;
+  const {eventSequence: _newCursor, ...otherAfter} = await restarted.get('owner',other.workId);
+  assert.deepEqual(otherAfter,otherContent);
+  f.xlsx.worker = trustedWorker;
+  const exported = await f.xlsx.export('owner',{workId:w.id,book:w.book});
+  assert.deepEqual(trustedCodec({op:'import',base64:exported.base64}).book.sheets.sheet2.cellData[5][2],{v:'=1+1',t:1});
+  assert.equal(Object.keys((await f.state()).jobs).length,0);
+});
+test('dropdown export refuses mixed checkboxes, ambiguous lists, overlapping rules and invalid resource identities', async () => {
+  const f = await fixture(); const created = await f.workspace.createBlank('owner',{commandId:'new',title:'Export'});
+  for (const [label, change, pattern] of [
+    ['checkbox', rules=>rules.push({...rules[0],uid:'check',type:'checkbox',formula1:'TRUE',formula2:'FALSE'}), /xlsx_controls_not_supported/],
+    ['comma', rules=>rules[0].formula1='["a,b"]', /Ambiguous inline-list/],
+    ['duplicate', rules=>rules.push(structuredClone(rules[0])), /unsupported_sheet_controls/],
+    ['overlap', rules=>rules.push({...rules[0],uid:'overlap'}), /Overlapping validation/],
+    ['bounds', rules=>rules[0].ranges[0].endRow=10000, /unsupported_sheet_controls/],
+    ['prototype', rules=>rules[0].uid='__proto__', /invalid_id/],
+    ['other-unit', rules=>rules[0].ranges[0].unitId='other', /unsupported_sheet_controls/],
+  ]) {
+    const book=dropdownBook(); book.id=created.workId; const data=sheetControls(book);
+    for(const rules of Object.values(data)) rules[0].ranges[0].unitId=book.id;
+    change(data.sheet1); book.resources[0].data=JSON.stringify(data);
+    await assert.rejects(()=>f.xlsx.export('owner',{workId:book.id,book}),pattern,label);
+  }
+});
 test('real XLSX preview/import/exact original, restart retry, human ownership, explicit-only model admission', async () => {
   const f = await fixture(), before = await f.state();
   const preview = await f.xlsx.preview('owner', xlsxInput()); assert.equal(preview.sheets.length, 2); assert.deepEqual(await f.state(), before);

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
-import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SheetInterceptorService, UniverSheetsCorePreset, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
+import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SetRangeValuesCommand, SheetInterceptorService, UniverSheetsCorePreset, type ISetRangeValuesCommandParams, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
 import { UniverSheetsDataValidationPreset } from '@univerjs/preset-sheets-data-validation';
 import UniverSheetsDataValidationEnUS from '@univerjs/preset-sheets-data-validation/locales/en-US';
 import '@univerjs/preset-sheets-data-validation/lib/index.css';
@@ -10,7 +10,7 @@ import { isHumanSheetMutation, pendingCell } from './drafts';
 import { installValidationSettlement } from './validation-settlement';
 import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
-import { CommandType, ICommandService, type IWorkbookData, type ICellData } from '@univerjs/core';
+import { CellValueType, CommandType, ICommandService, isICellData, type IWorkbookData, type ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
 export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
 export type EditorHandle = { formatEdits?: () => FormatEdits | undefined; save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
@@ -27,6 +27,59 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     releaseFocus = installEditorFocus(univer, container.current!);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
     const validation = installValidationSettlement(univer, book.id, () => { edits++; notifyEdit(); });
+    // The native dropdown clears rich text/formulas but omits the value type.
+    // Specify STRING before the SDK infers numbers/booleans, so its ordinary
+    // mutation and undo history retain the exact selected option and cell style.
+    const literalSelection = univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, command => {
+      if (command.id !== SetRangeValuesCommand.id) return;
+      const params = command.params as ISetRangeValuesCommandParams | undefined;
+      if (params?.unitId !== book.id || !params.subUnitId) return;
+      const sheet = workbook.getSheetBySheetId(params.subUnitId);
+      if (!sheet) return;
+      const optionPayload = (cell: ICellData | null | undefined) => !!cell && typeof cell.v === 'string'
+        && cell.t == null && cell.p === null && cell.f === null && cell.si === null;
+      const literal = (cell: ICellData | null | undefined, row: number, column: number) => {
+        if (!cell || !optionPayload(cell)
+          || !Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0
+          || row >= sheet.getMaxRows() || column >= sheet.getMaxColumns()) return cell;
+        const rule = sheet.getRange(row, column).getDataValidation()?.rule;
+        if (rule?.type !== 'list' || !rule.formula1) return cell;
+        let options: unknown;
+        try { options = JSON.parse(rule.formula1); } catch { return cell; }
+        return Array.isArray(options) && options.includes(cell.v) ? { ...cell, t: CellValueType.STRING } : cell;
+      };
+      const { value, range } = params;
+      if (Array.isArray(value) || isICellData(value)) {
+        if (!Array.isArray(value) && !optionPayload(value)) return;
+        // Scalar and array payloads are relative to the explicit target range.
+        // Expand per cell: a mixed range must not inherit another cell's rule.
+        if (!range || ![range.startRow, range.endRow, range.startColumn, range.endColumn].every(Number.isSafeInteger)
+          || range.startRow < 0 || range.startColumn < 0 || range.endRow >= sheet.getMaxRows() || range.endColumn >= sheet.getMaxColumns()) return;
+        const matrix: Record<number, Record<number, ICellData>> = {};
+        let changed = false;
+        for (let row = range.startRow; row <= range.endRow; row++) {
+          matrix[row] = {};
+          for (let column = range.startColumn; column <= range.endColumn; column++) {
+            const cell = Array.isArray(value) ? value[row - range.startRow][column - range.startColumn] : value;
+            const next = literal(cell, row, column);
+            changed ||= next !== cell;
+            matrix[row][column] = next!;
+          }
+        }
+        if (changed) params.value = matrix;
+      } else if (value && typeof value === 'object') {
+        // Sparse matrix payloads use absolute coordinates, independent of range.
+        const matrix = value as Record<number, Record<number, ICellData>>;
+        let changed = false;
+        const next = Object.fromEntries(Object.entries(matrix).map(([row, cells]) => [row,
+          Object.fromEntries(Object.entries(cells ?? {}).map(([column, cell]) => {
+            const nextCell = literal(cell, +row, +column);
+            changed ||= nextCell !== cell;
+            return [column, nextCell];
+          }))]));
+        if (changed) params.value = next;
+      }
+    });
     // An ACK cannot clear a newer edit. Structural mutations relocate ownership;
     // deleted coordinates are retired, and native history restores their provenance.
     // null denotes a recovered legacy draft, whose provenance is unknown.
@@ -223,7 +276,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
       }
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;

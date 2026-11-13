@@ -26,12 +26,15 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import range_boundaries, get_column_letter, column_index_from_string
 from openpyxl.utils.datetime import to_excel, WINDOWS_EPOCH
 from openpyxl.workbook.properties import CalcProperties
+from openpyxl.worksheet.datavalidation import DataValidation
 assert openpyxl.DEFUSEDXML
 
 BYTES, INFLATED, ENTRY, CELLS = 2_000_000, 20_000_000, 5_000_000, 50_000
 POLICY = ['Original bytes remain available. Native exchange preserves a bounded subset, not full Excel fidelity.',
           'Formula caches are discarded; supported formulas recalculate in the editor and on Excel open. Shared formulas expand to equivalent individual formulas.',
-          'Charts, images, comments, hyperlinks, validation, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
+          'Bounded literal inline-list validation is preserved. Reference/name/custom validation is not retained; no validation formulas are evaluated. Native checkboxes prevent export.',
+          'Dropdown colors/chips and render-mode presentation are not retained. Error/prompt settings are carried; Excel and native warning dialogs may differ.',
+          'Charts, images, comments, hyperlinks, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
           'Date/time conversion uses the 1900 epoch with millisecond precision; the Excel fictitious leap day is refused. Empty grid padding can differ on reopen.']
 FUNCTIONS = set('SUM AVERAGE MIN MAX COUNT COUNTA COUNTBLANK IF IFERROR AND OR NOT ROUND ROUNDUP ROUNDDOWN ABS INT MOD POWER SQRT SUMIF SUMIFS COUNTIF COUNTIFS AVERAGEIF AVERAGEIFS CONCAT CONCATENATE LEFT RIGHT MID LEN TRIM UPPER LOWER DATE YEAR MONTH DAY TODAY'.split())
 class FormulaTokenizer(Tokenizer):
@@ -50,6 +53,102 @@ def bounds(ref):
     a, b, c, d = range_boundaries(ref.replace('$', ''))
     need(all(isinstance(v, int) for v in (a, b, c, d)) and 1 <= a <= c <= 200 and 1 <= b <= d <= 10000 and (c-a+1)*(d-b+1) <= CELLS, 'XLSX range exceeds 10,000 rows / 200 columns / 50,000 cells')
     return a, b, c, d
+
+CONTROL_RESOURCE = 'SHEET_DATA_VALIDATION_PLUGIN'
+EMPTY_RESOURCES = {'SHEET_RANGE_PROTECTION_PLUGIN', 'SHEET_AuthzIoMockService_PLUGIN', 'SHEET_WORKSHEET_PROTECTION_PLUGIN', 'SHEET_WORKSHEET_PROTECTION_POINT_PLUGIN', 'SHEET_DEFINED_NAME_PLUGIN', 'SHEET_RANGE_THEME_MODEL_PLUGIN'}
+ERROR_STYLES = {0: 'information', 1: 'stop', 2: 'warning'}
+MESSAGE_LIMITS = {'errorTitle': 32, 'error': 225, 'promptTitle': 32, 'prompt': 255}
+
+def inline_list(options):
+    need(isinstance(options, list) and 1 <= len(options) <= 100, 'Unsupported inline-list options')
+    for option in options:
+        field(option, 200)
+        # No quoting convention reliably escapes separators inside Excel inline
+        # lists. Refuse rather than reinterpret or create hidden helper sheets.
+        need(option and option == option.strip() and not re.search(r'[,;"\x00-\x1f\x7f]|_x[0-9a-fA-F]{4}_', option), 'Ambiguous inline-list option (separator, quote, control, edge whitespace or XML escape)')
+        need(len(option.encode('utf-16-le')) // 2 <= 200, 'Inline-list option exceeds 200 UTF-16 units')
+    encoded = '"' + ','.join(options) + '"'
+    need(len(encoded.encode('utf-16-le')) // 2 <= 255, 'Inline-list source exceeds 255 UTF-16 units including quotes')
+    return encoded
+
+def validation_message(value, limit):
+    field(value, limit)
+    need(len(value.encode('utf-16-le')) // 2 <= limit and not re.search(r'_x[0-9a-fA-F]{4}_', value), 'Nonrepresentable validation message')
+    return value
+
+def validation_ranges(ref, occupied, budget):
+    refs = ref.split(); need(refs, 'Validation requires bounded cell ranges')
+    result = []
+    for item in refs:
+        need(bool(re.fullmatch(r'\$?[A-Z]{1,3}\$?[1-9][0-9]*(?::\$?[A-Z]{1,3}\$?[1-9][0-9]*)?', item)), 'Invalid validation range')
+        a,b,c,d = bounds(item)
+        budget[0] += 1; budget[1] += (c-a+1)*(d-b+1)
+        need(budget[0] <= 1000 and budget[1] <= 100000, 'Validation range/area limit')
+        need(not any(a <= cc and c >= aa and b <= dd and d >= bb for aa,bb,cc,dd in occupied), 'Overlapping validation ranges refused')
+        occupied.append((a,b,c,d)); result.append({'startRow': b-1, 'endRow': d-1, 'startColumn': a-1, 'endColumn': c-1})
+    return result
+
+def import_validations(ws, sheet, sid, warnings):
+    rules = []
+    for index, dv in enumerate(ws.data_validations.dataValidation):
+        source = dv.formula1
+        if dv.type != 'list' or not isinstance(source, str) or not source.startswith('"') or not source.endswith('"') or dv.formula2 is not None or dv.operator is not None or dv.imeMode not in (None, 'noControl'):
+            warnings.add('Unsupported validation not retained: only literal inline lists without extra operators/formulas are supported (no reference, name, external or custom formulas).')
+            continue
+        options = source[1:-1].split(','); need(inline_list(options) == source, 'Nonrepresentable inline list')
+        ranges = validation_ranges(str(dv.sqref), [], [0, 0])
+        rule = {'uid': f'xlsx-{sid}-{index+1}', 'type': 'list', 'formula1': json.dumps(options, ensure_ascii=True), 'ranges': ranges,
+                'allowBlank': bool(dv.allowBlank), 'showDropDown': not bool(dv.showDropDown),
+                'showErrorMessage': bool(dv.showErrorMessage), 'showInputMessage': bool(dv.showInputMessage) and not bool(ws.data_validations.disablePrompts),
+                'errorStyle': {v:k for k,v in ERROR_STYLES.items()}[dv.errorStyle or 'stop']}
+        for key, limit in MESSAGE_LIMITS.items():
+            value = getattr(dv, key)
+            if value is not None: rule[key] = validation_message(value, limit)
+        for r in ranges:
+            sheet['rowCount'] = max(sheet['rowCount'], r['endRow']+1)
+            sheet['columnCount'] = max(sheet['columnCount'], r['endColumn']+1)
+        rules.append(rule)
+    return rules
+
+def export_validations(book):
+    result = {}; names = set(); count = 0; budget = [0, 0]
+    resources = book.get('resources', [])
+    need(isinstance(resources, list) and len(resources) <= 16, 'Unsupported native resources')
+    for resource in resources:
+        need(isinstance(resource, dict) and set(resource) == {'name', 'data'}, 'Unsupported native resource')
+        name, data = resource['name'], resource['data']
+        need(name not in names and isinstance(data, str) and len(data) <= 500000, 'Invalid native resource'); names.add(name)
+        if name != CONTROL_RESOURCE:
+            need(name in EMPTY_RESOURCES and data in ('', '{}', '[]'), 'Unsupported native resource'); continue
+        controls = json.loads(data) if data else {}
+        need(isinstance(controls, dict), 'Invalid native controls')
+        for sid, rules in controls.items():
+            need(sid in book['sheetOrder'] and sid not in ('__proto__', 'constructor', 'prototype') and isinstance(rules, list), 'Invalid control sheet')
+            sheet = book['sheets'][sid]; occupied = []; ids = set(); result[sid] = []
+            for rule in rules:
+                count += 1; need(count <= 256, 'Validation rule limit')
+                need(isinstance(rule, dict) and not set(rule) - {'uid','type','ranges','formula1','formula2','allowBlank','showDropDown','showErrorMessage','error','errorTitle','errorStyle','showInputMessage','prompt','promptTitle','renderMode'}, 'Unsupported native validation')
+                uid = rule.get('uid')
+                need(isinstance(uid, str) and re.fullmatch(r'[a-zA-Z0-9_-]{1,100}', uid) and uid not in ids and uid not in ('__proto__', 'constructor', 'prototype'), 'Invalid/duplicate validation ID'); ids.add(uid)
+                need(rule.get('type') == 'list', 'Native checkboxes or other controls cannot be exported as Excel controls')
+                source = inline_list(json.loads(rule['formula1']))
+                for key in ('allowBlank', 'showDropDown', 'showErrorMessage', 'showInputMessage'):
+                    need(key not in rule or isinstance(rule[key], bool), 'Invalid validation boolean')
+                need(rule.get('errorStyle', 2) in ERROR_STYLES, 'Invalid error style')
+                dv = DataValidation(type='list', formula1=source, allowBlank=rule.get('allowBlank', True),
+                    showDropDown=not rule.get('showDropDown', True), showErrorMessage=rule.get('showErrorMessage', True),
+                    showInputMessage=rule.get('showInputMessage', False), errorStyle=ERROR_STYLES[rule.get('errorStyle', 2)])
+                for key, limit in MESSAGE_LIMITS.items():
+                    if key in rule: setattr(dv, key, validation_message(rule[key], limit))
+                ranges = rule.get('ranges'); need(isinstance(ranges, list) and ranges, 'Validation requires ranges')
+                for r in ranges:
+                    need(isinstance(r, dict) and not set(r) - {'startRow','endRow','startColumn','endColumn','rangeType','startAbsoluteRefType','endAbsoluteRefType','unitId','sheetId'}, 'Invalid validation range')
+                    need(all(type(r.get(k)) is int and r[k] >= 0 for k in ('startRow','endRow','startColumn','endColumn')), 'Invalid validation coordinates')
+                    need(r['endRow'] < sheet['rowCount'] and r['endColumn'] < sheet['columnCount'] and r.get('unitId', book['id']) == book['id'] and r.get('sheetId', sid) == sid and r.get('rangeType', 0) == 0, 'Validation outside sheet')
+                    ref = f"{get_column_letter(r['startColumn']+1)}{r['startRow']+1}:{get_column_letter(r['endColumn']+1)}{r['endRow']+1}"
+                    validation_ranges(ref, occupied, budget); dv.add(ref)
+                result[sid].append(dv)
+    return result
 
 def formula(value, budget=None):
     field(value, 2000)
@@ -197,17 +296,38 @@ def preflight(data):
             parts[name] = read_member(z, entry, data, total)
         worksheets = worksheet_parts(parts)
         cells = 0; styles = 0; merges = 0; merge_cells = 0; strings = 0
+        validation_count = 0; validation_budget = [0, 0]
         for name, raw in parts.items():
             if name.lower().endswith(('.xml', '.rels')) or name in worksheets:
                 worksheet = name in worksheets; seen_cells = set(); root = None
                 occupied = set(); merged = []; current_cell = None
+                stack = []; validation_occupied = []; validation_groups = 0; validation_children = set()
                 for event, el in iterparse(io.BytesIO(raw), events=('start', 'end')):
                     tag = el.tag.rsplit('}', 1)[-1]
                     if event == 'start':
+                        parent = stack[-1] if stack else None; stack.append(el.tag)
                         if root is None:
                             root = el.tag
                             need((root == '{'+MAIN+'}worksheet') == worksheet and (tag != 'worksheet' or worksheet), 'Worksheet root/type mismatch')
                         need(len(el.attrib) <= 40 and all(len(v) <= 20000 for v in el.attrib.values()), 'XML attribute limit')
+                        if el.tag == '{'+MAIN+'}dataValidations':
+                            validation_groups += 1
+                            need(worksheet and parent == '{'+MAIN+'}worksheet' and validation_groups == 1, 'Invalid validation container')
+                        if el.tag == '{'+MAIN+'}dataValidation':
+                            need(worksheet and parent == '{'+MAIN+'}dataValidations', 'Invalid validation schema')
+                            validation_count += 1; need(validation_count <= 256, 'Validation rule limit')
+                            need(not set(el.attrib) - {'type','operator','errorStyle','imeMode','allowBlank','showDropDown','showInputMessage','showErrorMessage','errorTitle','error','promptTitle','prompt','sqref'}, 'Unsupported validation attributes')
+                            for key in ('allowBlank','showDropDown','showInputMessage','showErrorMessage'):
+                                need(key not in el.attrib or el.get(key) in ('0','1','true','false'), 'Invalid validation boolean')
+                            validation_ranges(el.get('sqref', ''), validation_occupied, validation_budget)
+                            validation_children = set()
+                        elif parent == '{'+MAIN+'}dataValidations':
+                            need(False, 'Invalid validation container child')
+                        elif parent == '{'+MAIN+'}dataValidation':
+                            need(el.tag in ('{'+MAIN+'}formula1', '{'+MAIN+'}formula2') and el.tag not in validation_children and not el.attrib, 'Invalid validation formula schema')
+                            validation_children.add(el.tag)
+                        elif len(stack) >= 3 and stack[-3] == '{'+MAIN+'}dataValidation':
+                            need(False, 'Nested validation formula content refused')
                         if tag == 'Relationship':
                             need(el.get('TargetMode') != 'External' or el.get('Type', '').endswith('/hyperlink'), 'External relationships unsupported')
                             target = el.get('Target', '')
@@ -233,11 +353,12 @@ def preflight(data):
                         if tag in ('xf', 'font', 'fill', 'border', 'numFmt'):
                             styles += 1; need(styles <= 4000, 'Style complexity limit')
                         if worksheet and tag == 'f': need(el.get('t', 'normal') in ('normal', 'shared'), 'Array/data-table formulas unsupported')
-                        if tag in ('drawing', 'legacyDrawing', 'hyperlink', 'dataValidation', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst'):
+                        if tag in ('drawing', 'legacyDrawing', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
                             warnings.add('Not retained: ' + tag)
                     else:
                         if el.text: field(el.text, 20000)
                         if worksheet and tag == 'c': current_cell = None
+                        stack.pop()
                         el.clear()
                 if worksheet:
                     for ref in occupied:
@@ -270,12 +391,14 @@ def import_book(data):
     wb = openpyxl.load_workbook(io.BytesIO(data), data_only=False, keep_links=False, rich_text=False)
     need(wb.epoch == WINDOWS_EPOCH, '1904 date-epoch workbooks are refused; convert to the 1900 epoch before import. Original not adopted.')
     book = {'id': 'preview', 'name': 'Imported XLSX', 'appVersion': '1.4.0', 'locale': 'enUS', 'styles': {}, 'sheetOrder': [], 'sheets': {}}
-    total = 0; formulas = 0; budget = [0]
+    total = 0; formulas = 0; budget = [0]; controls = {}
     for i, ws in enumerate(wb.worksheets):
         sid = 'sheet' + str(i+1); book['sheetOrder'].append(sid)
         need(ws.max_row <= 10000 and ws.max_column <= 200, 'Sheet bounds')
         sheet = {'id': sid, 'name': field(ws.title, 31), 'rowCount': max(200, ws.max_row), 'columnCount': max(26, ws.max_column), 'cellData': {}, 'mergeData': [], 'rowData': {}, 'columnData': {}, 'defaultColumnWidth': 110, 'defaultRowHeight': 24}
         book['sheets'][sid] = sheet
+        rules = import_validations(ws, sheet, sid, warnings)
+        if rules: controls[sid] = rules
         if ws.sheet_state != 'visible': warnings.add('Hidden sheets are imported as visible.')
         for cell in ws._cells.values(): # Sparse: never expand a dimension-only rectangle.
             if cell.value is None and not cell.has_style: continue
@@ -303,10 +426,12 @@ def import_book(data):
             a, b = dim.min or column_index_from_string(key), dim.max or column_index_from_string(key)
             need(1 <= a <= b <= 200, 'Column dimension limit')
             for c in range(a, b+1): sheet['columnData'][str(c-1)] = {**({'w': dim.width * 7 + 5} if dim.width else {}), **({'hd': 1} if dim.hidden else {})}
+    if controls: book['resources'] = [{'name': CONTROL_RESOURCE, 'data': json.dumps(controls, ensure_ascii=True, separators=(',', ':'))}]
     warnings.add('Column widths use approximate Excel-to-pixel conversion. Rich text is imported as plain text; theme colors and advanced layout may differ.')
     return {'book': book, 'warnings': sorted(warnings), 'cells': total}
 
 def export_book(book):
+    validations = export_validations(book)
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
     warnings = set(POLICY); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
@@ -315,6 +440,7 @@ def export_book(book):
         need(not re.search(r'[\\/*?:\[\]]', name) and name.lower() not in [s.lower() for s in wb.sheetnames], 'Unsupported/duplicate Excel tab name')
         need(1 <= sheet['rowCount'] <= 10000 and 1 <= sheet['columnCount'] <= 200, 'Sheet bounds')
         ws = wb.create_sheet(name); masters = {}
+        for dv in validations.get(sid, []): ws.add_data_validation(dv)
         for r, row in sheet.get('cellData', {}).items():
             for c, cell in row.items():
                 if cell and cell.get('si') and cell.get('f'):

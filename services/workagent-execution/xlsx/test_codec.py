@@ -9,6 +9,7 @@ import zipfile
 import struct
 import subprocess
 import zlib
+import json
 from copy import deepcopy
 import importlib.util
 from pathlib import Path
@@ -17,6 +18,7 @@ codec = importlib.util.module_from_spec(spec); spec.loader.exec_module(codec)
 import openpyxl
 from openpyxl.styles import Font, PatternFill
 from openpyxl.comments import Comment
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.datetime import MAC_EPOCH
 
 def fixture():
@@ -75,6 +77,73 @@ def zip_headers(data, name, *, size=None, crc=None, compressed_delta=0, local_me
     return bytes(raw)
 
 class CodecTests(unittest.TestCase):
+    def test_inline_lists_real_xml_multisheet_roundtrip(self):
+        book = codec.import_book(fixture())['book']
+        rules = {}
+        for i, sid in enumerate(book['sheetOrder']):
+            rules[sid] = [{'uid': 'list1', 'type': 'list', 'formula1': json.dumps(['Ready & <now>', '雪', '=1+1']),
+                'formula2': '#ff0000,,', 'renderMode': 1, 'allowBlank': bool(i), 'showDropDown': not bool(i),
+                'showErrorMessage': True, 'errorStyle': i, 'error': 'Choose a value', 'errorTitle': 'Choice',
+                'showInputMessage': True, 'prompt': 'Pick one', 'promptTitle': 'Options',
+                'ranges': [{'startRow': 4, 'endRow': 7, 'startColumn': 2, 'endColumn': 2},
+                           {'startRow': 10, 'endRow': 10, 'startColumn': 0, 'endColumn': 0}]}]
+        book['resources'] = [{'name': codec.CONTROL_RESOURCE, 'data': json.dumps(rules)}]
+        result = codec.export_book(book); raw = base64.b64decode(result['base64'])
+        wb = openpyxl.load_workbook(io.BytesIO(raw), data_only=False)
+        self.assertEqual(len(wb.worksheets), 2)
+        for i, ws in enumerate(wb.worksheets):
+            dv, = ws.data_validations.dataValidation
+            self.assertEqual(dv.formula1, '"Ready & <now>,雪,=1+1"')
+            self.assertEqual(str(dv.sqref), 'A11 C5:C8')
+            self.assertEqual(dv.showDropDown, bool(i)); self.assertEqual(dv.allowBlank, bool(i))
+            self.assertTrue(dv.showErrorMessage); self.assertEqual(dv.errorStyle, ['information', 'stop'][i])
+            self.assertEqual(dv.prompt, 'Pick one'); self.assertIsNone(ws['C8'].value)
+        self.assertEqual(wb['Inputs']['F1'].data_type, 's')
+        self.assertTrue(wb['Inputs']['A2'].font.bold); self.assertIn('A3:C3', wb['Inputs'].merged_cells)
+        self.assertEqual(wb['Summary']['A1'].value, "='Inputs'!A2*2")
+        reopened = codec.import_book(raw)
+        native = json.loads(reopened['book']['resources'][0]['data'])
+        for i, sid in enumerate(book['sheetOrder']):
+            rule, = native[sid]
+            self.assertEqual(json.loads(rule['formula1']), ['Ready & <now>', '雪', '=1+1'])
+            self.assertEqual(rule['showDropDown'], not bool(i)); self.assertEqual(rule['allowBlank'], bool(i))
+            self.assertEqual(rule['errorStyle'], i); self.assertEqual(len(rule['ranges']), 2)
+        self.assertTrue(any('presentation' in w for w in result['warnings']))
+        self.assertNotIn('Not retained: dataValidation', reopened['warnings'])
+
+    def test_list_encoding_refusal_and_exact_limits(self):
+        for options in [['a,b'], ['a"b'], [''], ['line\nbreak'], ['a;b'], [' x'], ['_x0041_'], ['x'*200, 'y'*54], ['😀'*128]]:
+            with self.subTest(options=options), self.assertRaises(ValueError): codec.inline_list(options)
+        self.assertEqual(codec.inline_list(['x'*200, 'y'*52]), '"'+'x'*200+','+'y'*52+'"')
+
+    def test_import_unsupported_validation_never_evaluates_references(self):
+        for formula in ['A1:A2', '=Inputs!$A$1:$A$2', 'SecretName', "'[external.xlsx]Sheet'!A1", '=WEBSERVICE("https://example.invalid")']:
+            wb = openpyxl.Workbook(); dv = DataValidation(type='list', formula1=formula); dv.add('A1:A3'); wb.active.add_data_validation(dv)
+            out = io.BytesIO(); wb.save(out); result = codec.import_book(out.getvalue())
+            self.assertNotIn('resources', result['book'])
+            self.assertTrue(any('Unsupported validation' in w for w in result['warnings']))
+
+    def test_validation_defaults_blank_extent_and_nonrepresentable_import(self):
+        raw = f'<worksheet xmlns="{NS}"><sheetData/><dataValidations count="1"><dataValidation type="list" sqref="$AD$300:$AD$301"><formula1>"One,Two"</formula1></dataValidation></dataValidations></worksheet>'
+        result = codec.import_book(package(raw, second=None))['book']
+        rule = json.loads(result['resources'][0]['data'])['sheet1'][0]
+        self.assertEqual((rule['allowBlank'], rule['showDropDown'], rule['showErrorMessage'], rule['showInputMessage'], rule['errorStyle']), (False, True, False, False, 1))
+        self.assertEqual((result['sheets']['sheet1']['rowCount'], result['sheets']['sheet1']['columnCount']), (301, 30))
+        self.assertEqual(result['sheets']['sheet1']['cellData'], {})
+        disabled = raw.replace('count="1"', 'count="1" disablePrompts="1"').replace('type="list"', 'type="list" showInputMessage="1"')
+        disabled_book = codec.import_book(package(disabled, second=None))['book']
+        self.assertFalse(json.loads(disabled_book['resources'][0]['data'])['sheet1'][0]['showInputMessage'])
+        for source in ['"One,,Two"', '"One;&quot;Two"', '"_x0041_"', '"'+'x'*256+'"']:
+            with self.subTest(source=source), self.assertRaises(ValueError): codec.import_book(package(raw.replace('"One,Two"', source), second=None))
+
+    def test_validation_preflight_rejects_overlap_bounds_and_schema(self):
+        def sheet(rules): return f'<worksheet xmlns="{NS}"><sheetData/><dataValidations>{rules}</dataValidations></worksheet>'
+        def rule(ref): return f'<dataValidation type="list" sqref="{ref}"><formula1>"One,Two"</formula1></dataValidation>'
+        for rules in [rule('A1:A3')+rule('A3:A4'), rule('A1:XFD1048576'), rule('A1 A1'), rule('A0'),
+                      rule('A1')*257, rule('A1').replace('<formula1>', '<formula2>'),
+                      rule('A1').replace('type="list"', 'type="list" showDropDown="maybe"')]:
+            with self.subTest(rules=rules[:100]), self.assertRaises(Exception): codec.import_book(package(sheet(rules), second=None))
+
     def test_renamed_worksheet_parts_receive_full_preflight(self):
         for part in ['other.xml', 'renamed/data.part']:
             valid = package(merged_sheet(), second=part)

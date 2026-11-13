@@ -63,6 +63,9 @@ test('actual import UI previews before mutation, retains exact bytes/identity ac
   const api = async (path, input) => { calls.push({ path, input }); if (path.endsWith('/preview')) return preview; if (++attempts === 1) throw new Error('lost acknowledgement'); return { workId: 'new' }; };
   const props = { api, editor: () => null, work: null, onImported: async () => { lists++; }, onOpen: async id => { assert.equal(id, 'new'); open++; } };
   let view = mount(disk, props); await view.choose(); assert.equal(calls.length, 1); assert.match(view.text(), /Typed text/); assert.match(view.text(), /0012/);
+  assert.match(view.text(), /Bounded literal inline-list dropdowns preserve choices/);
+  assert.match(view.text(), /Native checkboxes still prevent XLSX export/);
+  assert.match(view.text(), /Reference\/name\/custom validation is not retained or evaluated/);
   await view.click('Import XLSX as new work'); const original = new MaintenanceActions(disk, 'xlsx-import').read();
   assert.equal(original.input.base64, Buffer.from('identifier,text\r\n0012,=1+1\r\n').toString('base64')); assert.equal(open, 0); view.unmount();
   view = mount(disk, props); await view.click('Retry unresolved XLSX import');
