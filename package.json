@@ -6,6 +6,7 @@
     "node": ">=24.9.0"
   },
   "scripts": {
+    "test:sheet-scale": "node apps/workagent-client/tests/sheet-scale.mjs",
     "test": "npm run test:mechanisms && npm run test:http && npm run test:integration",
     "typecheck": "tsc -p apps/workagent-client/tsconfig.json",
     "build": "vite build --config apps/workagent-client/vite.config.ts",
