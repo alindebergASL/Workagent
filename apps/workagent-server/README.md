@@ -141,6 +141,18 @@ and usage. Tools are released only after receipt retention; length-truncated too
 never executes but its terminal charge survives. Children, compaction, sharing,
 feedback, search, log contribution and Decisions API remain disabled.
 
+Outbound history on the switchable `typesafe/jev-router` route omits all
+`reasoning_details` (unsigned text/summary, signed text and encrypted payloads) from
+the first continuation, before serialization, hashing and reservation. A single
+opaque provider item can pin routing, so this does not wait for mixed providers.
+Normal assistant text, tool calls/arguments and tool result content/IDs are preserved.
+Explicit fixed-model routes retain allowlisted replay only when the recorded
+response model exactly equals the authorized route; absent/different models omit it.
+Replay types/fields still validate before selection. Full responses, raw frames,
+DSH replayState and journal history remain unchanged; this is outbound selection,
+not stored-history cleanup or permission to retry an unknown request. Provider
+denials retain unknown liability without automatic resend or invented settlement.
+
 ## B02 recovery and independent dispatch
 
 The service retains one PostgreSQL leadership lock and runs two worker slots. Claims

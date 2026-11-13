@@ -50,11 +50,19 @@ export function requestBody(options, policy) {
       const calls = m.content.filter(c => c.type === 'tool-call');
       if (calls.length) wire.tool_calls = calls.map(c => ({ id: c.id, type: 'function', function: { name: c.name, arguments: c.arguments } }));
       const replay = m.source?.replayState?.response;
-      if (replay?.reasoning_details) {
+      if (replay?.reasoning_details !== undefined) {
         if (!Array.isArray(replay.reasoning_details) || replay.reasoning_details.some(d =>
           !['reasoning.text', 'reasoning.summary', 'reasoning.encrypted'].includes(d?.type)
           || Object.keys(d).some(k => !['type', 'text', 'summary', 'data', 'signature', 'id', 'format', 'index'].includes(k)))) throw new Error('unsupported_replay');
-        wire.reasoning_details = replay.reasoning_details;
+        // The default route can switch providers on every call. Even the first
+        // signed/encrypted item can pin routing; omit ALL reasoning details,
+        // including unsigned fragments, at this outbound boundary. Validate
+        // first so unsupported replay cannot silently bypass the allowlist.
+        // Fixed routes replay only an exactly matching recorded model. Never
+        // infer compatibility from provider prefixes or rewrite stored history.
+        if (policy.route !== DEFAULT_MODEL && replay.model === policy.route) {
+          wire.reasoning_details = structuredClone(replay.reasoning_details);
+        }
       }
     }
     return wire;

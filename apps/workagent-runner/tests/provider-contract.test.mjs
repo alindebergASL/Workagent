@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { streamOpenRouter, requestBody, requestHash, reconcileOpenRouterReceipt } from '../src/wire.mjs';
+import { history, freeze } from './support/replay-fixture.mjs';
 const options = { provider: 'workagent-openrouter', model: 'typesafe/jev-router', sessionId: 'opaque-session', messages: [{ role: 'user', content: [{ type: 'text', text: 'Synthetic comparison' }] }], tools: [{ name: 'read_sheet', description: 'Read', parameters: { type: 'object' } }] };
 // Real v2 Jev policy shape; transport remains deterministic, with no live spend.
 const policy = { version: 2, pricingBasis: 'openrouter-text-context-v1', extraChargeUsd: '0', inputTokenCeiling: 1_000_000, completionTokenCeiling: 1_000_000, route: 'typesafe/jev-router', maxRequestBytes: 1_000_000, maxOutputTokens: 4096,
@@ -81,7 +82,41 @@ test('wire fixture: streaming tools preserve native IDs, split frames, cached us
   const replay = result.at(-1).replayState; assert.equal(replay.response.model, 'resolved/model'); assert.equal(replay.response.reasoning_details[0].data, 'opaque');
   assert.equal(f.receipts[0].usage.cost, 0.001);
   const body = requestBody({ ...options, messages: [{ role: 'assistant', source: { replayState: replay }, content: [{ type: 'tool-call', id: 'native-call', name: 'read_sheet', arguments: '{}' }] }, { role: 'tool', toolCallId: 'native-call', content: [{ type: 'text', text: 'result' }] }] }, policy);
-  assert.equal(body.messages[0].tool_calls[0].id, body.messages[1].tool_call_id); assert.deepEqual(body.messages[0].reasoning_details, replay.response.reasoning_details);
+  assert.equal(body.messages[0].tool_calls[0].id, body.messages[1].tool_call_id); assert.equal(body.messages[0].reasoning_details, undefined);
+});
+test('router history is portable from the first provider and mixed frozen history retains normal content and identities', () => {
+  for (const messages of [history().slice(0, 2), history().slice(2), history()]) {
+    const input = freeze({ ...structuredClone(options), messages }), before = JSON.stringify(input);
+    const body = requestBody(input, policy);
+    assert.ok(body.messages.every(m => !Object.hasOwn(m, 'reasoning_details')));
+    for (let i = 0; i < messages.length; i += 2) {
+      assert.equal(body.messages[i].content, messages[i].content[0].text);
+      assert.deepEqual(body.messages[i].tool_calls[0], { id: messages[i].content[1].id, type: 'function', function: { name: messages[i].content[1].name, arguments: messages[i].content[1].arguments } });
+      assert.equal(body.messages[i + 1].tool_call_id, body.messages[i].tool_calls[0].id);
+      assert.equal(body.messages[i + 1].content, messages[i + 1].content[0].text);
+    }
+    assert.equal(JSON.stringify(input), before);
+    assert.equal(requestBody({ ...input, model: undefined }, policy).model, policy.route);
+    assert.ok(requestBody({ ...input, model: undefined }, policy).messages.every(m => !Object.hasOwn(m, 'reasoning_details')));
+  }
+});
+test('explicit fixed routes retain exact-model replay without copying another model or unknown provenance', () => {
+  for (const model of ['anthropic/synthetic', 'openai/synthetic']) {
+    const messages = history(), input = freeze({ ...structuredClone(options), model, messages });
+    const before = JSON.stringify(input), body = requestBody(input, { ...policy, route: model });
+    for (const index of [0, 2]) {
+      assert.deepEqual(body.messages[index].reasoning_details, messages[index].source.replayState.response.model === model ? messages[index].source.replayState.response.reasoning_details : undefined);
+    }
+    assert.equal(JSON.stringify(input), before);
+    const unknown = history(); delete unknown[0].source.replayState.response.model;
+    assert.equal(requestBody({ ...options, model, messages: unknown }, { ...policy, route: model }).messages[0].reasoning_details, undefined);
+  }
+});
+test('unsupported replay remains fail closed even when the router would omit it', () => {
+  for (const model of [policy.route, 'anthropic/synthetic']) for (const bad of [[{ type: 'reasoning.compaction', data: 'synthetic' }], [{ type: 'reasoning.text', text: 'x', image_url: 'synthetic' }], {}, [null]]) {
+    const messages = history(); messages[0].source.replayState.response.reasoning_details = bad;
+    assert.throws(() => requestBody({ ...options, model, messages }, { ...policy, route: model }), /unsupported_replay/);
+  }
 });
 test('wire fixture: dropped connection retains unknown and never retries', async () => {
   const f = fixture(chunks.slice(0, 1), false); await assert.rejects(collect(options, f), /provider_outcome_unknown/); assert.equal(f.calls(), 1); assert.equal(f.receipts[0].outcome, 'unknown');

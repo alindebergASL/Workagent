@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRouterAccounting, journalStatus, keyBudget } from '../src/provider-accounting.mjs';
 import { requestBody, requestHash, streamOpenRouter, reconcileOpenRouterReceipt } from '../src/wire.mjs';
+import { claudeDetails, openaiDetails, history, freeze } from './support/replay-fixture.mjs';
 const key = { limit: 100, limit_remaining: 40, limit_reset: null, usage: 60, budgets: [], effective_budget: null };
 const options = { model: 'typesafe/jev-router', sessionId: 'synthetic-session', requestId: 'synthetic-step', maxTokens: 32768, reasoningEffort: 'high', messages: [{ role: 'user', content: [{ type: 'text', text: 'Synthetic fixture' }] }] };
 // A serial, rollback-capable journal fixture; PostgreSQL constraints/roles are Parent qualification.
@@ -62,11 +63,40 @@ test('one-use concurrent dispatch and immutable receipt retries preserve exact k
   await assert.rejects(f.accounting.retain({ ...receipt, usage: { cost: 0.02 } }), /cost_conflict/);
   assert.equal(f.journal.rows.filter(r => r.kind === 'received').length, 1); assert.equal((await f.accounting.status()).providerReportedCostUsd, 0.01);
 });
-for (const denial of [402, 403, 429]) test(`HTTP ${denial} retained without retry or invented charge`, async () => {
+for (const denial of [400, 402, 403, 429]) test(`HTTP ${denial} retained without retry or invented charge`, async () => {
   const f = setup({ denial }); await assert.rejects(collect(f), new RegExp(`provider_http_${denial}`));
   assert.equal(f.requests.length, 2); assert.equal(f.journal.rows.at(-1).kind, 'unknown');
   assert.equal(f.journal.rows.at(-1).data.replayState.response.frames[0].http_status, denial);
   assert.equal((await f.accounting.status()).providerReportedCostUsd, 0); assert.equal((await f.accounting.status()).unresolvedRequests, 1);
+});
+test('portable selection precedes exact journal reservation while original response frames and unknown denials remain immutable', async () => {
+  const details = [...claudeDetails, ...openaiDetails];
+  const frame = { id: 'synthetic-mixed-response', model: 'openai/synthetic', choices: [{ index: 0, delta: { content: 'Normal final answer', reasoning_details: details }, finish_reason: 'stop' }], usage: { prompt_tokens: 20, completion_tokens: 8, cost: 0.001 } };
+  const f = setup({ frameOverrides: frame }), input = freeze({ ...structuredClone(options), messages: history() }), before = JSON.stringify(input);
+  const events = await collect(f, input), prepared = f.journal.rows[0].data;
+  const sent = f.requests.find(r => r.request.method === 'POST').request.body;
+  assert.ok(JSON.parse(sent).messages.every(m => !Object.hasOwn(m, 'reasoning_details')));
+  assert.equal(sent, prepared.requestBody); assert.equal(requestHash(JSON.parse(sent)), prepared.requestHash);
+  assert.equal(Buffer.byteLength(sent), prepared.requestBytes); assert.equal(JSON.stringify(input), before);
+  assert.deepEqual(events.at(-1).replayState.response.reasoning_details, details);
+  assert.deepEqual(f.journal.rows.at(-1).data.replayState.response.frames, [frame]);
+  assert.deepEqual(f.journal.rows.at(-1).data.replayState.response.reasoning_details, details);
+  const retained = structuredClone(f.journal.rows);
+  const denial = { error: { message: 'Synthetic mixed-provider denial', metadata: { distinct_provider_slugs: 'claude-on-aws,openai' } } };
+  const fetchImpl = f.fetchImpl;
+  f.fetchImpl = async (url, request) => {
+    if (request.method !== 'POST') return fetchImpl(url, request);
+    f.requests.push({ url, request }); return Response.json(denial, { status: 400 });
+  };
+  const next = { ...input, requestId: 'synthetic-denied-step' };
+  await assert.rejects(collect(f, next), /provider_http_400/);
+  const unknown = f.journal.rows.at(-1).data;
+  assert.equal(unknown.outcome, 'unknown'); assert.equal(unknown.responseId, undefined); assert.equal(unknown.usage, undefined);
+  assert.deepEqual(JSON.parse(unknown.replayState.response.frames[0].error), denial);
+  assert.deepEqual(f.journal.rows.slice(0, retained.length), retained);
+  assert.equal((await f.accounting.status()).unresolvedRequests, 1);
+  await assert.rejects(collect(f, next), /no_replay/);
+  assert.equal(f.requests.filter(r => r.request.method === 'POST').length, 2);
 });
 test('actual key or effective budget denial stops POST; key snapshot is never atomic headroom', async () => {
   for (const limit of [{ ...key, limit_remaining: 0 }, { ...key, effective_budget: { limit_usd: 10, spend_usd: 10, remaining_usd: 0 } }]) {
