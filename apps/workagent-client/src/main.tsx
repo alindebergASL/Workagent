@@ -8,6 +8,7 @@ import { NativeEditor, type EditorHandle } from './NativeEditor';
 import type { Work, Proposal } from './types';
 import type { IWorkbookData, IDocumentData } from '@univerjs/core';
 import { DraftFence } from './drafts';
+import { ArtifactStorage, type Payload } from './artifact-storage';
 import { withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { ApiError, ProductCursor, ComposerDrafts, type ComposerDraft, type ProductBatch, type SelectionAttachment, type SelectionContext, type Submission } from './resume';
 import './style.css';
@@ -45,6 +46,10 @@ friendly.invalid_document_selection = 'Attach one body-text range of at most 10,
 friendly.invalid_composer_draft = 'This device has an unsupported composer draft. It has been retained without overwriting it.';
 friendly.invalid_pending_send = 'This device has an unsupported pending send. It has been retained; no new command was sent.';
 friendly.invalid_selection = 'This selection is unavailable or too large. Attach one range of at most 2,000 cells (200 KB of context).';
+friendly.artifact_storage_unavailable = 'Browser draft storage could not finish. Keep this page open; your edits are still in the editor. Retry Save, or Download draft before leaving.';
+friendly.legacy_artifact_conflict = 'Another tab has a different recovery draft or unresolved Save. Both are retained. Keep this page open and download your draft; settle the earlier Save in its original tab before retrying.';
+friendly.artifact_draft_changed = 'Another tab has a newer recovery draft. Your current edits remain in this editor. Download them before reopening this work to recover the other draft.';
+friendly.invalid_pending_save = 'This device has an unreadable pending Save. It is retained; nothing was sent. Keep this page open and download your draft.';
 type NativeContent = IWorkbookData | IDocumentData;
 type NativeArtifact = { kind: 'sheet'; book: IWorkbookData } | { kind: 'document'; book: IDocumentData };
 type NativeEditor = { kind: 'sheet'; native: EditorHandle } | { kind: 'document'; native: DocumentHandle };
@@ -71,9 +76,16 @@ function App() {
   const composers = useRef(new ComposerDrafts(localStorage));
   const composer = useRef<ComposerDraft>({ prompt: '', sourceName: 'Pasted data', sourceText: '' });
   const saveFlight = useRef<Promise<void> | null>(null);
+  const sendFlight = useRef(false);
   // Only settle the recovery payload this consumer loaded or last wrote. Another
   // tab can retry the same command while owning a newer, independent draft.
-  const recovery = useRef<{ workId: string; raw: string } | null>(null);
+  const recovery = useRef<{ workId: string; record: Payload } | null>(null);
+  const artifacts = useRef(new ArtifactStorage(localStorage));
+  const draftWrites = useRef<Promise<void>>(Promise.resolve());
+  function queueDraftWrite(action: () => Promise<void>) {
+    const next = draftWrites.current.catch(() => {}).then(action);
+    draftWrites.current = next; return next;
+  }
   const editor = useRef<NativeEditor | null>(null), dirty = useRef(false), active = useRef<string | null>(null), base = useRef(editorState), workRef = useRef(work);
   function installEditor(next: typeof editorState) { if (next?.version !== base.current?.version) editor.current = null; base.current = next; setEditorState(next); }
   const hasDraft = () => dirty.current || !!editor.current?.native.isEditing();
@@ -131,17 +143,21 @@ function App() {
   async function open(workId: string) {
     if (saveFlight.current) { setError('Wait for the current save before switching work.'); return; }
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
-    if (hasDraft() && editor.current && !edited(editor.current.native.save())) return;
+    const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
     const ticket = fence.current.request();
+    if (!await preserved) return;
     let w = await api<Work>(`/work/${workId}`);
+    const stored = await artifacts.current.readDraft(workId);
+    const pending = await artifacts.current.readSave(workId);
     if (!fence.current.current(ticket) || saveFlight.current) return;
+    if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
     if (workRef.current?.id === workId && workRef.current.eventSequence > w.eventSequence) w = workRef.current;
-    dirty.current = false; setDraft(false); editor.current = null;
+    dirty.current = !!pending; setDraft(!!pending); editor.current = null;
     active.current = workId; workRef.current = null;
     installEditor({ ...content(w), revision: w.contentRevision, permission: w.expected.permissionRevision, version: `${w.id}:open:${uuid()}` });
     receive(w); setError(''); loadComposer(workId);
-    const saved = localStorage.getItem(`workagent-draft:${workId}`);
-    recovery.current = saved === null ? null : { workId, raw: saved };
+    const saved = stored?.raw;
+    recovery.current = stored ? { workId, record: stored } : null;
     if (saved) {
       try {
         const d = JSON.parse(saved); if (d.book?.id !== workId || !Number.isInteger(d.revision) || !Number.isInteger(d.permission)) throw new Error('invalid_draft'); dirty.current = true; setDraft(true);
@@ -184,24 +200,42 @@ function App() {
       editComposer({ selection: { ...selection, contentRevision: base.current.revision } }); setSelectionInvalid(false); setError('');
     } catch (e) { report(e); }
   }
-  function newWork() {
+  async function newWork() {
     if (saveFlight.current) { setError('Wait for the current save before switching work.'); return; }
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
-    if (hasDraft() && editor.current && !edited(editor.current.native.save())) return;
-    fence.current.request(); active.current = null; workRef.current = null; editor.current = null;
+    const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
+    const ticket = fence.current.request();
+    if (!await preserved || !fence.current.current(ticket) || saveFlight.current) return;
+    if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
+    active.current = null; workRef.current = null; editor.current = null; recovery.current = null;
     dirty.current = false; setDraft(false); setWork(null); installEditor(null); loadComposer(null); setError('');
   }
-  function edited(book: NativeContent) {
+  function persistDraft(book: NativeContent, onlyOwned = false) {
+    const workId = active.current, state = base.current;
+    if (!workId || !state || book.id !== workId) return Promise.resolve();
+    const captured = JSON.stringify(book);
+    return queueDraftWrite(async () => {
+      // Settlement may be queued ahead of this write. Use its acknowledged
+      // revision when this write runs, while retaining the exact captured edit.
+      const current = active.current === workId && base.current?.version === state.version ? base.current : state;
+      const raw = `{"book":${captured},"revision":${current.revision},"permission":${current.permission}}`;
+      let record: Payload;
+      if (onlyOwned) {
+        const owned = recovery.current?.workId === workId ? recovery.current.record : null;
+        const result = await artifacts.current.replaceDraft(workId, owned, raw);
+        if (!result.matched || !result.value) throw new Error('artifact_draft_changed');
+        record = result.value;
+      } else record = await artifacts.current.writeDraft(workId, raw);
+      if (active.current === workId && base.current?.version === state.version) recovery.current = { workId, record };
+    });
+  }
+  async function edited(book: NativeContent, onlyOwned = false) {
     if (!active.current || !base.current || book.id !== active.current) return false;
     fence.current.edit(); dirty.current = true; setDraft(true);
+    const workId = active.current, version = base.current.version;
     if (composer.current.selection?.kind === 'document') setSelectionInvalid(true);
-    try {
-      const raw = JSON.stringify({ book, revision: base.current.revision, permission: base.current.permission });
-      localStorage.setItem(`workagent-draft:${active.current}`, raw);
-      recovery.current = { workId: active.current, raw };
-    }
-    catch { setError('Local draft storage is full. Save your work to keep these changes.'); return false; }
-    return true;
+    try { await persistDraft(book, onlyOwned); return true; }
+    catch (error) { if (active.current === workId && base.current?.version === version) report(error); return false; }
   }
   async function save() {
     if (saveFlight.current) return saveFlight.current;
@@ -211,11 +245,14 @@ function App() {
       const committed: NativeArtifact = native.kind === 'document' ? { kind: 'document', book: await native.native.commit() } : { kind: 'sheet', book: await native.native.commit() };
       if (committed.kind !== state.kind) throw new Error('The editor kind changed. Reopen the saved work.');
       if (active.current !== workId || editor.current !== native || base.current?.version !== state.version) throw new Error('The editor changed while finishing the edit. Retry from the current work.');
-      const actions = new MaintenanceActions(localStorage, `sheet-save:${workId}`);
-      const unresolved = actions.read();
-      if (!dirty.current && !unresolved) return;
       const generation = fence.current.generation;
-      const submitted = unresolved ?? actions.prepare('save', `/work/${workId}/save`, { ...(committed.kind === 'document' ? { document: committed.book } : { book: committed.book }), contentRevision: state.revision, permissionRevision: state.permission }, uuid);
+      if (dirty.current) await persistDraft(committed.book, true);
+      else await draftWrites.current;
+      const unresolved = await artifacts.current.readSave(workId);
+      if (!dirty.current && !unresolved) return;
+      const attempt = unresolved ?? await artifacts.current.prepareSave(workId, { ...(committed.kind === 'document' ? { document: committed.book } : { book: committed.book }), contentRevision: state.revision, permissionRevision: state.permission }, uuid);
+      const submitted = attempt.request;
+      if (active.current !== workId || editor.current !== native || base.current?.version !== state.version) return;
       // Persisted retries retain their exact original body until the server settles it.
       const submittedArtifact: NativeArtifact = state.kind === 'document'
         ? { kind: 'document', book: submitted.input.document as IDocumentData }
@@ -223,26 +260,27 @@ function App() {
       let result: { contentRevision: number; permissionRevision: number };
       try {
         result = await api(submitted.path, submitted.input);
-        const pending = actions.read();
-        // A sibling consumer may already have accepted this exact command. A
-        // genuinely different pending command still fences this late response.
-        if (pending && pending.input.commandId !== submitted.input.commandId) return;
-        actions.accepted(submitted);
-      } catch (e) { actions.rejected(e, submitted); throw e; }
-      if (active.current !== workId || editor.current !== native || !base.current) return;
-      if (base.current.revision > result.contentRevision || base.current.permission > result.permissionRevision) return;
-      const latest = snapshot(native);
-      const changedDuringSave = generation !== fence.current.generation || native.native.isEditing() || JSON.stringify(meaning(latest)) !== JSON.stringify(meaning(submittedArtifact));
-      dirty.current = changedDuringSave; setDraft(changedDuringSave);
-      const newBase: EditorState = { ...(changedDuringSave ? latest : submittedArtifact), revision: result.contentRevision, permission: result.permissionRevision, version: state.version };
-      installEditor(newBase);
-      const owned = recovery.current, key = `workagent-draft:${workId}`;
-      if (owned?.workId === workId && localStorage.getItem(key) === owned.raw) {
-        if (changedDuringSave) {
-          const raw = JSON.stringify(newBase);
-          localStorage.setItem(key, raw); recovery.current = { workId, raw };
-        } else { localStorage.removeItem(key); recovery.current = null; }
-      }
+      } catch (e) { await artifacts.current.rejected(workId, e, attempt); throw e; }
+      try {
+        await queueDraftWrite(async () => {
+          if (active.current !== workId || editor.current !== native || base.current?.version !== state.version) return;
+          if (base.current.revision > result.contentRevision || base.current.permission > result.permissionRevision) return;
+          // Capture ownership and native content inside the queue, after all
+          // preceding writes. Later edits queue behind this atomic settlement.
+          const owned = recovery.current?.workId === workId ? recovery.current.record : null;
+          const latest = snapshot(native), settlingGeneration = fence.current.generation;
+          const changedDuringSave = generation !== settlingGeneration || native.native.isEditing() || JSON.stringify(meaning(latest)) !== JSON.stringify(meaning(submittedArtifact));
+          const newBase: EditorState = { ...(changedDuringSave ? latest : submittedArtifact), revision: result.contentRevision, permission: result.permissionRevision, version: state.version };
+          const settled = await artifacts.current.settleSave(workId, attempt, owned, changedDuringSave ? JSON.stringify(newBase) : null);
+          if (!settled.accepted) return;
+          if (!settled.matched) throw new Error('artifact_draft_changed');
+          recovery.current = settled.value ? { workId, record: settled.value } : null;
+          if (active.current !== workId || editor.current !== native || base.current?.version !== state.version) return;
+          installEditor(newBase);
+          dirty.current = changedDuringSave || settlingGeneration !== fence.current.generation || native.native.isEditing();
+          setDraft(dirty.current);
+        });
+      } catch (error) { dirty.current = true; setDraft(true); throw error; }
       setError('');
     };
     saveFlight.current = operation();
@@ -250,7 +288,7 @@ function App() {
     receive(await api<Work>(`/work/${workId}`));
   }
   async function submit(event: React.FormEvent) {
-    event.preventDefault(); if (!prompt.trim() || busy) return; setBusy(true); setError(''); fence.current.request();
+    event.preventDefault(); if (!prompt.trim() || sendFlight.current) return; sendFlight.current = true; setBusy(true); setError(''); fence.current.request();
     const requestedWork = active.current, navigation = fence.current.navigation, sent = { ...composer.current };
     let submittedCommandId: string | undefined;
     try {
@@ -297,7 +335,7 @@ function App() {
     } catch (e) {
       if (submittedCommandId !== undefined) composers.current.rejected(requestedWork, submittedCommandId, e);
       report(e);
-    } finally { setBusy(false); pendingState(active.current); }
+    } finally { sendFlight.current = false; setBusy(false); pendingState(active.current); }
   }
   async function decide(proposal: Proposal, decision: string) {
     if (!work) return;
@@ -308,19 +346,29 @@ function App() {
   }
   async function viewSaved() {
     if (!active.current || !editor.current || !base.current || saveFlight.current) return;
-    const key = active.current, ticket = fence.current.request();
+    const key = active.current, native = editor.current, state = base.current, ticket = fence.current.request();
+    const current = () => active.current === key && editor.current === native && base.current?.version === state.version
+      && fence.current.current(ticket) && !saveFlight.current && !native.native.isEditing();
     const saved = await api<Work>(`/work/${key}`);
-    if (active.current !== key || !fence.current.current(ticket) || saveFlight.current || editor.current.native.isEditing()) {
-      setError('Your latest edit is kept. Finish editing before opening the saved version.'); return;
-    }
-    // Only release the draft after the fetch succeeds and its recovery copy is durable.
-    localStorage.setItem(`workagent-recovery:${key}:${Date.now()}`, JSON.stringify({ ...base.current, book: editor.current.native.save() }));
+    const pending = await artifacts.current.readSave(key);
+    if (!current()) { setError('Your latest edit is kept. Finish editing before opening the saved version.'); return; }
+    // Archive must commit before releasing either the editor or its draft. Every
+    // asynchronous boundary is fenced against navigation and fresh native input.
+    await draftWrites.current;
+    if (!current()) return;
+    await artifacts.current.archive(key, JSON.stringify({ ...state, book: native.native.save() }));
+    if (!current()) return;
     const owned = recovery.current;
-    if (owned?.workId === key && localStorage.getItem(`workagent-draft:${key}`) === owned.raw) localStorage.removeItem(`workagent-draft:${key}`);
-    recovery.current = null;
-    dirty.current = false; setDraft(false);
-    installEditor({ ...content(saved), revision: saved.contentRevision, permission: saved.expected.permissionRevision, version: `${key}:reload:${uuid()}` });
-    workRef.current = saved; setWork(saved); setError('The previous draft is retained on this device.');
+    await queueDraftWrite(async () => {
+      if (!current() || owned?.workId !== key) return;
+      const settled = await artifacts.current.replaceDraft(key, owned.record, null);
+      if (settled.matched && recovery.current === owned) recovery.current = null;
+    });
+    if (!current()) return;
+    const latestSaved = workRef.current?.id === key && workRef.current.eventSequence > saved.eventSequence ? workRef.current : saved;
+    dirty.current = !!pending; setDraft(!!pending);
+    installEditor({ ...content(latestSaved), revision: latestSaved.contentRevision, permission: latestSaved.expected.permissionRevision, version: `${key}:reload:${uuid()}` });
+    workRef.current = latestSaved; setWork(latestSaved); setError('The previous draft is retained on this device.');
   }
   function downloadDraft() {
     if (!editor.current) return;
@@ -329,7 +377,7 @@ function App() {
     const link = document.createElement('a'); link.href = url; link.download = 'workagent-draft.univer.json'; link.click(); URL.revokeObjectURL(url);
   }
   if (!authenticated) return <main className="sign-in"><div className="brand">Workagent</div><h1>Your work, together.</h1><p>Sign in to your private workspace.</p><form onSubmit={async e => { e.preventDefault(); try { await api('/session', { token }); setToken(''); setError(''); await list(); } catch (err) { report(err); } }}><label>Access key<input type="password" value={token} onChange={e => setToken(e.target.value)} autoComplete="current-password" /></label><button>Sign in</button></form>{error && <p role="alert">{error}</p>}</main>;
-  return <main className="app"><header><div className="brand">Workagent</div><select aria-label="Saved work" value={work?.id ?? ''} onChange={e => { if (e.target.value) open(e.target.value).catch(report); else newWork(); }}><option value="">New work</option>{works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}</select><span className="private">Private workspace</span></header>
+  return <main className="app"><header><div className="brand">Workagent</div><select aria-label="Saved work" value={work?.id ?? ''} onChange={e => { if (e.target.value) open(e.target.value).catch(report); else newWork().catch(report); }}><option value="">New work</option>{works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}</select><span className="private">Private workspace</span></header>
     {error && <div className="notice" role="alert">{error}{draft && <><button onClick={downloadDraft}>Download draft</button><button onClick={() => viewSaved().catch(report)}>Open saved version</button></>}</div>}
     <nav className="mobile-tabs"><button onClick={() => setView('chat')}>Conversation</button><button onClick={() => setView('sheet')}>Work area</button></nav>
     <div className={`layout view-${view}`}><section className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{!work && <div className="welcome"><h1>What are we working on?</h1><p>Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p>{m.selection?.kind === 'document' && <details><summary>Document passage · {m.selection.title} · revision {m.selection.contentRevision}</summary><p>Body offsets [{m.selection.startOffset}, {m.selection.endOffset}) (UTF-16). Context only.</p><pre className="selected-quote">{m.selection.quote}</pre></details>}</article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}

@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import * as drafts from '../src/drafts.ts';
 import * as resume from '../src/resume.ts';
+import { artifactFixture, FixtureArtifactStorage } from './artifact-storage-fixture.mjs';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
 const localRequire = createRequire(import.meta.url);
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
@@ -65,12 +66,14 @@ export function mountNative(props) {
 
 export function memoryStorage() {
   const map = new Map();
-  return { getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: k => map.delete(k), usage: () => ({
+  const storage = { getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: k => map.delete(k), usage: () => ({
     utf8Bytes: [...map].reduce((n, [k, v]) => n + Buffer.byteLength(k + v), 0),
     utf16Bytes: [...map].reduce((n, [k, v]) => n + (k.length + v.length) * 2, 0),
     entries: [...map].map(([key, value]) => ({ key, valueCharacters: value.length })),
-    quota: 'unbounded fixture; browser quota NOT tested',
+    quota: 'unbounded asynchronous transaction fixture; real IndexedDB/browser quota NOT tested',
+    artifactPayloads: [...artifactFixture(storage).rows].map(([key, slot]) => ({ key, valueCharacters: slot.value?.raw.length ?? 0 })),
   }) };
+  return storage;
 }
 export function mountApp(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
@@ -89,6 +92,7 @@ export function mountApp(storage, fetcher) {
     if (/^\.\/(PdfExport|DocxExchange|DocumentExchange|DocumentEditor|XlsxExchange|CsvExchange|MaintenancePanel)$/.test(name)) return { [name.slice(2)]: () => null };
     if (name === './drafts') return drafts;
     if (name === './resume') return resume;
+    if (name === './artifact-storage') return { ArtifactStorage: FixtureArtifactStorage };
     if (name === './maintenance-actions') return { MaintenanceActions };
     if (name.endsWith('.css')) return {};
     return localRequire(name);

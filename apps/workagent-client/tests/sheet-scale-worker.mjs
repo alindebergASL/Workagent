@@ -8,7 +8,7 @@ import { validateWorkbook, withoutFormulaResults } from '../../../packages/worka
 import { Workspace } from '../../workagent-server/src/workspace.mjs';
 import { initialState } from '../../workagent-server/src/store.mjs';
 import { FileFixtureStore } from '../../workagent-server/tests/support/file-fixture.mjs';
-import { MaintenanceActions } from '../src/maintenance-actions.ts';
+import { saveActions } from './artifact-storage-fixture.mjs';
 
 assert.ok(process.send, 'Run via sheet-scale.mjs so resource monitoring cannot be omitted');
 const [root, count] = process.argv.slice(2), populated = Number(count);
@@ -96,7 +96,7 @@ try {
     writeFileSync(snapshotPath, JSON.stringify(snapshot));
     await app.save(); await drain();
     assert.equal(saveCalls.length, 1);
-    const pending = new MaintenanceActions(storage, `sheet-save:${workId}`).read(); assert.ok(pending);
+    const pending = await saveActions(storage, workId).read(); assert.ok(pending);
     const saved = await workspace.get('owner', workId); assert.equal(saved.contentRevision, 3); inspect(saved.book, true);
     assert.equal(saved.intentRevision, 0); assert.equal(await workspace.claim('owner'), null);
     assert.ok(saved.humanCells.length >= populated, 'seeded human ownership is retained');
@@ -111,7 +111,7 @@ try {
     assert.equal(native.edits, 0);
     await app.save(); await drain();
     assert.equal(saveCalls.length, 2); assert.deepEqual(saveCalls[0], saveCalls[1], 'App retry must send byte-identical save body/command');
-    assert.equal(new MaintenanceActions(storage, `sheet-save:${workId}`).read(), null);
+    assert.equal(await saveActions(storage, workId).read(), null);
     const saved = await workspace.get('owner', workId); assert.equal(saved.contentRevision, 3, 'exact retry cannot create revision 4'); inspect(saved.book, true);
     assert.deepEqual(withoutFormulaResults(JSON.parse(readFileSync(snapshotPath, 'utf8'))), withoutFormulaResults(saved.book));
     assert.equal(saved.intentRevision, 0); assert.equal(await workspace.claim('owner'), null);

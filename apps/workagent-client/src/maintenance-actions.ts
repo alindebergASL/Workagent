@@ -28,14 +28,20 @@ export class MaintenanceActions {
   }
   accepted(submitted: Pending) { if (this.matches(submitted)) this.storage.removeItem(this.storageKey); }
   rejected(error: unknown, submitted: Pending) {
-    if (!(error instanceof ApiError) || error.path !== submitted.path) return false;
-    // Validation cannot have committed; these conflicts are checked after dedup.
-    // Publication dedup precedes source revocation, so this exact 409 also proves
-    // noncommit. Access denial and command conflicts still retain the identity.
-    const revokedPublication = submitted.path === '/owned-sources' && typeof submitted.input.sourceId === 'string' && error.code === 'source_revoked';
-    if (error.status === 400 || error.status === 409 && (revokedPublication || ['save_conflict', 'source_conflict', 'responsibility_conflict', 'cell_already_bound', 'source_field_unavailable', 'responsibility_ended'].includes(error.code))) {
-      this.accepted(submitted); return true;
-    }
+    if (actionWasRejected(error, submitted)) { this.accepted(submitted); return true; }
     return false;
   }
+}
+
+// Shared definitive noncommit classification; storage settlement is consumer-specific.
+export function actionWasRejected(error: unknown, submitted: Pending): boolean {
+  if (!(error instanceof ApiError) || error.path !== submitted.path) return false;
+  // Validation cannot have committed; these conflicts are checked after dedup.
+  // Publication dedup precedes source revocation, so this exact 409 also proves
+  // noncommit. Access denial and command conflicts still retain the identity.
+  const revokedPublication = submitted.path === '/owned-sources' && typeof submitted.input.sourceId === 'string' && error.code === 'source_revoked';
+  if (error.status === 400 || error.status === 409 && (revokedPublication || ['save_conflict', 'source_conflict', 'responsibility_conflict', 'cell_already_bound', 'source_field_unavailable', 'responsibility_ended'].includes(error.code))) {
+    return true;
+  }
+  return false;
 }

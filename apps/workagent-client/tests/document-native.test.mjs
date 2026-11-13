@@ -1,3 +1,4 @@
+import { artifactFixture, artifactStore } from './artifact-storage-fixture.mjs';
 import * as documentContract from '../../../packages/workagent-contract/document.mjs';
 // Installed SDK native commands + file-fixture authority; no browser, PG or inference.
 import test from 'node:test';
@@ -233,8 +234,8 @@ for (const [field, value] of [['sheetOrder', []], ['sheetOrder', null], ['sheets
     assert.fail('unexpected mutation');
   });
   api.works[workId] = saved;
-  const storage = app.disk(), retained = new Map(), set = storage.setItem; storage.setItem = (key, value) => { if (key.startsWith('workagent-recovery:')) retained.set(key, value); set(key, value); }; storage.setItem(`workagent-draft:${workId}`, JSON.stringify({ book: poisoned, revision: 1, permission: 1 }));
-  const view = app.mount(storage, api.fetch); await view.flush(); await view.open(workId);
+  const storage = app.disk(); storage.setItem(`workagent-draft:${workId}`, JSON.stringify({ book: poisoned, revision: 1, permission: 1 }));
+  const view = app.mount(storage, api.fetch); await view.flush(); await view.open(workId); await view.until(() => view.doc());
   const editor = editorFixture(view.doc());
   try {
     editor.title('Human title'); await view.flush(); assert.match(view.text(), /Native title/);
@@ -244,14 +245,16 @@ for (const [field, value] of [['sheetOrder', []], ['sheetOrder', null], ['sheets
     const sent = api.calls.find(c => c.path.endsWith('/save')); assert.ok(sent.input.document); assert.equal(sent.input.book, undefined);
     assert.deepEqual(sent.input.document[field], value); assert.equal((await ws.get('owner', workId)).contentRevision, 1);
     assert.match(view.text(), /Download draft/); assert.match(view.text(), /Open saved version/);
-    assert.equal(new (await import('../src/maintenance-actions.ts')).MaintenanceActions(storage, `sheet-save:${workId}`).read(), null);
+    assert.equal(await artifactStore(storage).readSave(workId), null);
     await view.click('Open saved version'); editor.dispose();
     const clean = editorFixture(view.doc()); clean.title('Recovered title'); await view.flush(); await view.click('Save document'); clean.dispose();
     assert.equal((await ws.get('owner', workId)).document.title, 'Recovered title');
     // viewSaved retains a whole native recovery snapshot, including the foreign field.
     assert.equal(storage.getItem(`workagent-draft:${workId}`), null);
-    assert.equal(retained.size, 1); assert.deepEqual(JSON.parse([...retained.values()][0]).book[field], value);
-    assert.equal(JSON.parse([...retained.values()][0]).book.title, 'Human title');
+    assert.equal(await artifactStore(storage).readDraft(workId), null);
+    const retained = [...artifactFixture(storage).rows].filter(([key]) => key.startsWith(`recovery:${workId}:`));
+    assert.equal(retained.length, 1); assert.deepEqual(JSON.parse(retained[0][1].value.raw).book[field], value);
+    assert.equal(JSON.parse(retained[0][1].value.raw).book.title, 'Human title');
   } finally { editor.dispose(); view.unmount(); }
 });
 
@@ -416,7 +419,7 @@ test('document lost-ACK retry after reload uses exact body without saving newer 
     reload = f.app.mount(f.storage, f.api.fetch); await reload.flush(); await reload.open('old'); editor = editorFixture(reload.doc());
     editor.doc().insertText(0, 'New human content '); editor.select([{ startOffset: 6, endOffset: 9 }]); await reload.flush();
     await reload.send(); const calls = f.api.calls.filter(c => c.path === '/api/work/commands'); assert.equal(calls.length, 2); assert.deepEqual(calls[1], calls[0]);
-    assert.equal(f.api.calls.filter(c => c.path.endsWith('/save')).length, 0); assert.match(JSON.parse(f.storage.getItem('workagent-draft:old')).book.body.dataStream, /^New human content/);
+    assert.equal(f.api.calls.filter(c => c.path.endsWith('/save')).length, 0); assert.match(JSON.parse((await artifactStore(f.storage).readDraft('old')).raw).book.body.dataStream, /^New human content/);
   } finally { editor?.dispose(); reload?.unmount(); f.close(); }
 });
 test('two document send consumers keep original command even after sibling settles and clears shared storage', async () => {

@@ -95,7 +95,7 @@ test('export failure or navigation during pending native calculation makes no do
     await view.flush(); assert.equal(view.downloads.length, 0); view.unmount();
   }
 });
-test('saved sheet commands use the existing durable identity across navigation/reload and conflict responses', () => {
+test('legacy saved sheet commands retain their installed identity across navigation/reload and conflict responses', () => {
   const disk = storage(), path = '/work/one/save', save = new MaintenanceActions(disk, 'sheet-save:one');
   const first = save.prepare('save', path, { book: { id: 'one' }, contentRevision: 1, permissionRevision: 1 }, () => 'save-A');
   assert.deepEqual(new MaintenanceActions(disk, 'sheet-save:one').prepare('save', path, { book: { changed: true } }, () => 'save-B'), first);
