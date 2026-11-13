@@ -12,6 +12,12 @@ async function api<T>(path: string, input?: unknown, method?: string): Promise<T
   const result = await response.json(); if (!response.ok) throw new ApiError(path, response.status, typeof result.error === 'string' ? result.error : 'service_unavailable'); return result;
 }
 const friendly: Record<string, string> = { save_conflict: 'The saved sheet changed while you were editing. Your draft is kept. Download it before opening the saved version.', proposal_conflict: 'This proposal is out of date. Ask the agent to review the current sheet.', access_denied: 'Please sign in to your private workspace.', accounting_bridge_not_connected: 'Model access is waiting for the accounting connection. You can still edit and save your sheet.', openrouter_not_configured: 'Model access is not configured yet.', execution_interrupted_check_receipt: 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.' };
+friendly.provider_budget_exhausted = 'OpenRouter reports that a configured budget is exhausted. Saved work is kept.';
+friendly.provider_http_402 = 'OpenRouter refused this request under its credit or in-flight limits. Saved work is kept; nothing was retried.';
+friendly.provider_http_403 = 'OpenRouter denied this request. Saved work is kept; nothing was retried.';
+friendly.provider_http_429 = 'OpenRouter rate-limited this request. Saved work is kept; nothing was retried.';
+friendly.output_limit_reached = 'The response reached its output limit before finishing. Saved changes and replies are kept. Send a continuation to carry on from the saved work.';
+friendly.empty_model_response = 'The model ended without a usable reply. Saved work is kept. Send a continuation to try a new turn.';
 friendly.interrupted_no_automatic_replay = 'Execution may have started before the restart. Saved changes are kept. Nothing was resent; ask explicitly to continue, or have the operator reconcile the request.';
 friendly.cancelled_check_receipt = 'Work has stopped. Saved changes are kept; an in-flight model request may still have taken effect.';
 friendly.service_stopped = 'The service stopped during this work. Saved changes are kept; execution was not automatically repeated.';

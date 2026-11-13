@@ -26,7 +26,7 @@ async function body(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 export function createServer(options) { return http.createServer(createHandler(options)); }
-export function createHandler({ workspace, owner, token, origin, clientRoot, onCommand = () => {} }) {
+export function createHandler({ workspace, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -48,6 +48,10 @@ export function createHandler({ workspace, owner, token, origin, clientRoot, onC
         return send(200, { authenticated: true });
       }
       const principal = auth.authenticate(req);
+      if (path === '/api/accounting' && req.method === 'GET') {
+        await workspace.list(principal); // Includes current access/revocation checks.
+        return send(200, accounting?.status ? await accounting.status() : { mode: 'disabled' });
+      }
       if (path === '/api/events' && req.method === 'GET') {
         const after = new URL(req.url, origin).searchParams.get('after');
         if (after !== null && !/^\d+$/.test(after)) throw new Fault('invalid_cursor', 400);

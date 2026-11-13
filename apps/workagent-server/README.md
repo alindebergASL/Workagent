@@ -1,18 +1,10 @@
 # B01 / independent B02 checkpoint
 
-Concrete implementation, **not a completed B01**. The UI uses native Univer Sheets;
-production persistence is PostgreSQL, with a single owner and a single runner. There
-is no memory-only production fallback. Financial access fails closed until Parent
-connects the existing issuer. No fixture mode is exposed by the product server.
-
-Parent installed ordinary online pnpm dependencies and supplied the workspace/lockfile.
-Install reported `ERR_PNPM_IGNORED_BUILDS` for esbuild, koffi and protobufjs; scripts
-remain blocked. Existing prebuilt packages suffice for the actual DSH fixture,
-client typecheck and production build, all now passing without script approval.
-Native Univer values/formulas also survive file-fixture save/reopen. This is headless
-SDK proof; browser interaction, live PostgreSQL and paid integration remain pending.
-The earlier HTTP fixture listener was refused with `listen EPERM`; this continuation
-did not retry it. No product-model call, database access or service operation ran.
+Concrete implementation, **not a completed B01**. Native Univer Sheets use PostgreSQL
+persistence, one owner and one runner. See [STATUS](../../STATUS.md) for checks and
+Parent's deployed/live evidence. No fixture mode is exposed by the product server.
+The November 13 repair adds truthful incomplete turns and explicit OpenRouter-backed
+accounting; the new migration and mode still need Parent's live qualification.
 
 ## Install and checks
 
@@ -26,12 +18,12 @@ PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p test_workspa
 npm run test:http
 npm run test:integration
 npm run typecheck
-npm run build
+npm run build -- --configLoader native
 ```
 
 Use pnpm 11.28.5 and the retained `pnpm-workspace.yaml` / `pnpm-lock.yaml`; Parent owns
 installs and lock changes. Stop on installation policy refusals; do not approve or
-bypass blocked scripts. Do not reuse external node_modules. The direct
+bypass blocked scripts. The worker uses Parent-provided linked dependencies without modifying them. The direct
 DSH dependencies are pinned coherently to 0.2.2-rc.1, Univer to 1.4.0. The integration
 test is an explicitly scripted mechanism fixture using the actual DSH loop, never
 proof of model usefulness. `test:integration` also runs the real installed Univer SDK
@@ -57,10 +49,10 @@ private proxy. The access-key login creates an HttpOnly, SameSite cookie (Secure
 HTTPS); mutation requests require the exact origin. Single-owner use only. The key
 is never supplied to the model. A PostgreSQL advisory lock refuses a second runner.
 
-For actual inference only after financial reconciliation: `OPENROUTER_API_KEY`,
-`WORKAGENT_ISSUER_SOCKET`, and optional `WORKAGENT_MODEL` (default
-`typesafe/jev-router`). No call occurs on merely opening work. Missing issuer or key
-blocks a requested turn visibly while the sheet can still be edited and saved.
+For inference, Parent supplies `OPENROUTER_API_KEY` and selects the accounting mode
+below. `WORKAGENT_MODEL` defaults to `typesafe/jev-router`; explicit model overrides
+remain supported. No call occurs on merely opening work. Missing accounting or key
+blocks a requested turn while direct sheet editing remains available.
 
 ## Stable client/server boundary
 
@@ -91,69 +83,63 @@ job and product event commit together under the PostgreSQL row lock. This is a
 bounded single-owner snapshot authority, **not** Univer collaborative OT. Local
 unsaved drafts persist on the device; server saves are the cross-device authority.
 
-## Implemented certificate-funded accounting; live qualification pending
+## OpenRouter-backed accounting and adequate output
 
-The [accounting contract and Parent-only setup](../../backend/workagent/workspace_accounting_README.md)
-describe the implemented PostgreSQL adapter, migration and Unix socket service.
-Their source exists; installation, restricted-role/socket behavior, certificate
-funding and live inference remain unverified. The initial file read failed because SQL
-was placed under Ubuntu's private home. Parent may stage non-secret SQL in an appropriate
-deployment-readable directory under existing fresh-target provisioning authority, after
-verifying target identity and partial effects. Do not broaden home access or alter alpha.
+Parent applies `migrations/0003_provider_journal.sql` additively to the existing product
+DB using its installer role. It creates only `workagent_provider`; it never updates
+alpha, `workspace_accounting`, certificates, bindings, receipts or policies. Give the
+existing application role USAGE on `workagent_provider` and its sequence, and SELECT,
+INSERT on `workagent_provider.journal`. Keep schema/table ownership with the installer
+and do not grant UPDATE, DELETE, TRUNCATE or DDL. Startup never applies migrations.
 
-Node uses HTTP over `WORKAGENT_ISSUER_SOCKET`, with acknowledgements after commit:
+Set `WORKAGENT_ACCOUNTING_MODE=openrouter` to select this mode in `main.mjs`.
+`WORKAGENT_ISSUER_SOCKET` is unused in this mode; there are no old-issuer calls.
+`WORKAGENT_MAX_OUTPUT_TOKENS` defaults to **32768** (positive integer, up to the
+technical envelope of 1,000,000). `WORKAGENT_REASONING_EFFORT` may be `low`, `medium`
+or `high`; omit it to retain router/provider defaults. DSH adapter metadata supports
+these explicit selections. `WORKAGENT_REQUEST_TIMEOUT_MS` defaults to 300000 (5 min),
+configurable from 1000 to 1800000. Provider capability/credit denials remain binding;
+these controls neither purchase funds nor increase provider limits.
 
-- `POST /workspace-accounting/v1/policy` `{}` → `{policy,policyHash}` negotiates the
-  certificate-bound v2 pricing policy before building the outgoing request.
-- `POST /workspace-accounting/v1/status` `{}` reports funding, settled cost, held
-  liability and reported amounts separately; verified invoice cost remains null.
-- `POST /workspace-accounting/v1/reserve`: `{sessionId,requestId,requestHash,route,
-  purpose:'conversation',maxOutputTokens,requestBytes,requestBody,policyHash}` →
-  `{durable:true,reservationId,requestHash,route,policyHash}` after durable reservation.
-  `requestBody` is the exact once-serialized outgoing JSON string; its UTF-8 byte
-  count and SHA-256 must match. The adapter validates that body against the bound
-  policy, and the transport sends the identical string after dispatch.
-- `POST /workspace-accounting/v1/dispatch`: `{reservationId,requestHash}` →
-  `{dispatched:true}` only for fresh one-use dispatch authority. A repeated dispatch
-  must refuse; acknowledgement loss retains an unknown liability.
-- `POST /workspace-accounting/v1/retain`: `{reservationId,requestHash,outcome:
-  'received'|'unknown'|'not_dispatched'|'reconciled',terminal,responseId?,resolvedModel?,
-  usage?,replayState?,generation?}` → `{retained:true,...}` with settlement/liability
-  metadata. Immutable receipt retention and eligible monetary settlement are atomic.
+Each inference reads `GET /api/v1/key` with the same key and records limit, remaining,
+reset, shared-key usage, budgets and effective budget. Exhausted returned budgets stop
+dispatch. An immutable journal records exact serialized body/hash, native session and
+request identity, preparation, one-use dispatch, raw receipts and provider-reported
+costs. A key snapshot is **not an atomic reservation** and cannot guarantee external
+in-flight spending. OpenRouter enforces the configured limits. There is no replacement
+local dollar ceiling or funding certificate. Two dispatcher slots and twelve model
+calls per turn remain the concurrency/resource bounds. Retries remain disabled.
 
-Parent imports one exact issuer certificate bound to the target database/cluster,
-nonce and policy. Its full amount stays allocated under the existing cumulative
-legacy $275 campaign; local settlement never refunds or reissues central funding.
-That historical campaign is not the owner's fresh rebuild budget or a new approval
-gate: current authority is in `docs/GENERAL_MODEL_AUTHORIZATION.md`, backed by configured
-OpenRouter limits. The existing certificate is transitional bookkeeping, not a reset of history. The
-default Jev policy reserves one million input and one million completion/reasoning
-tokens at its hard price caps ($6 temporary envelope at the default caps), even
-though output is limited to 4096 tokens. Router tiers/preferences are not dollar caps.
+Authenticated `GET /api/accounting` reports the selected mode's costs, unresolved
+request count, initial/latest shared-key snapshots and null verified invoice cost.
+Project request costs are distinct from shared-key totals. Unknown requests retain
+identity and evidence without automatic replay; terminal usage missing monetary cost
+stays unresolved. Exact retained-generation GET reconciliation remains available
+through `reconcileOpenRouterReceipt` with this adapter; it cannot resend inference.
+HTTP 402/403/429 evidence is retained; 429 is a rate limit, not a budget signal.
+Denied requests conservatively remain unresolved when no monetary receipt is present.
 
-A terminal response with valid finite nonnegative `usage.cost` within its envelope
-can settle to that provider-reported cost, rounded up to microUSD. Unknown attempts
-retain liability; absent/invalid terminal costs, overruns and conflicting evidence
-freeze further dispatch as specified in the linked contract. Definitive
-`not_dispatched` settles to zero only with no dispatch or prior uncertainty. Explicit
-exact-generation reconciliation uses a retained response ID and raw generation
-record through `/retain`; it never resends inference. No certificate or funding has
-been issued for this implementation, and provider-reported cost is not invoice proof.
+Parent must qualify this additive schema, restricted-role immutability, concurrent
+one-use dispatch, restart/acknowledgement loss, actual key metadata, retained charges
+and the private browser journey. Local journal fixtures do not establish PostgreSQL
+or provider proof. Existing completed live provider IDs must not be replayed. A new
+deliberate continuation uses a new intent/session and the current saved workbook.
 
-The provider retains session identity, resolved model, native tool IDs, raw SSE frames,
-reasoning details and usage, and blocks tool completion until receipt retention. It
-has no retry and caps a turn at 12 model calls / 4096 output tokens each; these are
-resource bounds, not financial caps. Children, compaction, session sharing, feedback,
-search, log contribution and Decisions API are not loaded. Decisions remains disabled;
-no endpoint/payload has been invented. Aborted/disconnected calls remain unknown.
+## Retained certificate mode
 
-Immediate remaining verification: browser formula/value save/reopen with a human
-correction, active-cell refresh recovery, switching and concurrent agent updates;
-qualify transactions against disposable PostgreSQL and the implemented accounting
-adapter/socket with certificate funding; then Parent's bounded paid unfamiliar-input journey. Restart marks an active
-job interrupted when execution may have begun; B02 live/browser proof and B03 responsibilities are not
-complete. No physical-phone, multi-user, server installation or acceptance claim is made.
+The default `WORKAGENT_ACCOUNTING_MODE=certificate` preserves the original socket
+adapter and all immutable v2 policy constraints, including its 4096-token ceiling.
+Changing the host allowance alone cannot enlarge this historical mode. New rebuild
+work uses the explicit OpenRouter mode above; no old certificate needs rewriting or
+reissuing. The existing [certificate adapter contract](../../backend/workagent/workspace_accounting_README.md)
+remains available for historical inspection/reconciliation. No old ledger/schema or
+issuer implementation is changed by this repair. See STATUS for Parent's prior
+certificate/database/live checks and the owner's superseding fresh-budget direction.
 
+The wire retains session identity, resolved models, tool IDs, raw SSE frames, reasoning
+and usage. Tools are released only after receipt retention; length-truncated tool JSON
+never executes but its terminal charge survives. Children, compaction, sharing,
+feedback, search, log contribution and Decisions API remain disabled.
 
 ## B02 recovery and independent dispatch
 
@@ -164,9 +150,9 @@ sessions, accepted context and source lists. Shutdown stops claiming, cancels na
 activity and drains job settlement before releasing leadership.
 
 Jobs persist `admitted`, `session_ready`, `prompt_accepted`, `execution_started` and
-`completed` phases, fixed session IDs, accepted context and native request-step IDs
+`completed` or `incomplete` terminal phases, fixed session IDs, accepted context and native request-step IDs
 (`sessionId:step:sequence`). These step IDs do not replace financial request hashes,
-provider IDs, one-use dispatch or immutable receipts. No financial contract changed.
+provider IDs, one-use dispatch or immutable receipts.
 Public DSH persistence reads reconcile existing native logs before create/resume.
 Session creation and pending inbox acceptance each cross a public flush barrier.
 The public API has no wake-only inbox operation: after the durable execution marker,
@@ -174,7 +160,11 @@ the same pending message ID moves through `followup`. Any crash beyond that mark
 is conservatively interrupted, even if no provider call ultimately happened. Native
 request/history evidence also prohibits automatic replay. Explicit new continuation
 is a new intent/session; it does not retry the old uncertain request. Completed
-messages recover without duplicate contributions. No retained runtime data is deleted.
+messages recover without duplicate contributions. Native `turn/end` max-tokens and
+reasoning-only empty replies now persist as incomplete, including recovery between
+native closure and product settlement. Earlier edits/replies remain saved, and the
+client invites a deliberate continuation. No retry is automatic. This does not
+retroactively rewrite already-settled historical jobs. No retained data is deleted.
 
 `GET /api/events?after=<nonnegative integer>` authenticates before reading the owner
 snapshot and returns `{kind:'events'|'reset',cursor,events,works,snapshots}`. Omitted,
@@ -189,9 +179,6 @@ B02 tests use actual installed DSH with scripted local inference and file storag
 including subprocess loss without cleanup at durability boundaries, concurrency,
 shutdown and intent targeting. Route tests use handlers without opening listeners.
 They do not establish PostgreSQL, financial, browser, remote or phone behavior.
-In the B02 child checkout the production build stopped on `EROFS` writing Vite's
-temporary config through read-only `node_modules/.vite-temp`; that child operation
-stopped. Parent owns the integration build in a permitted writable context, preserving
-the sandbox and dependency-script policy. This is not permission to escape the child
-sandbox, broaden access or modify dependency source. See STATUS for the actual build
-result; Parent retains final browser verification responsibility.
+The supported native Vite config loader builds within the worker sandbox without
+writing temporary configuration into shared dependencies. See STATUS for actual
+checks; Parent retains final browser and live accounting verification.

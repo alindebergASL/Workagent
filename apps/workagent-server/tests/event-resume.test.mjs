@@ -54,3 +54,16 @@ test('events route binds principal before replay or reset and refuses revoked ow
   await store.transaction(s => { s.enabled = false; });
   assert.deepEqual(await get(headers), { status: 403, body: { error: 'access_denied' } });
 });
+
+test('accounting status is authenticated, revocation-aware and reads only the selected mode', async () => {
+  const { ws, store } = await setup(); const token = 'synthetic-private-account-token-at-least-32'; let reads = 0;
+  const handler = createHandler({ workspace: ws, owner: 'owner', token, origin: 'https://private.example.test', clientRoot: tmpdir(), accounting: { async status() { reads++; return { mode: 'openrouter', providerReportedCostUsd: 0.001, keySnapshotReservesFunds: false }; } } });
+  async function get(authorized) {
+    const req = Readable.from([]); Object.assign(req, { method: 'GET', url: '/api/accounting', headers: authorized ? { authorization: `Bearer ${token}` } : {} }); let status, body;
+    await handler(req, { setHeader() {}, writeHead(code) { status = code; }, end(raw) { body = JSON.parse(raw); } }); return { status, body };
+  }
+  assert.equal((await get(false)).status, 401); assert.equal(reads, 0);
+  assert.equal((await get(true)).body.providerReportedCostUsd, 0.001); assert.equal(reads, 1);
+  await store.transaction(s => { s.enabled = false; });
+  assert.equal((await get(true)).status, 403); assert.equal(reads, 1);
+});

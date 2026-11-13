@@ -135,12 +135,12 @@ export class Workspace {
   async checkpoint(principal, job, phase, details = {}) { return this.store.transaction(s => {
     authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId);
     if (!j || j.status !== 'running' || j.sessionId !== job.sessionId) throw new Fault('job_not_running');
-    if (phase !== 'completed' && !same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) throw new Fault('work_superseded');
-    const phases = ['admitted', 'session_ready', 'prompt_accepted', 'execution_started', 'completed'];
+    if (!['completed', 'incomplete'].includes(phase) && !same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) throw new Fault('work_superseded');
+    const phases = ['admitted', 'session_ready', 'prompt_accepted', 'execution_started', 'completed', 'incomplete'];
     if (!phases.includes(phase) || phases.indexOf(phase) < phases.indexOf(j.phase)) throw new Fault('invalid_job_phase');
     j.phase = phase;
     if (details.requestId && !(j.requestIds ??= []).includes(details.requestId)) j.requestIds.push(details.requestId);
-    if (phase === 'completed') j.messages = details.messages ?? [];
+    if (['completed', 'incomplete'].includes(phase)) { j.messages = details.messages ?? []; j.outcome = details.outcome; }
     return null;
   }); }
   async finish(principal, job, messages, status, errorCode) { return this.store.transaction(s => {
@@ -162,9 +162,11 @@ export class Workspace {
       const native = inspectNative ? await inspectNative(j) : null;
       for (const message of native?.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
       const current = same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch });
-      if (j.phase === 'completed') {
+      if (['completed', 'incomplete'].includes(j.phase) || native?.outcome) {
         for (const message of j.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
-        j.status = current ? 'ready' : w.cancellationEpoch !== j.expected.cancellationEpoch ? 'stopped' : 'superseded';
+        const outcome = native?.outcome ?? j.outcome ?? { status: j.phase === 'completed' ? 'ready' : 'incomplete' };
+        j.status = current ? outcome.status : w.cancellationEpoch !== j.expected.cancellationEpoch ? 'stopped' : 'superseded';
+        j.errorCode = outcome.errorCode;
         if (j.status === 'stopped' && j.requestIds?.length) j.errorCode = 'cancelled_check_receipt';
       } else if (native && !native.uncertain && ['admitted', 'session_ready', 'prompt_accepted'].includes(j.phase)) {
         j.status = current ? 'queued' : w.cancellationEpoch !== j.expected.cancellationEpoch ? 'stopped' : 'superseded';

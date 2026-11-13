@@ -1,15 +1,41 @@
 import { createHash } from 'node:crypto';
+export const DEFAULT_MAX_OUTPUT_TOKENS = 32768;
+export function outputAllowance(value = DEFAULT_MAX_OUTPUT_TOKENS) {
+  const n = Number(value);
+  if (!Number.isSafeInteger(n) || n < 1 || n > 1_000_000) throw new Error('invalid_output_bound');
+  return n;
+}
+export function requestTimeout(value = 300000) {
+  const n = Number(value);
+  if (!Number.isSafeInteger(n) || n < 1000 || n > 1800000) throw new Error('invalid_request_timeout');
+  return n;
+}
+export async function providerText(response, maxBytes = 1_000_000) {
+  const chunks = []; let bytes = 0;
+  for await (const chunk of response.body ?? []) {
+    bytes += chunk.byteLength;
+    if (bytes > maxBytes) throw new Error('provider_metadata_too_large');
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
 export const DEFAULT_MODEL = 'typesafe/jev-router';
 export const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 export function requestBody(options, policy) {
-  if (!policy || policy.version !== 2 || policy.pricingBasis !== 'openrouter-text-context-v1') throw new Error('accounting_policy_required');
-  const prices = policy.provider?.max_price;
-  if (!prices || Object.keys(prices).sort().join(',') !== 'completion,image,prompt,request'
-      || Object.values(prices).some(v => typeof v !== 'number' || !Number.isFinite(v) || v < 0)
-      || prices.image !== 0 || policy.provider.allow_fallbacks !== false || policy.provider.require_parameters !== true
-      || !Number.isSafeInteger(policy.maxOutputTokens) || policy.maxOutputTokens < 1 || policy.maxOutputTokens > 4096
-      || !Number.isSafeInteger(policy.maxRequestBytes) || policy.maxRequestBytes < 1 || policy.maxRequestBytes > 1_000_000) throw new Error('invalid_accounting_policy');
-  if (policy.route === DEFAULT_MODEL && (policy.inputTokenCeiling < 1_000_000 || policy.completionTokenCeiling < 1_000_000)) throw new Error('context_envelope_too_small');
+  const providerBacked = policy?.version === 3 && policy.pricingBasis === 'openrouter-key-budget-v1';
+  if (!providerBacked && (!policy || policy.version !== 2 || policy.pricingBasis !== 'openrouter-text-context-v1')) throw new Error('accounting_policy_required');
+  if (providerBacked) {
+    outputAllowance(policy.maxOutputTokens);
+    if (JSON.stringify(policy.provider) !== JSON.stringify({ allow_fallbacks: false, require_parameters: true })) throw new Error('invalid_accounting_policy');
+  } else {
+    const prices = policy.provider?.max_price;
+    if (!prices || Object.keys(prices).sort().join(',') !== 'completion,image,prompt,request'
+        || Object.values(prices).some(v => typeof v !== 'number' || !Number.isFinite(v) || v < 0)
+        || prices.image !== 0 || policy.provider.allow_fallbacks !== false || policy.provider.require_parameters !== true
+        || !Number.isSafeInteger(policy.maxOutputTokens) || policy.maxOutputTokens < 1 || policy.maxOutputTokens > 4096) throw new Error('invalid_accounting_policy');
+    if (policy.route === DEFAULT_MODEL && (policy.inputTokenCeiling < 1_000_000 || policy.completionTokenCeiling < 1_000_000)) throw new Error('context_envelope_too_small');
+  }
+  if (!Number.isSafeInteger(policy.maxRequestBytes) || policy.maxRequestBytes < 1 || policy.maxRequestBytes > 1_000_000) throw new Error('invalid_accounting_policy');
   if (options.model === 'typesafe/jev-1.14') throw new Error('decisions_model_is_not_chat');
   if ((options.model || DEFAULT_MODEL) !== policy.route) throw new Error('route_not_authorized');
   if (options.maxTokens !== undefined && (!Number.isSafeInteger(options.maxTokens) || options.maxTokens < 1)) throw new Error('invalid_output_bound');
@@ -33,7 +59,7 @@ export function requestBody(options, policy) {
     }
     return wire;
   }));
-  const body = { model: options.model || DEFAULT_MODEL, messages, stream: true, stream_options: { include_usage: true }, session_id: options.sessionId, max_tokens: Math.min(options.maxTokens ?? 4096, policy.maxOutputTokens) };
+  const body = { model: options.model || DEFAULT_MODEL, messages, stream: true, stream_options: { include_usage: true }, session_id: options.sessionId, max_tokens: Math.min(options.maxTokens ?? policy.maxOutputTokens, policy.maxOutputTokens) };
   body.provider = structuredClone(policy.provider);
   body.prompt_cache_options = { mode: 'explicit' };
   if (options.tools?.length) body.tools = options.tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.parameters } }));
@@ -65,9 +91,10 @@ export function normalizedUsage(u) {
   if (!Number.isSafeInteger(cached) || cached < 0 || cached > u.prompt_tokens) throw new Error('usage_invalid');
   return { inputTokens: u.prompt_tokens - cached, outputTokens: u.completion_tokens, cacheReadTokens: cached, ...(u.total_tokens === u.prompt_tokens + u.completion_tokens ? { totalTokens: u.total_tokens } : {}), ...(Number.isSafeInteger(u.completion_tokens_details?.reasoning_tokens) ? { reasoningTokens: u.completion_tokens_details.reasoning_tokens } : {}) };
 }
-// Transport has no retries. The issuer durably reserves BEFORE any network call.
-export async function* streamOpenRouter(options, { accounting, apiKey, fetchImpl = fetch, attribution = {}, beforeDispatch = async () => {} }) {
-  const signal = AbortSignal.any([AbortSignal.timeout(120000), ...(options.signal ? [options.signal] : [])]);
+// Transport has no retries. Exact request preparation and one-use dispatch commit
+// before inference; provider-backed mode first reads the key budget.
+export async function* streamOpenRouter(options, { accounting, apiKey, fetchImpl = fetch, attribution = {}, beforeDispatch = async () => {}, requestTimeoutMs = 300000 }) {
+  const signal = AbortSignal.any([AbortSignal.timeout(requestTimeout(requestTimeoutMs)), ...(options.signal ? [options.signal] : [])]);
   signal.throwIfAborted();
   if (!apiKey) throw new Error('openrouter_not_configured');
   const negotiation = await accounting.policy();
@@ -90,7 +117,11 @@ export async function* streamOpenRouter(options, { accounting, apiKey, fetchImpl
     const dispatch = await accounting.dispatch({ reservationId: permit.reservationId, requestHash: hash });
     if (dispatch?.dispatched !== true) throw new Error('issuer_dispatch_refused');
     const response = await fetchImpl(OPENROUTER_URL, { method: 'POST', headers: { ...Object.fromEntries(Object.entries(attribution).filter(([k]) => ['HTTP-Referer', 'X-OpenRouter-Title'].includes(k))), 'X-OpenRouter-Metadata': 'enabled', Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: rawBody, signal, redirect: 'error' });
-    if (!response.ok) throw new Error(`provider_http_${response.status}`);
+    if (!response.ok) {
+      // Retain denials as evidence; never auto-retry 402/403 or confuse 429 with budget.
+      frames.push({ http_status: response.status, retry_after: response.headers.get('retry-after'), error: await providerText(response) });
+      throw new Error(`provider_http_${response.status}`);
+    }
     for await (const frame of sse(response.body)) {
       signal.throwIfAborted();
       receivedBytes += Buffer.byteLength(JSON.stringify(frame));
@@ -123,11 +154,12 @@ export async function* streamOpenRouter(options, { accounting, apiKey, fetchImpl
     terminal = true;
     const normalized = normalizedUsage(usage);
     if (!responseId || !resolvedModel || !finish) throw new Error('incomplete_provider_identity');
-    for (const c of calls.values()) { if (!c.id || !c.name) throw new Error('incomplete_tool_call'); JSON.parse(c.arguments); }
     const replayState = { response: { id: responseId, model: resolvedModel, usage, reasoning_details: reasoningDetails, routing, session_id: body.session_id, finish_reason: finish, frames } };
     const retained = await accounting.retain({ reservationId: permit.reservationId, requestHash: hash, outcome: 'received', terminal: true, responseId, resolvedModel, usage, replayState });
     if (retained?.retained !== true) throw new Error('issuer_retention_unconfirmed');
     settled = true;
+    if (finish !== 'tool_calls') calls.clear();
+    for (const c of calls.values()) { if (!c.id || !c.name) throw new Error('incomplete_tool_call'); JSON.parse(c.arguments); }
     if (text) yield { type: 'block-end', index: 0, block: { type: 'text', text } };
     if (reasoning) yield { type: 'block-end', index: 1, block: { type: 'reasoning', text: reasoning } };
     for (const [index, c] of calls) {
