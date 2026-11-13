@@ -52,7 +52,7 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
@@ -744,4 +744,148 @@ test('Open saved version archives live formatting provenance with the complete n
   const archived = JSON.parse(entries[0][1].value.raw);
   assert.deepEqual(archived.formatEdits, { sheet1: [0] }); assert.deepEqual(archived.book, book);
   view.unmount();
+});
+
+
+// Navigation regressions stay below the prefix evaluated by document fixtures.
+const composerNodes = view => {
+  const all = view.elements(), named = label => all.find(n => n.props['aria-label'] === label)?.props;
+  const button = label => all.find(n => n.type === 'button' && n.props.children === label)?.props;
+  return {
+    prompt: all.find(n => n.props.id === 'prompt').props,
+    sourceName: named('Source name'), sourceText: named('Source text'),
+    file: all.find(n => n.type === 'input' && n.props.type === 'file').props,
+    form: all.find(n => n.props.className === 'composer').props,
+    navigation: named('Saved work'), send: button('Send'),
+    attach: button('Attach selected cells'), remove: button('Remove selection'), restore: button('Restore unresolved send'),
+  };
+};
+const messageDraft = prompt => ({ prompt, sourceName: `${prompt} source`, sourceText: `${prompt} data` });
+for (const phase of ['preservation', 'GET', 'draft read', 'save read']) test(`composer navigation blocks editing and stale actions through ${phase}, retaining separate drafts`, async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred();
+  const selection = { workId: 'old', sheetId: 'sheet1', sheetName: 'Sheet 1', rangeLabel: 'A1:B2', range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 1 }, contentRevision: 1 };
+  const source = { ...messageDraft('Source message'), selection }, destination = messageDraft('Destination message');
+  drafts.write('old', source); drafts.write('imported', destination);
+  const pending = drafts.submission('old', source, 0, randomUUID, selection);
+  const api = server(() => assert.fail('navigation must not POST')); let hold = false, reached = false;
+  const view = mount(storage, async (path, options) => {
+    if (hold && phase === 'GET' && path === '/api/work/imported') { reached = true; await gate.promise; }
+    return api.fetch(path, options);
+  });
+  await view.flush(); await view.open('old'); const previous = view.native(), native = attach(view);
+  native.edit('retained native draft'); await view.flush();
+  artifactFixture(storage).complete = async key => {
+    if (hold && key === ({ preservation: 'draft:old', 'draft read': 'draft:imported', 'save read': 'save:imported' })[phase]) { reached = true; await gate.promise; }
+  };
+  const stale = composerNodes(view); hold = true;
+  // Start navigation and call still-rendered handlers before the next render.
+  stale.navigation.onChange({ target: { value: 'imported' } });
+  stale.prompt.onChange({ target: { value: 'wrong immediate edit' } });
+  await stale.form.onSubmit({ preventDefault() {} });
+  stale.attach.onClick(); stale.remove.onClick(); stale.restore.onClick();
+  await view.flush(); assert.equal(reached, true);
+  const blocked = composerNodes(view);
+  assert.equal(blocked.form['aria-busy'], true); assert.match(view.text(), /Loading work/);
+  for (const key of ['prompt', 'sourceName', 'sourceText', 'file', 'send', 'attach', 'remove', 'restore']) assert.equal(blocked[key].disabled, true, key);
+  for (const key of ['prompt', 'sourceName', 'sourceText']) blocked[key].onChange({ target: { value: 'wrong delayed edit' } });
+  await blocked.file.onChange({ target: { files: [{ size: 1, name: 'wrong', text: () => assert.fail('disabled file handler read') }] } });
+  await blocked.form.onSubmit({ preventDefault() {} }); blocked.attach.onClick();
+  await view.flush(); assert.equal(view.messageValue(), source.prompt);
+  assert.deepEqual(drafts.read('old'), source); assert.deepEqual(drafts.read('imported'), destination);
+  assert.deepEqual(drafts.pending('old'), pending); assert.equal(api.calls.filter(c => c.input).length, 0);
+  gate.resolve(); await view.flush();
+  assert.equal(view.native().book.id, 'imported'); assert.equal(view.messageValue(), destination.prompt);
+  assert.equal(composerNodes(view).prompt.disabled, false); assert.equal(composerNodes(view).form['aria-busy'], false);
+  // Settled composer stays usable through native disposal/readiness callbacks.
+  previous.onReady(null); await view.message('destination typing before mount'); attach(view);
+  await view.message('destination typing after mount');
+  assert.deepEqual(drafts.read('old'), source); assert.deepEqual(drafts.read('imported'), { ...destination, prompt: 'destination typing after mount' });
+  assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.sheets.sheet1.cellData[0][0].v, 'retained native draft');
+  await view.open('old'); assert.equal(view.messageValue(), source.prompt); assert.deepEqual(drafts.read('old'), source); view.unmount();
+});
+
+for (const failure of ['GET', 'draft read', 'preservation', 'snapshot']) test(`failed ${failure} navigation unblocks the unchanged source composer and native work`, async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred();
+  const source = { prompt: 'Keep source', sourceName: 'Pasted data', sourceText: '' };
+  drafts.write('old', source); drafts.write('imported', messageDraft('Keep destination'));
+  const api = server((path, input) => { assert.equal(path, '/api/work/commands'); return { workId: input.workId }; }); let fail = false;
+  const view = mount(storage, async (path, options) => {
+    if (fail && failure === 'GET' && path === '/api/work/imported') await gate.promise;
+    return api.fetch(path, options);
+  });
+  await view.flush(); await view.open('old'); const native = attach(view);
+  if (failure === 'preservation' || failure === 'snapshot') { native.edit('keep native'); await view.flush(); }
+  const save = native.handle.save;
+  if (failure === 'snapshot') native.handle.save = () => { throw new Error('snapshot refused'); };
+  artifactFixture(storage).complete = async key => {
+    if (fail && key === (failure === 'preservation' ? 'draft:old' : failure === 'draft read' ? 'draft:imported' : 'never')) await gate.promise;
+  };
+  fail = true; await view.open('imported');
+  if (failure !== 'snapshot') { assert.equal(composerNodes(view).prompt.disabled, true); gate.reject(new Error('navigation failed')); await view.flush(); }
+  assert.equal(view.native().book.id, 'old'); assert.equal(composerNodes(view).prompt.disabled, false);
+  assert.equal(view.messageValue(), source.prompt); assert.match(view.text(), /navigation failed|Browser draft storage could not finish|snapshot refused/);
+  fail = false; native.handle.save = save;
+  await view.message('source can continue'); assert.equal(drafts.read('old').prompt, 'source can continue');
+  assert.deepEqual(drafts.read('imported'), messageDraft('Keep destination'));
+  if (failure === 'GET' || failure === 'draft read') { await view.click('Attach selected cells'); await view.send(); assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 1); }
+  else { native.edit('native can continue'); await view.flush(); assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.sheets.sheet1.cellData[0][0].v, 'native can continue'); }
+  view.unmount();
+});
+
+for (const order of ['stale-first', 'latest-first']) for (const staleFailure of [false, true]) test(`latest navigation owns composer unlock: ${order}, stale failure ${staleFailure}`, async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), oldGate = deferred(), latestGate = deferred();
+  drafts.write(null, messageDraft('New work draft')); drafts.write('old', messageDraft('Old draft')); drafts.write('imported', messageDraft('Latest draft'));
+  const api = server(() => assert.fail('no POST')); let hold = true;
+  const view = mount(storage, async (path, options) => {
+    if (hold && path === '/api/work/old') await oldGate.promise;
+    if (hold && path === '/api/work/imported') await latestGate.promise;
+    return api.fetch(path, options);
+  });
+  await view.flush(); await view.open('old'); await view.open('imported');
+  const staleDone = () => staleFailure ? oldGate.reject(new Error('obsolete navigation error')) : oldGate.resolve();
+  if (order === 'stale-first') {
+    staleDone(); await view.flush(); assert.equal(composerNodes(view).prompt.disabled, true);
+    assert.equal(view.messageValue(), 'New work draft'); latestGate.resolve(); await view.flush();
+  } else {
+    latestGate.resolve(); await view.flush(); assert.equal(composerNodes(view).prompt.disabled, false);
+    await view.message('latest typing'); staleDone(); await view.flush();
+  }
+  assert.equal(view.native().book.id, 'imported'); assert.equal(composerNodes(view).prompt.disabled, false);
+  assert.doesNotMatch(view.text(), /obsolete navigation error|Loading work/);
+  assert.deepEqual(drafts.read(null), messageDraft('New work draft')); assert.deepEqual(drafts.read('old'), messageDraft('Old draft'));
+  hold = false; await view.open(''); assert.equal(view.native(), undefined); assert.equal(view.messageValue(), 'New work draft'); view.unmount();
+});
+
+test('New work supersedes a pending open and stays editable after its stale response', async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred(), api = server(() => assert.fail('no POST'));
+  drafts.write(null, messageDraft('Unsent new note')); drafts.write('old', messageDraft('Source'));
+  const view = mount(storage, async (path, options) => { if (path === '/api/work/imported') await gate.promise; return api.fetch(path, options); });
+  await view.flush(); await view.open('old'); attach(view); await view.open('imported'); await view.open('');
+  assert.equal(view.native(), undefined); assert.equal(composerNodes(view).prompt.disabled, false); assert.equal(view.messageValue(), 'Unsent new note');
+  await view.message('new typing'); gate.resolve(); await view.flush(); assert.equal(view.native(), undefined); assert.equal(view.messageValue(), 'new typing');
+  assert.equal(drafts.read('old').prompt, 'Source'); view.unmount();
+});
+
+for (const outcome of ['success', 'abort', 'native edit']) test(`New work composer lock spans old draft preservation: ${outcome}`, async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred(), api = server(() => assert.fail('no POST'));
+  drafts.write(null, messageDraft('New note')); drafts.write('old', messageDraft('Old note'));
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view); native.edit('old native'); await view.flush();
+  artifactFixture(storage).complete = async key => { if (key === 'draft:old') await gate.promise; };
+  await view.open(''); assert.equal(composerNodes(view).prompt.disabled, true); await view.message('blocked');
+  if (outcome === 'native edit') native.edit('newer native');
+  if (outcome === 'abort') gate.reject(new Error('abort')); else gate.resolve();
+  await view.flush(); assert.equal(composerNodes(view).prompt.disabled, false);
+  assert.equal(view.messageValue(), outcome === 'success' ? 'New note' : 'Old note');
+  assert.deepEqual(drafts.read(null), messageDraft('New note')); assert.deepEqual(drafts.read('old'), messageDraft('Old note'));
+  await view.message('resumed typing'); assert.equal(drafts.read(outcome === 'success' ? null : 'old').prompt, 'resumed typing'); view.unmount();
+});
+
+test('source file read begun before navigation cannot attach after switching or cancellation', async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), fileGate = deferred(), navigationGate = deferred(), api = server(() => assert.fail('no POST'));
+  drafts.write(null, messageDraft('New note'));
+  const view = mount(storage, async (path, options) => { if (path === '/api/work/imported') await navigationGate.promise; return api.fetch(path, options); });
+  await view.flush();
+  const reading = composerNodes(view).file.onChange({ target: { files: [{ size: 10, name: 'stale source', text: () => fileGate.promise }] } });
+  await view.open('imported'); await view.open(''); fileGate.resolve('stale file'); await reading; navigationGate.resolve(); await view.flush();
+  assert.deepEqual(drafts.read(null), messageDraft('New note')); assert.equal(view.messageValue(), 'New note'); view.unmount();
 });

@@ -77,6 +77,11 @@ function App() {
   const [draft, setDraft] = useState(false), [prompt, setPrompt] = useState(''), [sourceText, setSourceText] = useState(''), [sourceName, setSourceName] = useState('Pasted data'), [busy, setBusy] = useState(false);
   const [view, setView] = useState<'chat' | 'sheet'>('chat');
   const [pendingSend, setPendingSend] = useState(false);
+  const [navigating, setNavigating] = useState(false);
+  // A synchronous owner blocks queued handlers before React renders disabled inputs.
+  // It is separate from DraftFence: native edits cancel navigation without unlocking
+  // a newer request, and preservation itself advances the draft generation.
+  const navigationFlight = useRef<symbol | null>(null);
   const [selectionView, setSelectionView] = useState<SelectionAttachment | undefined>();
   const [selectionInvalid, setSelectionInvalid] = useState(false), [pendingPreview, setPendingPreview] = useState<Submission | null>(null);
   const blankActions = useRef(new MaintenanceActions(localStorage, 'blank-sheet'));
@@ -110,6 +115,7 @@ function App() {
     pendingState(workId);
   }
   function editComposer(changes: Partial<ComposerDraft>) {
+    if (navigationFlight.current) return;
     const next = { ...composer.current, ...changes }; displayComposer(next);
     try { composers.current.write(active.current, next); } catch (e) { report(e instanceof Error && e.message === 'invalid_composer_draft' ? e : new Error('Local storage is full. Keep this page open to preserve your message.')); }
   }
@@ -156,30 +162,37 @@ function App() {
   async function open(workId: string) {
     if (saveFlight.current) { setError('Wait for the current save before switching work.'); return; }
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
-    const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
-    const ticket = fence.current.request();
-    if (!await preserved) return;
-    let w = await api<Work>(`/work/${workId}`);
-    const stored = await artifacts.current.readDraft(workId);
-    const pending = await artifacts.current.readSave(workId);
-    if (!fence.current.current(ticket) || saveFlight.current) return;
-    if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
-    if (workRef.current?.id === workId && workRef.current.eventSequence > w.eventSequence) w = workRef.current;
-    dirty.current = !!pending; setDraft(!!pending); editor.current = null;
-    active.current = workId; workRef.current = null;
-    installEditor({ ...content(w), revision: w.contentRevision, permission: w.expected.permissionRevision, version: `${w.id}:open:${uuid()}` });
-    receive(w); setError(''); loadComposer(workId);
-    const saved = stored?.raw;
-    recovery.current = stored ? { workId, record: stored } : null;
-    if (saved) {
-      try {
-        const d = JSON.parse(saved); if (d.book?.id !== workId || !Number.isInteger(d.revision) || !Number.isInteger(d.permission)) throw new Error('invalid_draft'); dirty.current = true; setDraft(true);
-        installEditor({ kind: w.kind === 'document' ? 'document' : 'sheet', book: d.book, ...(w.kind === 'document' ? {} : { formatEdits: validateFormatEdits(d.formatEdits, d.book) ?? null }), revision: d.revision, permission: d.permission, version: `${w.id}:draft:${uuid()}` });
-        if (d.revision !== w.contentRevision) setError(friendly.save_conflict);
-        else if (w.kind !== 'document' && d.formatEdits === undefined) setError('This older draft has no formatting history. Saving conservatively protects changed styles, including any calculated formats.');
-      } catch { setError('A local draft could not be opened. The saved server version is available.'); }
+    const navigation = Symbol(); navigationFlight.current = navigation; setNavigating(true);
+    try {
+      const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
+      const ticket = fence.current.request();
+      if (!await preserved || navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
+      let w = await api<Work>(`/work/${workId}`);
+      if (navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
+      const stored = await artifacts.current.readDraft(workId);
+      const pending = await artifacts.current.readSave(workId);
+      if (navigationFlight.current !== navigation || !fence.current.current(ticket) || saveFlight.current) return;
+      if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
+      if (workRef.current?.id === workId && workRef.current.eventSequence > w.eventSequence) w = workRef.current;
+      dirty.current = !!pending; setDraft(!!pending); editor.current = null;
+      active.current = workId; workRef.current = null;
+      installEditor({ ...content(w), revision: w.contentRevision, permission: w.expected.permissionRevision, version: `${w.id}:open:${uuid()}` });
+      receive(w); setError(''); loadComposer(workId);
+      const saved = stored?.raw;
+      recovery.current = stored ? { workId, record: stored } : null;
+      if (saved) {
+        try {
+          const d = JSON.parse(saved); if (d.book?.id !== workId || !Number.isInteger(d.revision) || !Number.isInteger(d.permission)) throw new Error('invalid_draft'); dirty.current = true; setDraft(true);
+          installEditor({ kind: w.kind === 'document' ? 'document' : 'sheet', book: d.book, ...(w.kind === 'document' ? {} : { formatEdits: validateFormatEdits(d.formatEdits, d.book) ?? null }), revision: d.revision, permission: d.permission, version: `${w.id}:draft:${uuid()}` });
+          if (d.revision !== w.contentRevision) setError(friendly.save_conflict);
+          else if (w.kind !== 'document' && d.formatEdits === undefined) setError('This older draft has no formatting history. Saving conservatively protects changed styles, including any calculated formats.');
+        } catch { setError('A local draft could not be opened. The saved server version is available.'); }
+      }
+      return true;
+    } catch (e) { if (navigationFlight.current === navigation) report(e); }
+    finally {
+      if (navigationFlight.current === navigation) { navigationFlight.current = null; setNavigating(false); }
     }
-    return true;
   }
   async function createBlank(kind: 'sheet' | 'document' = 'sheet') {
     if (blankFlight.current) return;
@@ -207,6 +220,7 @@ function App() {
     }
   }
   function attachSelection() {
+    if (navigationFlight.current) return;
     try {
       if (!editor.current || !base.current || !active.current) return;
       const selection = editor.current.native.selection();
@@ -217,12 +231,18 @@ function App() {
   async function newWork() {
     if (saveFlight.current) { setError('Wait for the current save before switching work.'); return; }
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
-    const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
-    const ticket = fence.current.request();
-    if (!await preserved || !fence.current.current(ticket) || saveFlight.current) return;
-    if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
-    active.current = null; workRef.current = null; editor.current = null; recovery.current = null;
-    dirty.current = false; setDraft(false); setWork(null); installEditor(null); loadComposer(null); setError('');
+    const navigation = Symbol(); navigationFlight.current = navigation; setNavigating(true);
+    try {
+      const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
+      const ticket = fence.current.request();
+      if (!await preserved || navigationFlight.current !== navigation || !fence.current.current(ticket) || saveFlight.current) return;
+      if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
+      active.current = null; workRef.current = null; editor.current = null; recovery.current = null;
+      dirty.current = false; setDraft(false); setWork(null); installEditor(null); loadComposer(null); setError('');
+    } catch (e) { if (navigationFlight.current === navigation) report(e); }
+    finally {
+      if (navigationFlight.current === navigation) { navigationFlight.current = null; setNavigating(false); }
+    }
   }
   function persistDraft(book: NativeContent, onlyOwned = false) {
     const workId = active.current, state = base.current;
@@ -303,7 +323,7 @@ function App() {
     receive(await api<Work>(`/work/${workId}`));
   }
   async function submit(event: React.FormEvent) {
-    event.preventDefault(); if (!prompt.trim() || sendFlight.current) return; sendFlight.current = true; setBusy(true); setError(''); fence.current.request();
+    event.preventDefault(); if (navigationFlight.current || !prompt.trim() || sendFlight.current) return; sendFlight.current = true; setBusy(true); setError(''); fence.current.request();
     const requestedWork = active.current, navigation = fence.current.navigation, sent = { ...composer.current };
     let submittedCommandId: string | undefined;
     try {
@@ -398,7 +418,7 @@ function App() {
     <div className={`layout view-${view}`}><section className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{!work && <div className="welcome"><h1>What are we working on?</h1><p>Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p>{m.selection?.kind === 'document' && <details><summary>Document passage · {m.selection.title} · revision {m.selection.contentRevision}</summary><p>Body offsets [{m.selection.startOffset}, {m.selection.endOffset}) (UTF-16). Context only.</p><pre className="selected-quote">{m.selection.quote}</pre></details>}</article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}
       {work?.proposals.filter(p => p.status === 'pending').map(p => <article className="proposal" key={p.id}><strong>Proposed changes</strong><p>{p.reason === 'human_edit' ? work.kind === 'document' ? 'This document includes your edits.' : 'These cells include your edits.' : 'The work or instructions changed while I was working.'}</p>{p.kind === 'document' && <><p>Title: {p.patch.document.title}</p><p>Whole-document proposal. Your saved document stays unchanged until acceptance. Native styles are included; the preview below shows text only.</p><pre className="document-preview">{p.patch.document.body?.dataStream}</pre></>}{p.patch.title && <p>Title: {p.patch.title}</p>}<ul>{(p.patch.cells ?? []).map((c, i) => <li key={i}>{work.book?.sheets[c.sheetId]?.name ?? c.sheetId}, row {c.row + 1}, column {c.column + 1}: <del>{String(work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.f ?? work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.v ?? '')}</del> → <strong>{String(c.formula ?? c.value ?? '(empty)')}</strong></li>)}</ul><button onClick={() => decide(p, 'accept').catch(report)}>Accept changes</button><button className="secondary" onClick={() => decide(p, 'reject').catch(report)}>Keep current</button></article>)}
       {work && work.kind !== 'document' && <MaintenancePanel key={work.id} work={work} api={api} beforeAction={async () => { if (hasDraft() || saveFlight.current) throw new Error('Save your sheet before changing maintenance.'); }} refresh={async () => { receive(await api<Work>(`/work/${work.id}`)); }} />}
-      </div><form className="composer" onSubmit={submit}>{work && <div className="selection-context"><button type="button" disabled={busy} onPointerDown={e => e.preventDefault()} onClick={attachSelection}>{work.kind === 'document' ? 'Attach selected text' : 'Attach selected cells'}</button>{selectionView && <div>{selectionView.kind === 'document' ? <><p>Attached document: {selectionView.title} · body offsets [{selectionView.startOffset}, {selectionView.endOffset}) (UTF-16) · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p><pre className="selected-quote">{selectionView.quote}</pre>{(selectionInvalid || selectionView.contentRevision !== editorState?.revision) && <p role="status">Document, selection or editor changed. Reattach selected text before a new send.</p>}<p>Context only. Requested edits use the existing whole-document proposal and acceptance flow.</p></> : <p>Attached: {selectionView.sheetName} · {selectionView.rangeLabel} · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p>}<button type="button" disabled={busy} onClick={() => editComposer({ selection: undefined })}>Remove selection</button></div>}{pendingPreview && <details><summary>Unresolved send: original captured context retained</summary><p>Retry uses the original message and command, independently of the editable attachment above.</p>{pendingPreview.selection?.kind === 'document' && <><p>Document body [{pendingPreview.selection.startOffset}, {pendingPreview.selection.endOffset}) · saved revision {pendingPreview.selection.contentRevision}</p><pre className="selected-quote">{pendingPreview.draft.selection?.kind === 'document' ? pendingPreview.draft.selection.quote : ''}</pre></>}</details>}</div>}<details><summary>Add synthetic data</summary><input aria-label="Source name" value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" accept=".txt,.csv,.md" onChange={async e => { const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" onClick={() => { const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
+      </div><form className="composer" onSubmit={submit} aria-busy={navigating}>{navigating && <p role="status">Loading work… Your message is kept.</p>}{work && <div className="selection-context"><button type="button" disabled={busy || navigating} onPointerDown={e => e.preventDefault()} onClick={attachSelection}>{work.kind === 'document' ? 'Attach selected text' : 'Attach selected cells'}</button>{selectionView && <div>{selectionView.kind === 'document' ? <><p>Attached document: {selectionView.title} · body offsets [{selectionView.startOffset}, {selectionView.endOffset}) (UTF-16) · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p><pre className="selected-quote">{selectionView.quote}</pre>{(selectionInvalid || selectionView.contentRevision !== editorState?.revision) && <p role="status">Document, selection or editor changed. Reattach selected text before a new send.</p>}<p>Context only. Requested edits use the existing whole-document proposal and acceptance flow.</p></> : <p>Attached: {selectionView.sheetName} · {selectionView.rangeLabel} · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p>}<button type="button" disabled={busy || navigating} onClick={() => editComposer({ selection: undefined })}>Remove selection</button></div>}{pendingPreview && <details><summary>Unresolved send: original captured context retained</summary><p>Retry uses the original message and command, independently of the editable attachment above.</p>{pendingPreview.selection?.kind === 'document' && <><p>Document body [{pendingPreview.selection.startOffset}, {pendingPreview.selection.endOffset}) · saved revision {pendingPreview.selection.contentRevision}</p><pre className="selected-quote">{pendingPreview.draft.selection?.kind === 'document' ? pendingPreview.draft.selection.quote : ''}</pre></>}</details>}</div>}<details><summary>Add synthetic data</summary><input aria-label="Source name" disabled={navigating} value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" disabled={navigating} value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" disabled={navigating} accept=".txt,.csv,.md" onChange={async e => { if (navigationFlight.current) return; const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" disabled={navigating} value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" disabled={navigating} onClick={() => { if (navigationFlight.current) return; const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || navigating || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
     <section className="work-area" aria-label="Work area"><div className="blank-sheet"><label>New work name<input aria-label="New work name" value={blankTitle} maxLength={200} disabled={blankBusy || blankPending} onChange={e => setBlankTitle(e.target.value)} /></label><button type="button" disabled={blankBusy || !blankTitle.trim()} onClick={() => void createBlank()}>{blankPending ? 'Retry blank creation' : 'Create blank spreadsheet'}</button><button type="button" disabled={blankBusy || blankPending || !blankTitle.trim()} onClick={() => void createBlank('document')}>New document</button>{createdBlank && <span role="status">New work saved. <button type="button" onClick={() => { void open(createdBlank).then(opened => { if (opened) setView('sheet'); }).catch(report); }}>Open created work</button></span>}</div><DocumentExchange api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><DocxExchange api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><PdfExport api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} /><XlsxExchange api={api} editor={() => editor.current?.kind === 'sheet' ? editor.current.native : null} work={work?.kind === 'document' ? null : work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><CsvExchange api={api} editor={() => editor.current?.kind === 'sheet' ? editor.current.native : null} work={work?.kind === 'document' ? null : work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} />{editorState ? <><div className="sheet-heading"><div><strong>{editorState.kind === 'document' ? editorState.book.title : editorState.book.name}</strong><span>{draft ? 'Unsaved changes' : 'Saved'}</span></div><button onClick={() => save().catch(report)} disabled={!draft}>{work?.kind === 'document' ? 'Save document' : 'Save sheet'}</button></div>{editorState.kind === 'document' ? <DocumentEditor document={editorState.book} version={editorState.version} onReady={e => { if (base.current?.version === editorState.version) { editor.current = e ? { kind: 'document', native: e } : null; const attached = composer.current.selection; if (attached?.kind === 'document' && attached.editorId !== e?.editorId) setSelectionInvalid(true); } }} onSelectionChange={() => { if (base.current?.version === editorState.version && composer.current.selection?.kind === 'document') setSelectionInvalid(true); }} onEdit={d => { if (base.current?.version === editorState.version) edited(d); }} onError={report} /> : <NativeEditor book={editorState.book} formatEdits={editorState.formatEdits} version={editorState.version} onReady={e => { if (base.current?.version === editorState.version) editor.current = e ? { kind: 'sheet', native: e } : null; }} onEdit={d => { if (base.current?.version === editorState.version) edited(d); }} />}</> : <div className="empty-sheet"><span>Room to work</span><p>Your editable sheet or document will appear here.</p></div>}</section></div></main>;
 }
 createRoot(document.getElementById('root')!).render(<App />);
