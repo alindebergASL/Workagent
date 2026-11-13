@@ -40,9 +40,11 @@ export class Workspace {
       });
     });
   }
-  async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
-  async get(principal, workId) { return this.store.transaction(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
-  async events(principal, after) { return this.store.transaction(s => {
+  // A fresh committed snapshot is sufficient for reads. Mutation preconditions
+  // still run under the row lock in transaction; polling must not rewrite it.
+  async list(principal) { return this.store.read(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
+  async get(principal, workId) { return this.store.read(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
+  async events(principal, after) { return this.store.read(s => {
     authorize(s, principal);
     if (after !== undefined && (!Number.isSafeInteger(after) || after < 0)) throw new Fault('invalid_cursor', 400);
     // Bound the replay response, without deleting retained events or contributions.

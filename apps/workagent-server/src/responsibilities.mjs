@@ -55,7 +55,7 @@ export class Maintenance {
   constructor({ workspace, files, budgetReference = 'openrouter:configured-provider-limits', now = Date.now }) {
     this.workspace = workspace; this.store = workspace.store; this.files = files; this.budgetReference = budgetReference; this.now = now;
   }
-  async sources(principal) { return this.store.transaction(s => {
+  async sources(principal) { return this.store.read(s => {
     authorize(s, principal); return Object.values(s.ownedSources ?? {}).filter(x => x.owner === principal).map(x => ({ id: x.id, name: x.name, revision: x.revision, status: x.status, fields: x.fields, updatedAt: x.updatedAt }));
   }); }
   async publish(principal, input) {

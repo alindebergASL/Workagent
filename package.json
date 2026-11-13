@@ -11,7 +11,7 @@
     "typecheck": "tsc -p apps/workagent-client/tsconfig.json",
     "build": "vite build --config apps/workagent-client/vite.config.ts",
     "start": "node apps/workagent-server/src/main.mjs",
-    "test:mechanisms": "node apps/workagent-server/tests/access.test.mjs && node apps/workagent-server/tests/workspace.test.mjs && node apps/workagent-runner/tests/provider-contract.test.mjs && node apps/workagent-runner/tests/provider-budget.test.mjs && node apps/workagent-server/tests/event-resume.test.mjs && node apps/workagent-client/tests/resume.test.mjs && npm run test:background && npm run test:exchange && npm run test:native-context && npm run test:documents",
+    "test:mechanisms": "node apps/workagent-server/tests/access.test.mjs && node apps/workagent-server/tests/workspace.test.mjs && node apps/workagent-server/tests/read-path.test.mjs && node apps/workagent-runner/tests/provider-contract.test.mjs && node apps/workagent-runner/tests/provider-budget.test.mjs && node apps/workagent-server/tests/event-resume.test.mjs && node apps/workagent-client/tests/resume.test.mjs && npm run test:background && npm run test:exchange && npm run test:native-context && npm run test:documents",
     "test:integration": "node apps/workagent-runner/tests/host.test.mjs && node apps/workagent-runner/tests/live-outcome.test.mjs && node apps/workagent-client/tests/native.test.mjs && npm run test:focus && npm run test:formatting && node apps/workagent-runner/tests/dispatch-recovery.test.mjs",
     "provision": "node apps/workagent-server/src/provision.mjs",
     "test:http": "node apps/workagent-server/tests/http.test.mjs",

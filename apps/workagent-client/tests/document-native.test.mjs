@@ -228,7 +228,7 @@ for (const entry of ['paste', 'pasteFromClipboard', 'legacyPaste']) test(`owned 
 
 for (const [field, value] of [['sheetOrder', []], ['sheetOrder', null], ['sheets', {}], ['book', null], ['name', 'foreign workbook']]) test(`actual SDK → App title/save keeps document kind for legacy ${field}:${JSON.stringify(value)} and offers intact recovery`, async () => {
   const app = consumerFixture('./csv-app.test.mjs', 'mount,disk,server');
-  const store = { state: initialState('owner'), async transaction(fn) { const next = structuredClone(this.state), result = await fn(next); this.state = next; return structuredClone(result); } }, ws = new Workspace(store);
+  const store = { state: initialState('owner'), async read(fn) { return structuredClone(await fn(structuredClone(this.state))); }, async transaction(fn) { const next = structuredClone(this.state), result = await fn(next); this.state = next; return structuredClone(result); } }, ws = new Workspace(store);
   const { workId } = await ws.createBlank('owner', { commandId: 'new', title: 'Native title', kind: 'document' });
   const saved = await ws.get('owner', workId), poisoned = structuredClone(saved.document); poisoned[field] = value;
   const api = app.server(async (path, input, works) => {

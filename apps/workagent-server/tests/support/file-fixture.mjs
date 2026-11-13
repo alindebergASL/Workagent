@@ -4,6 +4,10 @@ import { dirname } from 'node:path';
 export class FileFixtureStore {
   tail = Promise.resolve();
   constructor(path) { this.path = path; }
+  read(fn) {
+    const operation = this.tail.then(async () => structuredClone(await fn(JSON.parse(await readFile(this.path, 'utf8')))));
+    this.tail = operation.catch(() => {}); return operation;
+  }
   transaction(fn) {
     const operation = this.tail.then(async () => {
       const state = JSON.parse(await readFile(this.path, 'utf8'));

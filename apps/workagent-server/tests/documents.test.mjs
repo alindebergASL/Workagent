@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { Workspace } from '../src/workspace.mjs';
 import { initialState } from '../src/store.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
-class MemoryStore { constructor(state) { this.state = state; } async transaction(fn) { const next = structuredClone(this.state); const out = await fn(next); this.state = next; return structuredClone(out); } }
+class MemoryStore { constructor(state) { this.state = state; } async read(fn) { return structuredClone(await fn(structuredClone(this.state))); } async transaction(fn) { const next = structuredClone(this.state); const out = await fn(next); this.state = next; return structuredClone(out); } }
 test('document create, first draft, human save, stale proposal and revision-bound accept', async () => {
   const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
   const input = { commandId: 'new-doc', title: 'Brief', kind: 'document' };
