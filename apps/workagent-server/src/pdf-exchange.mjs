@@ -6,12 +6,13 @@ export const PDF_WARNINGS = [
   'PDF export only: native paragraphs, literal text, bold, italic, single underline, half-point font sizes, RGB colour, simple alignment and one page geometry through the Word mapping.',
   'Fonts may be substituted; line wrapping, pagination and layout may differ from the native editor and Word. Native default hyphenation/canvas settings, metadata, themes and style names are not retained. No exact layout or full Word fidelity.',
   'PDF rendering uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused; this is not full Unicode coverage. Native documents, original files and Word exports retain their existing mapping.',
-  'PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
+  'List rendering remains unqualified and is refused before download; use Word export for supported lists. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
 ];
 // The shared validator rejects foreign/nested objects. This narrower policy also
 // refuses native features the DOCX bridge cannot represent, before rendering.
 export function validatePdfDocument(input) {
   const document = validateDocument(input);
+  if (document.body.paragraphs.some(p => p.bullet)) throw new Fault('pdf_lists_unqualified', 400);
   const only = (value, keys) => { if (Object.keys(value ?? {}).some(k => !keys.includes(k))) throw new Fault('unsupported_pdf_formatting', 400); };
   const text = value => {
     only(value, ['bl', 'it', 'ul', 'fs', 'cl', 'ff', 'eastAsiaFontFamily', 'lang', 'altLang']);

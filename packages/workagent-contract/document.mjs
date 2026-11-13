@@ -1,6 +1,6 @@
 import { Fault, id, text } from './index.mjs';
 export const DOCUMENT_LIMIT = 200000;
-export const DOCUMENT_POLICY = 'UTF-8 text / Markdown source, kept literally as editable paragraphs. Markdown syntax is not rendered. UTF-8 BOM is omitted from editable text. Line endings normalize to LF on export; the original bytes remain downloadable. Text export omits native formatting and page layout.';
+export const DOCUMENT_POLICY = 'UTF-8 text / Markdown source, kept literally as editable paragraphs. Markdown syntax is not rendered. UTF-8 BOM is omitted from editable text. Line endings normalize to LF on export; the original bytes remain downloadable. Text / Markdown export omits native formatting, list markers, list structure and page layout. Use Word export to retain supported lists.';
 export const workKind = w => w.kind ?? 'sheet';
 export const workTitle = w => workKind(w) === 'document' ? w.document.title : w.book.name;
 export function requireSheet(w) { if (workKind(w) !== 'sheet') throw new Fault('sheet_required', 400); return w; }
@@ -51,6 +51,32 @@ const paragraphStyle = v => shape(v, {
   fontAlign: v => { if (!['auto','top','center','baseline','bottom'].includes(v)) invalid(); },
   ...Object.fromEntries(['eastAsianLineBreak','hangingPunctuation','topLinePunct','snapToGrid','beforeAutoSpacing','afterAutoSpacing','contextualSpacing','keepLines','keepNext','pageBreakBefore','wordWrap','widowControl','suppressHyphenation'].map(k => [k, bit])),
 });
+const listKey = v => { if (typeof v !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(v) || ['__proto__','constructor','prototype'].includes(v)) invalid(); };
+const bullet = v => shape(v, { listId: listKey, listType: listKey, nestingLevel: integer(0, 8), startNumber: integer(0, 999999), textStyle }, ['listId','listType','nestingLevel']);
+const listLevel = v => shape(v, {
+  paragraphProperties: paragraphStyle, bulletAlignment: integer(0, 4), glyphFormat: v => { string(v); if (v.length > 100) invalid(); },
+  textStyle, startNumber: integer(0, 999999), glyphType: integer(0, 60),
+  glyphSymbol: v => { string(v); if (v.length > 16) invalid(); }, isLegal: boolean,
+}, ['bulletAlignment','glyphFormat','startNumber']);
+const lists = v => {
+  if (!object(v) || Object.keys(v).length > 1000) invalid();
+  for (const [key, value] of Object.entries(v)) {
+    listKey(key);
+    shape(value, { listType: listKey, nestingLevel: levels => { if (!Array.isArray(levels) || !levels.length || levels.length > 9) invalid(); levels.forEach(listLevel); } }, ['listType','nestingLevel']);
+  }
+};
+// The installed 1.4.0 renderer merges these implicit presets with doc.lists.
+// startNumber is a zero-based offset: native 0 displays Word's start value 1.
+const standardListLevel = type => ({ bulletAlignment: 1, startNumber: 0, glyphFormat: type === 'ORDER_LIST' ? '%1.' : ' %1', ...(type === 'ORDER_LIST' ? { glyphType: 2 } : { glyphSymbol: '●' }) });
+export function documentListDefinition(doc, item) {
+  const template = doc.lists?.[item.listType];
+  const level = template?.nestingLevel?.[0] ?? (['BULLET_LIST','ORDER_LIST'].includes(item.listType) && !template ? standardListLevel(item.listType) : null);
+  const kind = template?.listType ?? item.listType;
+  if (item.nestingLevel !== 0 || !level || !['BULLET_LIST','ORDER_LIST'].includes(kind)
+    || level.bulletAlignment !== 1 || level.isLegal === true
+    || (kind === 'ORDER_LIST' ? level.glyphType !== 2 || !!level.glyphSymbol || level.glyphFormat !== '%1.' : !['●','•','○','■','▪'].includes(level.glyphSymbol) || ![' %1','%1'].includes(level.glyphFormat))) throw new Fault('unsupported_document_list', 400);
+  return { kind, level };
+}
 const pageFields = {
   pageSize: v => shape(v, { width: number(0.1), height: number(0.1) }, ['width', 'height']),
   ...Object.fromEntries(['marginTop','marginBottom','marginLeft','marginRight','marginHeader','marginFooter'].map(k => [k, number(0)])),
@@ -80,7 +106,8 @@ export function validateDocument(doc) {
     locale: string, appVersion: string, revision: integer(), rev: integer(), disabled: boolean,
     zoomRatio: number(0.01, 100), documentFlavor: enumeration,
     settings: v => shape(v, { zoomRatio: number(0.01, 100) }),
-    ...Object.fromEntries(['tableSource','drawings','headers','footers','notes','noteSettings','lists','footnotes','endnotes'].map(k => [k, emptyObject])),
+    lists,
+    ...Object.fromEntries(['tableSource','drawings','headers','footers','notes','noteSettings','footnotes','endnotes'].map(k => [k, emptyObject])),
     drawingsOrder: emptyArray, headerFooterDrawingsOrder: emptyArray,
     resources: v => {
       if (!Array.isArray(v) || [...v].some(r => !object(r) || Object.keys(r).some(k => !['name','data'].includes(k)) || !['DOC_OBJECT_PERMISSION_PLUGIN','DOC_WORD_STYLES_PLUGIN','DOC_NOTE_PLUGIN'].includes(r.name) || !['', '[]', '{}'].includes(r.data))) throw new Fault('unsupported_document_resources', 400);
@@ -90,13 +117,20 @@ export function validateDocument(doc) {
   if (typeof stream !== 'string' || stream.length > DOCUMENT_LIMIT + 2 || new TextEncoder().encode(stream.slice(0, -2)).length > DOCUMENT_LIMIT || !stream.endsWith('\r\n') || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(stream) || stream.slice(0,-1).includes('\n')) throw new Fault('invalid_document_body', 400);
   shape(body, {
     dataStream: () => {},
-    paragraphs: array(v => shape(v, { startIndex: integer(0, DOCUMENT_LIMIT), paragraphStyle, paragraphId: string }, ['startIndex'])),
+    paragraphs: array(v => shape(v, { startIndex: integer(0, DOCUMENT_LIMIT), paragraphStyle, paragraphId: string, bullet }, ['startIndex'])),
     textRuns: array(v => shape(v, { st: integer(0, DOCUMENT_LIMIT), ed: integer(0, DOCUMENT_LIMIT + 1), ts: textStyle }, ['st','ed','ts'])),
     sectionBreaks: array(section),
     ...Object.fromEntries(['customRanges','customDecorations','customBlocks','tables','customParagraphs','customTable','customSectionBreaks'].map(k => [k, emptyArray])),
   }, ['paragraphs']);
   const paragraphs = body.paragraphs;
   if (JSON.stringify(paragraphs.map(p => p.startIndex)) !== JSON.stringify([...stream.matchAll(/\r/g)].map(m => m.index))) throw new Fault('invalid_document_paragraphs', 400);
+  const listTypes = new Map();
+  for (const p of paragraphs) if (p.bullet) {
+    documentListDefinition(doc, p.bullet);
+    const old = listTypes.get(p.bullet.listId);
+    if (old && old !== p.bullet.listType) throw new Fault('unsupported_document_list', 400);
+    listTypes.set(p.bullet.listId, p.bullet.listType);
+  }
   let previous = 0;
   for (const r of body.textRuns ?? []) {
     if (r.st < previous || r.ed <= r.st || r.ed > stream.length - 1) throw new Fault('invalid_document_runs', 400);

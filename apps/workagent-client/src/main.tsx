@@ -37,6 +37,9 @@ friendly.invalid_document = 'This document cannot be saved. Your local draft is 
 friendly.invalid_document_body = 'The document text exceeds the supported bounds or contains unsupported objects. Your local draft is kept.';
 friendly.unsupported_document_structure = 'This document contains unsupported content or foreign artifact fields. Your whole draft is kept. Download the draft, then Open saved version to resume from the saved document; the previous draft is also retained on this device.';
 friendly.unsupported_document_resources = 'This document contains unsupported style, note or permission resources. Your local draft is kept.';
+friendly.unsupported_document_list = 'Only flat bullets and decimal lists are currently mapped. Nested lists, other numbering styles or inconsistent list references were refused; your existing content is kept. Use a level-zero bullet or decimal list.';
+friendly.pdf_lists_unqualified = 'PDF list rendering is not yet qualified. No download was made. Use Word export to retain supported lists.';
+
 friendly.selection_conflict = 'The saved work changed. Attach the intended selection again before sending; your message is kept.';
 friendly.invalid_document_selection = 'Attach one body-text range of at most 10,000 UTF-16 units, with complete Unicode characters.';
 friendly.invalid_composer_draft = 'This device has an unsupported composer draft. It has been retained without overwriting it.';

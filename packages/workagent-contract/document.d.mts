@@ -1,8 +1,9 @@
-import type { IDocumentData } from '@univerjs/core';
+import type { IDocumentData, IBullet, INestingLevel } from '@univerjs/core';
 export const DOCUMENT_LIMIT: number;
 export const DOCUMENT_POLICY: string;
 export function blankDocument(id: string, title?: string, text?: string): IDocumentData;
 export function validateDocument(doc: unknown): IDocumentData;
+export function documentListDefinition(doc: IDocumentData, item: IBullet): { kind: string; level: INestingLevel };
 export function documentText(doc: IDocumentData): string;
 export const DOCUMENT_SELECTION_LIMIT: number;
 export type DocumentSelectionRange = { segmentId: ''; startOffset: number; endOffset: number };

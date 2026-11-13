@@ -31,3 +31,9 @@ export function defaultDocx(which, flag, hidden = false) {
   if (generated.status) throw new Error(generated.stderr);
   return generated.stdout.trim();
 }
+export function numberedDocx(invalid = false) {
+  const generated = spawnSync(python, ['-I', '-B', '-c', `import importlib.util,base64\ns=importlib.util.spec_from_file_location('fixtures',${JSON.stringify(root + 'services/workagent-execution/docx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\ndata=m.numbered_fixture()\n${invalid ? "data=m.rewrite(data,lambda n,b:(n,b.replace(b'<w:startOverride w:val=\"5\"/>',b'<w:lvl w:ilvl=\"0\"/>') if n=='word/numbering.xml' else b))" : ''}\nprint(base64.b64encode(data).decode())`], { stdio: ['ignore','pipe','pipe'], encoding: 'utf8', maxBuffer: 3_000_000, timeout: 12000 });
+  if (generated.error) throw generated.error;
+  if (generated.status) throw new Error(generated.stderr);
+  return generated.stdout.trim();
+}

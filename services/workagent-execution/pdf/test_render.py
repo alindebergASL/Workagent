@@ -13,6 +13,10 @@ render = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(render)
 
 class RendererTests(unittest.TestCase):
+    def test_lists_refused_before_renderer_even_for_direct_worker_input(self):
+        with self.assertRaisesRegex(render.Refused, 'pdf_lists_unqualified'):
+            render.refuse_lists({'body': {'paragraphs': [{'bullet': {'listType': 'ORDER_LIST', 'listId': 'list', 'nestingLevel': 0}}]}})
+        render.refuse_lists({'body': {'paragraphs': [{'startIndex': 0}]}})
     def test_installed_fonts_and_bounded_text_coverage(self):
         coverage = render.font_charsets(time.monotonic()+5)
         for text in ['', '雪 🌍', '🌍 雪', '雪🌍雪🌍 🌍雪🌍雪', 'Latin café <script> & <w:t> 00120\t\r\n']:

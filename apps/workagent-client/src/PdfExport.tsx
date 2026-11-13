@@ -20,6 +20,7 @@ export function PdfExport({ api, editor, work }: { api: Api; editor: () => Docum
       if (!native || !source) throw new Error('Open a native document first.');
       const saved = await native.commit(), epoch = native.contentEpoch();
       validateDocument(saved);
+      if (saved.body?.paragraphs?.some(p => p.bullet)) throw new Error('PDF list rendering is not yet qualified. No download was made. Use Word export to retain supported list markers and numbering.');
       if (changed() || saved.id !== source.id || native.isEditing()) throw new Error('The document changed. Retry PDF export from the current document.');
       const result = await api<{ base64: string; filename: string; warnings: string[] }>('/exchange/pdf/export', { workId: saved.id, document: saved, contentRevision: source.contentRevision }, 'POST', controller.signal);
       if (changed() || native.isEditing() || native.contentEpoch() !== epoch || JSON.stringify(native.save()) !== JSON.stringify(saved)) throw new Error('The document changed during PDF export. No download was made. Retry from the current document.');
@@ -34,7 +35,7 @@ export function PdfExport({ api, editor, work }: { api: Api; editor: () => Docum
   }
   return <details className="document-exchange"><summary>Export PDF</summary>
     <p>Native document export only, through the Word mapping: literal paragraphs, bold, italic, single underline, half-point font sizes, RGB colour, simple alignment and one page geometry. PDF uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused. Fonts are substituted; wrapping, pagination and layout may differ from the editor and Word. Native default hyphenation/canvas settings, metadata, themes and style names are not retained. Exact layout and full Word fidelity are not promised.</p>
-    <p>Tables, media, links, fields, macros, notes, lists, headers/footers, multiple sections and unsupported formatting are refused. PDF import, OCR, roundtrip editing and spreadsheet/deck PDF are not available. Up to 200 KB text, 10,000 paragraphs/runs and 16 MB PDF. Synthetic data only.</p>
+    <p>Tables, media, links, fields, macros, notes, headers/footers, multiple sections and unsupported formatting are refused. PDF list rendering remains unqualified and is refused before download; use Word export for supported lists. PDF import, OCR, roundtrip editing and spreadsheet/deck PDF are not available. Up to 200 KB text, 10,000 paragraphs/runs and 16 MB PDF. Synthetic data only.</p>
     {work && <button type="button" disabled={busy} onClick={() => void exportFile()}>{busy ? 'Rendering PDF…' : 'Export document PDF (.pdf)'}</button>}
     <p>Includes current native edits without saving. Finish pending paste or composition first. Changes during export require a retry; drafts and messages are kept.</p>
     {message && <p role="status">{message}</p>}

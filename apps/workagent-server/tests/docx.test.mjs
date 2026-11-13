@@ -14,13 +14,28 @@ import { Workspace } from '../src/workspace.mjs';
 import { initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
-import { trustedWorker, trustedCodec, originalDocx, docxInput, defaultDocx } from './support/docx-fixture.mjs';
+import { trustedWorker, trustedCodec, originalDocx, docxInput, defaultDocx, numberedDocx } from './support/docx-fixture.mjs';
 async function fixture(worker = trustedWorker) {
   const root = await mkdtemp(join(tmpdir(), 'workagent-docx-')), path = join(root, 'state.json');
   await writeFile(path, JSON.stringify(initialState('owner')));
   const store = new FileFixtureStore(path), workspace = new Workspace(store), files = new OwnedFiles(root);
   return { root, path, store, workspace, files, exchange: new CsvExchange({workspace, files}), docx: new DocxExchange({workspace, files, worker}), state: async () => JSON.parse(await readFile(path, 'utf8')) };
 }
+test('numbering import/reimport keeps human ownership and immutable originals; malformed override refuses atomically', async () => {
+ const f=await fixture(), input={...docxInput('lists'),base64:numberedDocx()}, before=await f.state();
+ const write=f.files.writeOriginal.bind(f.files); f.files.writeOriginal=async()=>assert.fail('invalid numbering must not write a blob');
+ const bad={...input,base64:numberedDocx(true)};
+ await assert.rejects(f.docx.preview('owner',bad),/Unsupported/); await assert.rejects(f.docx.import('owner',bad),/Unsupported/); assert.deepEqual(await f.state(),before);
+ f.files.writeOriginal=write;
+ const result=await f.docx.import('owner',input), w=await f.workspace.get('owner',result.workId);
+ assert.equal(w.humanDocument,true); assert.ok(w.document.lists); assert.ok(w.document.body.paragraphs[0].bullet);
+ const exported=await f.docx.export('owner',{workId:w.id,document:w.document});
+ const again=await f.docx.import('owner',{...input,commandId:'list-reimport',base64:exported.base64});
+ assert.equal((await f.workspace.get('owner',again.workId)).document.body.dataStream,w.document.body.dataStream);
+ assert.deepEqual((await f.exchange.original('owner',w.id,w.original.id)).bytes,Buffer.from(input.base64,'base64'));
+ const proposal=await f.workspace.mutateDocument('owner',w.id,{commandId:'list-model',expected:w.expected,document:{...w.document,title:'Proposed'}});
+ assert.equal(proposal.status,'proposed'); assert.deepEqual((await f.workspace.get('owner',w.id)).document,w.document);
+});
 test('hidden paragraph/character defaults refuse preview and adoption without state or blob writes', async () => {
   const f=await fixture(), before=await f.state();
   f.files.writeOriginal=async()=>assert.fail('refused content must not reach original storage');

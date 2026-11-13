@@ -65,7 +65,7 @@ export function DocumentExchange({ api, editor, work, onImported, onOpen }: { ap
       const url = URL.createObjectURL(new Blob([result], { type: 'text/plain;charset=utf-8' }));
       const link = document.createElement('a'); link.href = url; link.download = (saved.title ?? 'Document').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_') + '.md'; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setMessage('Exported current edited text as Markdown source. Native formatting and page layout are omitted. Export includes pending native edits and does not save to the server.');
+      setMessage('Exported current edited text as Markdown source. Native formatting and page layout are omitted. List markers and list structure are omitted; use Word export to retain supported lists. Export includes pending native edits and does not save to the server.');
     } catch (e) { if (alive.current) report(e); }
     finally { flight.current = false; if (alive.current) setBusy(false); }
   }

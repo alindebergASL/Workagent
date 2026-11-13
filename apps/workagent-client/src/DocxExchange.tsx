@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { validateDocument } from '../../../packages/workagent-contract/document.mjs';
 const DOCX_LIMIT = 2_000_000;
-const DOCX_POLICY = 'Word exchange supports literal text paragraphs, Unicode, bold, italic, single underline, font size, RGB colour, simple alignment and one page geometry. Tables, images, hyperlinks, fields, tracked changes, headers/footers, notes, objects, macros, lists and multiple sections are refused. Metadata, themes, style names, other formatting and advanced layout are not preserved; fonts and pagination may differ. Page measurements round to Word twips; font sizes must be half-point values. Original bytes remain downloadable. Export includes the current native edits without saving to the server.';
+const DOCX_POLICY = 'Word exchange supports literal text paragraphs, Unicode, bold, italic, single underline, font size, RGB colour, simple alignment, flat bullets and decimal numbered lists, and one page geometry. Tables, images, hyperlinks, fields, tracked changes, headers/footers, notes, objects, macros, active nested lists, other numbering styles and multiple sections are refused. Metadata, themes, style names, other formatting and advanced layout are not preserved; fonts and pagination may differ. Page measurements round to Word twips; font sizes must be half-point values. Original bytes remain downloadable. Export includes the current native edits without saving to the server.';
 import { MaintenanceActions, type Pending } from './maintenance-actions';
 import type { DocumentHandle } from './DocumentEditor';
 import type { Work } from './types';

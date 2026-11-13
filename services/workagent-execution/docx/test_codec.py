@@ -44,7 +44,137 @@ def default_fixture(which, flag, hidden=False, inherited=False):
 def local_record():
  name=b'unindexed.xml'; payload=b'<payload/>'
  return struct.pack('<4s5H3I2H',b'PK\x03\x04',20,0,0,0,0,zlib.crc32(payload),len(payload),len(payload),len(name),0)+name+payload
+def numbered_fixture():
+ d=Document()
+ for text,num in [('雪 🌍 first',7),('second',7),('plain',0),('restart at 5',42),('next',42),('continue old',7)]:
+  p=d.add_paragraph(style='List Number'); p.add_run(text).bold=True
+  np=p._p.get_or_add_pPr().get_or_add_numPr(); np.get_or_add_numId().val=num
+ numbering=d.part.numbering_part.element
+ num=OxmlElement('w:num'); num.set(c.q('numId'),'42')
+ for tag,value in [('abstractNumId','7')]:
+  e=OxmlElement('w:'+tag); e.set(c.q('val'),value); num.append(e)
+ override=OxmlElement('w:lvlOverride'); override.set(c.q('ilvl'),'0')
+ start=OxmlElement('w:startOverride'); start.set(c.q('val'),'5'); override.append(start); num.append(override); numbering.append(num)
+ out=io.BytesIO(); d.save(out); return out.getvalue()
+def markers(native):
+ counts={}; result=[]
+ for p in native['body']['paragraphs']:
+  b=p.get('bullet')
+  if not b: result.append(None); continue
+  level=native['lists'][b['listType']]['nestingLevel'][0]
+  counts[b['listId']]=b['startNumber']+1 if 'startNumber' in b else counts.get(b['listId'],level['startNumber'])+1
+  result.append(level.get('glyphSymbol') or str(counts[b['listId']])+'.')
+ return result
 class CodecTests(unittest.TestCase):
+ def test_missing_start_effective_override_and_invalid_values(self):
+  data=numbered_fixture()
+  def change(start,override=None,only_override=False):
+   value=rewrite(data,lambda n,b:(n,b.replace(b'<w:start w:val="1"/>',start) if n=='word/numbering.xml' else b))
+   if override is not None: value=rewrite(value,lambda n,b:(n,b.replace(b'<w:startOverride w:val="5"/>',override) if n=='word/numbering.xml' else b))
+   if only_override: value=replace_main(value,b'<w:numId w:val="7"/>',b'<w:numId w:val="42"/>')
+   return value
+  for start in (b'',b'<w:start w:val="0"/>'):
+   with self.subTest(start=start),self.assertRaisesRegex(ValueError,'positive'): c.import_document(change(start))
+   valid=c.import_document(change(start,only_override=True))['document']
+   self.assertEqual(markers(valid),['5.','6.',None,'7.','8.','9.'])
+   self.assertEqual(markers(c.import_document(__import__('base64').b64decode(c.export_document(valid)['base64']))['document']),markers(valid))
+   with self.assertRaisesRegex(ValueError,'positive'): c.import_document(change(start,b'<w:startOverride w:val="0"/>',True))
+  for bad in (b'<w:start/>',b'<w:start w:val=""/>',b'<w:start w:val="true"/>',b'<w:start w:val="1.5"/>',b'<w:start w:val="-1"/>'):
+   for override in (False,True):
+    with self.subTest(bad=bad,override=override),self.assertRaises(ValueError): c.import_document(change(bad,only_override=override))
+  with self.assertRaisesRegex(ValueError,'positive'): c.import_document(change(b'<w:start w:val="1"/>',b'<w:startOverride w:val="0"/>',True))
+  unused=rewrite(data,lambda n,b:(n,b.replace(b'<w:start w:val="1"/>',b'<w:start/>',1) if n=='word/numbering.xml' else b))
+  self.assertEqual(markers(c.import_document(unused)['document']),['1.','2.',None,'5.','6.','3.'])
+  # Unused malformed starts and explicit numId=0 are not active semantics.
+  plain=replace_main(change(b'<w:start/>'),b'<w:numId w:val="7"/>',b'<w:numId w:val="0"/>')
+  plain=replace_main(plain,b'<w:numId w:val="42"/>',b'<w:numId w:val="0"/>')
+  self.assertTrue(all(p.get('bullet') is None for p in c.import_document(plain)['document']['body']['paragraphs']))
+ def test_effective_native_marker_style_is_encoded_in_numbering_rpr(self):
+  d=Document();d.add_paragraph('First');out=io.BytesIO();d.save(out)
+  native=c.import_document(out.getvalue())['document']
+  native['body']['paragraphs'][0]['bullet']={'listId':'one','listType':'ORDER_LIST','nestingLevel':0}
+  native['body']['textRuns'][0]['ts']={'bl':1,'it':1,'ul':{'s':1},'fs':24,'cl':{'rgb':'#FF0000'}}
+  before=json.dumps(native);out=__import__('base64').b64decode(c.export_document(native)['base64'])
+  with zipfile.ZipFile(io.BytesIO(out)) as z:
+   root=c.xml(z.read('word/numbering.xml'));rp=root.findall(c.q('abstractNum'))[-1].find(c.q('lvl')+'/'+c.q('rPr'))
+   for tag,value in [('b',None),('i',None),('u','single'),('sz','48'),('color','FF0000')]:
+    self.assertIsNotNone(rp.find(c.q(tag)));self.assertEqual(c.val(rp.find(c.q(tag))),value)
+  self.assertEqual(json.dumps(native),before)
+ def test_conflicting_mixed_marker_and_explicit_mark_style_refuses_without_mutation(self):
+  d=Document();d.add_paragraph('First');d.add_paragraph('Second');out=io.BytesIO();d.save(out)
+  native=c.import_document(out.getvalue())['document']
+  for p in native['body']['paragraphs']: p['bullet']={'listId':'one','listType':'ORDER_LIST','nestingLevel':0}
+  native['body']['textRuns'][0]['ts']['bl']=1
+  native['body']['paragraphs'][0]['paragraphStyle']['paragraphMarkTextStyle']={'bl':0}
+  before=json.dumps(native)
+  with self.assertRaisesRegex(ValueError,'Conflicting paragraph-mark'):c.export_document(native)
+  self.assertEqual(json.dumps(native),before)
+ def test_separate_num_ids_start_override_continuation_and_native_restart(self):
+  data=numbered_fixture(); native=c.import_document(data)['document']
+  self.assertEqual(markers(native),['1.','2.',None,'5.','6.','3.'])
+  before=json.dumps(native); exported=__import__('base64').b64decode(c.export_document(native)['base64']); again=c.import_document(exported)['document']
+  self.assertEqual(markers(again),markers(native)); self.assertEqual(again['body']['textRuns'],native['body']['textRuns']); self.assertEqual(json.dumps(native),before)
+  native['body']['paragraphs'][1]['bullet']['startNumber']=8
+  again=c.import_document(__import__('base64').b64decode(c.export_document(native)['base64']))['document']
+  self.assertEqual(markers(again),['1.','9.',None,'5.','6.','10.'])
+ def test_numpr_direct_precedence_style_level_binding_and_unused_templates(self):
+  data=numbered_fixture()
+  # In a paragraph style, ilvl is ignored; active abstract level pStyle wins.
+  changed=rewrite(data,lambda n,b:(n,b.replace(b'<w:numId w:val="5"/>',b'<w:ilvl w:val="8"/><w:numId w:val="5"/>') if n=='word/styles.xml' else b))
+  self.assertEqual(markers(c.import_document(changed)['document']),['1.','2.',None,'5.','6.','3.'])
+  # Direct paragraph level overrides the style and is refused before adoption.
+  changed=replace_main(data,b'<w:numId w:val="7"/>',b'<w:ilvl w:val="1"/><w:numId w:val="7"/>')
+  with self.assertRaisesRegex(ValueError,'Nested'): c.import_document(changed)
+  # Unsupported unused level definitions do not make a flat active list fail.
+  changed=rewrite(data,lambda n,b:(n,b.replace(b'</w:abstractNum>',b'<w:lvl w:ilvl="8"><w:numFmt w:val="upperRoman"/><w:lvlText w:val="%9)"/></w:lvl></w:abstractNum>') if n=='word/numbering.xml' else b))
+  self.assertEqual(markers(c.import_document(changed)['document']),['1.','2.',None,'5.','6.','3.'])
+ def test_unsupported_or_malicious_active_numbering_refuses(self):
+  data=numbered_fixture()
+  cases=[
+   (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="true"/>'),
+   (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="-1"/>'),
+   (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="1000001"/>'),
+   (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="5"/><w:startOverride w:val="6"/>'),
+   (b'<w:startOverride w:val="5"/>',b'<w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/></w:lvl>'),
+   (b'<w:numFmt w:val="decimal"/>',b'<w:numFmt w:val="lowerRoman"/>'),
+   (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1)"/>'),
+   (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1."/><w:lvlRestart w:val="1"/>'),
+   (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1."/><w:isLgl/>'),
+   (b'<w:num w:numId="7">',b'<w:num w:numId="true">'),
+   (b'<w:num w:numId="7">',b'<w:num w:numId="42">'),
+   (b'<w:abstractNum w:abstractNumId="7">',b'<w:abstractNum w:abstractNumId="6">'),
+   (b'<w:abstractNumId w:val="7"/>',b'<w:abstractNumId w:val="999"/>'),
+   (b'<w:abstractNumId w:val="7"/>',b'<w:abstractNumId w:val="7"/><w:abstractNumId w:val="7"/>'),
+  ]
+  for old,new in cases:
+   with self.subTest(new=new),self.assertRaises(ValueError): c.import_document(rewrite(data,lambda n,b:(n,b.replace(old,new) if n=='word/numbering.xml' else b)))
+ def test_hidden_marker_onoff_aliases_are_strict(self):
+  data=numbered_fixture()
+  for flag in ('1','true','on','yes','TRUE'):
+   changed=rewrite(data,lambda n,b:(n,b.replace(b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1."/><w:rPr><w:vanish w:val="'+flag.encode()+b'"/></w:rPr>') if n=='word/numbering.xml' else b))
+   with self.subTest(flag=flag),self.assertRaisesRegex(ValueError,'Hidden|OnOff'): c.import_document(changed)
+ def test_flat_lists_style_inheritance_unicode_runs_and_roundtrip(self):
+  d=Document(); d.add_paragraph('Intro')
+  p=d.add_paragraph(style='List Bullet'); p.add_run('雪 🌍 bullet').bold=True
+  d.add_paragraph('First',style='List Number'); d.add_paragraph('Second',style='List Number')
+  d.add_paragraph('Gap'); d.add_paragraph('Continued',style='List Number')
+  child=d.styles.add_style('List child',WD_STYLE_TYPE.PARAGRAPH); child.base_style=d.styles['List Number']
+  d.add_paragraph('Inherited',style=child)
+  out=io.BytesIO(); d.save(out); data=out.getvalue()
+  native=c.import_document(data)['document']; p=native['body']['paragraphs']
+  self.assertNotIn('bullet',p[0]); self.assertNotIn('bullet',p[4]); self.assertEqual(p[2]['bullet']['listId'],p[6]['bullet']['listId'])
+  self.assertEqual(native['body']['textRuns'][1]['ts']['bl'],1)
+  exported=__import__('base64').b64decode(c.export_document(native)['base64'])
+  with zipfile.ZipFile(io.BytesIO(exported)) as z:
+   self.assertIn(b'<w:numPr>',z.read('word/document.xml')); self.assertIn(b'<w:numFmt w:val="decimal"',z.read('word/numbering.xml'))
+  again=c.import_document(exported)['document']
+  self.assertEqual(again['body']['dataStream'],native['body']['dataStream']); self.assertEqual(again['body']['textRuns'],native['body']['textRuns'])
+  self.assertEqual(again['body']['paragraphs'][2]['bullet']['listId'],again['body']['paragraphs'][6]['bullet']['listId'])
+ def test_list_missing_references_and_active_override_refused(self):
+  d=Document(); d.add_paragraph('Number',style='List Number'); out=io.BytesIO(); d.save(out)
+  for old,new in [(b'w:numId="5"',b'w:numId="999"'),(b'<w:abstractNumId w:val="7"/>',b'<w:abstractNumId w:val="999"/>')]:
+   data=rewrite(out.getvalue(),lambda n,b:(n,b.replace(old,new) if n=='word/numbering.xml' else b))
+   with self.subTest(old=old),self.assertRaises(ValueError): c.import_document(data)
  def test_default_styles_hidden_onoff_and_inheritance(self):
   for which in ('paragraph','character'):
    for flag in ('1','true','on'):
@@ -175,7 +305,7 @@ class CodecTests(unittest.TestCase):
   changed=rewrite(fixture(),lambda n,b:(n,b.replace(b'<w:styles ',b'<w:styles ',1).replace(b'</w:styles>',b'<w:rPrChange/></w:styles>') if n=='word/styles.xml' else b))
   with self.assertRaises(ValueError):c.import_document(changed)
  def test_headers_and_multiple_sections_refused(self):
-  for mode in ['header','section','list']:
+  for mode in ['header','section']:
    d=Document(); d.add_paragraph('keep')
    if mode=='header': d.sections[0].header.paragraphs[0].text='retained content'
    if mode=='section': d.add_section()

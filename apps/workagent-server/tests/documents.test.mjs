@@ -35,6 +35,19 @@ import { Maintenance } from '../src/responsibilities.mjs';
 import { documentText, validateDocument } from '../../../packages/workagent-contract/document.mjs';
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
 const malformedNative = [
+  ...[
+    ['missing reference', { listType: 'absent', listId: 'a', nestingLevel: 0 }],
+    ['nested', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 1 }],
+    ['alternate numbering', { listType: 'ORDER_LIST_3', listId: 'a', nestingLevel: 0 }],
+    ['boolean level', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: false }],
+    ['boolean start', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, startNumber: true }],
+    ['nonfinite start', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, startNumber: Infinity }],
+    ['unknown bag', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, extra: {} }],
+    ['unsafe id', { listType: 'ORDER_LIST', listId: '__proto__', nestingLevel: 0 }],
+  ].map(([name, bullet]) => ['list '+name, d => d.body.paragraphs[0].bullet = bullet]),
+  ['list template null', d => d.lists = { custom: null }],
+  ['list template missing level', d => d.lists = { custom: { listType: 'ORDER_LIST', nestingLevel: [] } }],
+  ['list wrong paragraph boundary', d => { d.body.paragraphs[0].startIndex = 0; d.body.paragraphs[0].bullet = { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0 }; }],
   ['documentStyle null', d => d.documentStyle = null],
   ['documentStyle array', d => d.documentStyle = []],
   ['body null', d => d.body = null],

@@ -176,9 +176,15 @@ def intermediate():
     if len(raw) > 4_500_000:
         raise Refused('pdf_codec_refused')
     request = json.loads(raw)
+    refuse_lists(request['document'])
     result = codec['export_document'](request['document'])
     data = map_generated_fonts(base64.b64decode(result['base64'], validate=True), codec)
     print(json.dumps({'base64': base64.b64encode(data).decode('ascii')}))
+
+
+def refuse_lists(document):
+    if any('bullet' in p for p in document['body']['paragraphs']):
+        raise Refused('pdf_lists_unqualified')
 
 
 def main():
@@ -190,6 +196,7 @@ def main():
     request = json.loads(raw)
     if not isinstance(request, dict) or set(request) != {'op', 'document'} or request['op'] != 'export':
         raise Refused('pdf_codec_refused')
+    refuse_lists(request['document'])
     if not os.access('/usr/bin/soffice', os.X_OK):
         raise Refused('pdf_renderer_unavailable')
     check_text(request['document']['body']['dataStream'], font_charsets(deadline))

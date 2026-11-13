@@ -21,6 +21,13 @@ const held = () => { let resolve; const promise = new Promise(r => resolve = r);
 const result = { base64: Buffer.from('%PDF-1.7\nfixture\n%%EOF\n').toString('base64'), filename: 'Current.pdf', warnings: ['Fonts may differ'] };
 const work = { id: 'doc', kind: 'document', contentRevision: 1, expected: { permissionRevision: 1 } };
 const label = 'Export document PDF (.pdf)';
+test('PDF consumer discloses list refusal before dispatch or download and preserves native offsets', async () => {
+  const snapshot = blankDocument('doc', 'Lists', 'First\nSecond');
+  snapshot.body.paragraphs.forEach(p => p.bullet = { listType: 'ORDER_LIST', listId: 'list', nestingLevel: 0 });
+  const before = structuredClone(snapshot), native = { commit: async () => snapshot, contentEpoch: () => 0 };
+  const view = mount(storage(), { api: async () => assert.fail('list PDF must not dispatch'), editor: () => native, work });
+  await view.click(label); assert.equal(view.downloads.length, 0); assert.match(view.text(), /Use Word export/); assert.deepEqual(snapshot, before); view.unmount();
+});
 for (const change of ['none', 'editor', 'revision', 'permission', 'edit', 'undo', 'pending', 'unmount']) test(`PDF consumer held response with ${change}: no stale download, no save, bounded double click`, async () => {
   const conversion = held(), calls = [], snapshot = blankDocument('doc', 'Unsaved', '<script> & 雪 🌍'); let epoch = 0, pending = false;
   const native = { commit: async () => structuredClone(snapshot), save: () => structuredClone(snapshot), contentEpoch: () => epoch, isEditing: () => pending }; let current = native;

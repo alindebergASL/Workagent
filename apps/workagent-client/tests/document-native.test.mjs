@@ -20,6 +20,37 @@ function native(data) {
   const api = FUniver.newAPI(univer);
   return { univer, api, doc: api.createDocument(data) };
 }
+test('installed built-in list commands preserve flat sequences, offsets, inline style and save/reopen', async () => {
+  const path = join(await mkdtemp(join(tmpdir(), 'document-lists-')), 'workspace.json');
+  await writeFile(path, JSON.stringify(initialState('owner')));
+  const ws = new Workspace(new FileFixtureStore(path));
+  const { workId } = await ws.createBlank('owner', { commandId: 'create', kind: 'document', title: 'Lists' });
+  const f = native(blankDocument(workId, 'Lists', '雪 🌍 first\nsecond\nplain\nthird\nfourth\nbullet'));
+  const core = require('@univerjs/core'), ui = require('@univerjs/docs-ui'), commands = f.univer.__getInjector().get(core.ICommandService);
+  for (const c of [ui.ListOperationCommand, ui.ChangeListTypeCommand, ui.BulletListCommand, ui.OrderListCommand]) commands.registerCommand(c);
+  const apply = (c, startOffset, endOffset) => assert.equal(commands.syncExecuteCommand(c.id, { docRange: [{ startOffset, endOffset, collapsed: false, segmentId: '' }] }), true);
+  let saved;
+  try {
+    apply(ui.OrderListCommand, 0, 17); apply(ui.OrderListCommand, 24, 36); apply(ui.BulletListCommand, 37, 43);
+    f.doc.getTextRange(0, 4).setTextStyle({ bl: 1 });
+    saved = JSON.parse(JSON.stringify(f.doc.save())); validateDocument(saved);
+    const p = saved.body.paragraphs;
+    assert.deepEqual(p.map(p => p.startIndex), [10,17,23,29,36,43]);
+    assert.equal(p[2].bullet, undefined); assert.equal(p[0].bullet.listId, p[1].bullet.listId);
+    assert.notEqual(p[0].bullet.listId, p[3].bullet.listId); assert.equal(p[5].bullet.listType, 'BULLET_LIST');
+    assert.equal(saved.lists, undefined); // The SDK resolves standard presets implicitly.
+    assert.equal(f.doc.insertText(0, 'Edited '), true);
+    saved = JSON.parse(JSON.stringify(f.doc.save())); validateDocument(saved);
+    assert.deepEqual(saved.body.paragraphs.map(p => p.startIndex), [17,24,30,36,43,50]);
+    assert.deepEqual(saved.body.paragraphs.map(p => p.bullet), p.map(p => p.bullet));
+    await ws.save('owner', workId, { commandId: 'save', document: saved, contentRevision: 1, permissionRevision: 1 });
+    // Actual nine-level built-in templates are valid while only level zero is active.
+    validateDocument({ ...saved, lists: { ORDER_LIST: core.PRESET_LIST_TYPE.ORDER_LIST, BULLET_LIST: core.PRESET_LIST_TYPE.BULLET_LIST } });
+  } finally { f.univer.dispose(); }
+  const stored = await new Workspace(new FileFixtureStore(path)).get('owner', workId), reopened = native(stored.document);
+  try { assert.deepEqual(reopened.doc.save(), saved); assert.equal(stored.humanDocument, true); }
+  finally { reopened.univer.dispose(); }
+});
 test('installed native document insert, selection/range styling, save and reopen retain native structure', async () => {
   const path = join(await mkdtemp(join(tmpdir(), 'document-sdk-')), 'workspace.json');
   await writeFile(path, JSON.stringify(initialState('owner')));

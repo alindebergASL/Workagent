@@ -20,6 +20,12 @@ function fixture() {
   const worker = { run: async input => { calls.push(input); return result; } };
   return { state, document, calls, workspace, worker, pdf: new PdfExchange({ workspace, worker }), input: { workId: 'doc', contentRevision: 1, document } };
 }
+test('flat native lists refuse before renderer without writes or missing-marker download', async () => {
+  const f = fixture(); f.document.body.paragraphs[0].bullet = { listId: 'numbered', listType: 'ORDER_LIST', nestingLevel: 0 };
+  const before = structuredClone(f.state);
+  await assert.rejects(f.pdf.export('owner', f.input), /pdf_lists_unqualified/);
+  assert.equal(f.calls.length, 0); assert.deepEqual(f.state, before);
+});
 test('PDF exports exactly submitted rich/Unicode/empty native snapshot without mutation or writes', async () => {
   const f = fixture(); f.input.document = structuredClone(f.document); f.input.document.title = 'Unsaved.pdf';
   f.input.document.body.textRuns = [{ st: 0, ed: 8, ts: { bl: 1, it: 1, ul: { s: 1 }, fs: 17.5, cl: { rgb: '#224466' } } }];
