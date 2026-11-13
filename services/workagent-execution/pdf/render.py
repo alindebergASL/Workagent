@@ -395,6 +395,19 @@ def map_generated_fonts(data, codec):
     return result
 
 
+def export_intermediate(document, codec):
+    validate_document(document)
+    try:
+        result = codec['export_document'](document, _pdf_visible_markers=True)
+    except ValueError as error:
+        # Classify only known unmapped marker cases; other codec errors retain
+        # their own failure path. PDF need not retain invisible editing marks.
+        if str(error) in ('Unsupported marker formatting', 'Unsupported marker underline'):
+            raise Refused('unsupported_pdf_marker_formatting') from error
+        raise
+    return map_generated_fonts(base64.b64decode(result['base64'], validate=True), codec)
+
+
 def intermediate():
     # Same codec/limits, in the dedicated venv child. DOCX export is unchanged;
     # only this private PDF intermediate receives the rendering font policy.
@@ -404,9 +417,7 @@ def intermediate():
     if len(raw) > 4_500_000:
         raise Refused('pdf_codec_refused')
     request = json.loads(raw)
-    validate_document(request['document'])
-    result = codec['export_document'](request['document'])
-    data = map_generated_fonts(base64.b64decode(result['base64'], validate=True), codec)
+    data = export_intermediate(request['document'], codec)
     print(json.dumps({'base64': base64.b64encode(data).decode('ascii')}))
 
 
@@ -431,7 +442,7 @@ def main():
     except (ValueError, UnicodeError):
         raise Refused('pdf_codec_unavailable')
     if code or result.get('error'):
-        raise Refused(result['error'] if result.get('error') in ('unsupported_pdf_list_number', 'unsupported_pdf_list_layout', 'unsupported_pdf_formatting', 'unsupported_pdf_font_size', 'unsupported_document_list') else 'pdf_codec_refused')
+        raise Refused(result['error'] if result.get('error') in ('unsupported_pdf_list_number', 'unsupported_pdf_list_layout', 'unsupported_pdf_marker_formatting', 'unsupported_pdf_formatting', 'unsupported_pdf_font_size', 'unsupported_document_list') else 'pdf_codec_refused')
     data = base64.b64decode(result['base64'], validate=True)
     if len(data) > 2_000_000 or not data.startswith(b'PK'):
         raise Refused('pdf_codec_refused')

@@ -14,6 +14,142 @@ render = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(render)
 
 class RendererTests(unittest.TestCase):
+    def test_pdf_marker_seam_preserves_body_inheritance_empty_items_and_word_strictness(self):
+        root = Path(__file__).resolve().parents[3]
+        script = r'''
+import runpy,copy,base64,io,zipfile
+codec=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
+render=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py')
+fixture=runpy.run_path(ROOT+'/services/workagent-execution/pdf/fixtures/imported_lists.py')['contrast_native']
+defaults={'bl':0,'it':0,'ul':{'s':0},'fs':11,'cl':{'rgb':'#000000'}}
+def body_styles(d):
+    result=[];start=0;style=d['documentStyle'];body=d['body'];raw=body['dataStream'].encode('utf-16-le')
+    for p in body['paragraphs']:
+        ps={**style.get('defaultParagraphStyle',{}),**p.get('paragraphStyle',{})}
+        base={**defaults,**style.get('textStyle',{}),**ps.get('textStyle',{})}
+        for pos in range(start,p['startIndex']):
+            ts=dict(base)
+            for r in body.get('textRuns',[]):
+                if r['st']<=pos<r['ed']:ts.update(r['ts'])
+            result.append((raw[pos*2:pos*2+2],{k:ts[k] for k in defaults}))
+        start=p['startIndex']+1
+    return result
+for inheritance in ['document','default','paragraph','run']:
+    d=fixture(inheritance);before=copy.deepcopy(d)
+    try:codec['export_document'](d)
+    except ValueError as e:assert 'Conflicting paragraph-mark' in str(e)
+    else:raise AssertionError('Word must remain strict')
+    mapped=render['export_intermediate'](d,codec)
+    reopened=codec['import_document'](mapped)['document']
+    assert reopened['body']['dataStream']==d['body']['dataStream']
+    assert len(reopened['body']['paragraphs'])==6
+    assert body_styles(reopened)==body_styles(d),inheritance
+    labels=[];counts={};ids=[]
+    for p in reopened['body']['paragraphs']:
+        if 'bullet' not in p:continue
+        b=p['bullet'];level=reopened['lists'][b['listType']]['nestingLevel'][0];ids.append(b['listId'])
+        count=counts.get(b['listId'],level['startNumber'])+1;counts[b['listId']]=count;labels.append(count)
+        actual={**defaults,**b['textStyle'],**level['textStyle']}
+        expected=({'bl':1,'it':1,'ul':{'s':1},'fs':20,'cl':{'rgb':'#FF0000'}} if len(labels) in (1,2,4)
+                  else {'bl':0,'it':0,'ul':{'s':0},'fs':14,'cl':{'rgb':'#008000'}})
+        assert {k:actual[k] for k in defaults}==expected,(inheritance,labels,actual)
+    assert labels==[5,6,7,2,3] and len(set(ids))==2 # one explicit restart, no style splits
+    assert ids[0]==ids[1]==ids[2] and ids[3]==ids[4]
+    assert d==before
+    # Every other PDF boundary still precedes the trusted codec option.
+    class Uncalled:
+        def __getitem__(self,key):raise AssertionError('invalid PDF reached codec')
+    for edit,code in [(lambda d:d['body']['paragraphs'][4]['bullet'].update(startNumber=32767),'unsupported_pdf_list_number'),
+                      (lambda d:d['body']['paragraphs'][0]['bullet'].update(nestingLevel=1),'unsupported_document_list'),
+                      (lambda d:d['documentStyle']['pageSize'].update(width=140),'unsupported_pdf_list_layout')]:
+        invalid=copy.deepcopy(d);edit(invalid)
+        try:render['export_intermediate'](invalid,Uncalled())
+        except render['Refused'] as e:assert str(e)==code,(str(e),code)
+        else:raise AssertionError('invalid PDF accepted')
+# Conflict-free Word packages are identical with and without the trusted option.
+source=runpy.run_path(ROOT+'/services/workagent-execution/pdf/fixtures/imported_lists.py')['source_docx']()
+d=codec['import_document'](source)['document']
+for lists in [True,False]:
+    if not lists:
+        for p in d['body']['paragraphs']:p.pop('bullet',None)
+    strict=base64.b64decode(codec['export_document'](d)['base64'])
+    pdf=base64.b64decode(codec['export_document'](d,_pdf_visible_markers=True)['base64'])
+    def parts(data):
+        with zipfile.ZipFile(io.BytesIO(data)) as z:return {n:z.read(n) for n in z.namelist()}
+    assert parts(strict)==parts(pdf)
+    assert parts(render['export_intermediate'](d,codec))==parts(render['map_generated_fonts'](strict,codec))
+print('PDF marker/body distinction and unchanged Word semantics verified')
+'''.replace('ROOT', repr(str(root)))
+        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+
+    def test_imported_word_sequence_and_saved_conflict_have_visible_pdf_mapping(self):
+        root = Path(__file__).resolve().parents[3]
+        script = r'''
+import runpy,base64,io,zipfile,copy,json
+from pathlib import Path
+from lxml import etree
+codec=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
+render=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py');q=codec['q']
+fixtures=ROOT+'/services/workagent-execution/pdf/fixtures/'
+source=runpy.run_path(fixtures+'imported_lists.py')['source_docx']();original=bytes(source)
+native=codec['import_document'](source)['document'];before=copy.deepcopy(native)
+assert [native['lists'][key]['nestingLevel'][0]['paragraphProperties'] for key in ['word-num-1','word-num-7','word-num-42']]==[
+    {'indentStart':{'v':24.0},'hanging':{'v':24.0}},
+    {'indentStart':{'v':72.0},'hanging':{'v':24.0}},
+    {'indentStart':{'v':24.0},'hanging':{'v':24.0}}]
+def labels(data):
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        doc=etree.fromstring(z.read('word/document.xml'));numbering=etree.fromstring(z.read('word/numbering.xml'))
+    nums={n.get(q('numId')):n for n in numbering.findall(q('num'))}
+    abstracts={a.get(q('abstractNumId')):a for a in numbering.findall(q('abstractNum'))}
+    counts={};result=[];origins=[];ids=[]
+    for p in doc.iter(q('p')):
+        np=p.find('./'+q('pPr')+'/'+q('numPr'))
+        if np is None:continue
+        key=np.find(q('numId')).get(q('val'));num=nums[key];ids.append(key)
+        lvl=abstracts[num.find(q('abstractNumId')).get(q('val'))].find(q('lvl'))
+        start=num.find('./'+q('lvlOverride')+'/'+q('startOverride'))
+        if start is None:start=lvl.find(q('start'))
+        counts[key]=counts.get(key,int(start.get(q('val')))-1)+1
+        result.append(str(counts[key])+'.' if lvl.find(q('numFmt')).get(q('val'))=='decimal' else lvl.find(q('lvlText')).get(q('val')))
+        ind=lvl.find('./'+q('pPr')+'/'+q('ind'));origins.append(int(ind.get(q('left')))-int(ind.get(q('hanging'))))
+    return result,origins,ids
+for restart,expected in [(False,['•','•','1.','2.','5.','6.','3.']), (True,['•','•','1.','9.','5.','6.','10.'])]:
+    d=copy.deepcopy(native)
+    if restart:d['body']['paragraphs'][4]['bullet']['startNumber']=8
+    raw=base64.b64decode(codec['export_document'](d)['base64']);raw_copy=bytes(raw)
+    mapped=render['export_intermediate'](d,codec)
+    assert labels(raw)[0]==labels(mapped)[0]==expected
+    assert labels(raw)[1]==labels(mapped)[1]==[0,0,720,720,0,0,720]
+    assert labels(raw)[2]==labels(mapped)[2]
+    assert len(set(labels(mapped)[2]))==(4 if restart else 3)
+    assert codec['import_document'](mapped)['document']['body']['dataStream']==d['body']['dataStream']
+    assert raw==raw_copy
+assert native==before and source==original
+saved=json.loads(Path(fixtures+'imported-list-saved.json').read_text());before=copy.deepcopy(saved)
+render['validate_document'](saved) # Valid native/PDF geometry, NOT a unit error.
+try:codec['export_document'](saved)
+except ValueError as e:assert str(e)=='Conflicting paragraph-mark and mixed list-marker formatting is not mapped'
+else:raise AssertionError('Word conflict was silently erased')
+mapped=render['export_intermediate'](saved,codec)
+assert labels(mapped)[0]==['•','•','1.','2.','5.','6.','7.','3.']
+assert labels(mapped)[1]==[0,0,720,720,0,0,0,720]
+assert len(set(labels(mapped)[2]))==3
+assert codec['import_document'](mapped)['document']['body']['dataStream']==saved['body']['dataStream']
+assert saved==before
+for edit in [lambda d:d['body']['paragraphs'][1]['bullet'].update(nestingLevel=1),
+             lambda d:d['body']['paragraphs'][1]['paragraphStyle'].update(direction=1),
+             lambda d:d['lists']['word-num-7']['nestingLevel'][0]['paragraphProperties'].update(hanging={'v':100})]:
+    d=copy.deepcopy(native);edit(d)
+    try:render['export_intermediate'](d,codec)
+    except render['Refused']:pass
+    else:raise AssertionError('unsupported layout accepted')
+print('imported and saved PDF sequences preserved; Word conflict refused without mutation')
+'''.replace('ROOT', repr(str(root)))
+        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+
     def test_direct_python_boundary_checks_active_lists_and_all_pdf_formatting(self):
         document = {'documentStyle': {}, 'body': {'dataStream': 'text\r\n', 'paragraphs': [
             {'startIndex': 4, 'bullet': {'listType': 'ORDER_LIST', 'listId': 'list', 'nestingLevel': 0}}]}}

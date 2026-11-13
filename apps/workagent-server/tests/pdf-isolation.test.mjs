@@ -6,7 +6,87 @@ import { spawn } from 'node:child_process';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { PdfWorker, sandboxArgs, namespaceIdentity, collectChild } from '../src/pdf-worker.mjs';
 import { listDocument, glyphs, numberedDocument, overhangDocument } from './support/pdf-list-fixture.mjs';
+import { importedWord, importedSaved, contrastNative } from './support/pdf-imported-fixture.mjs';
+import { DocxWorker } from '../src/docx-worker.mjs';
 const venv = process.env.WORKAGENT_DOCX_VENV;
+test('actual namespace imported Word and saved colour conflict preserve content, numbering origins and visible markers', async () => {
+  const source = importedWord(), original = source, word = new DocxWorker({ venv }), pdf = new PdfWorker({ venv });
+  const document = (await word.run({ op: 'import', base64: source })).document;
+  const before = structuredClone(document);
+  const result = await pdf.run({ op: 'export', document });
+  const opened = await probe(`import sys,base64,pathlib,subprocess,json,re,xml.etree.ElementTree as E
+p=pathlib.Path('/tmp/imported.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+text=subprocess.check_output(['/usr/bin/pdftotext','-layout',str(p),'-'],timeout=5).decode()
+subprocess.run(['/usr/bin/pdftohtml','-xml','-zoom','1','-i',str(p),'/tmp/imported.xml'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+boxes=[(''.join(e.itertext()).strip(),float(e.attrib['left'])) for e in E.parse('/tmp/imported.xml').iter('text')]
+markers=[(t,x) for t,x in boxes if re.fullmatch(r'[0-9]+\\.|•',t)]
+assert [t for t,x in markers]==['•','•','1.','2.','5.','6.','3.'],markers
+assert abs(markers[2][1]-markers[4][1]-36)<2,markers
+print(json.dumps({'text':text,'markers':markers}))`, result.base64);
+  for (const text of ['Heading', 'Bullet A', 'Bullet B', 'Note 00120', 'Inspect', '雪', '🌍', 'Finish', 'Continue']) assert.ok(opened.text.includes(text), text);
+  assert.equal(source, original); assert.deepEqual(document, before);
+  assert.equal((await word.run({ op: 'import', base64: (await word.run({ op: 'export', document })).base64 })).document.body.dataStream, document.body.dataStream);
+  const saved = importedSaved(), copy = structuredClone(saved);
+  const savedResult = await pdf.run({ op: 'export', document: saved });
+  const savedOpened = await probe(`import sys,base64,pathlib,subprocess,json,re,xml.etree.ElementTree as E
+p=pathlib.Path('/tmp/saved.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+# Layout extraction can sort the taller italic emoji before its paragraph.
+# Check content order here and actual glyph placement in the XML below.
+text=subprocess.check_output(['/usr/bin/pdftotext','-raw',str(p),'-'],timeout=5).decode()
+subprocess.run(['/usr/bin/pdftohtml','-xml','-zoom','1','-i',str(p),'/tmp/saved.xml'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+root=E.parse('/tmp/saved.xml');fonts={e.attrib['id']:e.attrib for e in root.iter('fontspec')}
+markers=[(''.join(e.itertext()).strip(),float(e.attrib['left']),fonts[e.attrib['font']]['color'].lower()) for e in root.iter('text') if re.fullmatch(r'[0-9]+\\.|•',''.join(e.itertext()).strip())]
+assert [t for t,x,c in markers]==['•','•','1.','2.','5.','6.','7.','3.'],markers
+assert [c for t,x,c in markers]==['#000000']*5+['#1b1c1f']+['#000000']*2,markers
+assert abs(markers[2][1]-markers[4][1]-36)<2,markers
+adjacent=[]
+for token in ('Inspect','雪','🌍'):
+ matches=[(page.attrib['number'],e) for page in root.iter('page') for e in page.iter('text') if token in ''.join(e.itertext())]
+ assert len(matches)==1,(token,'expected one XML text box',len(matches))
+ page,e=matches[0]
+ adjacent.append((page,*[float(e.attrib[k]) for k in ('left','top','width','height')]))
+for left,right in zip(adjacent,adjacent[1:]):
+ page,x,y,w,h=left;next_page,nx,ny,nw,nh=right
+ assert page==next_page and min(w,h,nw,nh)>0,('glyph page/bounds',left,right)
+ # XML coordinates round to points; permit that rounding, not a detached glyph.
+ assert -1<=nx-(x+w)<=2,('glyphs not horizontally adjacent',left,right)
+ assert min(y+h,ny+nh)-max(y,ny)>=min(h,nh)/2,('glyphs not vertically overlapping',left,right)
+print(json.dumps({'text':text,'markers':markers}))`, savedResult.base64);
+  for (const text of saved.body.dataStream.split(/\r|\n/).filter(Boolean)) assert.ok(savedOpened.text.replace(/\s/g, '').includes(text.replace(/\s/g, '')), text);
+  for (const glyph of ['雪', '🌍']) assert.equal(savedOpened.text.split(glyph).length - 1, 1, `exactly one ${glyph}`);
+  assert.equal(pdf.active, false); assert.deepEqual(saved, copy);
+  await assert.rejects(word.run({ op: 'export', document: saved }), /Conflicting paragraph-mark/);
+});
+test('actual PDF conflict keeps red/green styled markers distinct from blue body, with empty item and restart', async () => {
+  const document = contrastNative(), before = structuredClone(document), worker = new PdfWorker({ venv });
+  const result = await worker.run({ op: 'export', document });
+  const opened = await probe(`import sys,base64,pathlib,subprocess,json,re,xml.etree.ElementTree as E
+p=pathlib.Path('/tmp/contrast.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+subprocess.run(['/usr/bin/pdftohtml','-xml','-zoom','1','-i',str(p),'/tmp/contrast.xml'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+root=E.parse('/tmp/contrast.xml');fonts={e.attrib['id']:e.attrib for e in root.iter('fontspec')};markers=[];body=[]
+for e in root.iter('text'):
+ t=''.join(e.itertext()).strip();f=fonts[e.attrib['font']]
+ if not t:continue
+ if re.fullmatch(r'[0-9]+\\.',t):markers.append((t,f['color'].lower(),int(f['size'])))
+ else:
+  assert f['color'].lower()=='#0000ff',(t,f)
+  body.append(t)
+assert markers==[('5.','#ff0000',20),('6.','#ff0000',20),('7.','#008000',14),('2.','#ff0000',20),('3.','#008000',14)],markers
+subprocess.run(['/usr/bin/pdftoppm','-f','1','-l','1','-singlefile','-r','72',str(p),'/tmp/contrast'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+data=pathlib.Path('/tmp/contrast.ppm').read_bytes();header=re.match(rb'P6\\s+(\\d+)\\s+(\\d+)\\s+255\\s',data);assert header
+pixels=data[header.end():];counts=[0,0,0]
+for i in range(0,len(pixels),3):
+ r,g,b=pixels[i:i+3]
+ if r>150 and g<80 and b<80:counts[0]+=1
+ if g>60 and r<40 and b<40:counts[1]+=1
+ if b>150 and r<80 and g<80:counts[2]+=1
+assert min(counts)>10,counts
+fonts=subprocess.check_output(['/usr/bin/pdffonts',str(p)],timeout=5).decode()
+assert 'DejaVuSerif-BoldItalic' in fonts,fonts
+print(json.dumps({'markers':markers,'body':' '.join(body),'ink':counts}))`, result.base64);
+  for (const text of ['Red marker', 'blue body', 'Plain gap', 'Continuation', 'Restart', 'Tail']) assert.ok(opened.body.includes(text), opened.body);
+  assert.deepEqual(document, before); assert.equal(worker.active, false);
+});
 async function probe(script, input = '') {
   const args = sandboxArgs(venv); args.splice(-1, 1, '-c', script);
   const child = spawn('/usr/bin/bwrap', args, { detached: true, env: { PDF_TEST_SECRET: 'synthetic-only' }, stdio: ['pipe','pipe','pipe','pipe','pipe','pipe'] });

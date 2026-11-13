@@ -15,6 +15,15 @@ import { initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
 import { trustedWorker, trustedCodec, originalDocx, docxInput, defaultDocx, numberedDocx } from './support/docx-fixture.mjs';
+import { importedSaved } from './support/pdf-imported-fixture.mjs';
+test('trusted PDF marker option cannot be activated by DOCX JSON request or document fields', () => {
+  const document = importedSaved(), before = structuredClone(document);
+  for (const input of [{ op: 'export', document, _pdf_visible_markers: true },
+    { op: 'export', document: { ...document, _pdf_visible_markers: true } }]) {
+    assert.throws(() => trustedCodec(input), /Conflicting paragraph-mark/);
+  }
+  assert.deepEqual(document, before);
+});
 async function fixture(worker = trustedWorker) {
   const root = await mkdtemp(join(tmpdir(), 'workagent-docx-')), path = join(root, 'state.json');
   await writeFile(path, JSON.stringify(initialState('owner')));

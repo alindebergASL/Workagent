@@ -29,6 +29,10 @@ export function PdfExport({ api, editor, work }: { api: Api; editor: () => Docum
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage('Exported current native edits as PDF without saving. ' + result.warnings.join(' '));
     } catch (e) {
+      if (alive.current && e instanceof Error && e.message === 'unsupported_pdf_marker_formatting') {
+        setMessage('PDF export cannot map this list-marker formatting. No download was made. Your edits are kept.');
+        return;
+      }
       if (alive.current && e instanceof Error && e.message === 'unsupported_pdf_list_number') {
         setMessage('PDF supports item numbers 1–32,767, including continued lists. No download was made. Your edits are kept; Word export retains its existing start bounds.');
         return;
@@ -44,6 +48,7 @@ export function PdfExport({ api, editor, work }: { api: Api; editor: () => Docum
     <p>Native document export only, through the Word mapping: literal paragraphs, bold, italic, single underline, half-point font sizes, RGB colour, simple alignment and one page geometry. PDF uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused. Fonts are substituted; wrapping, pagination and layout may differ from the editor and Word. Native default hyphenation/canvas settings, metadata, themes and style names are not retained. Exact layout and full Word fidelity are not promised.</p>
     <p>Flat bullets (● • ○ ■ ▪) and decimal lists retain markers, marker styles, separate sequences and starts/restarts. PDF supports effective item numbers 1–32,767, including continuations; larger numbers are refused. Native documents and Word keep their existing 1–1,000,000 start bounds. PDF reserves room for markers and body-font overhang, so wrapping may change; layouts that cannot fit are refused. Nested lists, other numbering formats, unsupported list layout, tables, media, links, fields, macros, notes, headers/footers and multiple sections are refused. PDF import, OCR, roundtrip editing and spreadsheet/deck PDF are not available. Up to 200 KB text, 10,000 paragraphs/runs and 16 MB PDF. Synthetic data only.</p>
     {work && <button type="button" disabled={busy} onClick={() => void exportFile()}>{busy ? 'Rendering PDF…' : 'Export document PDF (.pdf)'}</button>}
+    <p>PDF preserves visible list-marker and body styles but does not retain conflicting paragraph-mark editing metadata. Native documents and saved/source files are unchanged; Word export still refuses that conflict.</p>
     <p>Includes current native edits without saving. Finish pending paste or composition first. Changes during export require a retry; drafts and messages are kept.</p>
     {message && <p role="status">{message}</p>}
   </details>;

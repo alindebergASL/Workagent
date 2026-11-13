@@ -11,8 +11,28 @@ import { PdfWorker, sandboxArgs, namespaceIdentity, collectChild } from '../src/
 import { PostgresStore, initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
 import { listDocument, numberedDocument, overhangDocument } from './support/pdf-list-fixture.mjs';
+import { importedWord, importedSaved, pdfIntermediate } from './support/pdf-imported-fixture.mjs';
+import { trustedCodec } from './support/docx-fixture.mjs';
 const bytes = Buffer.from('%PDF-1.7\nfixture only\n%%EOF\n'), result = { base64: bytes.toString('base64') };
 const deferred = () => { let resolve; const promise = new Promise(r => resolve = r); return { resolve, promise }; };
+test('imported conflict snapshot maps PDF content while default Word stays strict', () => {
+  const saved = importedSaved(), before = structuredClone(saved);
+  const source = importedWord(), native = trustedCodec({ op: 'import', base64: source }).document;
+  pythonPolicy([saved, native], [], 'unsupported_pdf_list_layout');
+  assert.deepEqual(validatePdfDocument(saved), saved);
+  assert.throws(() => trustedCodec({ op: 'export', document: saved }), /Conflicting paragraph-mark/);
+  const mapped = pdfIntermediate(saved); assert.equal(mapped.error, undefined);
+  assert.equal(trustedCodec({ op: 'import', base64: mapped.base64 }).document.body.dataStream, saved.body.dataStream);
+  assert.deepEqual(saved, before);
+  assert.ok(pdfIntermediate(native).base64);
+  const bad = [];
+  for (const edit of [d => d.body.paragraphs[1].bullet.nestingLevel = 1,
+    d => d.body.paragraphs[1].paragraphStyle.direction = 1,
+    d => d.lists['word-num-7'].nestingLevel[0].paragraphProperties.hanging.v = 100]) {
+    const d = structuredClone(native); edit(d); bad.push(d); assert.throws(() => validatePdfDocument(d));
+  }
+  for (const d of bad) assert.ok(pdfIntermediate(d).error);
+});
 function fixture() {
   const state = initialState('owner'), document = blankDocument('doc', 'Current.docx', '<script> & <w:t> literal 雪 🌍\nGuests: 40 Volunteers: 5 00120 Noor Readiness confirmed.\n');
   state.works.doc = { id: 'doc', kind: 'document', document, contentRevision: 1 };
@@ -117,6 +137,8 @@ test('PDF exports exactly submitted rich/Unicode/empty native snapshot without m
   assert.deepEqual(f.calls[0], { op: 'export', document: f.input.document }); assert.equal(exported.filename, 'Unsaved.pdf');
   assert.deepEqual(f.input, submitted); assert.deepEqual(f.state, before); assert.deepEqual(pdfBytes(exported), bytes);
   assert.match(exported.warnings.join(' '), /Fonts may be substituted/);
+  assert.match(exported.warnings.join(' '), /does not retain conflicting paragraph-mark editing metadata/);
+  assert.match(exported.warnings.join(' '), /Word export still refuses that conflict/);
   for (const text of ['', '\n\n', 'page '.repeat(20000)]) validatePdfDocument(blankDocument('doc', 'text', text));
 });
 test('nested foreign structures, unsupported formatting, raw Office and wrong identity/kind refuse before worker', async () => {
@@ -172,7 +194,7 @@ test('namespace mount/environment allowlist and identity use actual actor; unava
   }
 });
 function child(script) { return spawn('/usr/bin/python3', ['-c', script], { detached: true, env: {}, stdio: ['pipe', 'pipe', 'pipe'] }); }
-for (const [code,status] of [['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
+for (const [code,status] of [['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400],['unsupported_pdf_marker_formatting',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
   await assert.rejects(collectChild(child(`print('{"error":"${code}"}');raise SystemExit(1)`),''), error=>error.code===code && error.status===status);
 });
 for (const [name, script, error] of [

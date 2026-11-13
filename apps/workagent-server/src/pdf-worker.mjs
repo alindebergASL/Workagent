@@ -44,7 +44,7 @@ export function collectChild(child, body, { signal, timeoutMs = 30000, outputLim
       if (failed) return reject(failed);
       let result; try { result = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return reject(new Fault('pdf_sandbox_or_renderer_unavailable', 503)); }
       if (code !== 0 || result?.error) {
-        const refusals = ['pdf_codec_refused', 'pdf_unsupported_text', 'pdf_missing_glyph', 'unsupported_document_list', 'unsupported_pdf_list_number', 'unsupported_pdf_list_layout', 'unsupported_pdf_formatting', 'unsupported_pdf_font_size'];
+        const refusals = ['pdf_codec_refused', 'pdf_unsupported_text', 'pdf_missing_glyph', 'unsupported_document_list', 'unsupported_pdf_list_number', 'unsupported_pdf_list_layout', 'unsupported_pdf_marker_formatting', 'unsupported_pdf_formatting', 'unsupported_pdf_font_size'];
         const allowed = [...refusals, 'pdf_renderer_unavailable', 'pdf_fonts_unavailable', 'pdf_codec_unavailable', 'pdf_render_failed', 'pdf_render_timeout', 'pdf_output_limit', 'pdf_invalid_output', 'pdf_child_output_limit'];
         return reject(new Fault(allowed.includes(result?.error) ? result.error : 'pdf_render_failed', refusals.includes(result?.error) ? 400 : 503));
       }

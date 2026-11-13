@@ -435,8 +435,11 @@ def import_document(data):
  if lists: document['lists']=lists
  return {'document':document,'warnings':POLICY,'paragraphs':len(paragraphs),'runs':len(runs)}
 
-def export_document(native):
+def export_document(native, *, _pdf_visible_markers=False):
  # The server validates the full native shape before this isolated conversion.
+ # Trusted PDF intermediate only: visible markers may replace conflicting
+ # paragraph-mark editing metadata. Never read this option from native/JSON.
+ # Body runs below keep their native styles; ordinary Word export stays strict.
  body=native['body']; stream=body['dataStream']; need(stream.endswith('\r\n'),'Invalid native stream')
  safe_text(stream); need(len(stream[:-2].encode('utf-8'))<=200000,'Text limit')
  need(len(body['paragraphs'])<=10000 and len(body.get('textRuns',[]))<=10000,'Paragraph/run limit')
@@ -572,7 +575,8 @@ def export_document(native):
     if run['st']<=end<run['ed']: explicit_mark.update(run['ts'])
    for key,value in marker_styles[end].items():
     if key not in common:
-     need(key not in explicit_mark or explicit_mark[key]==value,'Conflicting paragraph-mark and mixed list-marker formatting is not mapped')
+     if not _pdf_visible_markers:
+      need(key not in explicit_mark or explicit_mark[key]==value,'Conflicting paragraph-mark and mixed list-marker formatting is not mapped')
      mark[key]=value
   temp=p.add_run(); apply(temp,mark); rpr=temp._r.rPr
   p._p.get_or_add_pPr().append(rpr); p._p.remove(temp._r)

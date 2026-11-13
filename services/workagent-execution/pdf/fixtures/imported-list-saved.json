@@ -1,0 +1,111 @@
+{
+  "id": "imported-list-test",
+  "title": "Imported list fixture",
+  "body": {
+    "dataStream": "Heading\rBullet A\rBullet B\rFirst\rSecond\rNote 00120\rInspect 雪 🌍\rInserted\rFinish\rContinue\r\n",
+    "paragraphs": [
+      {"startIndex": 7, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-1", "listType": "word-num-1", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 16, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-1", "listType": "word-num-1", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 25, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-7", "listType": "word-num-7", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 31, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-7", "listType": "word-num-7", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 38, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"startIndex": 49, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-42", "listType": "word-num-42", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 62, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-42", "listType": "word-num-42", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 71, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-42", "listType": "word-num-42", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 78, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}},
+      {"bullet": {"listId": "word-num-7", "listType": "word-num-7", "textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}, "nestingLevel": 0}, "startIndex": 87, "paragraphStyle": {"textStyle": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}}
+    ],
+    "textRuns": [
+      {"ed": 7, "st": 0, "ts": {"bl": 1, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 16, "st": 8, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 25, "st": 17, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 31, "st": 26, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 38, "st": 32, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 49, "st": 39, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 62, "st": 50, "ts": {"bl": 0, "fs": 11, "it": 1, "ul": {"s": 0}}},
+      {"ed": 72, "st": 62, "ts": {"bl": 0, "cl": {"rgb": "#1B1C1F"}, "fs": 11, "it": 1, "ul": {"s": 0}}},
+      {"ed": 78, "st": 72, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}},
+      {"ed": 87, "st": 79, "ts": {"bl": 0, "fs": 11, "it": 0, "ul": {"s": 0}}}
+    ],
+    "sectionBreaks": [
+      {
+        "startIndex": 88,
+        "sectionId": "test-section"
+      }
+    ]
+  },
+  "lists": {
+    "word-num-1": {
+      "listType": "BULLET_LIST",
+      "nestingLevel": [
+        {
+          "textStyle": {},
+          "glyphFormat": " %1",
+          "glyphSymbol": "•",
+          "startNumber": 0,
+          "bulletAlignment": 1,
+          "paragraphProperties": {
+            "hanging": {
+              "v": 24
+            },
+            "indentStart": {
+              "v": 24
+            }
+          }
+        }
+      ]
+    },
+    "word-num-7": {
+      "listType": "ORDER_LIST",
+      "nestingLevel": [
+        {
+          "glyphType": 2,
+          "textStyle": {},
+          "glyphFormat": "%1.",
+          "startNumber": 0,
+          "bulletAlignment": 1,
+          "paragraphProperties": {
+            "hanging": {
+              "v": 24
+            },
+            "indentStart": {
+              "v": 72
+            }
+          }
+        }
+      ]
+    },
+    "word-num-42": {
+      "listType": "ORDER_LIST",
+      "nestingLevel": [
+        {
+          "glyphType": 2,
+          "textStyle": {},
+          "glyphFormat": "%1.",
+          "startNumber": 4,
+          "bulletAlignment": 1,
+          "paragraphProperties": {
+            "hanging": {
+              "v": 24
+            },
+            "indentStart": {
+              "v": 24
+            }
+          }
+        }
+      ]
+    }
+  },
+  "documentStyle": {
+    "pageSize": {
+      "width": 816,
+      "height": 1056
+    },
+    "marginTop": 96,
+    "marginLeft": 120,
+    "marginRight": 120,
+    "marginBottom": 96,
+    "marginFooter": 48,
+    "marginHeader": 48
+  }
+}

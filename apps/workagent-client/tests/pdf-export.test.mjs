@@ -8,6 +8,8 @@ import { validatePdfDocument } from '../../workagent-server/src/pdf-exchange.mjs
 import { trustedCodec } from '../../workagent-server/tests/support/docx-fixture.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { listDocument } from '../../workagent-server/tests/support/pdf-list-fixture.mjs';
+import { importedWord, importedSaved, pdfIntermediate, contrastNative } from '../../workagent-server/tests/support/pdf-imported-fixture.mjs';
+import { PDF_WARNINGS } from '../../workagent-server/src/pdf-exchange.mjs';
 function fixture(file, boundary, names, edit = s => s) {
   const url = new URL(file, import.meta.url);
   let source = edit(readFileSync(url, 'utf8').split(boundary)[0]).replaceAll('import.meta.url', JSON.stringify(url.href));
@@ -17,13 +19,102 @@ function fixture(file, boundary, names, edit = s => s) {
   const module = { exports: {} }; new Function('require', 'module', 'exports', code)(createRequire(url), module, module.exports); return module.exports;
 }
 const { mount, storage } = fixture('./docx-exchange.test.mjs', 'for (const newerPending', 'mount,storage', s => s.replace('const require = createRequire(import.meta.url);', '').replaceAll('../src/DocxExchange.tsx', '../src/PdfExport.tsx').replaceAll('module.exports.DocxExchange(props)', 'module.exports.PdfExport(props)').replace('button.props.onClick(); await flush();', 'button.props.onClick(); button.props.onClick(); await flush();'));
-const { editorFixture } = fixture('./docx-native.test.mjs', 'import { trustedCodec', 'editorFixture', s => s.replace("const require = createRequire(import.meta.resolve('@univerjs/preset-docs-core'));", "require = createRequire(import.meta.resolve('@univerjs/preset-docs-core'));")
+const { editorFixture, dependencies, ui, core, docs } = fixture('./docx-native.test.mjs', 'import { trustedCodec', 'editorFixture,dependencies,ui,core,docs', s => s.replace("const require = createRequire(import.meta.resolve('@univerjs/preset-docs-core'));", "require = createRequire(import.meta.resolve('@univerjs/preset-docs-core'));")
   .replace('const element = { addEventListener() {}, removeEventListener() {} };', 'const listeners = {}; const element = { addEventListener(k, fn) { listeners[k] = fn; }, removeEventListener(k) { delete listeners[k]; } };')
   .replace('return { instance, nativeDoc, clipboard,', 'return { emit: k => listeners[k]?.(), instance, nativeDoc, clipboard,'));
 const held = () => { let resolve; const promise = new Promise(r => resolve = r); return { resolve, promise }; };
 const result = { base64: Buffer.from('%PDF-1.7\nfixture\n%%EOF\n').toString('base64'), filename: 'Current.pdf', warnings: ['Fonts may differ'] };
 const work = { id: 'doc', kind: 'document', contentRevision: 1, expected: { permissionRevision: 1 } };
 const label = 'Export document PDF (.pdf)';
+function nativeMarkers(data, instance, full = false) {
+  const er = createRequire(import.meta.resolve('@univerjs/preset-docs-core'))('@univerjs/engine-render');
+  const skeleton = er.DocumentSkeleton.create(new er.DocumentViewModel(new core.DocumentDataModel(structuredClone(data))), instance.__getInjector().get(core.LocaleService));
+  try {
+    skeleton.calculate(); const found = [], seen = new Set();
+    function walk(value) {
+      if (!value || typeof value !== 'object' || seen.has(value)) return;
+      seen.add(value);
+      if (value.glyphType === 2 && value.content) found.push(full
+        ? [value.content, ...['cl', 'fs', 'bl', 'it', 'ul'].map(k => value.ts[k] ?? core.DEFAULT_STYLES[k])]
+        : [value.content, (value.ts.cl ?? core.DEFAULT_STYLES.cl).rgb]);
+      if (value instanceof Map) for (const child of value.values()) walk(child);
+      else for (const [key, child] of Object.entries(value)) if (key !== 'parent') walk(child);
+    }
+    walk(skeleton.getSkeletonData()); return found;
+  } finally { skeleton.dispose(); }
+}
+for (const atEnd of [false, true]) test(`genuine imported Word → native Enter/undo/redo → PDF intermediate: ${atEnd ? 'end colour conflict mapped' : 'middle split preserved'}`, async () => {
+  const source = importedWord(), imported = trustedCodec({ op: 'import', base64: source }).document;
+  imported.id = 'doc';
+  const before = structuredClone(imported), editor = editorFixture({ document: imported });
+  const injector = editor.instance.__getInjector();
+  injector.add(dependencies.find(d => d[0]?.name === 'DocMenuStyleService'));
+  editor.commands.registerCommand(ui.BreakLineCommand);
+  injector.get(core.IUniverInstanceService).focusUnit('doc');
+  try {
+    const offset = atEnd ? imported.body.paragraphs[6].startIndex : imported.body.paragraphs[5].startIndex + 4;
+    assert.equal(await editor.commands.executeCommand(ui.BreakLineCommand.id, { unitId: 'doc', textRange: { startOffset: offset, endOffset: offset, collapsed: true, segmentId: '' } }), true);
+    const entered = await editor.handle.commit();
+    assert.equal(entered.body.paragraphs.length, 10);
+    injector.get(docs.DocStateChangeManagerService).flushPendingChanges('doc');
+    assert.equal(await editor.commands.executeCommand(core.UndoCommand.id), true);
+    assert.equal((await editor.handle.commit()).body.dataStream, before.body.dataStream);
+    assert.equal(await editor.commands.executeCommand(core.RedoCommand.id), true);
+    const saved = await editor.handle.commit(), copy = structuredClone(saved);
+    assert.equal(saved.body.dataStream, entered.body.dataStream);
+    assert.deepEqual(nativeMarkers(saved, editor.instance), ['•', '•', '1.', '2.', '5.', '6.', '7.', '3.'].map((label, i) => [label, atEnd && i === 5 ? '#1B1C1F' : '#000000']));
+    validatePdfDocument(saved);
+    const mapped = pdfIntermediate(saved);
+    if (atEnd) {
+      assert.throws(() => trustedCodec({ op: 'export', document: saved }), /Conflicting paragraph-mark/);
+    }
+    assert.equal(mapped.error, undefined);
+    const reopened = trustedCodec({ op: 'import', base64: mapped.base64 }).document;
+    assert.deepEqual(nativeMarkers(reopened, editor.instance, true), nativeMarkers(saved, editor.instance, true));
+    assert.equal(reopened.body.dataStream, saved.body.dataStream);
+    const counts = new Map(), markers = [];
+    for (const p of reopened.body.paragraphs) if (p.bullet) {
+      const b = p.bullet, level = reopened.lists[b.listType].nestingLevel[0];
+      const count = (counts.get(b.listId) ?? level.startNumber) + 1; counts.set(b.listId, count);
+      markers.push(level.glyphSymbol ?? `${count}.`);
+    }
+    assert.deepEqual(markers, ['•', '•', '1.', '2.', '5.', '6.', '7.', '3.']);
+    assert.equal(counts.size, 3);
+    assert.deepEqual(saved, copy); assert.deepEqual(imported, before);
+    assert.deepEqual(trustedCodec({ op: 'import', base64: source }).document.body, before.body);
+  } finally { editor.dispose(); }
+});
+test('saved imported conflict maps before fixture transport download and discloses PDF-only mark semantics', async () => {
+  const snapshot = importedSaved(); snapshot.id = 'doc'; const before = structuredClone(snapshot);
+  const native = { commit: async () => snapshot, save: () => snapshot, isEditing: () => false, contentEpoch: () => 0 };
+  let calls = 0;
+  const view = mount(storage(), { api: async (_path, input) => {
+    calls++; validatePdfDocument(input.document);
+    const mapped = pdfIntermediate(input.document); assert.equal(mapped.error, undefined);
+    assert.equal(trustedCodec({ op: 'import', base64: mapped.base64 }).document.body.dataStream, snapshot.body.dataStream);
+    return { ...result, warnings: PDF_WARNINGS }; // Transport fixture, not rendered PDF evidence.
+  }, editor: () => native, work });
+  try {
+    await view.click(label); await view.click(label);
+    assert.equal(calls, 2); assert.equal(view.downloads.length, 2);
+    assert.match(view.text(), /does not retain conflicting paragraph-mark editing metadata/);
+    assert.match(view.text(), /Word export still refuses that conflict/);
+    assert.match(view.text(), /No exact layout or full Word fidelity/);
+    assert.deepEqual(snapshot, before);
+  } finally { view.unmount(); }
+});
+test('PDF intermediate retains genuine native red/green marker typography with blue body and empty continuation', () => {
+  const snapshot = contrastNative(), before = structuredClone(snapshot), editor = editorFixture({ document: snapshot });
+  try {
+    const expected = ['5.', '6.', '7.', '2.', '3.'].map((label, i) => [label, ...([0, 1, 3].includes(i)
+      ? [{ rgb: '#FF0000' }, 20, 1, 1, { s: 1 }] : [{ rgb: '#008000' }, 14, 0, 0, { s: 0 }])]);
+    assert.deepEqual(nativeMarkers(snapshot, editor.instance, true), expected);
+    const mapped = pdfIntermediate(snapshot); assert.equal(mapped.error, undefined);
+    const reopened = trustedCodec({ op: 'import', base64: mapped.base64 }).document;
+    assert.deepEqual(nativeMarkers(reopened, editor.instance, true), expected);
+    assert.deepEqual(snapshot, before);
+  } finally { editor.dispose(); }
+});
 test('PDF consumer dispatches flat lists unchanged, discloses bounds and never saves', async () => {
   const snapshot = listDocument(), before = structuredClone(snapshot), calls = [];
   const native = { commit: async () => snapshot, save: () => snapshot, isEditing: () => false, contentEpoch: () => 0 };
