@@ -26,7 +26,7 @@ async function body(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 export function createServer(options) { return http.createServer(createHandler(options)); }
-export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -60,6 +60,17 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
       if (path === '/api/work/blank' && req.method === 'POST') return send(200, await workspace.createBlank(principal, await body(req)));
+      if (pdf && path === '/api/exchange/pdf/export' && req.method === 'POST') {
+        const abort = new AbortController(), disconnected = () => { if (!res.writableEnded) abort.abort(); };
+        req.once('aborted', disconnected); res.once('close', disconnected);
+        try {
+          const input = await body(req);
+          if (req.aborted || res.destroyed) abort.abort();
+          const result = await pdf.export(principal, input, { signal: abort.signal });
+          if (!res.destroyed) return send(200, result);
+          return;
+        } finally { req.off('aborted', disconnected); res.off('close', disconnected); }
+      }
       if (docx && path === '/api/exchange/docx/preview' && req.method === 'POST') return send(200, await docx.preview(principal, await body(req)));
       if (docx && path === '/api/exchange/docx/import' && req.method === 'POST') return send(200, await docx.import(principal, await body(req)));
       if (docx && path === '/api/exchange/docx/export' && req.method === 'POST') return send(200, await docx.export(principal, await body(req)));
@@ -96,6 +107,6 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (m && req.method === 'POST' && m[2] === 'save') return send(200, await workspace.save(principal, m[1], await body(req)));
       if (m && req.method === 'POST' && m[2] === 'proposals' && m[3]) return send(200, await workspace.decide(principal, m[1], m[3], await body(req)));
       throw new Fault('not_found', 404);
-    } catch (e) { send(e instanceof Fault ? e.status : e.code === 'ENOENT' ? 404 : 500, { error: e instanceof Fault ? e.code : 'service_unavailable' }); }
+    } catch (e) { if (!res.destroyed) send(e instanceof Fault ? e.status : e.code === 'ENOENT' ? 404 : 500, { error: e instanceof Fault ? e.code : 'service_unavailable' }); }
   };
 }

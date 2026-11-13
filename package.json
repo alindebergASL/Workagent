@@ -21,7 +21,9 @@
     "test:xlsx-isolation": "node apps/workagent-server/tests/xlsx-isolation.test.mjs",
     "test:documents": "node apps/workagent-server/tests/documents.test.mjs && node apps/workagent-client/tests/document-native.test.mjs && node apps/workagent-client/tests/document-exchange.test.mjs && node apps/workagent-runner/tests/documents.test.mjs",
     "test:docx": ".local/docx-python/bin/python -I services/workagent-execution/docx/test_codec.py && node apps/workagent-server/tests/docx.test.mjs && node apps/workagent-client/tests/docx-exchange.test.mjs && node apps/workagent-client/tests/docx-native.test.mjs",
-    "test:docx-isolation": "node apps/workagent-server/tests/docx-isolation.test.mjs"
+    "test:docx-isolation": "node apps/workagent-server/tests/docx-isolation.test.mjs",
+    "test:pdf": "python3 -I services/workagent-execution/pdf/test_render.py && node apps/workagent-server/tests/pdf.test.mjs && node apps/workagent-client/tests/pdf-export.test.mjs",
+    "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",

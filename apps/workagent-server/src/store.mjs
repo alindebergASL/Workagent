@@ -3,6 +3,11 @@ export function initialState(owner) { return { owner, permissionRevision: 1, ena
 // Only this production store is wired into main. The parent provisions a fresh schema.
 export class PostgresStore {
   constructor(pool, owner) { this.pool = pool; this.owner = owner; }
+  async read(fn) {
+    const { rows } = await this.pool.query('SELECT data FROM workagent_b01.workspace WHERE id = $1', [this.owner]);
+    if (!rows.length) throw new Fault('workspace_not_provisioned', 503);
+    return structuredClone(await fn(rows[0].data));
+  }
   async transaction(fn) {
     const client = await this.pool.connect();
     try {

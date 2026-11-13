@@ -297,3 +297,77 @@ without a listener. Browser/service/real PostgreSQL verification remains Parent'
 The first slice implements deterministic scalar bindings and interval/source-revision
 triggers. Semantic proposals and external webhook/connector adapters are not added;
 P06/P11's broader connected artifacts and continuing-responsibility scope is retained.
+
+## B04 bounded native-document PDF export (uncommitted, not installed)
+
+`POST /api/exchange/pdf/export` accepts only `{workId, contentRevision, document}`
+for an authenticated native document. It uses the current editor commit snapshot,
+including unsaved text, and performs read-only access/revision checks before and
+after conversion. It creates no work, blob, save, model job or accounting entry.
+The client refuses pending paste/IME/commands and changes during conversion; drafts
+and messages stay intact. One PDF conversion may run at a time; failures allow retry.
+
+Supported: the existing DOCX mapping's literal paragraphs, bold/italic,
+single underline, half-point font sizes, RGB colour, simple alignment and one page
+geometry. Other native formatting/structures are refused before rendering. The
+private PDF intermediate uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP
+Han and Noto Color Emoji fallback for standalone emoji. Exact font family/file
+and character coverage are checked; unavailable fonts fail with
+`pdf_fonts_unavailable`, missing glyphs with `pdf_missing_glyph`, and other
+scripts/combining/emoji sequences with `pdf_unsupported_text`. These are visible
+refusals, not Unicode normalization. Wrapping, pagination and layout can differ
+from native/Word. Native documents, originals and qualified DOCX export are unchanged.
+Native default hyphenation/canvas settings, metadata, themes and style names are omitted. This is PDF **export only**, not PDF
+import/OCR/roundtrip editing, sheet/deck PDF, exact Word fidelity or completed B04.
+
+Parent must provide Linux rootless bubblewrap, `/usr/bin/soffice` (the bootstrap
+used LibreOffice **24.2**), `/usr/bin/fc-match`, `/etc/libreoffice`, `/etc/fonts`,
+`fonts-dejavu-core`, `fonts-wqy-zenhei`, `fonts-noto-color-emoji` under `/usr`, and
+`WORKAGENT_DOCX_VENV` as an absolute dedicated read-only Python environment with
+the existing hash-pinned DOCX requirements. No new Python package is needed.
+Parent reports these renderer dependencies provisioned on the private server;
+corrected-byte private qualification is still pending.
+No missing-dependency or namespace failure falls back to a host renderer.
+
+Every request starts a fresh namespace: read-only `/usr`, scoped font/LibreOffice
+configuration, codec/renderer files and DOCX venv; private `/proc`, `/dev`, `/tmp`;
+no network, operator home, credentials, database/state or whole `/etc` mount.
+Synthetic passwd/group/NSS data uses the actual worker UID/GID. Environment is
+cleared to HOME=/tmp, PATH=/usr/bin, LANG=C.UTF-8. The existing DOCX codec runs as
+a child with its unchanged 512 MiB/eight CPU seconds/32 FD limits. The PDF-only
+intermediate reuses strict codec ZIP/XML preflight, then maps only run fonts while
+preserving text, styles, geometry and other parts. Only this generated DOCX reaches
+fixed LibreOffice arguments and a fresh `/tmp/lo-profile`.
+PDF worker limits: 2 GiB AS, 15 CPU seconds, 24 MiB file, 128 FD, 25-second internal
+and 30-second outer wall bounds. Input JSON is 4.5 MB, native text 200 KB with
+10,000 paragraphs/runs; DOCX remains 2 MB, PDF 16 MB and worker JSON 22 MB. Output,
+stderr, timeout and HTTP disconnect terminate descendants; namespace teardown
+also kills children that create their own sessions. No retained files are cleaned.
+
+```sh
+npm run test:pdf
+npm run test:docx
+npm run test:documents
+npm run typecheck
+npm run build -- --configLoader native
+# Parent/CI on a namespace-capable executor, with test-only poppler-utils:
+WORKAGENT_DOCX_VENV=/home/ubuntu/workagent-b04-docx-20261113/.local/docx-python npm run test:pdf-isolation
+```
+
+`test:pdf` uses deterministic route/consumer fixtures, the installed native SDK,
+real bounded subprocesses and the existing codec; it is not browser/model/rendering
+acceptance. `test:pdf-isolation` fails rather than skips when namespaces/renderer
+are unavailable, and opens actual empty/rich Unicode/multipage exports with
+`pdftotext`/`pdfinfo` inside isolation. Poppler is not a product dependency.
+The implementation worker's namespace attempt was denied at NETLINK_ROUTE socket
+creation (`Operation not permitted`); no isolation weakening or unsandboxed render
+was attempted. Parent must rerun that suite, read-only PG/authenticated HTTP,
+private qualification, browser snapshot/pending-edit races and visual/font
+inspection after handoff. The original Unicode/multipage assertions remain,
+with additional reversed/repeated Han/emoji and unsupported-text checks.
+
+Local correction result: PDF 36 Node + 8 Python, DOCX 16 Node + 30 Python,
+documents including DSH 72 Node and App 38 Node passed; typecheck/native build
+passed. Parent repaired the runner node_modules link before this run. Actual
+namespace execution still fails closed here at NETLINK_ROUTE with the required
+venv set; it is not a rendering pass. No dependency changes by this writer.

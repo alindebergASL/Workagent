@@ -18,7 +18,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((a, b)
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
 function mount(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -30,6 +30,7 @@ function mount(storage, fetcher) {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './DocxExchange') return { DocxExchange };
+    if (name === './PdfExport') return { PdfExport };
     if (name === './DocumentExchange') return { DocumentExchange };
     if (name === './DocumentEditor') return { DocumentEditor };
     if (name === './NativeEditor') return { NativeEditor };

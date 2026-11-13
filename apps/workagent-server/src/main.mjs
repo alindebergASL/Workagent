@@ -1,5 +1,7 @@
 import { DocxExchange } from './docx-exchange.mjs';
 import { DocxWorker } from './docx-worker.mjs';
+import { PdfExchange } from './pdf-exchange.mjs';
+import { PdfWorker } from './pdf-worker.mjs';
 import { DocumentExchange } from './document-exchange.mjs';
 import pg from 'pg';
 import { XlsxExchange } from './xlsx-exchange.mjs';
@@ -43,7 +45,8 @@ const exchange = new CsvExchange({ workspace, files: maintenance.files });
 const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new XlsxWorker({ venv: process.env.WORKAGENT_XLSX_VENV }) });
 const docx = new DocxExchange({ workspace, files: maintenance.files, worker: new DocxWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 const documents = new DocumentExchange({ workspace, files: maintenance.files });
-const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const pdf = new PdfExchange({ workspace, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
+const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });
