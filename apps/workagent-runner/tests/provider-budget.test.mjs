@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRouterAccounting, journalStatus, keyBudget } from '../src/provider-accounting.mjs';
-import { requestBody, requestHash, streamOpenRouter } from '../src/wire.mjs';
+import { requestBody, requestHash, streamOpenRouter, reconcileOpenRouterReceipt } from '../src/wire.mjs';
 const key = { limit: 100, limit_remaining: 40, limit_reset: null, usage: 60, budgets: [], effective_budget: null };
 const options = { model: 'typesafe/jev-router', sessionId: 'synthetic-session', requestId: 'synthetic-step', maxTokens: 32768, reasoningEffort: 'high', messages: [{ role: 'user', content: [{ type: 'text', text: 'Synthetic fixture' }] }] };
 // A serial, rollback-capable journal fixture; PostgreSQL constraints/roles are Parent qualification.
@@ -17,13 +17,14 @@ class Journal {
   }
   async status() { return journalStatus(this.rows); }
 }
-function setup({ denial, missingCost = false, complete = true, limit = key, finish = 'stop', brokenTool = false } = {}) {
+function setup({ denial, missingCost = false, complete = true, limit = key, finish = 'stop', brokenTool = false, frameOverrides = {} } = {}) {
   const journal = new Journal(), requests = [];
   const fetchImpl = async (url, request) => {
     requests.push({ url, request });
     if (url.endsWith('/key')) return Response.json({ data: limit });
     if (denial) return Response.json({ error: { message: 'Synthetic denial', metadata: { limit_source: denial === 429 ? 'rate' : 'openrouter_key_limit' } } }, { status: denial });
     const frame = { id: 'synthetic-generation', model: 'synthetic/resolved', choices: [{ index: 0, delta: brokenTool ? { tool_calls: [{ index: 0, id: 'partial', function: { name: 'edit_sheet', arguments: '{' } }] } : { content: 'Synthetic visible result' }, finish_reason: finish }], usage: { prompt_tokens: 20, completion_tokens: 8, ...(missingCost ? {} : { cost: 0.001 }) } };
+    Object.assign(frame, frameOverrides);
     return new Response(`data: ${JSON.stringify(frame)}\n\n` + (complete ? 'data: [DONE]\n\n' : ''));
   };
   const accounting = new OpenRouterAccounting({ journal, apiKey: 'synthetic', fetchImpl });
@@ -110,4 +111,123 @@ test('timing and metadata bounds reject invalid configuration without provider w
   assert.equal(requestTimeout('600000'), 600000); assert.throws(() => requestTimeout(0), /invalid_request_timeout/);
   assert.throws(() => outputAllowance(NaN), /invalid_output_bound/);
   await assert.rejects(providerText(new Response('too large'), 2), /metadata_too_large/);
+});
+
+// Synthetic protocol-shaped evidence. Catalog aliases are exact provider metadata,
+// not suffix normalization; another variant may share the same canonical slug.
+const observedModel = 'synthetic/flash-0314', canonicalModel = 'synthetic/flash-20310314';
+const catalogEntry = { id: observedModel, canonical_slug: canonicalModel };
+async function interrupted(frameOverrides = {}, opts = options) {
+  const f = setup({ complete: false, finish: null, frameOverrides: { model: observedModel, usage: null, ...frameOverrides } });
+  await assert.rejects(collect(f, opts), /outcome_unknown/);
+  const prior = structuredClone(f.journal.rows.at(-1).data);
+  const binding = { reservationId: prior.reservationId, requestHash: prior.requestHash, responseId: prior.responseId };
+  const generation = { id: prior.responseId, model: canonicalModel, cancelled: true, finish_reason: null, native_finish_reason: null,
+    streamed: true, total_cost: 0.000123, tokens_prompt: 20, tokens_completion: 8 };
+  const catalog = { data: [{ id: `${observedModel}:batch`, canonical_slug: canonicalModel }, catalogEntry] };
+  const lookups = [];
+  const dependencies = { accounting: f.accounting, apiKey: 'synthetic', fetchImpl: async (url, request) => {
+    lookups.push({ url, request });
+    assert.equal(request.method, 'GET'); assert.equal(request.redirect, 'error');
+    if (url === 'https://openrouter.ai/api/v1/models') return Response.json(catalog);
+    assert.equal(url, `https://openrouter.ai/api/v1/generation?id=${prior.responseId}`);
+    return Response.json({ data: generation });
+  } };
+  return { ...f, prior, binding, generation, catalog, lookups, dependencies };
+}
+test('cancelled generation with catalog association appends evidence through wire and accounting without replay', async () => {
+  const f = await interrupted(), before = structuredClone(f.journal.rows);
+  const result = await reconcileOpenRouterReceipt(f.binding, f.dependencies);
+  assert.equal(result.settled, true); assert.equal(result.reportedCostUsd, f.generation.total_cost);
+  assert.deepEqual(f.journal.rows.slice(0, before.length), before);
+  const receipt = f.journal.rows.at(-1).data;
+  assert.equal(receipt.resolvedModel, observedModel); assert.deepEqual(receipt.generation, f.generation);
+  assert.deepEqual(receipt.modelMapping, { source: 'https://openrouter.ai/api/v1/models', ...catalogEntry });
+  assert.equal(receipt.monetaryState, 'provider_reported');
+  assert.equal((await f.accounting.status()).unresolvedRequests, 0);
+  assert.equal((await f.accounting.status()).verifiedInvoiceCostUsd, null);
+  assert.equal(f.lookups.length, 2); assert.equal(f.requests.length, 2);
+  await reconcileOpenRouterReceipt(f.binding, f.dependencies);
+  assert.equal(f.journal.rows.length, before.length + 1);
+  await assert.rejects(f.accounting.dispatch(f.binding), /no_replay/);
+  await assert.rejects(collect(f), /no_replay/);
+  assert.equal(f.requests.filter(r => r.request.method === 'POST').length, 1);
+});
+test('provider reconciliation accepts exact models and zero cost without a catalog lookup', async () => {
+  for (const finish_reason of [null, '', undefined]) {
+    const f = await interrupted(); Object.assign(f.generation, { model: observedModel, total_cost: 0, finish_reason });
+    assert.equal((await reconcileOpenRouterReceipt(f.binding, f.dependencies)).settled, true);
+    assert.equal(f.lookups.length, 1); assert.equal(f.journal.rows.at(-1).data.modelMapping, undefined);
+  }
+});
+test('normal finished generations can use the same exact catalog association', async () => {
+  const f = await interrupted(); delete f.generation.cancelled; f.generation.finish_reason = 'stop';
+  assert.equal((await reconcileOpenRouterReceipt(f.binding, f.dependencies)).settled, true);
+});
+test('empty finish requires boolean true cancellation; incomplete or unrelated generations append nothing', async () => {
+  for (const change of [
+    ...[null, '', undefined].flatMap(finish_reason => [undefined, false, 'true', 1].map(cancelled => ({ finish_reason, cancelled }))),
+    { finish_reason: false }, { id: 'gen-unrelated' }, { model: '' }, { total_cost: undefined }, { total_cost: null }, { total_cost: '0.01' }, { total_cost: -1 }]) {
+    const f = await interrupted(); Object.assign(f.generation, change);
+    await assert.rejects(reconcileOpenRouterReceipt(f.binding, f.dependencies), /incomplete_or_conflicting/);
+    assert.equal(f.journal.rows.length, 3); assert.equal(f.lookups.length, 1);
+    assert.equal((await f.accounting.status()).unresolvedRequests, 1);
+  }
+});
+test('only a unique exact observed ID mapping is accepted, never a related variant or caller hint', async () => {
+  for (const data of [[], [{ id: `${observedModel}:batch`, canonical_slug: canonicalModel }],
+    [{ id: observedModel, canonical_slug: 'synthetic/unrelated' }], [{ id: observedModel }],
+    [{ id: observedModel, canonical_slug: [canonicalModel] }], [catalogEntry, catalogEntry],
+    [catalogEntry, { id: observedModel, canonical_slug: 'synthetic/conflict' }], null, {}]) {
+    const f = await interrupted(); f.catalog.data = data;
+    await assert.rejects(reconcileOpenRouterReceipt({ ...f.binding, resolvedModel: canonicalModel, modelMapping: catalogEntry }, f.dependencies), /model_mapping/);
+    assert.equal(f.journal.rows.length, 3); assert.equal((await f.accounting.status()).unresolvedRequests, 1);
+  }
+});
+test('provider reconciliation derives identity from retained request before any lookup', async () => {
+  for (const change of [{ reservationId: 'unknown' }, { requestHash: 'f'.repeat(64) }, { responseId: 'gen-unrelated' }, { responseId: undefined }]) {
+    const f = await interrupted();
+    await assert.rejects(reconcileOpenRouterReceipt({ ...f.binding, ...change }, f.dependencies), /identity|binding/);
+    assert.equal(f.lookups.length, 0); assert.equal(f.journal.rows.length, 3);
+  }
+  const f = await interrupted({ id: undefined });
+  await assert.rejects(reconcileOpenRouterReceipt({ ...f.binding, responseId: 'gen-invented' }, f.dependencies), /identity/);
+  assert.equal(f.lookups.length, 0);
+});
+test('a generation retained by another request cannot be grafted onto this request', async () => {
+  const f = await interrupted(), g = await interrupted({ id: 'synthetic-other-generation' }, { ...options, sessionId: 'synthetic-other-session' });
+  f.journal.rows.push(...g.journal.rows);
+  const before = structuredClone(f.journal.rows);
+  await assert.rejects(reconcileOpenRouterReceipt({ ...f.binding, responseId: g.binding.responseId }, f.dependencies), /identity/);
+  await assert.rejects(reconcileOpenRouterReceipt({ ...f.binding, reservationId: g.binding.reservationId }, f.dependencies), /binding/);
+  await assert.rejects(f.accounting.retain({ ...f.binding, responseId: g.binding.responseId, resolvedModel: observedModel,
+    outcome: 'reconciled', terminal: true, generation: g.generation,
+    modelMapping: { source: 'https://openrouter.ai/api/v1/models', ...catalogEntry } }), /identity_conflict/);
+  assert.equal(f.lookups.length, 0); assert.deepEqual(f.journal.rows, before);
+  assert.equal((await f.accounting.status()).unresolvedRequests, 2);
+});
+test('accounting independently rejects forged mapping, terminal, cost and identity evidence', async () => {
+  const f = await interrupted();
+  const receipt = { ...f.binding, resolvedModel: observedModel, outcome: 'reconciled', terminal: true, generation: f.generation,
+    modelMapping: { source: 'https://openrouter.ai/api/v1/models', ...catalogEntry } };
+  for (const change of [{ modelMapping: undefined }, { modelMapping: { ...receipt.modelMapping, source: 'caller' } },
+    { modelMapping: { ...receipt.modelMapping, id: `${observedModel}:batch` } },
+    { modelMapping: { ...receipt.modelMapping, canonical_slug: 'synthetic/unrelated' } },
+    { resolvedModel: canonicalModel }, { terminal: false }, { terminal: 'true' },
+    { generation: { ...f.generation, id: undefined } }, { generation: { ...f.generation, cancelled: 'true' } },
+    ...[undefined, null, '0.01', -1, NaN, Infinity].map(total_cost => ({ generation: { ...f.generation, total_cost } }))]) {
+    await assert.rejects(f.accounting.retain({ ...receipt, ...change }), /identity|mapping|incomplete/);
+    assert.equal(f.journal.rows.length, 3);
+  }
+  await f.accounting.retain(receipt);
+  await assert.rejects(f.accounting.retain({ ...receipt, generation: { ...f.generation, total_cost: 0.1 } }), /cost_conflict/);
+  assert.equal(f.journal.rows.length, 4);
+});
+test('catalog failures and bounded response rejection preserve unknown receipts', async () => {
+  for (const response of [new Response('', { status: 503 }), Response.json({ data: null }), new Response(' '.repeat(8_000_001))]) {
+    const f = await interrupted(), fetchImpl = f.dependencies.fetchImpl;
+    f.dependencies.fetchImpl = (url, request) => url.endsWith('/models') ? response : fetchImpl(url, request);
+    await assert.rejects(reconcileOpenRouterReceipt(f.binding, f.dependencies), /model_mapping|metadata_too_large/);
+    assert.equal(f.journal.rows.length, 3); assert.equal((await f.accounting.status()).unresolvedRequests, 1);
+  }
 });

@@ -179,16 +179,28 @@ export async function* streamOpenRouter(options, { accounting, apiKey, fetchImpl
   }
 }
 
-// Explicit recovery only: one read-only GET for an ID retained on this attempt.
-// There is no inference fallback, retry loop, key lookup, or automatic scheduling.
+export const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
+export function terminalGeneration(generation, allowCancelled = false) {
+  return typeof generation?.finish_reason === 'string' && Boolean(generation.finish_reason)
+    || allowCancelled && generation?.cancelled === true && (generation.finish_reason == null || generation.finish_reason === '');
+}
+// Explicit recovery only: exact generation GET, plus one bounded catalog GET if
+// the provider journal's retained model differs. No inference or key-usage lookup.
 export async function reconcileOpenRouterReceipt({ reservationId, requestHash, responseId },
   { accounting, apiKey, fetchImpl = fetch, signal }) {
   if (!reservationId || !/^[a-f0-9]{64}$/.test(requestHash) || typeof responseId !== 'string' || !responseId || responseId.length > 200) throw new Error('reconciliation_identity_required');
   if (!apiKey) throw new Error('openrouter_not_configured');
+  const binding = { reservationId, requestHash, responseId };
+  // Only the provider journal offers this seam. Legacy issuer reconciliation
+  // keeps its original finish/model contract; caller model hints are not evidence.
+  const providerMode = typeof accounting.reconciliationIdentity === 'function';
+  const identity = providerMode ? await accounting.reconciliationIdentity(binding) : null;
+  if (providerMode && (typeof identity?.resolvedModel !== 'string' || !identity.resolvedModel)) throw new Error('reconciliation_identity_required');
+  const request = { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error',
+    signal: AbortSignal.any([AbortSignal.timeout(10000), ...(signal ? [signal] : [])]) };
   const url = new URL('https://openrouter.ai/api/v1/generation');
   url.searchParams.set('id', responseId);
-  const response = await fetchImpl(url.toString(), { method: 'GET', headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error',
-    signal: AbortSignal.any([AbortSignal.timeout(10000), ...(signal ? [signal] : [])]) });
+  const response = await fetchImpl(url.toString(), request);
   if (!response.ok) throw new Error('generation_lookup_unavailable');
   const chunks = []; let bytes = 0;
   for await (const chunk of response.body ?? []) {
@@ -198,11 +210,24 @@ export async function reconcileOpenRouterReceipt({ reservationId, requestHash, r
   }
   const generation = JSON.parse(Buffer.concat(chunks).toString('utf8')).data;
   if (generation?.id !== responseId || typeof generation.model !== 'string' || !generation.model
-      || typeof generation.finish_reason !== 'string' || !generation.finish_reason
+      || !terminalGeneration(generation, providerMode)
       || typeof generation.total_cost !== 'number' || !Number.isFinite(generation.total_cost) || generation.total_cost < 0)
     throw new Error('generation_lookup_incomplete_or_conflicting');
-  const retained = await accounting.retain({ reservationId, requestHash, responseId, resolvedModel: generation.model,
-    outcome: 'reconciled', terminal: true, generation });
+  const resolvedModel = identity?.resolvedModel ?? generation.model;
+  let modelMapping;
+  if (resolvedModel !== generation.model) {
+    const catalogResponse = await fetchImpl(OPENROUTER_MODELS_URL, request);
+    if (!catalogResponse.ok) throw new Error('generation_model_mapping_unavailable');
+    const catalog = JSON.parse(await providerText(catalogResponse, 8_000_000));
+    if (!Array.isArray(catalog?.data)) throw new Error('generation_model_mapping_invalid');
+    const matches = catalog.data.filter(entry => entry?.id === resolvedModel);
+    if (matches.length !== 1 || matches[0].canonical_slug !== generation.model) throw new Error('generation_model_mapping_invalid');
+    // Preserve literal provider identifiers. Shared canonical slugs do not make
+    // other IDs/variants interchangeable. This metadata is not invoice evidence.
+    modelMapping = { source: OPENROUTER_MODELS_URL, id: matches[0].id, canonical_slug: matches[0].canonical_slug };
+  }
+  const retained = await accounting.retain({ ...binding, resolvedModel,
+    outcome: 'reconciled', terminal: true, generation, ...(modelMapping ? { modelMapping } : {}) });
   if (retained?.retained !== true) throw new Error('issuer_retention_unconfirmed');
   return retained;
 }

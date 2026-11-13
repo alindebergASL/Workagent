@@ -186,6 +186,15 @@ test('generation reconciliation is exact-ID GET only and retains original metada
   dependencies.fetchImpl = async () => new Response('', { status: 404 });
   await assert.rejects(reconcileOpenRouterReceipt(binding, dependencies), /lookup_unavailable/);
 });
+test('legacy reconciliation still requires finish_reason even for a cancelled generation', async () => {
+  const receipts = [], requests = [];
+  const binding = { reservationId: 'legacy-fixture', requestHash: 'c'.repeat(64), responseId: 'gen-legacy-fixture' };
+  const generation = { id: binding.responseId, model: 'synthetic/model', cancelled: true, finish_reason: null, total_cost: 0 };
+  const dependencies = { apiKey: 'synthetic', accounting: { async retain(r) { receipts.push(r); return { retained: true }; } },
+    fetchImpl: async (url, request) => { requests.push({ url, request }); return Response.json({ data: generation }); } };
+  await assert.rejects(reconcileOpenRouterReceipt(binding, dependencies), /incomplete_or_conflicting/);
+  assert.equal(requests.length, 1); assert.equal(receipts.length, 0);
+});
 test('media, Decisions and extra paid endpoint features cannot enter the accounted body', () => {
   assert.throws(() => requestBody({ ...options, model: 'typesafe/jev-1.13' }, policy), /route_not_authorized/);
   assert.throws(() => requestBody({ ...options, messages: [{ role: 'user', content: [{ type: 'image', url: 'https://example.test/image' }] }] }, policy), /unsupported_modality/);

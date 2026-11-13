@@ -1,9 +1,20 @@
 import { isDeepStrictEqual } from 'node:util';
 import { createHash } from 'node:crypto';
-import { DEFAULT_MODEL, DEFAULT_MAX_OUTPUT_TOKENS, outputAllowance, providerText } from './wire.mjs';
+import { DEFAULT_MODEL, DEFAULT_MAX_OUTPUT_TOKENS, OPENROUTER_MODELS_URL, outputAllowance, providerText, terminalGeneration } from './wire.mjs';
 const sha = value => createHash('sha256').update(value).digest('hex');
 const fail = code => { throw new Error(code); };
 const amount = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+function retainedIdentity(events, r) {
+  const prepared = events.find(e => e.kind === 'prepared');
+  if (!prepared || prepared.data.reservationId !== r.reservationId || prepared.data.requestHash !== r.requestHash
+      || !events.some(e => e.kind === 'dispatched')) fail('reconciliation_binding_invalid');
+  const previous = events.filter(e => ['received', 'unknown', 'reconciled'].includes(e.kind));
+  const observed = previous.find(e => e.data.responseId === r.responseId && typeof e.data.resolvedModel === 'string' && e.data.resolvedModel);
+  if (typeof r.responseId !== 'string' || !r.responseId || !observed
+      || previous.some(e => e.data.responseId && e.data.responseId !== r.responseId
+        || e.data.resolvedModel && e.data.resolvedModel !== observed.data.resolvedModel)) fail('reconciliation_identity_required');
+  return { resolvedModel: observed.data.resolvedModel };
+}
 export function keyBudget(data) {
   if (!data || !amount(data.usage) || !(data.limit === null || amount(data.limit))
       || !(data.limit_remaining === null || typeof data.limit_remaining === 'number' && Number.isFinite(data.limit_remaining))
@@ -81,6 +92,11 @@ export class OpenRouterAccounting {
       await append('dispatched', { reservationId, requestHash }); return { dispatched: true };
     });
   }
+  // Read retained identity before recovery I/O, then recheck it in retain's
+  // transaction. Never derive the observed model from a recovery caller's hint.
+  reconciliationIdentity(binding) {
+    return this.journal.transaction(binding.reservationId, events => retainedIdentity(events, binding));
+  }
   retain(r) {
     return this.journal.transaction(r.reservationId, async (events, append) => {
       const prepared = events.find(e => e.kind === 'prepared');
@@ -90,7 +106,15 @@ export class OpenRouterAccounting {
       const previous = events.filter(e => ['received', 'unknown', 'reconciled'].includes(e.kind));
       if (previous.some(e => e.data.responseId && r.responseId && e.data.responseId !== r.responseId
           || e.data.resolvedModel && r.resolvedModel && e.data.resolvedModel !== r.resolvedModel)) fail('receipt_identity_conflict');
-      if (r.outcome === 'reconciled' && (!previous.some(e => e.data.responseId === r.responseId) || r.generation?.id !== r.responseId || r.generation?.model !== r.resolvedModel || !r.generation?.finish_reason)) fail('reconciliation_identity_required');
+      if (r.outcome === 'reconciled') {
+        const identity = retainedIdentity(events, r), mapping = r.modelMapping;
+        if (r.resolvedModel !== identity.resolvedModel || r.generation?.id !== r.responseId
+            || typeof r.generation?.model !== 'string' || !r.generation.model
+            || !terminalGeneration(r.generation, true) || r.terminal !== true || !amount(r.generation.total_cost)) fail('reconciliation_incomplete_or_conflicting');
+        if (mapping !== undefined && (!mapping || Array.isArray(mapping) || mapping.source !== OPENROUTER_MODELS_URL
+            || mapping.id !== identity.resolvedModel || mapping.canonical_slug !== r.generation.model)
+            || r.generation.model !== identity.resolvedModel && !mapping) fail('reconciliation_model_mapping_invalid');
+      }
       const cost = r.outcome === 'reconciled' ? r.generation?.total_cost : r.usage?.cost;
       const monetary = ['received', 'reconciled'].includes(r.outcome) && r.terminal && r.responseId && r.resolvedModel && amount(cost);
       if (previous.some(e => e.data.monetaryState === 'provider_reported' && monetary && e.data.reportedCostUsd !== cost)) fail('receipt_cost_conflict');
