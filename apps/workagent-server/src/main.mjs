@@ -13,6 +13,7 @@ import { resolve } from 'node:path';
 import { PostgresStore } from './store.mjs';
 import { Workspace } from './workspace.mjs';
 import { createServer } from './http.mjs';
+import { createShutdown } from './shutdown.mjs';
 import { bootHost } from '../../workagent-runner/src/host.mjs';
 import { createDispatcher } from '../../workagent-runner/src/dispatch.mjs';
 import { DisabledAccounting, IssuerSocketAccounting } from '../../workagent-runner/src/accounting.mjs';
@@ -53,7 +54,6 @@ const server = createServer({ workspace, maintenance, exchange, xlsx, documents,
 const timer = setInterval(() => dispatcher.wake(), 1500);
 server.listen(Number(process.env.WORKAGENT_PORT ?? 8310), hostname, () => console.log('Workagent private service listening'));
 dispatcher.wake();
-let shutdown;
-function close() { return shutdown ??= (async () => { clearInterval(timer); server.close(); await dispatcher.close(); await host.close(); leadership.release(); await pool.end(); })(); }
+const close = createShutdown({ server, dispatcher, host, leadership, pool, timer });
 leadership.on('error', () => { console.error('workspace_leadership_lost'); void close().catch(() => { console.error('workspace_shutdown_failed'); }); });
 process.on('SIGTERM', () => void close()); process.on('SIGINT', () => void close());

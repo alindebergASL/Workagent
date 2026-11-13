@@ -25,7 +25,24 @@ async function body(req) {
   for await (const c of req) { size += c.length; if (size > 4_500_000) throw new Fault('request_too_large', 413); chunks.push(c); }
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
-export function createServer(options) { return http.createServer(createHandler(options)); }
+export function createServer(options) {
+  const handler = createHandler(options), pending = new Set();
+  let stopping = false, draining;
+  const server = http.createServer((req, res) => {
+    // Existing keep-alive connections must not admit more work during shutdown.
+    if (stopping) { res.writeHead(503, { Connection: 'close' }); res.end(); return; }
+    const task = handler(req, res);
+    pending.add(task);
+    void task.then(() => pending.delete(task), () => pending.delete(task));
+  });
+  server.drain = () => draining ??= (async () => {
+    stopping = true;
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    // A disconnected client can leave a transaction/callback still running.
+    await Promise.all([...pending]);
+  })();
+  return server;
+}
 export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
