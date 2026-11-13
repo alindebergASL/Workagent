@@ -34,6 +34,31 @@ function mount(disk, props) {
     unmount() { mounted = false; hooks.forEach(h => h?.cleanup?.()); },
   };
 }
+for (const newerPending of [false, true]) test(`two live CSV consumers retain exact upload retry after another settles; newer pending ${newerPending}`, async () => {
+  const disk = storage(), created = new Map(), calls = [], gate = deferred(); let attempts = 0, opened = 0;
+  const props = { api: async (path, input) => {
+    if (path.endsWith('/preview')) return preview;
+    assert.equal(path, '/exchange/csv/import'); calls.push(structuredClone(input)); attempts++;
+    if (!created.has(input.commandId)) created.set(input.commandId, `csv-${created.size}`);
+    if (attempts === 1) throw new Error('lost ACK after commit');
+    if (newerPending && attempts === 3) return gate.promise;
+    return { workId: created.get(input.commandId) };
+  }, editor: () => { throw new Error('must not save or navigate'); }, work: null, onImported: async () => {}, onOpen: async () => { opened++; throw new Error('open failed'); } };
+  const original = '\ufeffsku,text\r\n0012,"雪\n=1+1"\r\n';
+  const a = mount(disk, props); await a.choose(original); await a.click('Import as new work');
+  const b = mount(disk, props); await b.click('Retry unresolved CSV import');
+  const actions = new MaintenanceActions(disk, 'csv-import'); assert.equal(actions.read(), null);
+  let newer;
+  if (newerPending) { await b.choose('new,upload'); await b.click('Import as new work'); newer = actions.read(); }
+  await a.click('Retry unresolved CSV import');
+  assert.deepEqual(calls.at(-1), calls[0]); assert.equal(calls[0].base64, Buffer.from(original).toString('base64'));
+  assert.equal(created.size, newerPending ? 2 : 1); assert.deepEqual(actions.read(), newer ?? null); assert.equal(opened, 0);
+  if (newerPending) { assert.notEqual(newer.input.commandId, calls[0].commandId); gate.resolve({ workId: created.get(newer.input.commandId) }); await b.flush(); }
+  else { await a.choose('new,upload'); await a.click('Import as new work'); assert.equal(created.size, 2); }
+  a.unmount(); b.unmount();
+  const reload = mount(disk, props); await reload.click('Open imported sheet'); assert.match(reload.text(), /open failed/);
+  await reload.click('Open imported sheet'); assert.equal(opened, 2); assert.equal(created.size, 2); reload.unmount();
+});
 test('actual import UI previews before mutation, retains exact bytes/identity across reload, and opens only on request', async () => {
   const disk = storage(), calls = []; let open = 0, lists = 0, attempts = 0;
   const api = async (path, input) => { calls.push({ path, input }); if (path.endsWith('/preview')) return preview; if (++attempts === 1) throw new Error('lost acknowledgement'); return { workId: 'new' }; };

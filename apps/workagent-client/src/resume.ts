@@ -1,4 +1,5 @@
 import type { Work } from './types';
+import type { SheetSelection } from './NativeEditor';
 export type ProductBatch = { kind: 'reset' | 'events'; cursor: number; events: { eventId: number }[]; works: { id: string; title: string; status: string }[]; snapshots: Work[] };
 // One committed product cursor, unrelated to DSH's native session log.
 export class ProductCursor {
@@ -16,7 +17,8 @@ export class ProductCursor {
     this.after = batch.cursor; return true;
   }
 }
-export type ComposerDraft = { prompt: string; sourceName: string; sourceText: string };
+export type SelectionAttachment = SheetSelection & { contentRevision: number };
+export type ComposerDraft = { prompt: string; sourceName: string; sourceText: string; selection?: SelectionAttachment };
 export class ApiError extends Error {
   readonly path: string;
   readonly status: number;
@@ -25,7 +27,7 @@ export class ApiError extends Error {
     super(code); this.path = path; this.status = status; this.code = code;
   }
 }
-type Submission = { commandId: string; sourceCommandId: string; draft: ComposerDraft; intentRevision?: number };
+type Submission = { commandId: string; sourceCommandId: string; draft: ComposerDraft; intentRevision?: number; selection?: SelectionAttachment };
 const empty = (): ComposerDraft => ({ prompt: '', sourceName: 'Pasted data', sourceText: '' });
 export class ComposerDrafts {
   private storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -39,10 +41,10 @@ export class ComposerDrafts {
   }
   write(workId: string | null, value: ComposerDraft) { this.storage.setItem(this.key(workId), JSON.stringify(value)); }
   pending(workId: string | null): Submission | null { const raw = this.storage.getItem(`${this.key(workId)}:send`); return raw ? JSON.parse(raw) : null; }
-  submission(workId: string | null, draft: ComposerDraft, intentRevision: number | undefined, makeId: () => string): Submission {
+  submission(workId: string | null, draft: ComposerDraft, intentRevision: number | undefined, makeId: () => string, selection?: SelectionAttachment): Submission {
     const old = this.pending(workId);
     if (old) { if (JSON.stringify(old.draft) !== JSON.stringify(draft)) throw new Error('unresolved_send'); return old; }
-    const next = { commandId: makeId(), sourceCommandId: makeId(), draft, intentRevision };
+    const next = { commandId: makeId(), sourceCommandId: makeId(), draft, intentRevision, ...(selection ? { selection } : {}) };
     this.storage.setItem(`${this.key(workId)}:send`, JSON.stringify(next)); return next;
   }
   accepted(workId: string | null, commandId: string) { if (this.pending(workId)?.commandId === commandId) this.storage.removeItem(`${this.key(workId)}:send`); }
@@ -50,8 +52,8 @@ export class ComposerDrafts {
     if (!(error instanceof ApiError) || this.pending(workId)?.commandId !== commandId) return false;
     const invalidInput = error.status === 400 && (
       (error.path === '/sources' && error.code === 'invalid_text') ||
-      (error.path === '/work/commands' && ['invalid_text', 'invalid_sources', 'invalid_command'].includes(error.code)));
-    const intentConflict = error.path === '/work/commands' && error.status === 409 && error.code === 'intent_conflict';
+      (error.path === '/work/commands' && ['invalid_text', 'invalid_sources', 'invalid_command', 'invalid_selection'].includes(error.code)));
+    const intentConflict = error.path === '/work/commands' && error.status === 409 && ['intent_conflict', 'selection_conflict'].includes(error.code);
     // These validation failures cannot have admitted this exact input, and an
     // intent conflict is checked after command deduplication. Access denial is
     // different: grants may have changed after an earlier lost acknowledgement.

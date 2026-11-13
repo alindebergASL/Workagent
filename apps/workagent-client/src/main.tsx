@@ -5,9 +5,9 @@ import type { Work, Proposal } from './types';
 import type { IWorkbookData } from '@univerjs/core';
 import { DraftFence } from './drafts';
 import { withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
-import { ApiError, ProductCursor, ComposerDrafts, type ComposerDraft, type ProductBatch } from './resume';
+import { ApiError, ProductCursor, ComposerDrafts, type ComposerDraft, type ProductBatch, type SelectionAttachment } from './resume';
 import './style.css';
-import { MaintenanceActions } from './maintenance-actions';
+import { MaintenanceActions, type Pending } from './maintenance-actions';
 import { CsvExchange } from './CsvExchange';
 import { MaintenancePanel } from './MaintenancePanel';
 const uuid = () => crypto.randomUUID();
@@ -26,6 +26,8 @@ friendly.interrupted_no_automatic_replay = 'Execution may have started before th
 friendly.cancelled_check_receipt = 'Work has stopped. Saved changes are kept; an in-flight model request may still have taken effect.';
 friendly.service_stopped = 'The service stopped during this work. Saved changes are kept; execution was not automatically repeated.';
 friendly.unresolved_send = 'An earlier send has an unknown acknowledgement. Restore that message below and send it again to check the same command safely.';
+friendly.selection_conflict = 'The saved sheet changed. Attach the intended range again before sending; your message is kept.';
+friendly.invalid_selection = 'This selection is unavailable or too large. Attach one range of at most 2,000 cells (200 KB of context).';
 function App() {
   const [authenticated, setAuthenticated] = useState(false), [token, setToken] = useState(''), [error, setError] = useState('');
   const [works, setWorks] = useState<{ id: string; title: string; status: string }[]>([]), [work, setWork] = useState<Work | null>(null);
@@ -33,6 +35,13 @@ function App() {
   const [draft, setDraft] = useState(false), [prompt, setPrompt] = useState(''), [sourceText, setSourceText] = useState(''), [sourceName, setSourceName] = useState('Pasted data'), [busy, setBusy] = useState(false);
   const [view, setView] = useState<'chat' | 'sheet'>('chat');
   const [pendingSend, setPendingSend] = useState(false);
+  const [selectionView, setSelectionView] = useState<SelectionAttachment | undefined>();
+  const blankActions = useRef(new MaintenanceActions(localStorage, 'blank-sheet'));
+  const [blankTitle, setBlankTitle] = useState('Untitled spreadsheet'), [blankBusy, setBlankBusy] = useState(false);
+  const blankFlight = useRef(false);
+  const blankAttempt = useRef<Pending | null>(null);
+  const [blankPending, setBlankPending] = useState(false);
+  const [createdBlank, setCreatedBlank] = useState<string | null>(null);
   const fence = useRef(new DraftFence());
   const composers = useRef(new ComposerDrafts(localStorage));
   const composer = useRef<ComposerDraft>({ prompt: '', sourceName: 'Pasted data', sourceText: '' });
@@ -44,7 +53,7 @@ function App() {
   function installEditor(next: typeof editorState) { base.current = next; setEditorState(next); }
   const hasDraft = () => dirty.current || !!editor.current?.isEditing();
   const report = (e: unknown) => setError(e instanceof Error ? friendly[e.message] ?? e.message : 'Unable to save this change.');
-  function displayComposer(value: ComposerDraft) { composer.current = value; setPrompt(value.prompt); setSourceName(value.sourceName); setSourceText(value.sourceText); }
+  function displayComposer(value: ComposerDraft) { composer.current = value; setPrompt(value.prompt); setSourceName(value.sourceName); setSourceText(value.sourceText); setSelectionView(value.selection); }
   function loadComposer(workId: string | null) { try { displayComposer(composers.current.read(workId)); setPendingSend(!!composers.current.pending(workId)); } catch (e) { displayComposer({ prompt: '', sourceName: 'Pasted data', sourceText: '' }); report(e); } }
   function editComposer(changes: Partial<ComposerDraft>) {
     const next = { ...composer.current, ...changes }; displayComposer(next);
@@ -64,6 +73,13 @@ function App() {
     }
   }, []);
   useEffect(() => { loadComposer(null); list().catch(() => {}); }, [list]);
+  useEffect(() => {
+    try {
+      const pending = blankActions.current.read(); blankAttempt.current = pending; setBlankPending(!!pending);
+      if (typeof pending?.input.title === 'string') setBlankTitle(pending.input.title);
+      setCreatedBlank(localStorage.getItem('workagent-blank:created'));
+    } catch (e) { report(e); }
+  }, []);
   useEffect(() => {
     if (!authenticated) return;
     const cursor = new ProductCursor(); let disposed = false, timer: ReturnType<typeof setTimeout>;
@@ -104,6 +120,39 @@ function App() {
       } catch { setError('A local draft could not be opened. The saved server version is available.'); }
     }
     return true;
+  }
+  async function createBlank() {
+    if (blankFlight.current) return;
+    blankFlight.current = true; setBlankBusy(true);
+    const actions = blankActions.current;
+    let submitted;
+    try {
+      // A visible Retry owns this exact attempt even if another tab settled it.
+      submitted = blankAttempt.current ?? actions.prepare('create', '/work/blank', { title: blankTitle }, uuid);
+      blankAttempt.current = submitted;
+      setBlankPending(true);
+      const result = await api<{ workId: string }>(submitted.path, submitted.input);
+      const current = actions.read();
+      if (!current || current.input.commandId === submitted.input.commandId) {
+        localStorage.setItem('workagent-blank:created', result.workId);
+        setCreatedBlank(result.workId);
+      }
+      actions.accepted(submitted); blankAttempt.current = null;
+      await list();
+    } catch (e) { if (submitted && actions.rejected(e, submitted)) blankAttempt.current = null; report(e); }
+    finally {
+      blankFlight.current = false; setBlankBusy(false);
+      blankAttempt.current ??= actions.read(); setBlankPending(!!blankAttempt.current);
+      if (typeof blankAttempt.current?.input.title === 'string') setBlankTitle(blankAttempt.current.input.title);
+    }
+  }
+  function attachSelection() {
+    try {
+      if (!editor.current || !base.current || !active.current) return;
+      const selection = editor.current.selection();
+      if (selection.workId !== active.current) throw new Error('The editor changed. Attach the selection again.');
+      editComposer({ selection: { ...selection, contentRevision: base.current.revision } }); setError('');
+    } catch (e) { report(e); }
   }
   function newWork() {
     if (saveFlight.current) { setError('Wait for the current save before switching work.'); return; }
@@ -168,14 +217,31 @@ function App() {
     const requestedWork = active.current, navigation = fence.current.navigation, sent = { ...composer.current };
     let submittedCommandId: string | undefined;
     try {
+      const retry = composers.current.pending(requestedWork);
+      if (retry && JSON.stringify(retry.draft) !== JSON.stringify(sent)) throw new Error('unresolved_send');
+      const native = editor.current, initialBase = base.current;
+      let selection: SelectionAttachment | undefined;
+      let captured: ReturnType<EditorHandle['selection']> | undefined;
+      let selectionEpoch: number | undefined;
+      if (sent.selection && !retry) {
+        captured = native?.selection();
+        selectionEpoch = native?.selectionEpoch();
+        const { contentRevision, ...attached } = sent.selection;
+        if (!captured || !initialBase || contentRevision !== initialBase.revision || requestedWork !== attached.workId || JSON.stringify(captured) !== JSON.stringify(attached)) throw new Error('The sheet or selection changed. Attach the intended range again.');
+      }
       await save(); if (hasDraft()) throw new Error('Please finish and save your latest edit before sending.'); const sourceIds: string[] = [];
       if (active.current !== requestedWork || navigation !== fence.current.navigation) return;
       const current = workRef.current;
-      const submission = composers.current.submission(requestedWork, sent, current?.intentRevision, uuid); setPendingSend(true);
+      if (captured) {
+        if (editor.current !== native || base.current?.version !== initialBase?.version || current?.contentRevision !== base.current?.revision || native?.selectionEpoch() !== selectionEpoch || JSON.stringify(native?.selection()) !== JSON.stringify(captured)) throw new Error('The sheet or selection changed while saving. Attach the intended range again.');
+        selection = { ...captured, contentRevision: base.current!.revision };
+      }
+      const submission = composers.current.submission(requestedWork, sent, current?.intentRevision, uuid, selection); setPendingSend(true);
       submittedCommandId = submission.commandId;
       if (sent.sourceText.trim()) { const source = await api<{ id: string }>('/sources', { commandId: submission.sourceCommandId, name: sent.sourceName, content: sent.sourceText, synthetic: true }); sourceIds.push(source.id); }
       if (active.current !== requestedWork || navigation !== fence.current.navigation || hasDraft()) throw new Error('Your latest changes are kept. Return to this work to retry sending.');
-      const result = await api<{ workId: string }>('/work/commands', { commandId: submission.commandId, kind: requestedWork ? 'continue' : 'start', ...(requestedWork ? { workId: requestedWork, expectedIntentRevision: submission.intentRevision } : {}), text: sent.prompt, sourceIds });
+      if (captured && (editor.current !== native || native?.selectionEpoch() !== selectionEpoch || JSON.stringify(native?.selection()) !== JSON.stringify(captured) || base.current?.revision !== selection?.contentRevision)) throw new Error('The sheet or selection changed. Your message is kept.');
+      const result = await api<{ workId: string }>('/work/commands', { commandId: submission.commandId, kind: requestedWork ? 'continue' : 'start', ...(requestedWork ? { workId: requestedWork, expectedIntentRevision: submission.intentRevision } : {}), ...(submission.selection ? { selection: submission.selection } : {}), text: sent.prompt, sourceIds });
       composers.current.accepted(requestedWork, submission.commandId);
       const cleared = composers.current.clearIfUnchanged(requestedWork, sent);
       if (active.current === requestedWork && navigation === fence.current.navigation) {
@@ -222,7 +288,7 @@ function App() {
     <div className={`layout view-${view}`}><section className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{!work && <div className="welcome"><h1>What are we working on?</h1><p>Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p></article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}
       {work?.proposals.filter(p => p.status === 'pending').map(p => <article className="proposal" key={p.id}><strong>Proposed changes</strong><p>{p.reason === 'human_edit' ? 'These cells include your edits.' : 'The sheet or instructions changed while I was working.'}</p>{p.patch.title && <p>Title: {p.patch.title}</p>}<ul>{p.patch.cells.map((c, i) => <li key={i}>{work.book.sheets[c.sheetId]?.name ?? c.sheetId}, row {c.row + 1}, column {c.column + 1}: <del>{String(work.book.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.f ?? work.book.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.v ?? '')}</del> → <strong>{String(c.formula ?? c.value ?? '(empty)')}</strong></li>)}</ul><button onClick={() => decide(p, 'accept').catch(report)}>Accept changes</button><button className="secondary" onClick={() => decide(p, 'reject').catch(report)}>Keep current</button></article>)}
       {work && <MaintenancePanel key={work.id} work={work} api={api} beforeAction={async () => { if (hasDraft() || saveFlight.current) throw new Error('Save your sheet before changing maintenance.'); }} refresh={async () => { receive(await api<Work>(`/work/${work.id}`)); }} />}
-      </div><form className="composer" onSubmit={submit}><details><summary>Add synthetic data</summary><input aria-label="Source name" value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" accept=".txt,.csv,.md" onChange={async e => { const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" onClick={() => { const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
-    <section className="work-area" aria-label="Work area"><CsvExchange api={api} editor={() => editor.current} work={work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} />{editorState ? <><div className="sheet-heading"><div><strong>{editorState.book.name}</strong><span>{draft ? 'Unsaved changes' : 'Saved'}</span></div><button onClick={() => save().catch(report)} disabled={!draft}>Save sheet</button></div><NativeEditor book={editorState.book} version={editorState.version} onReady={e => { editor.current = e; }} onEdit={edited} /></> : <div className="empty-sheet"><span>Room to work</span><p>Your editable sheet will appear here.</p></div>}</section></div></main>;
+      </div><form className="composer" onSubmit={submit}>{work && <div className="selection-context"><button type="button" disabled={busy} onClick={attachSelection}>Attach selected cells</button>{selectionView && <p>Attached: {selectionView.sheetName} · {selectionView.rangeLabel} · attached at revision {selectionView.contentRevision}. Current edits save on Send. <button type="button" disabled={busy} onClick={() => editComposer({ selection: undefined })}>Remove selection</button></p>}</div>}<details><summary>Add synthetic data</summary><input aria-label="Source name" value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" accept=".txt,.csv,.md" onChange={async e => { const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" onClick={() => { const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
+    <section className="work-area" aria-label="Work area"><div className="blank-sheet"><label>New spreadsheet name<input aria-label="New spreadsheet name" value={blankTitle} maxLength={200} disabled={blankBusy || blankPending} onChange={e => setBlankTitle(e.target.value)} /></label><button type="button" disabled={blankBusy || !blankTitle.trim()} onClick={() => void createBlank()}>{blankPending ? 'Retry blank creation' : 'Create blank spreadsheet'}</button>{createdBlank && <span role="status">Blank spreadsheet saved. <button type="button" onClick={() => { void open(createdBlank).then(opened => { if (opened) setView('sheet'); }).catch(report); }}>Open created sheet</button></span>}</div><CsvExchange api={api} editor={() => editor.current} work={work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} />{editorState ? <><div className="sheet-heading"><div><strong>{editorState.book.name}</strong><span>{draft ? 'Unsaved changes' : 'Saved'}</span></div><button onClick={() => save().catch(report)} disabled={!draft}>Save sheet</button></div><NativeEditor book={editorState.book} version={editorState.version} onReady={e => { editor.current = e; }} onEdit={edited} /></> : <div className="empty-sheet"><span>Room to work</span><p>Your editable sheet will appear here.</p></div>}</section></div></main>;
 }
 createRoot(document.getElementById('root')!).render(<App />);

@@ -6,7 +6,8 @@ import { serializeCsv, type CsvResult } from '../../../packages/workagent-contra
 import { isHumanSheetMutation, pendingCell } from './drafts';
 import type { IWorkbookData, ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
-export type EditorHandle = { save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; exportCsv: () => Promise<CsvResult> };
+export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
+export type EditorHandle = { save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
 export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbookData; version: string; onReady: (editor: EditorHandle | null) => void; onEdit: (book: IWorkbookData) => void }) {
   const container = useRef<HTMLDivElement>(null), edit = useRef(onEdit), ready = useRef(onReady);
   edit.current = onEdit; ready.current = onReady;
@@ -15,6 +16,11 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
     const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })] });
     const workbook = univerAPI.createWorkbook(structuredClone(book));
+    let selectionEpoch = 0;
+    const selectionKey = () => JSON.stringify([workbook.getActiveSheet().getSheetId(), workbook.getActiveSheet().getSelection()?.getActiveRangeList().map(r => r.getRange())]);
+    let lastSelection = selectionKey();
+    const selectionChanged = () => { const key = selectionKey(); if (key !== lastSelection) { lastSelection = key; selectionEpoch++; } };
+    const selected = workbook.onSelectionChange(selectionChanged);
     let pending: IWorkbookData | null = null, disposed = false, edits = 0;
     const snapshot = () => structuredClone(pending ?? workbook.save());
     const commit = async () => {
@@ -23,7 +29,16 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
       pending = null;
       return structuredClone(workbook.save());
     };
-    ready.current({ save: snapshot, isEditing: () => workbook.isCellEditing(), commit, exportCsv: async () => {
+    const selection = (): SheetSelection => {
+      if (disposed) throw new Error('The editor changed. Attach the selection again.');
+      const sheet = workbook.getActiveSheet(), ranges = sheet.getSelection()?.getActiveRangeList() ?? [];
+      if (ranges.length !== 1) throw new Error('Select one contiguous range to attach. Multiple ranges cannot be attached yet.');
+      const { startRow, endRow, startColumn, endColumn } = ranges[0].getRange();
+      if (![startRow, endRow, startColumn, endColumn].every(n => Number.isSafeInteger(n) && n >= 0)
+        || endRow < startRow || endColumn < startColumn || (endRow - startRow + 1) * (endColumn - startColumn + 1) > 2000) throw new Error('Select a range of at most 2,000 cells.');
+      return { workId: book.id, sheetId: sheet.getSheetId(), sheetName: sheet.getSheetName(), rangeLabel: ranges[0].getA1Notation(), range: { startRow, endRow, startColumn, endColumn } };
+    };
+    ready.current({ save: snapshot, isEditing: () => workbook.isCellEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
       const sheetId = workbook.getActiveSheet().getSheetId();
       await commit();
       if (workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed while finishing the edit. Retry CSV export.');
@@ -53,9 +68,10 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
       edits++; edit.current(structuredClone(workbook.save()));
     });
     const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
+      if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; edit.current(structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; listener.dispose(); changing.dispose(); ended.dispose(); ready.current(null); univer.dispose(); };
+    return () => { disposed = true; selected.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); ready.current(null); univer.dispose(); };
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;
 }

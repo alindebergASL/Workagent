@@ -43,6 +43,9 @@ function mount(storage, fetcher) {
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
   return { flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props,
+    async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
+    titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.value,
+    async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.onChange({ target: { value } }); await flush(); },
     async open(id) { nodes(tree).find(n => n.type === 'select' && n.props['aria-label'] === 'Saved work').props.onChange({ target: { value: id } }); await flush(); },
     native: () => nodes(tree).find(n => n.type === NativeEditor).props,
     async message(value) { nodes(tree).find(n => n.props.id === 'prompt').props.onChange({ target: { value } }); await flush(); },
@@ -58,17 +61,42 @@ function server(handler) {
     let result;
     if (path === '/api/work') result = Object.values(works).map(w => ({ id: w.id, title: w.id, status: w.status }));
     else if (path === '/api/events') result = { kind: 'reset', cursor: 1, events: [], works: [], snapshots: [] };
-    else if (path.endsWith('/save') || path === '/api/work/commands') result = await handler(path, input, works);
+    else if (input && (path.endsWith('/save') || path === '/api/work/commands' || path === '/api/work/blank')) result = await handler(path, input, works);
     else result = works[path.split('/').at(-1)];
     return { ok: true, status: 200, json: async () => structuredClone(result) };
   } };
 }
 function attach(view) {
   let book = structuredClone(view.native().book);
-  const handle = { save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false };
+  let selected = { workId: book.id, sheetId: 'sheet1', sheetName: 'Sheet 1', rangeLabel: 'A1:B2', range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 1 } }, epoch = 0;
+  const handle = { save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false, selection: () => structuredClone(selected), selectionEpoch: () => epoch };
   view.native().onReady(handle);
-  return { handle, edit(v) { book.sheets.sheet1.cellData = { 0: { 0: { v, t: 1 } } }; view.native().onEdit(structuredClone(book)); } };
+  return { handle, select(changes) { selected = { ...selected, ...changes }; epoch++; }, edit(v) { book.sheets.sheet1.cellData = { 0: { 0: { v, t: 1 } } }; view.native().onEdit(structuredClone(book)); } };
 }
+for (const newerPending of [false, true]) test(`two live blank consumers keep one retry identity after another settles it; newer pending ${newerPending}`, async () => {
+  const storage = disk(), created = new Map(), gate = deferred(); let attempts = 0;
+  const api = server((path, input, works) => {
+    assert.equal(path, '/api/work/blank'); attempts++;
+    if (!created.has(input.commandId)) { const id = `blank-${created.size}`; created.set(input.commandId, id); works[id] = work(id); }
+    if (attempts === 1) throw new Error('lost ACK after commit');
+    if (newerPending && attempts === 3) return gate.promise;
+    return { workId: created.get(input.commandId) };
+  });
+  const a = mount(storage, api.fetch); await a.flush(); await a.title('One intended blank'); await a.click('Create blank spreadsheet');
+  const b = mount(storage, api.fetch); await b.flush(); await b.click('Retry blank creation');
+  const actions = new MaintenanceActions(storage, 'blank-sheet'); assert.equal(actions.read(), null);
+  let newer;
+  if (newerPending) { await b.title('Deliberate second blank'); await b.click('Create blank spreadsheet'); newer = actions.read(); }
+  await a.click('Retry blank creation');
+  const calls = api.calls.filter(c => c.path === '/api/work/blank');
+  assert.deepEqual(calls.at(-1), calls[0], 'visible Retry uses its original body and command');
+  assert.equal(created.size, newerPending ? 2 : 1); assert.deepEqual(actions.read(), newer ?? null);
+  if (newerPending) { assert.notEqual(newer.input.commandId, calls[0].input.commandId); gate.resolve({ workId: created.get(newer.input.commandId) }); await b.flush(); }
+  else { await a.title('Deliberate second blank'); await a.click('Create blank spreadsheet'); assert.equal(created.size, 2); }
+  a.unmount(); b.unmount();
+  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created sheet');
+  assert.equal(reload.native().book.id, 'blank-1'); assert.equal(created.size, 2); reload.unmount();
+});
 test('import opening preserves unsaved native draft; a save in flight prevents switching', async () => {
   const storage = disk(), pending = deferred(), api = server(() => pending.promise), view = mount(storage, api.fetch);
   await view.flush(); await view.open('old'); const native = attach(view); native.edit('unsaved human'); await view.flush();
@@ -198,4 +226,103 @@ for (const [label, change] of Object.entries({
   view.native().onReady({ save: () => structuredClone(book), commit: async () => structuredClone(book), isEditing: () => false });
   await view.save(); change(book); gate.resolve({ contentRevision: 2, permissionRevision: 1 }); await view.flush();
   assert.match(view.text(), /Unsaved changes/); assert.deepEqual(JSON.parse(storage.getItem('workagent-draft:old')).book, book); view.unmount();
+});
+
+test('actual App blank action survives lost ACK/reload, stays separate, and opens with native draft/composer preserved', async () => {
+  const storage = disk(); let creates = 0;
+  const api = server((path, input, works) => {
+    assert.equal(path, '/api/work/blank'); creates++; works.blank = work('blank'); works.blank.book.name = input.title;
+    if (creates === 1) throw new Error('lost blank acknowledgement');
+    return { workId: 'blank', contentRevision: 1 };
+  });
+  let view = mount(storage, api.fetch); await view.flush(); await view.open('old'); attach(view).edit('human draft'); await view.message('Keep this unsent message');
+  await view.title('My blank workbook'); await view.click('Create blank spreadsheet');
+  assert.equal(view.native().book.id, 'old'); assert.ok(new MaintenanceActions(storage, 'blank-sheet').read()); view.unmount();
+  view = mount(storage, api.fetch); await view.flush(); assert.equal(view.titleValue(), 'My blank workbook'); await view.open('old'); attach(view); await view.click('Retry blank creation');
+  assert.deepEqual(api.calls.filter(c => c.path === '/api/work/blank')[0], api.calls.filter(c => c.path === '/api/work/blank')[1]);
+  assert.equal(view.native().book.id, 'old'); assert.equal(storage.getItem('workagent-blank:created'), 'blank');
+  assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0);
+  await view.click('Open created sheet'); assert.equal(view.native().book.id, 'blank'); assert.equal(view.native().book.name, 'My blank workbook');
+  await view.open('old'); assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'human draft');
+  assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Keep this unsent message'); view.unmount();
+});
+test('blank saved work remains findable after opening is blocked by an in-flight save', async () => {
+  const storage = disk(), gate = deferred(), api = server((path, input, works) => {
+    if (path === '/api/work/blank') { works.blank = work('blank'); return { workId: 'blank' }; }
+    return gate.promise;
+  });
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); attach(view).edit('keep draft'); await view.flush(); await view.save();
+  await view.click('Create blank spreadsheet'); await view.click('Open created sheet');
+  assert.equal(view.native().book.id, 'old'); assert.match(view.text(), /Wait for the current save/); assert.equal(storage.getItem('workagent-blank:created'), 'blank');
+  gate.reject(new Error('offline')); await view.flush(); view.unmount();
+  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created sheet'); assert.equal(reload.native().book.id, 'blank'); reload.unmount();
+});
+test('actual App opt-in selection includes pending human edits through saved revision; ordinary requests stay unscoped', async () => {
+  const storage = disk(), api = server((path, input, works) => {
+    if (path.endsWith('/save')) { works.old = { ...works.old, book: input.book, contentRevision: 2, eventSequence: 2 }; return { contentRevision: 2, permissionRevision: 1 }; }
+    return { workId: input.workId };
+  });
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view); native.edit('=formula-looking literal');
+  await view.click('Attach selected cells'); assert.match(view.text(), /Sheet 1.*A1:B2/); await view.message('Explain these cells'); await view.send();
+  const command = api.calls.find(c => c.path === '/api/work/commands').input;
+  assert.equal(command.selection.workId, 'old'); assert.equal(command.selection.contentRevision, 2); assert.equal(command.selection.sheetId, 'sheet1');
+  assert.equal(api.calls.find(c => c.path.endsWith('/save')).input.book.sheets.sheet1.cellData[0][0].v, '=formula-looking literal');
+  assert.equal(api.calls.findIndex(c => c.path.endsWith('/save')) < api.calls.findIndex(c => c.path === '/api/work/commands'), true);
+  attach(view); await view.message('A whole-work question'); await view.send();
+  assert.equal(api.calls.filter(c => c.path === '/api/work/commands').at(-1).input.selection, undefined); view.unmount();
+});
+for (const change of ['range', 'tab', 'away-and-back', 'editor', 'newer-revision']) test(`actual App refuses ${change} during asynchronous commit/save without retargeting selection`, async () => {
+  const storage = disk(), gate = deferred(), api = server((path, input, works) => {
+    if (path.endsWith('/save')) { works.old = { ...works.old, book: input.book, contentRevision: change === 'newer-revision' ? 3 : 2, eventSequence: 3 }; return { contentRevision: 2, permissionRevision: 1 }; }
+    return { workId: input.workId };
+  });
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view); native.edit('pending edit');
+  native.handle.commit = async () => { await gate.promise; return native.handle.save(); };
+  await view.click('Attach selected cells'); await view.message('Explain selected data'); await view.send();
+  if (change === 'range') native.select({ rangeLabel: 'C1', range: { startRow: 0, endRow: 0, startColumn: 2, endColumn: 2 } });
+  if (change === 'tab') native.select({ sheetId: 'different', sheetName: 'Different' });
+  if (change === 'away-and-back') { native.select({ sheetId: 'different' }); native.select({ sheetId: 'sheet1' }); }
+  if (change === 'editor') attach(view);
+  gate.resolve(); await view.flush(); assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0);
+  assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Explain selected data'); assert.match(view.text(), /changed|latest edit/); view.unmount();
+});
+test('selection send lost ACK replays exact descriptor and IDs after reload even if current selection moved; newer message stays', async () => {
+  const storage = disk(); let sends = 0; const gate = deferred();
+  const api = server((path, input) => { sends++; if (sends === 1) throw new Error('lost send ACK'); return gate.promise; });
+  let view = mount(storage, api.fetch); await view.flush(); await view.open('old'); attach(view);
+  await view.click('Attach selected cells'); await view.message('Explain A1:B2'); await view.send(); view.unmount();
+  view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view); native.select({ sheetId: 'different', sheetName: 'Different' });
+  await view.send(); await view.message('My newer message'); gate.resolve({ workId: 'old' }); await view.flush();
+  const calls = api.calls.filter(c => c.path === '/api/work/commands'); assert.equal(calls.length, 2); assert.deepEqual(calls[0], calls[1]);
+  assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'My newer message'); assert.equal(new resume.ComposerDrafts(storage).pending('old'), null); view.unmount();
+});
+test('attachment persists per work and refuses a changed range before saving; removal permits whole-work requests', async () => {
+  const storage = disk(), api = server((path, input) => ({ workId: input.workId }));
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view);
+  await view.click('Attach selected cells'); await view.message('Which cells?'); native.select({ sheetId: 'other' }); await view.send();
+  assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0); assert.match(view.text(), /Attach the intended range again/);
+  await view.click('Remove selection'); await view.send(); assert.equal(api.calls.find(c => c.path === '/api/work/commands').input.selection, undefined);
+  view.unmount();
+});
+
+test('selection changing while the save ACK is held refuses admission and preserves newer typing', async () => {
+  const storage = disk(), gate = deferred(), api = server((path, input, works) => {
+    if (path.endsWith('/save')) { works.old = { ...works.old, book: input.book, contentRevision: 2, eventSequence: 2 }; return gate.promise; }
+    return { workId: input.workId };
+  });
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view); native.edit('save me');
+  await view.click('Attach selected cells'); await view.message('Explain A1:B2'); await view.send();
+  assert.equal(api.calls.filter(c => c.path.endsWith('/save')).length, 1);
+  native.select({ sheetId: 'another-tab' }); await view.message('New unsent thought');
+  gate.resolve({ contentRevision: 2, permissionRevision: 1 }); await view.flush();
+  assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0); assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'New unsent thought');
+  assert.match(view.text(), /selection changed while saving/); view.unmount();
+});
+test('new blank acknowledgement never navigates away from edits/messages made during creation', async () => {
+  const storage = disk(), gate = deferred(), api = server((path, input, works) => { works.blank = work('blank'); return gate.promise; });
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attach(view);
+  await view.click('Create blank spreadsheet'); native.edit('newer edit'); await view.message('Newer unsent message');
+  gate.resolve({ workId: 'blank' }); await view.flush();
+  assert.equal(view.native().book.id, 'old'); assert.equal(JSON.parse(storage.getItem('workagent-draft:old')).book.sheets.sheet1.cellData[0][0].v, 'newer edit');
+  assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Newer unsent message'); assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0); view.unmount();
 });

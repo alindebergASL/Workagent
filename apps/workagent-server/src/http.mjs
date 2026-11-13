@@ -59,6 +59,7 @@ export function createHandler({ workspace, maintenance, exchange, owner, token, 
       }
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
+      if (path === '/api/work/blank' && req.method === 'POST') return send(200, await workspace.createBlank(principal, await body(req)));
       if (exchange && path === '/api/exchange/csv/preview' && req.method === 'POST') return send(200, await exchange.preview(principal, await body(req)));
       if (exchange && path === '/api/exchange/csv/import' && req.method === 'POST') return send(200, await exchange.import(principal, await body(req)));
       const original = /^\/api\/work\/([a-zA-Z0-9_-]+)\/original\/([a-zA-Z0-9_-]+)$/.exec(path);

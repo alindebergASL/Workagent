@@ -10,12 +10,13 @@ export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Ap
   const actions = useRef(new MaintenanceActions(localStorage, 'csv-import'));
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());
-  const [message, setMessage] = useState(''), [created, setCreated] = useState<string | null>(null), [busy, setBusy] = useState(false);
+  const attempt = useRef(pending);
+  const [message, setMessage] = useState(''), [created, setCreated] = useState<string | null>(() => localStorage.getItem('workagent-csv:created')), [busy, setBusy] = useState(false);
   const alive = useRef(true), sequence = useRef(0), flight = useRef(false);
   useEffect(() => { alive.current = true; return () => { alive.current = false; sequence.current++; }; }, []);
   const report = (e: unknown) => setMessage(e instanceof Error ? e.message : 'CSV operation failed.');
   async function choose(file?: File) {
-    if (!file || flight.current || actions.current.read()) return;
+    if (!file || flight.current || attempt.current || actions.current.read()) return;
     const ticket = ++sequence.current; setPreview(null); setUpload(null); setMessage(''); setCreated(null);
     try {
       if (file.size > CSV_LIMITS.bytes) throw new Error('Choose a UTF-8 CSV file no larger than 1,000,000 bytes.');
@@ -32,21 +33,25 @@ export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Ap
     flight.current = true; setBusy(true); setMessage('');
     let submitted: Pending | null = null;
     try {
-      submitted = actions.current.read();
+      // Keep the displayed attempt when a second consumer clears shared storage.
+      submitted = attempt.current ?? actions.current.read();
       if (!submitted) {
         if (!upload || !preview) throw new Error('Preview a CSV first.');
         submitted = actions.current.prepare('import', '/exchange/csv/import', upload, () => crypto.randomUUID());
       }
-      setPending(submitted); // Durable exact request precedes network dispatch.
+      attempt.current = submitted; setPending(submitted); // Durable exact request precedes network dispatch.
       const result = await api<{ workId: string }>(submitted.path, submitted.input);
-      const matches = actions.current.read()?.input.commandId === submitted.input.commandId;
+      const current = actions.current.read();
+      const matches = !current || current.input.commandId === submitted.input.commandId;
+      if (alive.current && matches) localStorage.setItem('workagent-csv:created', result.workId);
       actions.current.accepted(submitted);
+      attempt.current = null;
       if (alive.current && matches) { setCreated(result.workId); setUpload(null); setPreview(null); setMessage('Imported as separate saved work. Open it when you are ready; current edits and messages are kept.'); await onImported(); }
     } catch (e) {
-      const matches = !submitted || actions.current.read()?.input.commandId === submitted.input.commandId;
-      if (submitted) actions.current.rejected(e, submitted);
+      const matches = !submitted || attempt.current?.input.commandId === submitted.input.commandId;
+      if (submitted && actions.current.rejected(e, submitted)) attempt.current = null;
       if (alive.current && matches) report(e);
-    } finally { flight.current = false; if (alive.current) { setPending(actions.current.read()); setBusy(false); } }
+    } finally { flight.current = false; if (alive.current) { attempt.current ??= actions.current.read(); setPending(attempt.current); setBusy(false); } }
   }
   async function exportFile() {
     if (flight.current) return;

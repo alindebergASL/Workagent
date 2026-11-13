@@ -1,5 +1,6 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
+import { bindSelection } from './selection.mjs';
 export const digest = data => createHash('sha256').update(JSON.stringify(canonical(data))).digest('hex');
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
 export function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
@@ -23,6 +24,19 @@ export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed')
 }
 export class Workspace {
   constructor(store) { this.store = store; }
+  async createBlank(principal, input) {
+    if (!input || Object.keys(input).some(k => !['commandId', 'title'].includes(k))) throw new Fault('invalid_command', 400);
+    id(input.commandId); text(input.title, 200);
+    return this.store.transaction(s => {
+      authorize(s, principal);
+      return dedup(s, input.commandId, { operation: 'blank-sheet', ...input }, () => {
+        const workId = randomUUID();
+        const w = { id: workId, book: blankWorkbook(workId, input.title.trim()), contentRevision: 1, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'ready' };
+        s.works[workId] = w; event(s, w, 'human_created');
+        return { workId, contentRevision: 1 };
+      });
+    });
+  }
   async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })); }); }
   async get(principal, workId) { return this.store.transaction(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
   async events(principal, after) { return this.store.transaction(s => {
@@ -61,12 +75,13 @@ export class Workspace {
           w = work(s, input.workId); revision(input.expectedIntentRevision);
           if (input.expectedIntentRevision !== w.intentRevision) throw new Fault('intent_conflict');
         }
+        const selection = input.selection === undefined ? undefined : bindSelection(w, input.selection, input.kind);
         w.intentRevision++; w.sourceIds = [...new Set([...w.sourceIds, ...input.sourceIds])];
         for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.kind !== 'maintenance' && j.status === 'queued') j.status = 'superseded';
         if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
           w.messages.push({ id: input.commandId, role: 'user', text: input.text }); w.status = 'queued'; delete w.errorCode;
-          s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
+          s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, ...(selection ? { selection } : {}), status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
         }
         event(s, w, input.kind); return { workId: w.id, commandId: input.commandId, intentRevision: w.intentRevision };
       });

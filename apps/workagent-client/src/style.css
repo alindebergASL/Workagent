@@ -8,3 +8,9 @@
 .csv-exchange small { overflow-wrap: anywhere; }
 .csv-preview { overflow: auto; max-height: 180px; }
 .csv-preview td { border: 1px solid #dce1e6; padding: .3rem; white-space: pre-wrap; min-width: 5rem; }
+
+.blank-sheet { display:flex; flex-wrap:wrap; align-items:end; gap:.6rem; padding:.75rem; border-bottom:1px solid #ddd; }
+.blank-sheet label { display:flex; flex-direction:column; gap:.25rem; }
+.blank-sheet input { max-width:18rem; }
+.selection-context { padding:.4rem 0; font-size:.85rem; }
+.selection-context p { margin:.4rem 0; }
