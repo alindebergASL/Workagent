@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Workspace } from '../src/workspace.mjs';
 import { initialState, PostgresStore } from '../src/store.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
-import { applyPatch } from '../../../packages/workagent-contract/index.mjs';
+import { applyPatch, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { Readable } from 'node:stream';
 import { createHandler } from '../src/http.mjs';
 async function setup() {
@@ -119,6 +119,34 @@ test('fixture: native-shaped values, formulas and styles survive store reopen an
   const reopened = new Workspace(new FileFixtureStore(path)); assert.deepEqual((await reopened.get('owner', wid)).book, book);
   await assert.rejects(reopened.save('owner', wid, { commandId: 'stale', book: w.book, contentRevision: 0, permissionRevision: 1 }), /save_conflict/);
   assert.deepEqual((await reopened.get('owner', wid)).book, book);
+});
+test('shared formula result refresh does not acquire human ownership; a formula edit still does', async () => {
+  const { ws, wid, store } = await setup();
+  await store.transaction(s => {
+    s.works[wid].book.sheets.sheet1.cellData = { 0: { 0: { v: 10, t: 2 }, 1: { f: '=$A$1*2', si: 'group', v: 20, t: 2 } }, 1: { 1: { si: 'group', v: 20, t: 2 } } };
+  });
+  const before = await ws.get('owner', wid);
+  await ws.mutate('owner', wid, { commandId: 'change-input', expected: before.expected, patch: patch(15) });
+  const current = await ws.get('owner', wid), cells = current.book.sheets.sheet1.cellData;
+  assert.equal(cells[0][1].v, undefined); assert.equal(cells[1][1].v, undefined);
+  cells[0][1].v = cells[1][1].v = 30; cells[0][1].t = cells[1][1].t = 2;
+  await ws.save('owner', wid, { commandId: 'cache-only', book: current.book, contentRevision: current.contentRevision, permissionRevision: 1 });
+  const refreshed = await ws.get('owner', wid); assert.deepEqual(refreshed.humanCells, []);
+  refreshed.book.sheets.sheet1.cellData[1][1] = { f: '=A1*3', v: 45, t: 2 };
+  await ws.save('owner', wid, { commandId: 'human-formula', book: refreshed.book, contentRevision: refreshed.contentRevision, permissionRevision: 1 });
+  assert.deepEqual((await ws.get('owner', wid)).humanCells, ['sheet1:1:1']);
+});
+test('formula cache invalidation keeps the original workbook cap on the resulting content', async () => {
+  const { ws, wid } = await setup(), { book } = await ws.get('owner', wid);
+  book.sheets.sheet1.cellData = { 0: { 0: { v: 1, t: 2 }, 1: { f: '=REPT("x",20000)', v: 'x'.repeat(20000), t: 1 } } };
+  book.padding = '';
+  book.padding = 'p'.repeat(3_999_900 - JSON.stringify(book).length);
+  assert.equal(JSON.stringify(validateWorkbook(book)).length, 3_999_900);
+  const admitted = applyPatch(book, patch('y'.repeat(20000)));
+  assert.ok(JSON.stringify(admitted).length <= 4_000_000);
+  assert.equal(admitted.sheets.sheet1.cellData[0][1].v, undefined);
+  assert.throws(() => applyPatch(book, { cells: [...patch('y'.repeat(20000)).cells, { sheetId: 'sheet1', row: 2, column: 0, value: 'z'.repeat(20000) }] }), /invalid_workbook/);
+  assert.equal(book.sheets.sheet1.cellData[0][1].v.length, 20000, 'rejected patch leaves retained input intact');
 });
 test('fixture: intent and permission revisions checked in commit, not just read', async () => {
   const { ws, wid, store } = await setup(); const old = await ws.get('owner', wid);

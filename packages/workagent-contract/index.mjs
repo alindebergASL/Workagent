@@ -46,8 +46,19 @@ export function validatePatch(patch) {
   }
   return structuredClone(patch);
 }
-export function applyPatch(book, patch) {
+export function withoutFormulaResults(book) {
   const result = structuredClone(book);
+  // No server-side dependency graph or cache provenance: results can depend on
+  // other sheets and shared-formula anchors. Keep formula identity and style.
+  for (const sheet of Object.values(result.sheets)) for (const row of Object.values(sheet.cellData ?? {})) for (const cell of Object.values(row)) {
+    if (cell?.f || cell?.si) { delete cell.v; delete cell.t; }
+  }
+  return result;
+}
+export function applyPatch(book, patch) {
+  // Omit derived results until the native engine calculates again; readers
+  // must not mistake a pre-patch cached value for the current result.
+  const result = withoutFormulaResults(book);
   if (patch.title) result.name = patch.title;
   for (const s of patch.addSheets ?? []) {
     if (result.sheets[s.id]) throw new Fault('sheet_exists');

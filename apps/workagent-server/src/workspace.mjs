@@ -82,7 +82,7 @@ export class Workspace {
       return dedup(s, input.commandId, { workId, ...input }, () => {
         if (w.contentRevision !== input.contentRevision || s.permissionRevision !== input.permissionRevision) throw new Fault('save_conflict');
         const human = new Set(w.humanCells);
-        const cellMeaning = c => c?.f ? { f: c.f } : c ?? null;
+        const cellMeaning = c => c?.f ? { f: c.f } : c?.si ? { si: c.si } : c ?? null;
         for (const sid of new Set([...w.book.sheetOrder, ...book.sheetOrder])) {
           const old = w.book.sheets[sid]?.cellData ?? {}, next = book.sheets[sid]?.cellData ?? {};
           for (const r of new Set([...Object.keys(old), ...Object.keys(next)])) for (const c of new Set([...Object.keys(old[r] ?? {}), ...Object.keys(next[r] ?? {})])) {

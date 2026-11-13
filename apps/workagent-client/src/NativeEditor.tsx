@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
-import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
+import { CalculationMode, UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US';
 import { isHumanSheetMutation, pendingCell } from './drafts';
 import type { IWorkbookData } from '@univerjs/core';
@@ -10,7 +10,9 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
   const container = useRef<HTMLDivElement>(null), edit = useRef(onEdit), ready = useRef(onReady);
   edit.current = onEdit; ready.current = onReady;
   useEffect(() => {
-    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current! })] });
+    // Existing native snapshots can contain results cached before an external
+    // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
+    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })] });
     const workbook = univerAPI.createWorkbook(structuredClone(book));
     let pending: IWorkbookData | null = null;
     const snapshot = () => structuredClone(pending ?? workbook.save());
