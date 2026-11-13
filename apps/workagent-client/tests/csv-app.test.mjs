@@ -18,7 +18,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((a, b)
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
 function mount(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -29,6 +29,7 @@ function mount(storage, fetcher) {
   new Function('require', 'module', 'exports', 'localStorage', 'document', 'window', 'fetch', 'crypto', 'setTimeout', 'clearTimeout', code)(name => {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
+    if (name === './DocxExchange') return { DocxExchange };
     if (name === './DocumentExchange') return { DocumentExchange };
     if (name === './DocumentEditor') return { DocumentEditor };
     if (name === './NativeEditor') return { NativeEditor };
@@ -46,7 +47,7 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
@@ -102,7 +103,7 @@ for (const newerPending of [false, true]) test(`two live blank consumers keep on
   const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created work');
   assert.equal(reload.native().book.id, 'blank-1'); assert.equal(created.size, 2); reload.unmount();
 });
-for (const format of ['exchange', 'xlsx']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
+for (const format of ['exchange', 'xlsx', 'docx']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
   const storage = disk(), pending = deferred(), api = server(() => pending.promise), view = mount(storage, api.fetch);
   await view.flush(); await view.open('old'); const native = attach(view); native.edit('unsaved human'); await view.message('unsent human message'); await view.flush();
   await view[format]().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'imported');
