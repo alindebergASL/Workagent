@@ -26,7 +26,7 @@ async function body(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 export function createServer(options) { return http.createServer(createHandler(options)); }
-export function createHandler({ workspace, maintenance, exchange, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, exchange, xlsx, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -62,10 +62,13 @@ export function createHandler({ workspace, maintenance, exchange, owner, token, 
       if (path === '/api/work/blank' && req.method === 'POST') return send(200, await workspace.createBlank(principal, await body(req)));
       if (exchange && path === '/api/exchange/csv/preview' && req.method === 'POST') return send(200, await exchange.preview(principal, await body(req)));
       if (exchange && path === '/api/exchange/csv/import' && req.method === 'POST') return send(200, await exchange.import(principal, await body(req)));
+      if (xlsx && path === '/api/exchange/xlsx/preview' && req.method === 'POST') return send(200, await xlsx.preview(principal, await body(req)));
+      if (xlsx && path === '/api/exchange/xlsx/import' && req.method === 'POST') return send(200, await xlsx.import(principal, await body(req)));
+      if (xlsx && path === '/api/exchange/xlsx/export' && req.method === 'POST') return send(200, await xlsx.export(principal, await body(req)));
       const original = /^\/api\/work\/([a-zA-Z0-9_-]+)\/original\/([a-zA-Z0-9_-]+)$/.exec(path);
       if (exchange && original && req.method === 'GET') {
         const result = await exchange.original(principal, original[1], original[2]);
-        res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="original.csv"; filename*=UTF-8''${encodeURIComponent(result.original.filename).replace(/'/g, '%27')}`, 'Content-Length': result.bytes.length });
+        res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="original.${result.original.format === 'xlsx' ? 'xlsx' : 'csv'}"; filename*=UTF-8''${encodeURIComponent(result.original.filename).replace(/'/g, '%27')}`, 'Content-Length': result.bytes.length });
         res.end(result.bytes); return;
       }
       if (path === '/api/sources' && req.method === 'POST') return send(200, await workspace.source(principal, await body(req)));

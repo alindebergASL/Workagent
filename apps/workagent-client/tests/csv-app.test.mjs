@@ -17,7 +17,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((a, b)
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
 function mount(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const NativeEditor = () => null, CsvExchange = () => null;
+  const NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -29,6 +29,7 @@ function mount(storage, fetcher) {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './NativeEditor') return { NativeEditor };
+    if (name === './XlsxExchange') return { XlsxExchange };
     if (name === './CsvExchange') return { CsvExchange };
     if (name === './MaintenancePanel') return { MaintenancePanel: () => null };
     if (name === './drafts') return { DraftFence };
@@ -42,12 +43,13 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props,
+  return { flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.onChange({ target: { value } }); await flush(); },
     async open(id) { nodes(tree).find(n => n.type === 'select' && n.props['aria-label'] === 'Saved work').props.onChange({ target: { value: id } }); await flush(); },
     native: () => nodes(tree).find(n => n.type === NativeEditor).props,
+    messageValue: () => nodes(tree).find(n => n.props.id === 'prompt').props.value,
     async message(value) { nodes(tree).find(n => n.props.id === 'prompt').props.onChange({ target: { value } }); await flush(); },
     async send() { nodes(tree).find(n => n.type === 'form' && n.props.className === 'composer').props.onSubmit({ preventDefault() {} }); await flush(); },
     async save() { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === 'Save sheet'); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
@@ -97,13 +99,13 @@ for (const newerPending of [false, true]) test(`two live blank consumers keep on
   const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created sheet');
   assert.equal(reload.native().book.id, 'blank-1'); assert.equal(created.size, 2); reload.unmount();
 });
-test('import opening preserves unsaved native draft; a save in flight prevents switching', async () => {
+for (const format of ['exchange', 'xlsx']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
   const storage = disk(), pending = deferred(), api = server(() => pending.promise), view = mount(storage, api.fetch);
-  await view.flush(); await view.open('old'); const native = attach(view); native.edit('unsaved human'); await view.flush();
-  await view.exchange().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'imported');
+  await view.flush(); await view.open('old'); const native = attach(view); native.edit('unsaved human'); await view.message('unsent human message'); await view.flush();
+  await view[format]().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'imported');
   assert.equal(JSON.parse(storage.getItem('workagent-draft:old')).book.sheets.sheet1.cellData[0][0].v, 'unsaved human');
-  await view.open('old'); assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'unsaved human'); attach(view);
-  await view.save(); await view.exchange().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'old'); assert.match(view.text(), /Wait for the current save/);
+  await view.open('old'); assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'unsaved human'); attach(view); assert.equal(view.messageValue(), 'unsent human message');
+  await view.save(); await view[format]().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'old'); assert.match(view.text(), /Wait for the current save/);
   pending.resolve({ contentRevision: 2, permissionRevision: 1 }); await view.flush(); view.unmount();
 });
 test('actual App lost save acknowledgement survives reload and rebases newer edits after exact retry', async () => {

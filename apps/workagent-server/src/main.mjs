@@ -1,4 +1,6 @@
 import pg from 'pg';
+import { XlsxExchange } from './xlsx-exchange.mjs';
+import { XlsxWorker } from './xlsx-worker.mjs';
 import { CsvExchange } from './exchange.mjs';
 import { OwnedFiles } from './owned-files.mjs';
 import { Maintenance } from './responsibilities.mjs';
@@ -35,7 +37,8 @@ await workspace.recover(owner, host.inspect);
 const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(required('WORKAGENT_STATE_DIR'))), budgetReference: mode === 'openrouter' ? 'openrouter:configured-provider-limits' : 'certificate:existing-accounting' });
 const dispatcher = createDispatcher({ workspace, principal: owner, host, maintenance, capacity: 2, onError() { console.error('workspace_dispatch_failed'); } });
 const exchange = new CsvExchange({ workspace, files: maintenance.files });
-const server = createServer({ workspace, maintenance, exchange, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new XlsxWorker({ venv: process.env.WORKAGENT_XLSX_VENV }) });
+const server = createServer({ workspace, maintenance, exchange, xlsx, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

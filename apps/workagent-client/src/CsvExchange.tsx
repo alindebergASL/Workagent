@@ -75,7 +75,7 @@ export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Ap
     {(preview || pending) && <button type="button" disabled={busy} onClick={() => void importFile()}>{pending ? 'Retry unresolved CSV import' : 'Import as new work'}</button>}
     {pending && <p>The exact original upload is retained on this device until its acknowledgement is known.</p>}
     {created && <button type="button" onClick={() => onOpen(created).catch(report)}>Open imported sheet</button>}
-    {work && <><p>{CSV_LOSSES}</p><button type="button" disabled={busy} onClick={() => void exportFile()}>Export selected sheet CSV</button>{work.original && <p><a href={`/api/work/${work.id}/original/${work.original.id}`} download>Download original: {work.original.filename}</a> · {work.original.size} bytes · {work.original.encoding}<br /><small>SHA-256: {work.original.hash}</small></p>}</>}
+    {work && <><p>{CSV_LOSSES}</p><button type="button" disabled={busy} onClick={() => void exportFile()}>Export selected sheet CSV</button>{work.original && !work.original.filename.toLowerCase().endsWith('.xlsx') && <p><a href={`/api/work/${work.id}/original/${work.original.id}`} download>Download original: {work.original.filename}</a> · {work.original.size} bytes · {work.original.encoding}<br /><small>SHA-256: {work.original.hash}</small></p>}</>}
     {message && <p role="status">{message}</p>}
   </details>;
 }

@@ -48,7 +48,7 @@ export class CsvExchange {
       if (!original || original.id !== id(originalId) || original.owner !== principal) throw new Fault('source_access_denied', 403);
       return original;
     });
-    const original = await get(), bytes = await this.files.readOriginal(principal, original.hash);
+    const original = await get(), bytes = await this.files.readOriginal(principal, original.hash, original.format ?? 'csv');
     await get(); // Recheck current access after filesystem IO.
     return { original, bytes };
   }

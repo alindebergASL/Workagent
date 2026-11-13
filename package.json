@@ -16,7 +16,9 @@
     "test:http": "node apps/workagent-server/tests/http.test.mjs",
     "test:background": "node apps/workagent-server/tests/responsibilities.test.mjs && node apps/workagent-client/tests/maintenance-actions.test.mjs",
     "test:exchange": "node apps/workagent-server/tests/exchange.test.mjs && node apps/workagent-client/tests/csv-exchange.test.mjs && node apps/workagent-client/tests/csv-app.test.mjs && node apps/workagent-client/tests/formula-cache.test.mjs",
-    "test:native-context": "node apps/workagent-server/tests/native-context.test.mjs && node apps/workagent-runner/tests/native-context.test.mjs"
+    "test:native-context": "node apps/workagent-server/tests/native-context.test.mjs && node apps/workagent-runner/tests/native-context.test.mjs",
+    "test:xlsx": ".local/xlsx-python/bin/python -I services/workagent-execution/xlsx/test_codec.py && node apps/workagent-server/tests/xlsx.test.mjs && node apps/workagent-client/tests/xlsx-exchange.test.mjs && node apps/workagent-client/tests/xlsx-native.test.mjs",
+    "test:xlsx-isolation": "node apps/workagent-server/tests/xlsx-isolation.test.mjs"
   },
   "dependencies": {
     "@univerjs/presets": "1.4.0",
