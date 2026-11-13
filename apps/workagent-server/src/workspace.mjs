@@ -2,17 +2,25 @@ import { randomUUID, createHash } from 'node:crypto';
 import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
 export const digest = data => createHash('sha256').update(JSON.stringify(canonical(data))).digest('hex');
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
-function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
-function work(s, workId) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); return w; }
+export function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
+export function work(s, workId) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); return w; }
 export function preconditions(s, w) { return { contentRevision: w.contentRevision, intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch }; }
-function same(a, b) { return Object.keys(b).every(k => a?.[k] === b[k]); }
-function event(s, w, kind) { s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
-function dedup(s, key, input, fn) {
+export function same(a, b) { return Object.keys(b).every(k => a?.[k] === b[k]); }
+export function event(s, w, kind) { s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
+export function dedup(s, key, input, fn) {
   id(key); const hash = digest(input), old = s.commands[key];
   if (old) { if (old.hash !== hash) throw new Fault('command_conflict'); return old.result; }
   const result = fn(); s.commands[key] = { hash, result }; return result;
 }
 function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.sequence, expected: preconditions(s, w) }; }
+// Shared authoritative editor commit for agent and deterministic maintenance writes.
+export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed') {
+  const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)));
+  if (protectedCell) return { status: 'protected', reason: 'human_edit' };
+  if (!same(expected, preconditions(s, w)) || ['cancellation_requested', 'stopped'].includes(w.status)) return { status: 'protected', reason: 'revision_changed' };
+  w.book = applyPatch(w.book, patch); w.contentRevision++; event(s, w, kind);
+  return { status: 'applied', expected: preconditions(s, w) };
+}
 export class Workspace {
   constructor(store) { this.store = store; }
   async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })); }); }
@@ -54,8 +62,8 @@ export class Workspace {
           if (input.expectedIntentRevision !== w.intentRevision) throw new Fault('intent_conflict');
         }
         w.intentRevision++; w.sourceIds = [...new Set([...w.sourceIds, ...input.sourceIds])];
-        for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.status === 'queued') j.status = 'superseded';
-        if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
+        for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.kind !== 'maintenance' && j.status === 'queued') j.status = 'superseded';
+        if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
           w.messages.push({ id: input.commandId, role: 'user', text: input.text }); w.status = 'queued'; delete w.errorCode;
           s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
@@ -81,6 +89,12 @@ export class Workspace {
             if (digest(cellMeaning(old[r]?.[c])) !== digest(cellMeaning(next[r]?.[c]))) human.add(`${sid}:${r}:${c}`);
           }
         }
+        for (const r of w.responsibilities ?? []) {
+          const sid = r.target.sheetId;
+          const structureChanged = digest(w.book.sheets[sid]?.rowData ?? {}) !== digest(book.sheets[sid]?.rowData ?? {})
+            || w.book.sheets[sid]?.rowCount !== book.sheets[sid]?.rowCount || w.book.sheets[sid]?.columnCount !== book.sheets[sid]?.columnCount || !book.sheets[sid];
+          if (human.has(anchor(r.target)) || structureChanged) { r.detached = true; r.lastOutcome = 'protected'; }
+        }
         w.humanCells = [...human]; w.book = book; w.contentRevision++; event(s, w, 'human_saved');
         return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
       });
@@ -92,13 +106,12 @@ export class Workspace {
       authorize(s, principal); const w = work(s, workId);
       return dedup(s, input.commandId, { workId, ...input }, () => {
         const current = preconditions(s, w);
-        const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)));
-        if (!same(input.expected, current) || protectedCell || w.status === 'cancellation_requested' || w.status === 'stopped') {
-          const proposal = { id: randomUUID(), patch, originalExpected: input.expected, expected: current, reason: protectedCell ? 'human_edit' : 'revision_changed', status: 'pending' };
+        const result = commitEditorPatch(s, w, patch, input.expected);
+        if (result.status === 'protected') {
+          const proposal = { id: randomUUID(), patch, originalExpected: input.expected, expected: current, reason: result.reason, status: 'pending' };
           w.proposals.push(proposal); event(s, w, 'change_proposed'); return { status: 'proposed', proposalId: proposal.id };
         }
-        w.book = applyPatch(w.book, patch); w.contentRevision++; event(s, w, 'agent_changed');
-        return { status: 'applied', expected: preconditions(s, w) };
+        return result;
       });
     });
   }
@@ -121,13 +134,16 @@ export class Workspace {
   async claim(principal) { return this.store.transaction(s => {
     authorize(s, principal);
     const running = new Set(Object.values(s.jobs).filter(j => j.status === 'running').map(j => j.workId));
-    const j = Object.values(s.jobs).find(j => {
+    const j = Object.values(s.jobs).sort((a, b) => Number(a.kind === 'maintenance') - Number(b.kind === 'maintenance')).find(j => {
       if (j.status !== 'queued' || running.has(j.workId)) return false;
       const w = work(s, j.workId);
+      if (j.kind === 'maintenance') return !Object.values(s.jobs).some(other => other.workId === j.workId && other.kind !== 'maintenance' && ['queued', 'running'].includes(other.status));
       if (!same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) { j.status = 'superseded'; return false; }
       return true;
     }); if (!j) return null;
-    const w = work(s, j.workId); j.phase ??= 'admitted'; j.status = 'running'; w.status = 'working'; event(s, w, 'working');
+    const w = work(s, j.workId);
+    if (j.kind === 'maintenance') { j.status = 'running'; j.expected = preconditions(s, w); return j; }
+    j.phase ??= 'admitted'; j.status = 'running'; w.status = 'working'; event(s, w, 'working');
     // Freeze the accepted context before native creation; recovery must use this same input.
     j.work ??= snapshot(s, w); j.sources ??= w.sourceIds.map(k => structuredClone(s.sources[k]));
     return j;
@@ -158,6 +174,7 @@ export class Workspace {
     authorize(s, principal);
     for (const j of Object.values(s.jobs)) if (j.status === 'running') {
       const w = work(s, j.workId);
+      if (j.kind === 'maintenance') { j.status = 'queued'; event(s, w, 'maintenance_recovered'); continue; }
       // No callback means no native-storage evidence, including for old B01 jobs.
       const native = inspectNative ? await inspectNative(j) : null;
       for (const message of native?.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);

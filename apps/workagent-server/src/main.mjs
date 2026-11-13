@@ -1,4 +1,6 @@
 import pg from 'pg';
+import { OwnedFiles } from './owned-files.mjs';
+import { Maintenance } from './responsibilities.mjs';
 import { resolve } from 'node:path';
 import { PostgresStore } from './store.mjs';
 import { Workspace } from './workspace.mjs';
@@ -29,8 +31,9 @@ const host = await bootHost({ stateRoot: resolve(required('WORKAGENT_STATE_DIR')
   accounting, maxOutputTokens, requestTimeoutMs: requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS), reasoningEffort: process.env.WORKAGENT_REASONING_EFFORT,
   apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL });
 await workspace.recover(owner, host.inspect);
-const dispatcher = createDispatcher({ workspace, principal: owner, host, capacity: 2, onError() { console.error('workspace_dispatch_failed'); } });
-const server = createServer({ workspace, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(required('WORKAGENT_STATE_DIR'))), budgetReference: mode === 'openrouter' ? 'openrouter:configured-provider-limits' : 'certificate:existing-accounting' });
+const dispatcher = createDispatcher({ workspace, principal: owner, host, maintenance, capacity: 2, onError() { console.error('workspace_dispatch_failed'); } });
+const server = createServer({ workspace, maintenance, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

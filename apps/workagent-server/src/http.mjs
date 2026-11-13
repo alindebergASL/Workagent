@@ -26,7 +26,7 @@ async function body(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 export function createServer(options) { return http.createServer(createHandler(options)); }
-export function createHandler({ workspace, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -60,6 +60,15 @@ export function createHandler({ workspace, owner, token, origin, clientRoot, acc
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
       if (path === '/api/sources' && req.method === 'POST') return send(200, await workspace.source(principal, await body(req)));
+      if (maintenance && path === '/api/owned-sources' && req.method === 'GET') return send(200, await maintenance.sources(principal));
+      if (maintenance && path === '/api/owned-sources' && req.method === 'POST') return send(200, await maintenance.publish(principal, await body(req)));
+      const ownedSource = /^\/api\/owned-sources\/([a-zA-Z0-9_-]+)\/revoke$/.exec(path);
+      if (maintenance && ownedSource && req.method === 'POST') return send(200, await maintenance.revokeSource(principal, ownedSource[1], await body(req)));
+      const responsibility = /^\/api\/work\/([a-zA-Z0-9_-]+)\/responsibilities(?:\/([a-zA-Z0-9_-]+))?$/.exec(path);
+      if (maintenance && responsibility && req.method === 'POST') {
+        const input = await body(req);
+        return send(200, responsibility[2] ? await maintenance.manage(principal, responsibility[1], responsibility[2], input) : await maintenance.create(principal, responsibility[1], input));
+      }
       if (path === '/api/work/commands' && req.method === 'POST') {
         const input = await body(req), { result, admitted } = await workspace.admitCommand(principal, input);
         if (admitted) onCommand(result.workId, input.kind, result.intentRevision);

@@ -1,14 +1,16 @@
 // One service leader owns this bounded dispatcher. Workspace claims serialize
 // admission and exclude an already-running work; unrelated works use free slots.
-export function createDispatcher({ workspace, principal, host, capacity = 2, onError = () => {} }) {
+export function createDispatcher({ workspace, principal, host, maintenance, capacity = 2, onError = () => {} }) {
   if (!Number.isInteger(capacity) || capacity < 1 || capacity > 8) throw new Error('invalid_worker_capacity');
   const active = new Set();
   let pumping = null, closing = false, wakeRequested = false;
   async function execute(job) {
     try {
+      if (job.kind === 'maintenance') { await maintenance.run(principal, job); return; }
       const messages = await host.run(job);
       await workspace.finish(principal, job, messages, closing ? 'interrupted' : messages.outcome?.status ?? 'ready', closing ? 'service_stopped' : messages.outcome?.errorCode);
     } catch (error) {
+      if (job.kind === 'maintenance') throw error; // Keep durable claim for restart; no external effect to replay.
       const known = ['accounting_bridge_not_connected', 'openrouter_not_configured', 'work_superseded', 'turn_call_limit', 'interrupted_no_automatic_replay', 'provider_budget_exhausted', 'provider_http_402', 'provider_http_403', 'provider_http_429'];
       const code = closing ? 'service_stopped' : known.includes(error.message) ? error.message : 'execution_interrupted_check_receipt';
       await workspace.finish(principal, job, error.messages ?? [], closing || !known.includes(error.message) || error.message === 'interrupted_no_automatic_replay' ? 'interrupted' : 'blocked', code);
@@ -21,10 +23,12 @@ export function createDispatcher({ workspace, principal, host, capacity = 2, onE
     pumping = (async () => {
       do {
         wakeRequested = false;
+        if (maintenance) await maintenance.admitDue(principal);
         while (!closing && active.size < capacity) {
           const job = await workspace.claim(principal);
           if (!job) break;
           // close may race the durable claim. Settle it truthfully without starting.
+          if (closing && job.kind === 'maintenance') break;
           if (closing) { await workspace.finish(principal, job, [], 'interrupted', 'service_stopped'); break; }
           const task = execute(job).catch(onError).finally(() => { active.delete(task); wake(); });
           active.add(task);

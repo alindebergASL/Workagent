@@ -1,5 +1,5 @@
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
-export function initialState(owner) { return { owner, permissionRevision: 1, enabled: true, sequence: 0, works: {}, commands: {}, sources: {}, jobs: {}, events: [] }; }
+export function initialState(owner) { return { owner, permissionRevision: 1, enabled: true, sequence: 0, works: {}, commands: {}, sources: {}, ownedSources: {}, observations: {}, jobs: {}, events: [] }; }
 // Only this production store is wired into main. The parent provisions a fresh schema.
 export class PostgresStore {
   constructor(pool, owner) { this.pool = pool; this.owner = owner; }

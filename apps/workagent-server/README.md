@@ -1,10 +1,10 @@
-# B01 / independent B02 checkpoint
+# Workagent runtime: B01, B02 and first B03 slice
 
 Concrete implementation, **not a completed B01**. Native Univer Sheets use PostgreSQL
 persistence, one owner and one runner. See [STATUS](../../STATUS.md) for checks and
 Parent's deployed/live evidence. No fixture mode is exposed by the product server.
-The November 13 repair adds truthful incomplete turns and explicit OpenRouter-backed
-accounting; the new migration and mode still need Parent's live qualification.
+Parent's November 13 briefing confirms the cancelled/canonical reconciliation repair
+is deployed and live-qualified at 9513084. B03 below is a new source checkpoint.
 
 ## Install and checks
 
@@ -182,3 +182,106 @@ They do not establish PostgreSQL, financial, browser, remote or phone behavior.
 The supported native Vite config loader builds within the worker sandbox without
 writing temporary configuration into shared dependencies. See STATUS for actual
 checks; Parent retains final browser and live accounting verification.
+
+## B03: owned-file background maintenance
+
+The actual conversation UI has **Keep a cell current** on saved work: upload/paste a
+synthetic flat JSON object, select one scalar field and a sheet/row/column, and bind.
+The same panel publishes subsequent complete source revisions, changes settings,
+pauses/resumes/ends, explicitly relinks a protected cell, and shows freshness,
+findings and a durable maintenance inbox. Changes use the native workbook authority.
+No browser watcher or model call implements maintenance. Thresholds affect notices,
+not propagation; equal quiet-hour endpoints disable quiet hours. Digest delay starts
+at the first pending meaningful finding. Notifications remain inside this product.
+
+**Installation:** no new SQL migration, provisioning/reset, grant or package install.
+The existing `workagent_b01.workspace.data` transaction stores additive
+`ownedSources`, `observations`, work `responsibilities`/`inbox`, commands/jobs/events.
+Missing collections initialize on their first authorized use. Parent deploys server,
+runner and rebuilt client together, preserving the existing PostgreSQL row and
+`WORKAGENT_STATE_DIR`. Keep the current `WORKAGENT_ACCOUNTING_MODE=openrouter`;
+bindings record `openrouter:configured-provider-limits`, with no numerical subcap.
+This path has no inference and leaves provider/legacy financial history untouched.
+
+Files are immutable bounded JSON revisions under
+`WORKAGENT_STATE_DIR/owned-sources/<server-derived-owner-hash>/<content-hash>.json`.
+The authenticated API accepts only opaque source IDs, never paths/URLs/commands.
+Maximum UTF-8 size is 64 KiB; at most 1,000 top-level scalar fields; string values at
+most 20,000 characters. Files/directories reject symlinks; bytes are hash-verified on
+read. A complete fsynced staging inode is linked before its revision is published
+in PostgreSQL. Unreferenced staging files remain retained after interruption; no
+cleanup is part of this change. Direct host-file changes are unsupported and produce
+an unavailable/mismatched observation rather than silently becoming a revision.
+
+Due time and source publication wake durable work. Reads happen outside the DB lock;
+admission rechecks source/config/grants and commits the exact immutable observation,
+command and job/event together. One pending occurrence per responsibility coalesces
+missed intervals/revisions to the latest; prior versions/observations are retained.
+Missing revision metadata is a visible gap. A claimed job can safely recover its
+pinned observation after restart because its only effect is the same transaction's
+cell commit and outcome; this makes no exactly-once external-effect claim. Human
+jobs take priority and maintenance never changes the human intent/cancel revision.
+Human cell edits detach the binding; only current-revision owner Relink releases
+that single cell. Source failures, protected findings, pause/end/revocation and
+unchanged freshness are visible; unchanged readings do not create inbox messages.
+
+A valid source can still make the resulting workbook exceed its 4,000,000-character
+serialized limit. The occurrence then completes with `validation_failed` and
+`invalid_workbook`, preserving the original observation and saved sheet. The panel
+shows “Last update not applied” and the inbox retains the error. Reduce sheet content
+or shorten the source value, or End the responsibility; human continuation remains
+available. Database/commit acknowledgement failures remain uncertain and recover from
+durable state instead of being labeled a confirmed validation failure.
+
+Additional authenticated routes (same origin and access checks as the existing API):
+
+- `GET /api/owned-sources`: source IDs, revisions, fields and status.
+- `POST /api/owned-sources`: `{commandId,name,content,synthetic:true}` creates;
+  add `{sourceId,expectedRevision}` to publish a new immutable revision.
+- `POST /api/owned-sources/:id/revoke`: `{commandId}`. Prior observations survive.
+- `POST /api/work/:id/responsibilities`: `{commandId,sourceId,field,target,expected,
+  intervalSeconds,timezone,catchUp:'latest',notifications,endAt}`. `target` has
+  `sheetId,row,column` (zero-based); `expected` is from the current work GET.
+  Notifications: `{threshold:0,digestMinutes:0,quiet:{start:0,end:0}}`.
+- `POST /api/work/:id/responsibilities/:rid`: `{commandId,revision,action}` with
+  `pause|resume|end|relink|configure`; Relink also requires current `expected`.
+  Configure accepts the interval/timezone/notification/end settings above.
+
+### Parent's synthetic live probe
+
+Use a **new** synthetic inventory work, never the existing live demonstrations.
+Record real UTC time, work ID, sheet ID/cell, source ID/hash/revision, responsibility
+ID, observation ID and occurrence command ID at each readback. The statements below
+are expected results, not claimed outputs. Use normal private authentication without
+printing its token. All file updates go through the owned-source API/UI.
+
+1. In the rendered UI, open a new synthetic inventory work with an existing editable
+   sheet. Create `Synthetic inventory` with `{"available_units":120,"reorder_point":30}`.
+   Bind `available_units` to an unused cell (for example B2), every 10 seconds, UTC,
+   immediate notices/no quiet hours. If you manually populated that cell, use explicit
+   Relink. GET the work and inspect the real PostgreSQL committed row: expected cell
+   value 120, typed number, source revision 1, outcome `changed`, matching observation
+   hash/command/job, and one inbox finding. Record the actual identities/timestamps.
+2. Close **every** browser. Authenticated POST a complete revision with units 135,
+   reusing the same command ID/body for a duplicate request. Record its returned
+   revision/hash. Observe a queued/running occurrence and restart the private service
+   during that occurrence. Verify retained observation/command identity after restart
+   and eventual B2=135 (or an explicit protected decision); no extra inference/receipt
+   should be produced by this path. A restart after completion does not prove the
+   in-occurrence boundary. Parent must record which boundary it actually interrupted.
+3. After another interval, expect `unchanged`, later `observedAt`, unchanged content
+   revision and inbox count. Reopen and verify native rendering and freshness. Edit
+   B2 to 999, save, close clients, publish units 150. Expect B2=999, `protected`, and a
+   visible finding of 150. Relink using the latest work/config revisions; expect 150
+   next occurrence while all other human cell protections and column widths survive.
+4. Exercise pause before commit, publish several revisions while paused, resume,
+   source revocation, end time, thresholds, timezone quiet hours and delayed digest.
+   Expect no forbidden commits, explicit outcomes, recorded coalesced revision/interval
+   counts and retained earlier observations. Parent should also probe transaction
+   rollback and leadership/restart against real PostgreSQL and source filesystem.
+
+`npm run test:background` contains labeled file/SQL-call fixtures and handler tests
+without a listener. Browser/service/real PostgreSQL verification remains Parent's.
+The first slice implements deterministic scalar bindings and interval/source-revision
+triggers. Semantic proposals and external webhook/connector adapters are not added;
+P06/P11's broader connected artifacts and continuing-responsibility scope is retained.
