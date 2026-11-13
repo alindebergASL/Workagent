@@ -1,31 +1,42 @@
 import { useEffect, useRef } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
-import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, UniverSheetsCorePreset, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
+import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SheetInterceptorService, UniverSheetsCorePreset, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
+import { UniverSheetsDataValidationPreset } from '@univerjs/preset-sheets-data-validation';
+import UniverSheetsDataValidationEnUS from '@univerjs/preset-sheets-data-validation/locales/en-US';
+import '@univerjs/preset-sheets-data-validation/lib/index.css';
 import UniverSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US';
 import { serializeCsv, type CsvResult } from '../../../packages/workagent-contract/csv.mjs';
 import { isHumanSheetMutation, pendingCell } from './drafts';
 import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
-import type { IWorkbookData, ICellData } from '@univerjs/core';
+import { CommandType, ICommandService, type IWorkbookData, type ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
 export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
 export type EditorHandle = { formatEdits?: () => FormatEdits | undefined; save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
-export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { book: IWorkbookData; formatEdits?: FormatEdits | null; version: string; onReady: (editor: EditorHandle | null) => void; onEdit: (book: IWorkbookData) => void }) {
+export function NativeEditor({ book, version, formatEdits, humanCells, onReady, onEdit }: { book: IWorkbookData; humanCells?: string[]; formatEdits?: FormatEdits | null; version: string; onReady: (editor: EditorHandle | null) => void; onEdit: (book: IWorkbookData) => void }) {
   const container = useRef<HTMLDivElement>(null), edit = useRef(onEdit), ready = useRef(onReady);
   edit.current = onEdit; ready.current = onReady;
   useEffect(() => {
     const notifyEdit = edit.current, notifyReady = ready.current;
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
-    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })] });
+    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } }), UniverSheetsDataValidationPreset()] });
     let releaseFocus = () => {};
     try {
     releaseFocus = installEditorFocus(univer, container.current!);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
     // An ACK cannot clear a newer edit. Structural mutations relocate ownership;
-    // deleted coordinates are retired, and undo restores styles via native mutations.
+    // deleted coordinates are retired, and native history restores their provenance.
     // null denotes a recovered legacy draft, whose provenance is unknown.
     const formatted = new Map(Object.entries(formatEdits ?? {}).map(([sid, cells]) => [sid, new Set(cells)]));
+    // Saved blank rule removals have no cell/style payload. Keep their human
+    // anchors available to structural commands after a cold reopen as well.
+    const inherited = new Map<string, Set<number>>();
+    for (const key of humanCells ?? []) {
+      const [sid, r, c] = key.split(':');
+      if (!inherited.has(sid)) inherited.set(sid, new Set());
+      inherited.get(sid)!.add(+r * 200 + +c);
+    }
     const pruneFormatting = () => {
       for (const [sid, cells] of formatted) {
         const sheet = workbook.getSheetBySheetId(sid);
@@ -42,7 +53,41 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
       ? Object.fromEntries(Object.keys(v).sort().map(k => [k, v[k]])) : v);
     const beforeStyles = new WeakMap<object, { sid: string; cells: [number, string][] }>();
     const structuralIds = new Set([InsertRowMutation.id, InsertColMutation.id, RemoveRowMutation.id, RemoveColMutation.id, MoveRowsMutation.id, MoveColsMutation.id]);
-    const beforeStructure = new WeakMap<object, { sid: string; cells: Set<number> }>();
+    // Attach metadata to the SDK's own structural history entry. A deleted blank
+    // rule has no cell payload for the SDK to restore, and restoring cell styles
+    // alone would also misclassify derived formats as human intent.
+    type Provenance = { unitId: string; subUnitId: string; cells: number[]; inherited: number[] };
+    const provenance = (sid: string): Provenance => ({ unitId: book.id, subUnitId: sid,
+      cells: [...formatted.get(sid) ?? []], inherited: [...inherited.get(sid) ?? []] });
+    const structureCommands = new Set(['sheet.command.insert-row', 'sheet.command.insert-col', 'sheet.command.remove-row', 'sheet.command.remove-col', 'sheet.command.move-rows', 'sheet.command.move-cols']);
+    const historyBefore = new WeakMap<object, Provenance>();
+    const injector = univer.__getInjector();
+    const restoreId = 'sheet.mutation.restore-human-provenance';
+    const restoreProvenance = injector.get(ICommandService).registerCommand({ id: restoreId, type: CommandType.MUTATION,
+      handler: (_accessor, params) => {
+        const saved = params as Provenance | undefined;
+        if (!saved || saved.unitId !== book.id || !workbook.getSheetBySheetId(saved.subUnitId)) return false;
+        const previous = inherited.get(saved.subUnitId) ?? new Set<number>();
+        // Reintroduced anchors must reach Save even if a prior deletion was
+        // already saved (and retired an out-of-bounds authoritative anchor).
+        formatted.set(saved.subUnitId, new Set([...saved.cells, ...saved.inherited.filter(cell => !previous.has(cell))]));
+        inherited.set(saved.subUnitId, new Set(saved.inherited));
+        pruneFormatting();
+        return true;
+      } });
+    const interceptors = injector.get(SheetInterceptorService);
+    const historyStart = interceptors.interceptCommand({ getMutations: command => {
+      const params = command.params as { unitId?: string; subUnitId?: string } | undefined;
+      if (structureCommands.has(command.id) && params?.unitId === book.id && params.subUnitId) historyBefore.set(params, provenance(params.subUnitId));
+      return { undos: [], redos: [] };
+    } });
+    const historyEnd = interceptors.interceptAfterCommand({ getMutations: command => {
+      const params = command.params, old = params && historyBefore.get(params);
+      if (!old) return { undos: [], redos: [] };
+      historyBefore.delete(params!);
+      return { undos: [{ id: restoreId, params: old }], redos: [{ id: restoreId, params: provenance(old.subUnitId) }] };
+    } });
+    const beforeStructure = new WeakMap<object, { sid: string; cells: Set<number>; inherited: Set<number> }>();
     const before = univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, command => {
       if (!isHumanSheetMutation(command, false)) return;
       const params = command.params as { unitId?: string; subUnitId?: string; cellValue?: Record<string, Record<string, ICellData | null>>; values?: Record<string, { ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[] }>; ranges?: { startRow: number; endRow: number; startColumn: number; endColumn: number }[] } | undefined;
@@ -50,12 +95,18 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
       const sheet = workbook.getSheetBySheetId(params.subUnitId); if (!sheet) return;
       if (structuralIds.has(command.id)) {
         const mutation = { id: command.id, params: command.params as MutationsAffectRange };
-        const moved = new Set<number>();
+        const moved = new Set<number>(), inheritedMoved = new Set<number>();
         const relocate = (row: number, column: number, owned: boolean) => {
           const next = adjustRangeOnMutation({ startRow: row, endRow: row, startColumn: column, endColumn: column }, mutation);
           if (next && (owned || next.startRow !== row || next.startColumn !== column)
             && next.startRow >= 0 && next.startRow < 10000 && next.startColumn >= 0 && next.startColumn < 200) moved.add(next.startRow * 200 + next.startColumn);
         };
+        for (const cell of inherited.get(params.subUnitId) ?? []) {
+          const row = Math.floor(cell / 200), column = cell % 200;
+          relocate(row, column, false);
+          const next = adjustRangeOnMutation({ startRow: row, endRow: row, startColumn: column, endColumn: column }, mutation);
+          if (next && next.startRow >= 0 && next.startRow < 10000 && next.startColumn >= 0 && next.startColumn < 200) inheritedMoved.add(next.startRow * 200 + next.startColumn);
+        }
         for (const cell of formatted.get(params.subUnitId) ?? []) relocate(Math.floor(cell / 200), cell % 200, true);
         // Also cover styles saved before this editor opened. A human moving a
         // styled cell adopts its destination, even if its style was calculated.
@@ -65,7 +116,7 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
         sheet.getSheet().getCellMatrix().forValue((row, column, cell) => {
           if (cell?.s != null) relocate(row, column, false);
         });
-        beforeStructure.set(params, { sid: params.subUnitId, cells: moved });
+        beforeStructure.set(params, { sid: params.subUnitId, cells: moved, inherited: inheritedMoved });
       }
       const cells = new Set<number>();
       if (command.id === 'sheet.mutation.set-range-values') {
@@ -79,6 +130,13 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
       }
       if (cells.size) beforeStyles.set(params, { sid: params.subUnitId, cells: [...cells].map(cell => [cell, stable(sheet.getRange(Math.floor(cell / 200), cell % 200).getCellStyleData())]) });
     });
+    // Rule mutations carry deliberate human intent, including blank ranges and
+    // removal. Reuse the bounded provenance/draft/retry channel for their cells.
+    const ruleRanges = () => {
+      const raw = workbook.save().resources?.find(r => r.name === 'SHEET_DATA_VALIDATION_PLUGIN')?.data;
+      return raw ? JSON.parse(raw) as Record<string, { uid: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[] }[]> : {};
+    };
+    let priorRules = ruleRanges();
     let selectionEpoch = 0;
     const selectionKey = () => JSON.stringify([workbook.getActiveSheet().getSheetId(), workbook.getActiveSheet().getSelection()?.getActiveRangeList().map(r => r.getRange())]);
     let lastSelection = selectionKey();
@@ -132,11 +190,23 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
     });
     const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
       if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
+      if (command.id.startsWith('data-validation.mutation.')) {
+        const next = ruleRanges();
+        for (const sid of new Set([...Object.keys(priorRules), ...Object.keys(next)])) {
+          const old = priorRules[sid] ?? [], current = next[sid] ?? [];
+          for (const rule of [...old, ...current]) if (stable(old.find(r => r.uid === rule.uid)) !== stable(current.find(r => r.uid === rule.uid))) {
+            if (!formatted.has(sid)) formatted.set(sid, new Set());
+            for (const r of rule.ranges) for (let row = Math.max(0, r.startRow); row <= Math.min(9999, r.endRow); row++) for (let col = Math.max(0, r.startColumn); col <= Math.min(199, r.endColumn); col++) formatted.get(sid)!.add(row * 200 + col);
+          }
+        }
+        priorRules = next;
+      }
       const params = command.params as object | undefined, prior = params && beforeStyles.get(params);
       const structure = params && beforeStructure.get(params);
       if (structure) {
         beforeStructure.delete(params!);
         formatted.set(structure.sid, structure.cells);
+        inherited.set(structure.sid, structure.inherited);
         pruneFormatting();
       }
       if (prior) {
@@ -149,7 +219,7 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
       }
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;

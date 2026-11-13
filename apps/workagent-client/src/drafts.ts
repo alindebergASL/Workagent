@@ -2,7 +2,7 @@ import type { IWorkbookData, IDocumentData } from '@univerjs/core';
 
 export function isHumanSheetMutation(command: { id: string; options?: Record<string, unknown> }, editing: boolean): boolean {
   // Univer applies computed values through the same mutation as human edits.
-  return command.id.startsWith('sheet.mutation.') && !command.id.includes('formula') && !command.id.includes('calculation')
+  return (command.id.startsWith('sheet.mutation.') || command.id.startsWith('data-validation.mutation.')) && !command.id.includes('formula') && !command.id.includes('calculation')
     && !command.options?.fromFormula && !command.options?.applyFormulaCalculationResult && !editing;
 }
 

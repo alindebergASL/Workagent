@@ -90,7 +90,7 @@ export function createSheetReader(workId, selection) {
       if (escapedBytes(full) <= SHEET_READ_BYTES) return JSON.stringify(full);
     }
     const result = { ...base, workbookComplete: false, complete: false,
-      omissions: ['Workbook/tab/cell formatting and other native metadata are omitted; cell content includes v/t/p or f/si only.',
+      omissions: ['Workbook/tab/cell formatting and validation controls are omitted in paged reads; cell content includes v/t/p or f/si only. Agent writes to controlled cells require a human proposal even when a blank controlled cell is absent from this page.',
         'Protection is reported only for returned cells. All authoritative human protections still apply to edits.',
         'Sparse pages contain stored cells only. Unreturned cells are not inferred values. Follow nextCursor until complete, or read another sheetId/range.',
         'To combine independent reads at one snapshot, pass the exact expected object. Revision changes require a fresh read; do not combine stale pages.'],

@@ -1,3 +1,4 @@
+import { validateSheetResources } from './sheet-controls.mjs';
 export class Fault extends Error {
   constructor(code, status = 409) { super(code); this.code = code; this.status = status; }
 }
@@ -27,6 +28,7 @@ export function validateWorkbook(book) {
       for (const col of Object.keys(cells)) if (!/^\d+$/.test(col) || +col >= sheet.columnCount) throw new Fault('cell_bounds', 400);
     }
   }
+  validateSheetResources(book);
   return structuredClone(book);
 }
 // Owner-save provenance only. Coordinates are row * 200 + column, matching

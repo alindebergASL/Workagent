@@ -30,6 +30,7 @@ export function mountNative(props, plugins = []) {
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
+    if (name === '@univerjs/preset-sheets-data-validation') return { UniverSheetsDataValidationPreset: () => ({}) };
     if (name === '@univerjs/preset-sheets-core') return { ...sheets, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });

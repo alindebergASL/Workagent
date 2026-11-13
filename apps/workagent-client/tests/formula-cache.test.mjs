@@ -104,6 +104,8 @@ function mountEditor(book, editing = {}) {
     if (name === './drafts') return { isHumanSheetMutation, pendingCell };
     if (name.endsWith('.css')) return {};
     if (name === '@univerjs/preset-sheets-core/locales/en-US') return {};
+    if (name === '@univerjs/preset-sheets-data-validation') return { UniverSheetsDataValidationPreset: () => ({}) };
+    if (name === '@univerjs/preset-sheets-data-validation/locales/en-US') return {};
     if (name === '@univerjs/preset-sheets-core') return { ...require('@univerjs/sheets'), CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       e = engine(options.presets[0].formula);
