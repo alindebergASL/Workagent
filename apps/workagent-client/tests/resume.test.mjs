@@ -142,3 +142,36 @@ test('lost response after actual admission keeps exact IDs across reload and rep
   assert.equal(retry.commandId, first.commandId); assert.equal(retry.sourceCommandId, first.sourceCommandId); assert.equal(ids, 2);
   assert.deepEqual(await send(retry), accepted); assert.equal((await ws.list('owner')).length, 1);
 });
+
+const docAttachment = { kind: 'document', workId: 'doc', documentId: 'doc', contentRevision: 2, segmentId: '', startOffset: 0, endOffset: 4, quote: '🌍\r ', title: 'Source', editorId: 'native-instance', selectionEpoch: 4, contentEpoch: 6 };
+const docContext = { kind: 'document', workId: 'doc', documentId: 'doc', contentRevision: 3, segmentId: '', startOffset: 0, endOffset: 4 };
+test('document editable attachment and immutable saved context survive reload separately and stay per-work', () => {
+  const disk = storage(), drafts = new ComposerDrafts(disk), draft = { prompt: 'Explain', sourceName: 'Data', sourceText: '', selection: docAttachment };
+  drafts.write('doc', draft); const submitted = drafts.submission('doc', draft, 0, () => 'id', docContext);
+  const reload = new ComposerDrafts(disk);
+  assert.deepEqual(reload.read('doc'), draft); assert.deepEqual(reload.pending('doc'), submitted);
+  assert.equal(reload.pending('doc').selection.contentRevision, 3); assert.equal(reload.read('doc').selection.contentRevision, 2);
+  assert.equal(reload.pending('other'), null); assert.equal(reload.read('other').selection, undefined);
+});
+test('send ownership survives sibling settlement without clearing a newer pending command', () => {
+  const disk = storage(), a = new ComposerDrafts(disk), b = new ComposerDrafts(disk), draft = { prompt: 'Original', sourceName: '', sourceText: '', selection: docAttachment };
+  a.write('doc', draft); const original = a.submission('doc', draft, 0, () => 'original', docContext);
+  assert.deepEqual(b.pending('doc'), original); b.accepted('doc', original.commandId);
+  const newer = b.submission('doc', { ...draft, prompt: 'New request' }, 1, () => 'newer', docContext);
+  assert.deepEqual(a.submission('doc', draft, 1, () => assert.fail('new ID'), docContext), original);
+  a.accepted('doc', original.commandId); assert.deepEqual(new ComposerDrafts(disk).pending('doc'), newer);
+});
+test('malformed/unsupported composer and pending storage is refused without overwriting retained bytes or issuing IDs', () => {
+  const good = { prompt: 'Keep this message', sourceName: 'Source', sourceText: '' };
+  for (const value of [null, [], { ...good, selection: {} }, { ...good, selection: { ...docAttachment, editorId: undefined } }, { ...good, selection: { ...docAttachment, kind: 'board' } }, { ...good, selection: { ...docAttachment, workId: 'other' } }]) {
+    const disk = storage(), drafts = new ComposerDrafts(disk), raw = JSON.stringify(value);
+    disk.setItem('workagent-composer:doc', raw); assert.throws(() => drafts.read('doc'), /invalid_composer_draft/);
+    assert.throws(() => drafts.write('doc', good), /invalid_composer_draft/); assert.equal(disk.getItem('workagent-composer:doc'), raw);
+  }
+  for (const value of [null, {}, { commandId: 'old', sourceCommandId: 'source', draft: good }, { commandId: 'old', sourceCommandId: 'source', intentRevision: 0, draft: { ...good, selection: docAttachment } }, { commandId: 'old', sourceCommandId: 'source', intentRevision: 0, draft: good, selection: docContext }]) {
+    const disk = storage(), drafts = new ComposerDrafts(disk), raw = JSON.stringify(value); drafts.write('doc', good);
+    disk.setItem('workagent-composer:doc:send', raw); assert.throws(() => drafts.pending('doc'), /invalid_pending_send/);
+    assert.throws(() => drafts.submission('doc', good, 0, () => assert.fail('new ID')), /invalid_pending_send/);
+    assert.equal(disk.getItem('workagent-composer:doc:send'), raw); assert.deepEqual(drafts.read('doc'), good);
+  }
+});

@@ -83,7 +83,7 @@ export class Workspace {
         for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.kind !== 'maintenance' && j.status === 'queued') j.status = 'superseded';
         if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
-          w.messages.push({ id: input.commandId, role: 'user', text: input.text }); w.status = 'queued'; delete w.errorCode;
+          w.messages.push({ id: input.commandId, role: 'user', text: input.text, ...(selection?.kind === 'document' ? { selection: structuredClone(selection) } : {}) }); w.status = 'queued'; delete w.errorCode;
           s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, ...(selection ? { selection } : {}), status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
         }
         event(s, w, input.kind); return { workId: w.id, commandId: input.commandId, intentRevision: w.intentRevision };

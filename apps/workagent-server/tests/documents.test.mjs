@@ -97,7 +97,7 @@ test('document binding, access, grant, cancellation, source ownership and sheet-
   await assert.rejects(ws.mutateDocument('owner', workId, { commandId: 'wrong', document: blankDocument('other'), expected: w.expected }), /document_identity/);
   await assert.rejects(ws.mutate('owner', workId, { commandId: 'sheet-edit', expected: w.expected, patch: { cells: [] } }), /sheet_required/);
   await assert.rejects(ws.command('owner', { commandId: 'source', kind: 'continue', workId, expectedIntentRevision: 0, text: 'Help', sourceIds: ['not-owned'] }), /source_access_denied/);
-  await assert.rejects(ws.command('owner', { commandId: 'selection', kind: 'continue', workId, expectedIntentRevision: 0, text: 'Help', sourceIds: [], selection: { workId, sheetId: 'sheet1', contentRevision: 1, range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 } } }), /sheet_required/);
+  await assert.rejects(ws.command('owner', { commandId: 'selection', kind: 'continue', workId, expectedIntentRevision: 0, text: 'Help', sourceIds: [], selection: { workId, sheetId: 'sheet1', contentRevision: 1, range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 0 } } }), /invalid_selection/);
   const xlsx = new XlsxExchange({ workspace: ws, files, worker: { run() { assert.fail('document must not enter XLSX conversion'); } } });
   await assert.rejects(xlsx.export('owner', { workId }), /sheet_required/);
   const maintenance = new Maintenance({ workspace: ws, files });

@@ -4,3 +4,7 @@ export const DOCUMENT_POLICY: string;
 export function blankDocument(id: string, title?: string, text?: string): IDocumentData;
 export function validateDocument(doc: unknown): IDocumentData;
 export function documentText(doc: IDocumentData): string;
+export const DOCUMENT_SELECTION_LIMIT: number;
+export type DocumentSelectionRange = { segmentId: ''; startOffset: number; endOffset: number };
+export type DocumentSelection = DocumentSelectionRange & { kind: 'document'; workId: string; documentId: string; contentRevision: number };
+export function documentSelectionText(doc: IDocumentData, range: DocumentSelectionRange): string;

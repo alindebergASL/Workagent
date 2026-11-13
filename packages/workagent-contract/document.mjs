@@ -106,3 +106,16 @@ export function validateDocument(doc) {
   return structuredClone(doc);
 }
 export function documentText(doc) { return validateDocument(doc).body.dataStream.slice(0, -2).replace(/\r/g, '\n'); }
+
+export const DOCUMENT_SELECTION_LIMIT = 10000;
+// Native UTF-16 offsets, end exclusive. Keep paragraph marks and whitespace
+// literally; the final section sentinel (LF) is not selectable body text.
+export function documentSelectionText(doc, range) {
+  const stream = validateDocument(doc).body.dataStream;
+  const { startOffset: start, endOffset: end, segmentId } = range ?? {};
+  const splitsPair = n => n > 0 && n < stream.length && /[\uD800-\uDBFF]/.test(stream[n - 1]) && /[\uDC00-\uDFFF]/.test(stream[n]);
+  if (segmentId !== '' || !Number.isSafeInteger(start) || !Number.isSafeInteger(end)
+    || start < 0 || end <= start || end > stream.length - 1 || end - start > DOCUMENT_SELECTION_LIMIT
+    || splitsPair(start) || splitsPair(end)) throw new Fault('invalid_document_selection', 400);
+  return stream.slice(start, end);
+}

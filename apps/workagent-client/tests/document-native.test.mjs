@@ -1,3 +1,4 @@
+import * as documentContract from '../../../packages/workagent-contract/document.mjs';
 // Installed SDK native commands + file-fixture authority; no browser, PG or inference.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -54,6 +55,7 @@ test('DocumentEditor consumer observes native pending edits/title/styles and ref
   const react = { useRef: value => ({ current: value === null ? element : value }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', code)(name => {
+    if (name.endsWith('/workagent-contract/document.mjs')) return documentContract;
     if (name === 'react') return react;
     if (name === '@univerjs/presets') return { LocaleType, mergeLocales: x => x, createUniver: options => {
       assert.equal(options.presets.length, 1);
@@ -122,10 +124,11 @@ function installClipboard(instance, clipboardRead = async () => []) {
 }
 function editorFixture(props, clipboardRead = async () => []) {
   let cleanup, handle, instance, clipboard, nativeDoc, tree; const edits = [], errors = [];
-  const element = { addEventListener() {}, removeEventListener() {} };
+  const listeners = new Map(), element = { addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
   const module = { exports: {} };
   const code = ts.transpileModule(readFileSync(new URL('../src/DocumentEditor.tsx', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
   new Function('require', 'module', 'exports', code)(name => {
+    if (name.endsWith('/workagent-contract/document.mjs')) return documentContract;
     if (name === 'react') return { useRef: value => ({ current: value === null ? element : value }), useEffect: fn => { cleanup = fn(); } };
     if (name === '@univerjs/presets') return { LocaleType, mergeLocales: x => x, createUniver: () => {
       instance = new Univer({ locale: LocaleType.EN_US, locales: { enUS: {} } });
@@ -141,7 +144,13 @@ function editorFixture(props, clipboardRead = async () => []) {
   }, module, module.exports);
   tree = module.exports.DocumentEditor({ version: 'test', onError: e => errors.push(e), ...props, onReady: h => { handle = h; props.onReady?.(h); }, onEdit: d => { edits.push(d); props.onEdit?.(d); } });
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
-  return { clipboard, edits, errors, get handle() { return handle; }, title(value) { nodes(tree).find(n => n.props['aria-label'] === 'Document title').props.onChange({ target: { value } }); }, dispose() { cleanup?.(); cleanup = null; } };
+  return { clipboard, edits, errors, listeners, doc: () => nativeDoc,
+    select(ranges, segmentId = '', rectRanges = []) {
+      const selection = instance.__getInjector().get(docs.DocSelectionManagerService);
+      // Installed render-to-logical-selection entry point; geometry/pointer input
+      // remains a browser qualification. The actual SDK emits its real event.
+      selection.__replaceTextRangesWithNoRefresh({ textRanges: ranges.map(r => ({ collapsed: r.startOffset === r.endOffset, isActive: true, segmentId, ...r })), rectRanges, segmentId, segmentPage: -1, isEditing: false, style: require('@univerjs/engine-render').NORMAL_TEXT_SELECTION_PLUGIN_STYLE }, { unitId: nativeDoc.getId(), subUnitId: nativeDoc.getId() });
+    }, get handle() { return handle; }, title(value) { nodes(tree).find(n => n.props['aria-label'] === 'Document title').props.onChange({ target: { value } }); }, dispose() { cleanup?.(); cleanup = null; } };
 }
 const held = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 for (const entry of ['paste', 'pasteFromClipboard', 'legacyPaste']) test(`owned SDK ${entry} blocks actual export/save/send through delayed read and recovers`, async () => {
@@ -250,4 +259,142 @@ for (const kind of [undefined, 'sheet']) test(`actual App preserves ${kind ?? 'l
     await view.click('Attach selected cells'); await view.save();
     assert.equal(api.calls.find(c => c.path.endsWith('/save')).input.book.sheets.sheet1.cellData[0][0].v, 'human value');
   } finally { view.unmount(); }
+});
+
+// These tests drive actual installed logical selection events and native editing
+// through the actual DocumentEditor + App TSX consumers. Pointer geometry/DOM
+// rendering and real clipboard permissions remain Parent's browser acceptance.
+async function selectionApp(handler, storage) {
+  const app = consumerFixture('./csv-app.test.mjs', 'mount,disk,server');
+  const api = app.server(handler ?? ((path, input, works) => {
+    if (path.endsWith('/save')) { const revision = works.old.contentRevision + 1; works.old = { ...works.old, document: input.document, contentRevision: revision, eventSequence: revision }; return { contentRevision: revision, permissionRevision: 1 }; }
+    return { workId: input.workId };
+  }));
+  const { book, ...w } = api.works.old;
+  api.works.old = { ...w, kind: 'document', document: blankDocument('old', 'Native source', '  雪 🌍 é Ελληνικά العربية\nSecond paragraph  ') };
+  storage ??= app.disk(); const view = app.mount(storage, api.fetch); await view.flush(); await view.open('old');
+  const editor = editorFixture(view.doc());
+  return { app, api, view, editor, storage, close() { editor.dispose(); view.unmount(); } };
+}
+test('genuine logical body selection → actual TSX attach/remove/save/send uses exact Unicode quote and explicit document descriptor', async () => {
+  const f = await selectionApp();
+  try {
+    f.editor.doc().insertText(0, 'Human edit\r');
+    f.editor.doc().getTextRange(0, 5).setTextStyle({ bl: 1 });
+    const original = await f.editor.handle.commit(), endOffset = original.body.dataStream.length - 1;
+    f.editor.select([{ startOffset: 0, endOffset }]); await f.view.flush();
+    await f.view.click('Attach selected text');
+    assert.match(f.view.text(), /body offsets/); assert.match(f.view.text(), /雪 🌍 é Ελληνικά العربية/);
+    assert.equal(JSON.parse(f.storage.getItem('workagent-composer:old')).selection.quote, original.body.dataStream.slice(0, -1));
+    await f.view.click('Remove selection'); assert.equal(JSON.parse(f.storage.getItem('workagent-composer:old')).selection, undefined);
+    await f.view.click('Attach selected text'); await f.view.message('Explain only this passage'); await f.view.send();
+    const saves = f.api.calls.filter(c => c.path.endsWith('/save')), sends = f.api.calls.filter(c => c.path === '/api/work/commands');
+    assert.equal(saves.length, 1); assert.deepEqual(saves[0].input.document, original); assert.equal(sends.length, 1);
+    assert.deepEqual(sends[0].input.selection, { kind: 'document', workId: 'old', documentId: 'old', segmentId: '', startOffset: 0, endOffset, contentRevision: 2 });
+    assert.equal(sends[0].input.selection.quote, undefined); assert.equal(sends[0].input.selection.sheetId, undefined);
+  } finally { f.close(); }
+});
+test('native selection refuses caret, multiple ranges, header/footer, objects, surrogate split and excess; keeps exact whitespace', async () => {
+  const e = editorFixture({ document: blankDocument('selection', 'Native', '  🌍\n' + 'x'.repeat(10001)) });
+  try {
+    for (const [ranges, segment, rect, error] of [
+      [[{ startOffset: 0, endOffset: 0 }], '', [], /caret/],
+      [[{ startOffset: 0, endOffset: 1 }, { startOffset: 4, endOffset: 5 }], '', [], /Multiple ranges/],
+      [[{ startOffset: 0, endOffset: 1 }], 'header', [], /headers/],
+      [[{ startOffset: 0, endOffset: 1, segmentId: 'footer' }], '', [], /footers/],
+      [[{ startOffset: 0, endOffset: 1 }], '', [{ startOffset: 0, endOffset: 1 }], /objects/],
+      [[{ startOffset: 2, endOffset: 3 }], '', [], /Unicode/],
+      [[{ startOffset: 3, endOffset: 4 }], '', [], /Unicode/],
+      [[{ startOffset: 0, endOffset: 10001 }], '', [], /10,000/],
+    ]) { e.select(ranges, segment, rect); assert.throws(() => e.handle.selection(), error); }
+    e.select([{ startOffset: 0, endOffset: 5 }]); assert.equal(e.handle.selection().quote, '  🌍\r');
+    e.select([{ startOffset: 5, endOffset: 10005 }]); assert.equal(e.handle.selection().quote.length, 10000);
+  } finally { e.dispose(); }
+});
+for (const change of ['selection-ABA', 'title-ABA', 'text', 'style']) test(`document attachment detects ${change} before send and leaves unsaved edits and message intact`, async () => {
+  const f = await selectionApp();
+  try {
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Explain attached text');
+    if (change === 'selection-ABA') { f.editor.select([{ startOffset: 6, endOffset: 7 }]); f.editor.select([{ startOffset: 0, endOffset: 6 }]); }
+    if (change === 'title-ABA') { f.editor.title('Changed'); f.editor.title('Native source'); }
+    if (change === 'text') f.editor.doc().insertText(0, 'New');
+    if (change === 'style') f.editor.doc().getTextRange(0, 2).setTextStyle({ bl: 1 });
+    await f.view.flush(); assert.match(f.view.text(), /Reattach selected text/);
+    await f.view.send(); assert.equal(f.api.calls.filter(c => c.path.endsWith('/save') || c.path === '/api/work/commands').length, 0);
+    assert.equal(f.view.messageValue(), 'Explain attached text');
+    await f.view.click('Remove selection'); await f.view.send(); assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 1);
+  } finally { f.close(); }
+});
+for (const change of ['selection-ABA', 'title-ABA', 'new-revision', 'remount', 'native-input']) test(`document selection ${change} during held save ACK refuses admission`, async () => {
+  const gate = held();
+  const f = await selectionApp((path, input, works) => {
+    if (path.endsWith('/save')) { works.old = { ...works.old, document: input.document, contentRevision: change === 'new-revision' ? 3 : 2, eventSequence: 3 }; return gate.promise; }
+    assert.fail('changed selection must not admit a command');
+  });
+  let next;
+  try {
+    f.editor.title('Human title'); f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Explain attached'); await f.view.send();
+    assert.equal(f.api.calls.filter(c => c.path.endsWith('/save')).length, 1);
+    if (change === 'selection-ABA') { f.editor.select([{ startOffset: 6, endOffset: 7 }]); f.editor.select([{ startOffset: 0, endOffset: 6 }]); }
+    if (change === 'title-ABA') { f.editor.title('Temporary'); f.editor.title('Human title'); }
+    if (change === 'remount') { f.editor.dispose(); next = editorFixture(f.view.doc()); next.select([{ startOffset: 0, endOffset: 6 }]); }
+    if (change === 'native-input') f.editor.listeners.get('compositionstart')();
+    gate.resolve({ contentRevision: 2, permissionRevision: 1 }); await f.view.flush();
+    assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 0); assert.equal(f.view.messageValue(), 'Explain attached');
+    assert.match(f.view.text(), /changed|latest edit/);
+  } finally { next?.dispose(); f.close(); }
+});
+test('selection attachment and draft survive intentional navigation/reload but remount visibly requires reattachment', async () => {
+  const f = await selectionApp(); let reopened;
+  try {
+    f.editor.title('Human draft'); f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Keep this passage');
+    const saved = f.storage.getItem('workagent-composer:old'); await f.view.open('imported'); f.editor.dispose(); await f.view.open('old');
+    reopened = editorFixture(f.view.doc()); await f.view.flush();
+    assert.equal(f.view.doc().document.title, 'Human draft'); assert.equal(f.view.messageValue(), 'Keep this passage'); assert.equal(f.storage.getItem('workagent-composer:old'), saved);
+    assert.match(f.view.text(), /Reattach selected text/); reopened.select([{ startOffset: 0, endOffset: 6 }]); await f.view.send();
+    assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 0);
+    await f.view.click('Attach selected text'); await f.view.send(); assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 1);
+  } finally { reopened?.dispose(); f.close(); }
+});
+test('pending real clipboard/IME fences attachment and send; failed inner paste releases only its operation and valid paste recovers', async () => {
+  const f = await selectionApp(), gate = held();
+  const items = text => [{ types: ['text/plain'], getType: async () => ({ text: async () => text }) }];
+  try {
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Explain text');
+    const paste = f.editor.clipboard.paste([{ types: ['text/plain'], getType: async () => ({ text: () => gate.promise }) }], 'text');
+    assert.equal(f.editor.handle.isEditing(), true); await f.view.click('Attach selected text'); await f.view.send();
+    assert.match(f.view.text(), /finishing/); assert.equal(f.api.calls.filter(c => c.path.endsWith('/save') || c.path === '/api/work/commands').length, 0);
+    gate.resolve('Pasted '); assert.equal(await paste, true);
+    assert.equal(await f.editor.clipboard.legacyPaste({ text: '\u001a', files: [], mode: 'text' }), false); assert.equal(f.editor.handle.isEditing(), false);
+    assert.equal(await f.editor.clipboard.paste(items('Recovered '), 'text'), true); await f.editor.handle.commit();
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); f.editor.listeners.get('compositionstart')();
+    assert.throws(() => f.editor.handle.selection(), /finishing/); await f.view.send(); assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 0);
+    f.editor.listeners.get('compositionend')(); await Promise.resolve();
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.send();
+    assert.equal(f.api.calls.filter(c => c.path === '/api/work/commands').length, 1);
+  } finally { gate.resolve(''); f.close(); }
+});
+test('document lost-ACK retry after reload uses exact body without saving newer native edits or recapturing selection', async () => {
+  let sends = 0; const f = await selectionApp((path, input) => {
+    assert.equal(path, '/api/work/commands'); if (++sends === 1) throw Error('lost acknowledgement'); return { workId: input.workId };
+  });
+  let reload, editor;
+  try {
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Explain original passage'); await f.view.send();
+    assert.match(f.view.text(), /original captured context retained/); f.close();
+    reload = f.app.mount(f.storage, f.api.fetch); await reload.flush(); await reload.open('old'); editor = editorFixture(reload.doc());
+    editor.doc().insertText(0, 'New human content '); editor.select([{ startOffset: 6, endOffset: 9 }]); await reload.flush();
+    await reload.send(); const calls = f.api.calls.filter(c => c.path === '/api/work/commands'); assert.equal(calls.length, 2); assert.deepEqual(calls[1], calls[0]);
+    assert.equal(f.api.calls.filter(c => c.path.endsWith('/save')).length, 0); assert.match(JSON.parse(f.storage.getItem('workagent-draft:old')).book.body.dataStream, /^New human content/);
+  } finally { editor?.dispose(); reload?.unmount(); f.close(); }
+});
+test('two document send consumers keep original command even after sibling settles and clears shared storage', async () => {
+  let sends = 0; const f = await selectionApp((path, input) => { assert.equal(path, '/api/work/commands'); if (++sends === 1) throw Error('lost acknowledgement'); return { workId: input.workId }; });
+  let sibling, editor;
+  try {
+    f.editor.select([{ startOffset: 0, endOffset: 6 }]); await f.view.click('Attach selected text'); await f.view.message('Explain once'); await f.view.send();
+    sibling = f.app.mount(f.storage, f.api.fetch); await sibling.flush(); await sibling.open('old'); editor = editorFixture(sibling.doc()); await sibling.send();
+    assert.equal(f.storage.getItem('workagent-composer:old:send'), null);
+    await f.view.send(); const calls = f.api.calls.filter(c => c.path === '/api/work/commands'); assert.equal(calls.length, 3); assert.deepEqual(calls[1], calls[0]); assert.deepEqual(calls[2], calls[0]);
+  } finally { editor?.dispose(); sibling?.unmount(); f.close(); }
 });

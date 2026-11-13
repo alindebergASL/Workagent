@@ -18,3 +18,5 @@
 .document-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 20rem; overflow: auto; }
 .document-title { display: flex; gap: .5rem; align-items: center; padding: .5rem 1rem; font-size: .85rem; }
 .document-limits { padding: 0 1rem; margin: .25rem 0 .5rem; font-size: .75rem; color: #68756d; }
+
+.selected-quote { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 12rem; overflow: auto; padding: .6rem; border-left: 3px solid currentColor; font: inherit; }

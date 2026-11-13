@@ -1,4 +1,4 @@
-import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
+import { workKind, documentSelectionText } from '../../../packages/workagent-contract/document.mjs';
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
 
 // Resolve only against the owned workbook inside command admission. Client labels,
@@ -6,7 +6,15 @@ import { Fault } from '../../../packages/workagent-contract/index.mjs';
 export function bindSelection(w, selection, kind) {
   if (kind !== 'continue' || !selection || selection.workId !== w.id) throw new Fault('invalid_selection', 400);
   if (!Number.isSafeInteger(selection.contentRevision) || selection.contentRevision !== w.contentRevision) throw new Fault('selection_conflict');
-  requireSheet(w);
+  if (selection.kind === 'document') {
+    if (workKind(w) !== 'document' || selection.documentId !== w.id || w.document?.id !== w.id
+      || Object.keys(selection).some(k => !['kind', 'workId', 'documentId', 'contentRevision', 'segmentId', 'startOffset', 'endOffset'].includes(k))) throw new Fault('invalid_document_selection', 400);
+    const quote = documentSelectionText(w.document, selection);
+    return { kind: 'document', workId: w.id, documentId: w.document.id, contentRevision: w.contentRevision,
+      segmentId: '', startOffset: selection.startOffset, endOffset: selection.endOffset, title: w.document.title, quote };
+  }
+  if (workKind(w) !== 'sheet' || (selection.kind !== undefined && selection.kind !== 'sheet')
+    || ['documentId', 'segmentId', 'startOffset', 'endOffset', 'quote'].some(k => Object.hasOwn(selection, k))) throw new Fault('invalid_selection', 400);
   const sheet = w.book.sheetOrder.includes(selection.sheetId) && w.book.sheets[selection.sheetId];
   const r = selection.range;
   if (!sheet || !r || !['startRow', 'endRow', 'startColumn', 'endColumn'].every(k => Number.isSafeInteger(r[k]) && r[k] >= 0)
