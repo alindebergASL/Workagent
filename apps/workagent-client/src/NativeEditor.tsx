@@ -12,6 +12,7 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
   const container = useRef<HTMLDivElement>(null), edit = useRef(onEdit), ready = useRef(onReady);
   edit.current = onEdit; ready.current = onReady;
   useEffect(() => {
+    const notifyEdit = edit.current, notifyReady = ready.current;
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
     const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })] });
@@ -38,7 +39,7 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
         || endRow < startRow || endColumn < startColumn || (endRow - startRow + 1) * (endColumn - startColumn + 1) > 2000) throw new Error('Select a range of at most 2,000 cells.');
       return { workId: book.id, sheetId: sheet.getSheetId(), sheetName: sheet.getSheetName(), rangeLabel: ranges[0].getA1Notation(), range: { startRow, endRow, startColumn, endColumn } };
     };
-    ready.current({ save: snapshot, isEditing: () => workbook.isCellEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
+    notifyReady({ save: snapshot, isEditing: () => workbook.isCellEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
       const sheetId = workbook.getActiveSheet().getSheetId();
       await commit();
       if (workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed while finishing the edit. Retry CSV export.');
@@ -61,17 +62,17 @@ export function NativeEditor({ book, version, onReady, onEdit }: { book: IWorkbo
     } });
     const changing = univerAPI.addEvent(univerAPI.Event.SheetEditChanging, event => {
       pending = pendingCell(workbook.save(), event.worksheet.getSheetId(), event.row, event.column, event.value.toPlainText(), event.value.getData());
-      edits++; edit.current(snapshot());
+      edits++; notifyEdit(snapshot());
     });
     const ended = univerAPI.addEvent(univerAPI.Event.SheetEditEnded, () => {
       pending = null;
-      edits++; edit.current(structuredClone(workbook.save()));
+      edits++; notifyEdit(structuredClone(workbook.save()));
     });
     const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
       if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
-      if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; edit.current(structuredClone(workbook.save())); }
+      if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; selected.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); ready.current(null); univer.dispose(); };
+    return () => { disposed = true; selected.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;
 }

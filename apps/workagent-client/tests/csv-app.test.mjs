@@ -1,3 +1,4 @@
+import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 // Exercise the actual App's import navigation and durable save consumer. Hook/native
 // handles are fixtures; persistence and callbacks below are real client code.
 import test from 'node:test';
@@ -17,7 +18,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((a, b)
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
 function mount(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -28,6 +29,8 @@ function mount(storage, fetcher) {
   new Function('require', 'module', 'exports', 'localStorage', 'document', 'window', 'fetch', 'crypto', 'setTimeout', 'clearTimeout', code)(name => {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
+    if (name === './DocumentExchange') return { DocumentExchange };
+    if (name === './DocumentEditor') return { DocumentEditor };
     if (name === './NativeEditor') return { NativeEditor };
     if (name === './XlsxExchange') return { XlsxExchange };
     if (name === './CsvExchange') return { CsvExchange };
@@ -43,10 +46,10 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
-    titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.value,
-    async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New spreadsheet name').props.onChange({ target: { value } }); await flush(); },
+    titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
+    async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
     async open(id) { nodes(tree).find(n => n.type === 'select' && n.props['aria-label'] === 'Saved work').props.onChange({ target: { value: id } }); await flush(); },
     native: () => nodes(tree).find(n => n.type === NativeEditor).props,
     messageValue: () => nodes(tree).find(n => n.props.id === 'prompt').props.value,
@@ -96,7 +99,7 @@ for (const newerPending of [false, true]) test(`two live blank consumers keep on
   if (newerPending) { assert.notEqual(newer.input.commandId, calls[0].input.commandId); gate.resolve({ workId: created.get(newer.input.commandId) }); await b.flush(); }
   else { await a.title('Deliberate second blank'); await a.click('Create blank spreadsheet'); assert.equal(created.size, 2); }
   a.unmount(); b.unmount();
-  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created sheet');
+  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created work');
   assert.equal(reload.native().book.id, 'blank-1'); assert.equal(created.size, 2); reload.unmount();
 });
 for (const format of ['exchange', 'xlsx']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
@@ -244,7 +247,7 @@ test('actual App blank action survives lost ACK/reload, stays separate, and open
   assert.deepEqual(api.calls.filter(c => c.path === '/api/work/blank')[0], api.calls.filter(c => c.path === '/api/work/blank')[1]);
   assert.equal(view.native().book.id, 'old'); assert.equal(storage.getItem('workagent-blank:created'), 'blank');
   assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0);
-  await view.click('Open created sheet'); assert.equal(view.native().book.id, 'blank'); assert.equal(view.native().book.name, 'My blank workbook');
+  await view.click('Open created work'); assert.equal(view.native().book.id, 'blank'); assert.equal(view.native().book.name, 'My blank workbook');
   await view.open('old'); assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'human draft');
   assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Keep this unsent message'); view.unmount();
 });
@@ -254,10 +257,10 @@ test('blank saved work remains findable after opening is blocked by an in-flight
     return gate.promise;
   });
   const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); attach(view).edit('keep draft'); await view.flush(); await view.save();
-  await view.click('Create blank spreadsheet'); await view.click('Open created sheet');
+  await view.click('Create blank spreadsheet'); await view.click('Open created work');
   assert.equal(view.native().book.id, 'old'); assert.match(view.text(), /Wait for the current save/); assert.equal(storage.getItem('workagent-blank:created'), 'blank');
   gate.reject(new Error('offline')); await view.flush(); view.unmount();
-  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created sheet'); assert.equal(reload.native().book.id, 'blank'); reload.unmount();
+  const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created work'); assert.equal(reload.native().book.id, 'blank'); reload.unmount();
 });
 test('actual App opt-in selection includes pending human edits through saved revision; ordinary requests stay unscoped', async () => {
   const storage = disk(), api = server((path, input, works) => {
@@ -327,4 +330,54 @@ test('new blank acknowledgement never navigates away from edits/messages made du
   gate.resolve({ workId: 'blank' }); await view.flush();
   assert.equal(view.native().book.id, 'old'); assert.equal(JSON.parse(storage.getItem('workagent-draft:old')).book.sheets.sheet1.cellData[0][0].v, 'newer edit');
   assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Newer unsent message'); assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 0); view.unmount();
+});
+const docWork = id => { const { book, ...w } = work(id); return { ...w, kind: 'document', document: blankDocument(id, id) }; };
+function attachDoc(view) {
+  let data = structuredClone(view.doc().document);
+  const handle = { save: () => structuredClone(data), commit: async () => structuredClone(data), isEditing: () => false };
+  view.doc().onReady(handle);
+  return { handle, edit(value) { data = blankDocument(data.id, data.title, value); view.doc().onEdit(structuredClone(data)); } };
+}
+for (const firstAck of ['A', 'B']) test(`document App same-command ACK ${firstAck}-first preserves newer consumer recovery and composer`, async () => {
+  const storage = disk(), aAck = deferred(), bAck = deferred(); let saves = 0;
+  const api = server(() => ++saves === 1 ? aAck.promise : bAck.promise); api.works.old = docWork('old');
+  const a = mount(storage, api.fetch); await a.flush(); await a.open('old'); attachDoc(a).edit('A'); await a.flush(); await a.click('Save document');
+  const b = mount(storage, api.fetch); await b.flush(); await b.open('old'); attachDoc(b).edit('B newer'); await b.message('Unsent document message'); await b.click('Save document');
+  const posts = api.calls.filter(c => c.path.endsWith('/save')); assert.deepEqual(posts[0], posts[1]); assert.equal(posts[0].input.book, undefined); assert.equal(posts[0].input.document.body.dataStream, 'A\r\n');
+  const ack = { contentRevision: 2, permissionRevision: 1 };
+  if (firstAck === 'A') { aAck.resolve(ack); await a.flush(); bAck.resolve(ack); await b.flush(); }
+  else { bAck.resolve(ack); await b.flush(); aAck.resolve(ack); await a.flush(); }
+  const recovery = JSON.parse(storage.getItem('workagent-draft:old')); assert.equal(recovery.book.body.dataStream, 'B newer\r\n'); assert.equal(recovery.revision, 2);
+  a.unmount(); b.unmount();
+  const reload = mount(storage, api.fetch); await reload.flush(); await reload.open('old'); assert.equal(reload.doc().document.body.dataStream, 'B newer\r\n'); assert.equal(reload.messageValue(), 'Unsent document message'); reload.unmount();
+});
+test('document App preserves native draft across sheet navigation, refuses stale native callbacks and never attaches sheet selection', async () => {
+  const storage = disk(), api = server(() => { throw new Error('unexpected write'); }); api.works.old = docWork('old');
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const stale = view.doc(), doc = attachDoc(view); doc.edit('Document human text'); await view.message('Document composer');
+  assert.doesNotMatch(view.text(), /Attach selected cells/); assert.equal(view.exchange().work, null); assert.equal(view.xlsx().work, null);
+  await view.open('imported'); const sheet = attach(view); sheet.edit('Sheet human text'); await view.message('Sheet composer');
+  stale.onReady(doc.handle); stale.onEdit(blankDocument('old', 'Wrong', 'Stale callback'));
+  await view.open('old'); assert.equal(view.doc().document.body.dataStream, 'Document human text\r\n'); assert.equal(view.messageValue(), 'Document composer');
+  attachDoc(view); await view.open('imported'); assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'Sheet human text'); assert.equal(view.messageValue(), 'Sheet composer'); view.unmount();
+});
+test('document blank retry retains original kind/title/identity after sibling clears storage', async () => {
+  const storage = disk(), created = new Map(); let count = 0;
+  const api = server((path, input, works) => {
+    assert.equal(path, '/api/work/blank'); assert.equal(input.kind, 'document');
+    if (!created.has(input.commandId)) { const id = `doc-${created.size}`; created.set(input.commandId, id); works[id] = docWork(id); }
+    if (++count === 1) throw new Error('lost ACK');
+    return { workId: created.get(input.commandId) };
+  });
+  const a = mount(storage, api.fetch); await a.flush(); await a.title('A document'); await a.click('New document');
+  const b = mount(storage, api.fetch); await b.flush(); await b.click('Retry blank creation'); await a.click('Retry blank creation');
+  const calls = api.calls.filter(c => c.path === '/api/work/blank'); assert.deepEqual(calls[2], calls[0]); assert.equal(created.size, 1);
+  await a.click('Open created work'); assert.equal(a.doc().document.id, 'doc-0'); a.unmount(); b.unmount();
+});
+test('document App refuses a native instance disposed while commit is pending before dispatch', async () => {
+  const storage = disk(), gate = deferred(), api = server(() => { throw new Error('stale commit must never dispatch'); }); api.works.old = docWork('old');
+  const view = mount(storage, api.fetch); await view.flush(); await view.open('old'); const native = attachDoc(view); native.edit('Human draft');
+  native.handle.commit = () => gate.promise; await view.flush(); await view.click('Save document'); view.doc().onReady(null);
+  gate.resolve(native.handle.save()); await view.flush();
+  assert.equal(api.calls.filter(c => c.path.endsWith('/save')).length, 0); assert.match(view.text(), /editor changed while finishing/);
+  assert.equal(JSON.parse(storage.getItem('workagent-draft:old')).book.body.dataStream, 'Human draft\r\n'); view.unmount();
 });

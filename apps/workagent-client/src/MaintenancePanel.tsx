@@ -6,7 +6,7 @@ type Observation = { id: string; sourceRevision: number; observedAt: string; val
 export type Responsibility = { id: string; revision: number; sourceId: string; field: string; target: { sheetId: string; row: number; column: number }; status: string; detached: boolean; lastOutcome: string; lastErrorCode?: string | null; lastObservation: Observation | null; intervalSeconds: number; timezone: string; endAt: string | null; notifications: { threshold: number; digestMinutes: number; quiet: { start: number; end: number } | null } };
 export type Notice = { id: string; responsibilityId: string; at: string; count: number; outcome: string; errorCode?: string; value?: unknown; sourceRevision?: number };
 type API = <T>(path: string, input?: unknown, method?: string) => Promise<T>;
-export function MaintenancePanel({ work, api, beforeAction, refresh }: { work: Work; api: API; beforeAction: () => Promise<void>; refresh: () => Promise<void> }) {
+export function MaintenancePanel({ work, api, beforeAction, refresh }: { work: Extract<Work, { book: unknown }>; api: API; beforeAction: () => Promise<void>; refresh: () => Promise<void> }) {
   const [sources, setSources] = useState<Source[]>([]), [sourceId, setSourceId] = useState('');
   const [name, setName] = useState('Synthetic inventory'), [content, setContent] = useState('{"available_units": 120, "reorder_point": 30}');
   const [fieldChoice, setField] = useState(''), [sheetId, setSheetId] = useState(work.book.sheetOrder[0]), [row, setRow] = useState(1), [column, setColumn] = useState(1);

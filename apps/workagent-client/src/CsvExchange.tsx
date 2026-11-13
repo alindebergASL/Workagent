@@ -6,7 +6,7 @@ import type { Work } from './types';
 type Preview = { filename: string; bytes: number; encoding: string; rows: number; columns: number; raggedRows: number; sample: string[][] };
 type Upload = { filename: string; base64: string; synthetic: true };
 type Api = <T>(path: string, input?: unknown) => Promise<T>;
-export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => EditorHandle | null; work: Work | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
+export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => EditorHandle | null; work: Extract<Work, { book: unknown }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
   const actions = useRef(new MaintenanceActions(localStorage, 'csv-import'));
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());

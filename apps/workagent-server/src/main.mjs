@@ -1,3 +1,4 @@
+import { DocumentExchange } from './document-exchange.mjs';
 import pg from 'pg';
 import { XlsxExchange } from './xlsx-exchange.mjs';
 import { XlsxWorker } from './xlsx-worker.mjs';
@@ -38,7 +39,8 @@ const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(r
 const dispatcher = createDispatcher({ workspace, principal: owner, host, maintenance, capacity: 2, onError() { console.error('workspace_dispatch_failed'); } });
 const exchange = new CsvExchange({ workspace, files: maintenance.files });
 const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new XlsxWorker({ venv: process.env.WORKAGENT_XLSX_VENV }) });
-const server = createServer({ workspace, maintenance, exchange, xlsx, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const documents = new DocumentExchange({ workspace, files: maintenance.files });
+const server = createServer({ workspace, maintenance, exchange, xlsx, documents, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

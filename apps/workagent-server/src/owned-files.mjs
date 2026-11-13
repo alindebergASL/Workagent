@@ -39,7 +39,7 @@ export class OwnedFiles {
   async write(owner, content) {
     parseSource(content); return this.#storeBytes(owner, Buffer.from(content), 'json', SOURCE_BYTES);
   }
-  async writeOriginal(owner, bytes, format = 'csv') { if (!['csv', 'xlsx'].includes(format)) throw new Fault('source_format', 400); return this.#storeBytes(owner, bytes, format, format === 'xlsx' ? 2_000_000 : CSV_LIMITS.bytes); }
+  async writeOriginal(owner, bytes, format = 'csv') { if (!['csv', 'xlsx', 'text'].includes(format)) throw new Fault('source_format', 400); return this.#storeBytes(owner, bytes, format, format === 'xlsx' ? 2_000_000 : format === 'text' ? 200000 : CSV_LIMITS.bytes); }
   async #storeBytes(owner, content, extension, limit) {
     if (!Buffer.isBuffer(content) || content.length > limit) throw new Fault('source_size', 400);
     const hash = hashBytes(content), dir = await this.directory(owner), path = join(dir, `${hash}.${extension}`);
@@ -61,7 +61,7 @@ export class OwnedFiles {
     return { hash, bytes: Buffer.byteLength(content) };
   }
   async read(owner, hash) { return parseSource((await this.#readBytes(owner, hash, 'json', SOURCE_BYTES)).toString('utf8')); }
-  async readOriginal(owner, hash, format = 'csv') { if (!['csv', 'xlsx'].includes(format)) throw new Fault('source_format', 400); return this.#readBytes(owner, hash, format, format === 'xlsx' ? 2_000_000 : CSV_LIMITS.bytes); }
+  async readOriginal(owner, hash, format = 'csv') { if (!['csv', 'xlsx', 'text'].includes(format)) throw new Fault('source_format', 400); return this.#readBytes(owner, hash, format, format === 'xlsx' ? 2_000_000 : format === 'text' ? 200000 : CSV_LIMITS.bytes); }
   async #readBytes(owner, hash, extension, limit) {
     if (!/^[a-f0-9]{64}$/.test(hash)) throw new Fault('source_path_denied', 403);
     const dir = await this.directory(owner);

@@ -14,3 +14,7 @@
 .blank-sheet input { max-width:18rem; }
 .selection-context { padding:.4rem 0; font-size:.85rem; }
 .selection-context p { margin:.4rem 0; }
+.document-exchange { padding: .65rem 1rem; border-bottom: 1px solid #ddd; max-height: 40vh; overflow: auto; flex-shrink: 0; font-size: .85rem; }
+.document-preview { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 20rem; overflow: auto; }
+.document-title { display: flex; gap: .5rem; align-items: center; padding: .5rem 1rem; font-size: .85rem; }
+.document-limits { padding: 0 1rem; margin: .25rem 0 .5rem; font-size: .75rem; color: #68756d; }

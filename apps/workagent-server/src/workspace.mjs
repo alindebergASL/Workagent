@@ -1,3 +1,4 @@
+import { blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
 import { bindSelection } from './selection.mjs';
@@ -16,6 +17,7 @@ export function dedup(s, key, input, fn) {
 function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.sequence, expected: preconditions(s, w) }; }
 // Shared authoritative editor commit for agent and deterministic maintenance writes.
 export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed') {
+  requireSheet(w);
   const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)));
   if (protectedCell) return { status: 'protected', reason: 'human_edit' };
   if (!same(expected, preconditions(s, w)) || ['cancellation_requested', 'stopped'].includes(w.status)) return { status: 'protected', reason: 'revision_changed' };
@@ -25,19 +27,20 @@ export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed')
 export class Workspace {
   constructor(store) { this.store = store; }
   async createBlank(principal, input) {
-    if (!input || Object.keys(input).some(k => !['commandId', 'title'].includes(k))) throw new Fault('invalid_command', 400);
+    if (!input || Object.keys(input).some(k => !['commandId', 'title', 'kind'].includes(k))) throw new Fault('invalid_command', 400);
     id(input.commandId); text(input.title, 200);
+    if (input.kind !== undefined && !['sheet', 'document'].includes(input.kind)) throw new Fault('invalid_artifact_kind', 400);
     return this.store.transaction(s => {
       authorize(s, principal);
-      return dedup(s, input.commandId, { operation: 'blank-sheet', ...input }, () => {
+      return dedup(s, input.commandId, { operation: input.kind === 'document' ? 'blank-document' : 'blank-sheet', ...input }, () => {
         const workId = randomUUID();
-        const w = { id: workId, book: blankWorkbook(workId, input.title.trim()), contentRevision: 1, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'ready' };
+        const w = { id: workId, ...(input.kind === 'document' ? { kind: 'document', document: blankDocument(workId, input.title.trim()), humanDocument: false } : { book: blankWorkbook(workId, input.title.trim()) }), contentRevision: 1, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'ready' };
         s.works[workId] = w; event(s, w, 'human_created');
         return { workId, contentRevision: 1 };
       });
     });
   }
-  async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })); }); }
+  async list(principal) { return this.store.transaction(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
   async get(principal, workId) { return this.store.transaction(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
   async events(principal, after) { return this.store.transaction(s => {
     authorize(s, principal);
@@ -48,7 +51,7 @@ export class Workspace {
       || events.length !== s.sequence - after || events.some((e, i) => e.eventId !== after + i + 1);
     const changed = new Set(events.map(e => e.workId));
     return { kind: reset ? 'reset' : 'events', cursor: s.sequence, events: reset ? [] : events,
-      works: Object.values(s.works).map(w => ({ id: w.id, title: w.book.name, status: w.status })),
+      works: Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })),
       snapshots: Object.values(s.works).filter(w => reset || changed.has(w.id)).map(w => snapshot(s, w)) };
   }); }
   async source(principal, input) {
@@ -90,12 +93,21 @@ export class Workspace {
     });
   }
   async save(principal, workId, input) {
-    const book = validateWorkbook(input.book); revision(input.contentRevision); revision(input.permissionRevision);
+    const document = input.document === undefined ? undefined : validateDocument(input.document);
+    const book = document ? undefined : validateWorkbook(input.book);
+    if (document && input.book !== undefined) throw new Fault('artifact_type_mismatch', 400);
+    revision(input.contentRevision); revision(input.permissionRevision);
     return this.store.transaction(s => {
       authorize(s, principal); const w = work(s, workId);
-      if (book.id !== w.id) throw new Fault('workbook_identity', 400);
+      if ((workKind(w) === 'document') !== !!document) throw new Fault('artifact_type_mismatch', 400);
+      if ((document ?? book).id !== w.id) throw new Fault('workbook_identity', 400);
       return dedup(s, input.commandId, { workId, ...input }, () => {
         if (w.contentRevision !== input.contentRevision || s.permissionRevision !== input.permissionRevision) throw new Fault('save_conflict');
+        if (document) {
+          if (digest(w.document) !== digest(document)) w.humanDocument = true;
+          w.document = document; w.contentRevision++; event(s, w, 'human_saved');
+          return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
+        }
         const human = new Set(w.humanCells);
         const cellMeaning = c => c?.f ? { f: c.f } : c?.si ? { si: c.si } : c ?? null;
         for (const sid of new Set([...w.book.sheetOrder, ...book.sheetOrder])) {
@@ -130,6 +142,23 @@ export class Workspace {
       });
     });
   }
+  async mutateDocument(principal, workId, input) {
+    const document = validateDocument(input.document);
+    return this.store.transaction(s => {
+      authorize(s, principal); const w = work(s, workId);
+      if (workKind(w) !== 'document' || document.id !== w.id) throw new Fault('document_identity', 400);
+      return dedup(s, input.commandId, { operation: 'edit-document', workId, ...input }, () => {
+        const current = preconditions(s, w);
+        if (w.humanDocument || !same(input.expected, current) || ['stopped', 'cancellation_requested'].includes(w.status)) {
+          const proposal = { id: randomUUID(), kind: 'document', patch: { document }, originalExpected: input.expected, expected: current, reason: w.humanDocument ? 'human_edit' : 'revision_changed', status: 'pending' };
+          w.proposals.push(proposal); event(s, w, 'change_proposed');
+          return { status: 'proposed', proposalId: proposal.id };
+        }
+        w.document = document; w.contentRevision++; event(s, w, 'agent_changed');
+        return { status: 'applied', expected: preconditions(s, w) };
+      });
+    });
+  }
   async decide(principal, workId, proposalId, input) {
     if (!['accept', 'reject'].includes(input.decision)) throw new Fault('invalid_decision', 400);
     return this.store.transaction(s => {
@@ -139,8 +168,16 @@ export class Workspace {
         if (input.decision === 'accept') {
           if (!same(input.expected, preconditions(s, w)) || !same(p.expected, preconditions(s, w))) throw new Fault('proposal_conflict');
           if (['stopped', 'cancellation_requested'].includes(w.status)) throw new Fault('work_cancelled');
-          w.book = applyPatch(w.book, p.patch); w.contentRevision++;
-          w.humanCells = [...new Set([...w.humanCells, ...p.patch.cells.map(anchor)])];
+          if (workKind(w) === 'document') {
+            if (p.kind !== 'document') throw new Fault('document_identity', 400);
+            const document = validateDocument(p.patch?.document);
+            if (document.id !== w.id) throw new Fault('document_identity', 400);
+            w.document = document; w.humanDocument = true;
+          } else {
+            w.book = applyPatch(w.book, p.patch);
+            w.humanCells = [...new Set([...w.humanCells, ...p.patch.cells.map(anchor)])];
+          }
+          w.contentRevision++;
         }
         p.status = input.decision === 'accept' ? 'accepted' : 'rejected'; event(s, w, 'proposal_decided'); return { status: p.status, contentRevision: w.contentRevision };
       });

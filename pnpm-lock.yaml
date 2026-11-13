@@ -11,6 +11,9 @@ importers:
       '@univerjs/core':
         specifier: 1.4.0
         version: 1.4.0(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/preset-docs-core':
+        specifier: 1.4.0
+        version: 1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)
       '@univerjs/preset-sheets-core':
         specifier: 1.4.0
         version: 1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)
@@ -1140,6 +1143,13 @@ packages:
   '@univerjs/network@1.4.0':
     resolution: {integrity: sha512-9q5U/+1hw40M8xXeIpBreMj9mIjJB1a3M/nvpjx9XGsei/cdxJ7slaRG3Fq0Qw/2PvYiA+AoJ51txJJnX/OdNg==}
     peerDependencies:
+      rxjs: '>=7.0.0'
+
+  '@univerjs/preset-docs-core@1.4.0':
+    resolution: {integrity: sha512-TajREG5NDyH+qYAcfIG4qKn+QmW9ISmJn9KBwY/Zn8JyCfqbS2NGlLIRBnaN0WeHLq6cZbmh5+QkP8OX0c7osA==}
+    peerDependencies:
+      react: ^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
       rxjs: '>=7.0.0'
 
   '@univerjs/preset-sheets-core@1.4.0':
@@ -2569,6 +2579,22 @@ snapshots:
       rxjs: 7.8.2
     transitivePeerDependencies:
       - react
+
+  '@univerjs/preset-docs-core@1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)':
+    dependencies:
+      '@univerjs/design': 1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@univerjs/docs': 1.4.0(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/docs-ui': 1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/engine-formula': 1.4.0(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/engine-render': 1.4.0(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/network': 1.4.0(react@19.2.0)(rxjs@7.8.2)
+      '@univerjs/ui': 1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      rxjs: 7.8.2
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   '@univerjs/preset-sheets-core@1.4.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)':
     dependencies:

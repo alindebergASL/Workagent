@@ -1,3 +1,4 @@
+import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID } from 'node:crypto';
 import { Fault, id, text, validateWorkbook, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { authorize, dedup, digest, event, work } from './workspace.mjs';
@@ -42,7 +43,7 @@ export class XlsxExchange {
   constructor({ workspace, files, worker }) { this.store = workspace.store; this.files = files; this.worker = worker; }
   async grant(principal, expected, workId) {
     return this.store.transaction(s => {
-      authorize(s, principal); if (workId) work(s, workId);
+      authorize(s, principal); if (workId) requireSheet(work(s, workId));
       if (expected !== undefined && s.permissionRevision !== expected) throw new Fault('access_changed', 403);
       return s.permissionRevision;
     });

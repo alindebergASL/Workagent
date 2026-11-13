@@ -1,3 +1,7 @@
+import { DocumentExchange } from '../src/document-exchange.mjs';
+import { CsvExchange } from '../src/exchange.mjs';
+import { OwnedFiles } from '../src/owned-files.mjs';
+import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 // HTTP integration with disposable file fixtures; no database or model access.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +20,8 @@ test('HTTP fixture: authenticated command → native-shaped save → reopen; no 
   const workspace = new Workspace(new FileFixtureStore(path));
   const origin = 'https://private.example.test';
   const callbacks = [];
-  const server = createServer({ workspace, owner: 'owner', token, origin, clientRoot: root, onCommand: (...args) => callbacks.push(args) });
+  const files = new OwnedFiles(root), documents = new DocumentExchange({ workspace, files }), exchange = new CsvExchange({ workspace, files });
+  const server = createServer({ workspace, documents, exchange, owner: 'owner', token, origin, clientRoot: root, onCommand: (...args) => callbacks.push(args) });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const url = `http://127.0.0.1:${server.address().port}`;
   const post = (route, data, cookie) => fetch(url + route, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin, ...(cookie ? { Cookie: cookie } : {}) }, body: JSON.stringify(data) });
@@ -34,6 +39,21 @@ test('HTTP fixture: authenticated command → native-shaped save → reopen; no 
     const saved = await post(`/api/work/${w.id}/save`, { commandId: 'saved', book: w.book, contentRevision: w.contentRevision, permissionRevision: w.expected.permissionRevision }, cookie); assert.equal(saved.status, 200);
     const reopened = await (await fetch(`${url}/api/work/${w.id}`, { headers: { Cookie: cookie } })).json();
     assert.equal(reopened.book.sheets.sheet1.cellData[1][0].f, '=A1*3'); assert.equal(reopened.contentRevision, 1);
+    const blank = { commandId: 'blank-document', kind: 'document', title: 'Native document' };
+    const created = await (await post('/api/work/blank', blank, cookie)).json();
+    assert.deepEqual(await (await post('/api/work/blank', blank, cookie)).json(), created);
+    const document = blankDocument(created.workId, 'Human document', 'Human paragraph');
+    const docSave = await post(`/api/work/${created.workId}/save`, { commandId: 'document-save', document, contentRevision: 1, permissionRevision: 1 }, cookie); assert.equal(docSave.status, 200);
+    const docRead = await (await fetch(`${url}/api/work/${created.workId}`, { headers: { Cookie: cookie } })).json();
+    assert.equal(docRead.kind, 'document'); assert.equal(docRead.book, undefined); assert.deepEqual(docRead.document, document);
+    const upload = { commandId: 'document-import', filename: 'source.md', synthetic: true, base64: Buffer.from('# Literal source\r\n').toString('base64') };
+    assert.equal((await post('/api/exchange/document/preview', upload, cookie)).status, 200);
+    const imported = await (await post('/api/exchange/document/import', upload, cookie)).json();
+    assert.deepEqual(await (await post('/api/exchange/document/import', upload, cookie)).json(), imported);
+    const originalPath = `/api/work/${imported.workId}/original/${imported.original.id}`;
+    assert.equal((await fetch(url + originalPath)).status, 401);
+    assert.equal(await (await fetch(url + originalPath, { headers: { Cookie: cookie } })).text(), '# Literal source\r\n');
+    assert.equal(callbacks.length, 1, 'create/save/import must not wake model dispatch');
     assert.equal((await fetch(`${url}/api/work/${w.id}`)).status, 401);
     assert.equal((await fetch(`${url}/api/work/${w.id}/save`, { method: 'POST', headers: { Cookie: cookie, Origin: 'https://foreign.test', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
   } finally { await new Promise(resolve => server.close(resolve)); }

@@ -1,3 +1,4 @@
+import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID } from 'node:crypto';
 import { Fault, id, text, revision, anchor, validatePatch } from '../../../packages/workagent-contract/index.mjs';
 import { authorize, work, same, event, dedup, digest, preconditions, commitEditorPatch } from './workspace.mjs';
@@ -101,7 +102,7 @@ export class Maintenance {
       return dedup(s, input.commandId, { workId, ...input }, () => {
         if (!same(input.expected, preconditions(s, w))) throw new Fault('save_conflict');
         if (source.status !== 'active' || !source.fields.includes(input.field)) throw new Fault('source_field_unavailable');
-        const sheet = w.book.sheets[target.sheetId];
+        requireSheet(w); const sheet = w.book.sheets[target.sheetId];
         if (!sheet || target.row >= sheet.rowCount || target.column >= sheet.columnCount) throw new Fault('cell_bounds', 400);
         if ((w.responsibilities ?? []).some(r => r.status !== 'ended' && anchor(r.target) === anchor(target))) throw new Fault('cell_already_bound');
         const r = { id: randomUUID(), workId, sourceId: source.id, field: input.field, target, ...config, revision: 1, status: 'active',
@@ -122,7 +123,7 @@ export class Maintenance {
       if (['resume', 'relink'].includes(input.action) && owned(s, principal, r.sourceId).status !== 'active') throw new Fault('source_revoked');
       if (input.action === 'relink') {
         if (!same(input.expected, preconditions(s, w))) throw new Fault('save_conflict');
-        const sheet = w.book.sheets[r.target.sheetId];
+        requireSheet(w); const sheet = w.book.sheets[r.target.sheetId];
         if (!sheet || r.target.row >= sheet.rowCount || r.target.column >= sheet.columnCount) throw new Fault('cell_bounds');
         w.humanCells = w.humanCells.filter(key => key !== anchor(r.target)); r.detached = false;
       }
@@ -185,7 +186,7 @@ export class Maintenance {
     const job = s.jobs[claimed.id]; if (!job || job.kind !== 'maintenance') throw new Fault('job_not_found');
     if (job.status === 'completed') return result(job);
     if (job.status !== 'running') throw new Fault('job_not_running');
-    const w = work(s, job.workId), r = w.responsibilities.find(r => r.id === job.responsibilityId), now = this.now(), observation = job.observation;
+    const w = requireSheet(work(s, job.workId)), r = w.responsibilities.find(r => r.id === job.responsibilityId), now = this.now(), observation = job.observation;
     let outcome;
     if (!s.enabled || s.permissionRevision !== job.permissionRevision || s.ownedSources[r.sourceId]?.status !== 'active' || s.ownedSources[r.sourceId]?.owner !== principal) outcome = 'revoked';
     else if (r.status !== 'active') outcome = r.status;

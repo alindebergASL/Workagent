@@ -1,3 +1,4 @@
+import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
 
 // Resolve only against the owned workbook inside command admission. Client labels,
@@ -5,6 +6,7 @@ import { Fault } from '../../../packages/workagent-contract/index.mjs';
 export function bindSelection(w, selection, kind) {
   if (kind !== 'continue' || !selection || selection.workId !== w.id) throw new Fault('invalid_selection', 400);
   if (!Number.isSafeInteger(selection.contentRevision) || selection.contentRevision !== w.contentRevision) throw new Fault('selection_conflict');
+  requireSheet(w);
   const sheet = w.book.sheetOrder.includes(selection.sheetId) && w.book.sheets[selection.sheetId];
   const r = selection.range;
   if (!sheet || !r || !['startRow', 'endRow', 'startColumn', 'endColumn'].every(k => Number.isSafeInteger(r[k]) && r[k] >= 0)

@@ -6,7 +6,7 @@ type Preview = { filename: string; bytes: number; cells: number; warnings: strin
 type Upload = { filename: string; base64: string; synthetic: true };
 type Api = <T>(path: string, input?: unknown) => Promise<T>;
 const fidelity = 'Typed text, numbers, booleans, common styles, 1900 dates, tabs and basic merges are supported. Formulas stay formulas; cached results are discarded and shared formulas expand. Charts, images, comments, links, validation, conditional formatting, tables, named ranges and advanced layout are not retained. External/active formulas, unsupported functions, macros, encryption and 1904 dates are refused. Originals remain exact.';
-export function XlsxExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => EditorHandle | null; work: Work | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
+export function XlsxExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => EditorHandle | null; work: Extract<Work, { book: unknown }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
   const actions = useRef(new MaintenanceActions(localStorage, 'xlsx-import'));
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());
