@@ -19,7 +19,7 @@ const disk = () => { const map = new Map(); return { getItem: k => map.get(k) ??
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
 function mount(storage, fetcher) {
-  const downloads = [];
+  const downloads = [], timers = new Map(); let timerId = 0;
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
   const PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
@@ -46,13 +46,13 @@ function mount(storage, fetcher) {
     if (name === './maintenance-actions') return { MaintenanceActions };
     if (name.endsWith('.css')) return {};
     return require(name);
-  }, module, module.exports, storage, { getElementById: () => ({}), createElement: () => ({ click() {} }) }, { addEventListener() {}, removeEventListener() {} }, fetcher, { randomUUID }, () => 1, () => {}, { createObjectURL: blob => { downloads.push(blob); return 'blob:fixture'; }, revokeObjectURL() {} });
+  }, module, module.exports, storage, { getElementById: () => ({}), createElement: () => ({ click() {} }) }, { addEventListener() {}, removeEventListener() {} }, fetcher, { randomUUID }, fn => { timers.set(++timerId, fn); return timerId; }, id => timers.delete(id), { createObjectURL: blob => { downloads.push(blob); return 'blob:fixture'; }, revokeObjectURL() {} });
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
   const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
@@ -888,4 +888,67 @@ test('source file read begun before navigation cannot attach after switching or 
   const reading = composerNodes(view).file.onChange({ target: { files: [{ size: 10, name: 'stale source', text: () => fileGate.promise }] } });
   await view.open('imported'); await view.open(''); fileGate.resolve('stale file'); await reading; navigationGate.resolve(); await view.flush();
   assert.deepEqual(drafts.read(null), messageDraft('New note')); assert.equal(view.messageValue(), 'New note'); view.unmount();
+});
+
+for (const failure of ['503', 'network', 'empty503']) test(`poll ${failure} recovers only its feedback and preserves drafts and pending commands`, async () => {
+  const storage = disk(), api = server(() => { throw new Error('Save acknowledgement lost'); });
+  const drafts = new resume.ComposerDrafts(storage), original = { prompt: 'unresolved message', sourceName: 'source', sourceText: 'original source' };
+  drafts.write('old', original); drafts.submission('old', original, 0, randomUUID);
+  const destinationDraft = { ...original, prompt: 'separate destination draft' }; drafts.write('imported', destinationDraft);
+  let failing = false;
+  const view = mount(storage, async (path, options) => {
+    if (path.startsWith('/api/events') && failing) {
+      if (failure === 'network') throw new TypeError('Failed to fetch');
+      return new Response(failure === '503' ? JSON.stringify({ error: 'service_restarting' }) : '', { status: 503 });
+    }
+    if (path.startsWith('/api/events')) return new Response(JSON.stringify({ kind: 'reset', cursor: 1, works: [], snapshots: [], events: [] }));
+    return api.fetch(path, options);
+  });
+  await view.flush(); await view.open('old'); const native = attach(view);
+  native.edit('local draft'); await view.flush(); await view.save();
+  await view.message('new unsent message');
+  const source = view.elements().find(n => n.props['aria-label'] === 'Source text');
+  source.props.onChange({ target: { value: 'unsent source' } }); await view.flush();
+  const savedDraft = await artifactStore(storage).readDraft('old'), pendingSave = await artifactStore(storage).readSave('old');
+  const pendingSend = new resume.ComposerDrafts(storage).pending('old');
+  assert.ok(pendingSave); assert.ok(pendingSend);
+  // An unrelated action error must survive both the outage and recovery.
+  const alertBefore = view.elements().find(n => n.props.role === 'alert').props.children[0];
+  const posts = api.calls.filter(c => c.input).length;
+  failing = true; await view.poll();
+  assert.match(view.text(), /Reconnecting/);
+  assert.equal(view.elements().find(n => n.props.id === 'prompt').props.disabled, false);
+  failing = false; await view.poll();
+  assert.doesNotMatch(view.text(), /Reconnecting/);
+  assert.deepEqual(view.elements().find(n => n.props.role === 'alert').props.children[0], alertBefore);
+  assert.equal(view.messageValue(), 'new unsent message');
+  assert.equal(view.elements().find(n => n.props['aria-label'] === 'Source text').props.value, 'unsent source');
+  assert.equal(native.handle.save().sheets.sheet1.cellData[0][0].v, 'local draft');
+  assert.deepEqual(await artifactStore(storage).readDraft('old'), savedDraft);
+  assert.deepEqual(await artifactStore(storage).readSave('old'), pendingSave);
+  assert.deepEqual(new resume.ComposerDrafts(storage).pending('old'), pendingSend);
+  assert.deepEqual(new resume.ComposerDrafts(storage).read('imported'), destinationDraft);
+  assert.equal(api.calls.filter(c => c.input).length, posts, 'poll must never replay actions');
+  view.unmount();
+});
+
+for (const status of [200, 401, 403, 409, 503]) test(`unreadable HTTP ${status} retains API classification and fails closed`, async () => {
+  const api = server(() => assert.fail('no automatic action'));
+  const view = mount(disk(), (path, options) => path === '/api/probe' ? Promise.resolve(new Response('<html>unreadable', { status })) : api.fetch(path, options));
+  await view.flush();
+  await assert.rejects(view.exchange().api('/probe', { commandId: 'kept' }), e => {
+    assert.ok(e instanceof resume.ApiError); assert.equal(e.status, status); assert.equal(e.path, '/probe');
+    assert.equal(e.code, status === 200 ? 'invalid_response' : status === 401 ? 'access_denied' : status === 503 ? 'service_unavailable' : 'request_refused'); return true;
+  });
+  view.unmount();
+});
+for (const status of [200, 401, 403]) test(`poll HTTP ${status} refusal or malformed success stays visible after recovery`, async () => {
+  const api = server(() => assert.fail('no action')); let failing = false;
+  const view = mount(disk(), (path, options) => path.startsWith('/api/events') ? Promise.resolve(failing
+    ? new Response(status === 403 ? JSON.stringify({ error: 'source_access_denied' }) : '', { status })
+    : new Response(JSON.stringify({ kind: 'reset', cursor: 1, events: [], works: [], snapshots: [] }))) : api.fetch(path, options));
+  await view.flush(); failing = true; await view.poll();
+  const expected = status === 200 ? /unreadable response/ : status === 401 ? /Please sign in/ : /source_access_denied/;
+  assert.match(view.text(), expected); assert.doesNotMatch(view.text(), /Reconnecting/);
+  failing = false; await view.poll(); assert.match(view.text(), expected); view.unmount();
 });

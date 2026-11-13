@@ -58,3 +58,30 @@ test('HTTP fixture: authenticated command → native-shaped save → reopen; no 
     assert.equal((await fetch(`${url}/api/work/${w.id}/save`, { method: 'POST', headers: { Cookie: cookie, Origin: 'https://foreign.test', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
+
+test('late request on an admitted HTTP connection receives JSON 503 and normal response headers', { timeout: 5000 }, async () => {
+  const { connect } = await import('node:net');
+  let enter, release, calls = 0;
+  const entered = new Promise(resolve => { enter = resolve; }), gate = new Promise(resolve => { release = resolve; });
+  const server = createServer({ workspace: { async list() { calls++; enter(); await gate; return []; } }, owner: 'owner', token, origin: 'http://127.0.0.1', clientRoot: '/tmp' });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const socket = connect(server.address().port, '127.0.0.1');
+  let raw = ''; socket.setEncoding('utf8'); socket.on('data', chunk => { raw += chunk; });
+  const ended = once(socket, 'end');
+  try {
+    await once(socket, 'connect');
+    socket.write(`GET /api/work HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer ${token}\r\n\r\n`);
+    await entered;
+    const draining = server.drain();
+    const late = once(server, 'request');
+    socket.write('GET /api/events HTTP/1.1\r\nHost: localhost\r\n\r\n');
+    await late; release(); await ended; await draining;
+    const response = raw.slice(raw.indexOf('HTTP/1.1 503'));
+    assert.match(response, /^HTTP\/1\.1 503/);
+    for (const header of ['Content-Type: application/json', 'Connection: close', 'Cache-Control: no-store', 'X-Content-Type-Options: nosniff', 'Referrer-Policy: no-referrer', 'Content-Security-Policy:']) assert.ok(response.includes(header), header);
+    // Node uses chunked encoding; parse the actual JSON chunk rather than a fake response.
+    const body = response.split('\r\n\r\n')[1].split('\r\n')[1];
+    assert.deepEqual(JSON.parse(body), { error: 'service_restarting' });
+    assert.equal(calls, 1, 'late request must never enter the workspace');
+  } finally { release(); socket.destroy(); server.close(); }
+});

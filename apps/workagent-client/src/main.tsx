@@ -18,10 +18,22 @@ import { CsvExchange } from './CsvExchange';
 import { MaintenancePanel } from './MaintenancePanel';
 const uuid = () => crypto.randomUUID();
 async function api<T>(path: string, input?: unknown, method?: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`/api${path}`, { credentials: 'same-origin', signal, method: method ?? (input ? 'POST' : 'GET'), ...(input ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) } : {}) });
-  const result = await response.json(); if (!response.ok) throw new ApiError(path, response.status, typeof result.error === 'string' ? result.error : 'service_unavailable'); return result;
+  let response: Response;
+  try { response = await fetch(`/api${path}`, { credentials: 'same-origin', signal, method: method ?? (input ? 'POST' : 'GET'), ...(input ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) } : {}) }); }
+  catch (e) { if (e instanceof TypeError) throw new ApiError(path, 0, 'connection_unavailable'); throw e; }
+  const fallback = response.status === 401 ? 'access_denied' : response.status >= 500 ? 'service_unavailable' : 'request_refused';
+  let result;
+  try { result = await response.json(); }
+  catch { throw new ApiError(path, response.status, response.ok ? 'invalid_response' : fallback); }
+  if (!response.ok) throw new ApiError(path, response.status, typeof result?.error === 'string' ? result.error : fallback);
+  return result;
 }
 const friendly: Record<string, string> = { request_too_large: 'This request reached a technical size limit before the next model call was sent. Your saved work is safe. Send a narrower request to continue.', save_conflict: 'The saved work changed while you were editing. Your draft is kept. Download it before opening the saved version.', proposal_conflict: 'This proposal is out of date. Ask the agent to review the current work.', access_denied: 'Please sign in to your private workspace.', accounting_bridge_not_connected: 'Model access is waiting for the accounting connection. You can still edit and save your sheet.', openrouter_not_configured: 'Model access is not configured yet.', execution_interrupted_check_receipt: 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.' };
+friendly.connection_unavailable = 'Connection interrupted. Your edits and message are kept. Retry the action when connected.';
+friendly.service_restarting = 'The service is restarting. Your edits and message are kept. Retry the action when connected.';
+friendly.service_unavailable = 'The service is temporarily unavailable. Your edits and message are kept.';
+friendly.request_refused = 'The service refused this request. Your edits and message are kept.';
+friendly.invalid_response = 'The service returned an unreadable response. Your edits and message are kept; the action was not confirmed.';
 friendly.provider_budget_exhausted = 'OpenRouter reports that a configured budget is exhausted. Saved work is kept.';
 friendly.provider_http_402 = 'OpenRouter refused this request under its credit or in-flight limits. Saved work is kept; nothing was retried.';
 friendly.provider_http_403 = 'OpenRouter denied this request. Saved work is kept; nothing was retried.';
@@ -72,6 +84,7 @@ const meaning = (artifact: NativeArtifact) => {
 const snapshot = (editor: NativeEditor): NativeArtifact => editor.kind === 'document' ? { kind: 'document', book: editor.native.save() } : { kind: 'sheet', book: editor.native.save(), formatEdits: editor.native.formatEdits?.() };
 function App() {
   const [authenticated, setAuthenticated] = useState(false), [token, setToken] = useState(''), [error, setError] = useState('');
+  const [pollError, setPollError] = useState('');
   const [works, setWorks] = useState<{ id: string; title: string; status: string }[]>([]), [work, setWork] = useState<Work | null>(null);
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [draft, setDraft] = useState(false), [prompt, setPrompt] = useState(''), [sourceText, setSourceText] = useState(''), [sourceName, setSourceName] = useState('Pasted data'), [busy, setBusy] = useState(false);
@@ -153,7 +166,14 @@ function App() {
           setWorks(value.works);
           for (const snapshot of value.snapshots) receive(snapshot);
         });
-      } catch (e) { if (!disposed) report(e); }
+        setPollError('');
+      } catch (e) {
+        if (!disposed) {
+          if (e instanceof ApiError && (e.status === 0 || [408, 429, 500, 502, 503, 504].includes(e.status))) {
+            setPollError('Connection interrupted. Reconnecting… Your edits and unsent message are kept.');
+          } else { setPollError(''); report(e); }
+        }
+      }
       if (!disposed) timer = setTimeout(poll, 1800);
     };
     void poll(); return () => { disposed = true; clearTimeout(timer); };
@@ -414,6 +434,7 @@ function App() {
   if (!authenticated) return <main className="sign-in"><div className="brand">Workagent</div><h1>Your work, together.</h1><p>Sign in to your private workspace.</p><form onSubmit={async e => { e.preventDefault(); try { await api('/session', { token }); setToken(''); setError(''); await list(); } catch (err) { report(err); } }}><label>Access key<input type="password" value={token} onChange={e => setToken(e.target.value)} autoComplete="current-password" /></label><button>Sign in</button></form>{error && <p role="alert">{error}</p>}</main>;
   return <main className="app"><header className="app-header"><div className="brand">Workagent</div><select aria-label="Saved work" value={work?.id ?? ''} onChange={e => { if (e.target.value) open(e.target.value).catch(report); else newWork().catch(report); }}><option value="">New work</option>{works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}</select><span className="private">Private workspace</span></header>
     {error && <div className="notice" role="alert">{error}{draft && <><button onClick={downloadDraft}>Download draft</button><button onClick={() => viewSaved().catch(report)}>Open saved version</button></>}</div>}
+    {pollError && <div className="notice" role="status">{pollError}</div>}
     <nav className="mobile-tabs"><button onClick={() => setView('chat')}>Conversation</button><button onClick={() => setView('sheet')}>Work area</button></nav>
     <div className={`layout view-${view}`}><section className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{!work && <div className="welcome"><h1>What are we working on?</h1><p>Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p>{m.selection?.kind === 'document' && <details><summary>Document passage · {m.selection.title} · revision {m.selection.contentRevision}</summary><p>Body offsets [{m.selection.startOffset}, {m.selection.endOffset}) (UTF-16). Context only.</p><pre className="selected-quote">{m.selection.quote}</pre></details>}</article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}
       {work?.proposals.filter(p => p.status === 'pending').map(p => <article className="proposal" key={p.id}><strong>Proposed changes</strong><p>{p.reason === 'human_edit' ? work.kind === 'document' ? 'This document includes your edits.' : 'These cells include your edits.' : 'The work or instructions changed while I was working.'}</p>{p.kind === 'document' && <><p>Title: {p.patch.document.title}</p><p>Whole-document proposal. Your saved document stays unchanged until acceptance. Native styles are included; the preview below shows text only.</p><pre className="document-preview">{p.patch.document.body?.dataStream}</pre></>}{p.patch.title && <p>Title: {p.patch.title}</p>}<ul>{(p.patch.cells ?? []).map((c, i) => <li key={i}>{work.book?.sheets[c.sheetId]?.name ?? c.sheetId}, row {c.row + 1}, column {c.column + 1}: <del>{String(work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.f ?? work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.v ?? '')}</del> → <strong>{String(c.formula ?? c.value ?? '(empty)')}</strong></li>)}</ul><button onClick={() => decide(p, 'accept').catch(report)}>Accept changes</button><button className="secondary" onClick={() => decide(p, 'reject').catch(report)}>Keep current</button></article>)}

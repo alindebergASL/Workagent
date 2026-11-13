@@ -85,9 +85,12 @@ test('accepted save/start/cancel settle after disconnect before disposal; exact 
   const close = createShutdown({ server, dispatcher, host, leadership: { release() { assert.ok(disposed); released = true; } }, pool: { async end() { assert.ok(released); ended = true; } } });
   const closing = close(); assert.equal(close(), closing);
   await new Promise(setImmediate); assert.equal(disposed, false);
-  let rejectedStatus;
-  server.emit('request', { method: 'POST' }, { writeHead(code) { rejectedStatus = code; }, end() {} });
+  let rejectedStatus; const rejectedHeaders = {};
+  server.emit('request', { method: 'POST' }, { setHeader(key, value) { rejectedHeaders[key] = value; }, writeHead(code, headers) { rejectedStatus = code; Object.assign(rejectedHeaders, headers); }, end(raw) { assert.deepEqual(JSON.parse(raw), { error: 'service_restarting' }); } });
   assert.equal(rejectedStatus, 503); assert.equal(accepted, 3);
+  assert.equal(rejectedHeaders.Connection, 'close'); assert.equal(rejectedHeaders['Content-Type'], 'application/json');
+  assert.equal(rejectedHeaders['Cache-Control'], 'no-store'); assert.equal(rejectedHeaders['X-Content-Type-Options'], 'nosniff');
+  assert.equal(rejectedHeaders['Referrer-Policy'], 'no-referrer'); assert.match(rejectedHeaders['Content-Security-Policy'], /frame-ancestors 'none'/);
   gate.resolve(); await closing;
   assert.equal(ended, true); assert.equal(calls, 0);
   const reopened = new Workspace(new FileFixtureStore(path));

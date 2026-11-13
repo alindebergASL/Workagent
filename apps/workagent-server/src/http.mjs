@@ -25,12 +25,16 @@ async function body(req) {
   for await (const c of req) { size += c.length; if (size > 4_500_000) throw new Fault('request_too_large', 413); chunks.push(c); }
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
+function responseHeaders(res) {
+  res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'");
+}
 export function createServer(options) {
   const handler = createHandler(options), pending = new Set();
   let stopping = false, draining;
   const server = http.createServer((req, res) => {
     // Existing keep-alive connections must not admit more work during shutdown.
-    if (stopping) { res.writeHead(503, { Connection: 'close' }); res.end(); return; }
+    if (stopping) { responseHeaders(res); res.writeHead(503, { 'Content-Type': 'application/json', Connection: 'close' }); res.end(JSON.stringify({ error: 'service_restarting' })); return; }
     const task = handler(req, res);
     pending.add(task);
     void task.then(() => pending.delete(task), () => pending.delete(task));
@@ -46,8 +50,7 @@ export function createServer(options) {
 export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
-    res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'");
+    responseHeaders(res);
     const send = (code, value) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
     try {
       const path = new URL(req.url, origin).pathname;
