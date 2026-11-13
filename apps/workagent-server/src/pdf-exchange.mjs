@@ -1,18 +1,17 @@
 import { Fault, id } from '../../../packages/workagent-contract/index.mjs';
-import { validateDocument, workKind } from '../../../packages/workagent-contract/document.mjs';
+import { validateDocument, documentListDefinition, workKind } from '../../../packages/workagent-contract/document.mjs';
 import { authorize, work } from './workspace.mjs';
 export const PDF_BYTES = 16_000_000;
 export const PDF_WARNINGS = [
   'PDF export only: native paragraphs, literal text, bold, italic, single underline, half-point font sizes, RGB colour, simple alignment and one page geometry through the Word mapping.',
   'Fonts may be substituted; line wrapping, pagination and layout may differ from the native editor and Word. Native default hyphenation/canvas settings, metadata, themes and style names are not retained. No exact layout or full Word fidelity.',
   'PDF rendering uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused; this is not full Unicode coverage. Native documents, original files and Word exports retain their existing mapping.',
-  'List rendering remains unqualified and is refused before download; use Word export for supported lists. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
+  'Flat Unicode bullets and decimal lists retain markers, effective marker styles, identities and starts/restarts. PDF supports effective item numbers 1–32,767, including continuations; larger numbers are refused. Native documents and Word retain their existing 1–1,000,000 start bounds. PDF reserves room for markers and body-font overhang; wrapping and pagination may change, and layouts that cannot fit are refused. Nested lists, other numbering formats and unmapped list layout are refused. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
 ];
 // The shared validator rejects foreign/nested objects. This narrower policy also
 // refuses native features the DOCX bridge cannot represent, before rendering.
 export function validatePdfDocument(input) {
   const document = validateDocument(input);
-  if (document.body.paragraphs.some(p => p.bullet)) throw new Fault('pdf_lists_unqualified', 400);
   const only = (value, keys) => { if (Object.keys(value ?? {}).some(k => !keys.includes(k))) throw new Fault('unsupported_pdf_formatting', 400); };
   const text = value => {
     only(value, ['bl', 'it', 'ul', 'fs', 'cl', 'ff', 'eastAsiaFontFamily', 'lang', 'altLang']);
@@ -37,6 +36,51 @@ export function validatePdfDocument(input) {
   }
   text(document.documentStyle.textStyle); paragraph(document.documentStyle.defaultParagraphStyle);
   for (const p of document.body.paragraphs) paragraph(p.paragraphStyle);
+  // Validate only active levels: the SDK retains unused stock levels/templates.
+  const sequences = new Map();
+  let cursor = 0, runCursor = 0;
+  const runs = document.body.textRuns ?? [];
+  const page = { ...document.documentStyle, ...document.body.sectionBreaks?.[0] };
+  for (const p of document.body.paragraphs) {
+    while (runCursor < runs.length && runs[runCursor].ed <= cursor) runCursor++;
+    if (!p.bullet) { cursor = p.startIndex + 1; continue; }
+    const { level } = documentListDefinition(document, p.bullet);
+    text(p.bullet.textStyle); text(level.textStyle);
+    const props = level.paragraphProperties ?? {};
+    only(props, ['indentStart', 'hanging']);
+    for (const unit of Object.values(props)) {
+      only(unit, ['v', 'u']);
+      if ((unit.u ?? 0) !== 0 || unit.v < 0) throw new Fault('unsupported_pdf_list_layout', 400);
+    }
+    if ((props.hanging?.v ?? 0) > (props.indentStart?.v ?? 0)) throw new Fault('unsupported_pdf_list_layout', 400);
+    const ps = { ...document.documentStyle.defaultParagraphStyle, ...p.paragraphStyle };
+    const first = runs[runCursor];
+    const marker = { fs: 11, ...document.documentStyle.textStyle, ...ps.textStyle,
+      ...(first && first.st <= cursor && cursor < first.ed ? first.ts : {}),
+      ...(cursor === p.startIndex ? ps.paragraphMarkTextStyle : {}), ...p.bullet.textStyle, ...level.textStyle };
+    const count = p.bullet.startNumber !== undefined ? p.bullet.startNumber + 1 : (sequences.get(p.bullet.listId) ?? level.startNumber) + 1;
+    sequences.set(p.bullet.listId, count);
+    const { kind } = documentListDefinition(document, p.bullet);
+    // The actual renderer is qualified only through 32767. Check effective
+    // values, including continuation across plain paragraphs and style changes.
+    if (kind === 'ORDER_LIST' && (count < 1 || count > 32767)) throw new Fault('unsupported_pdf_list_number', 400);
+    const baseSize = ps.textStyle?.fs ?? document.documentStyle.textStyle?.fs ?? 11;
+    let bodySize = 0, covered = cursor;
+    for (let i = runCursor; i < runs.length && runs[i].st < p.startIndex; i++) {
+      const r = runs[i];
+      if (r.st > covered) bodySize = Math.max(bodySize, baseSize);
+      bodySize = Math.max(bodySize, r.ts.fs ?? baseSize);
+      covered = Math.min(p.startIndex, r.ed);
+    }
+    if (covered < p.startIndex) bodySize = Math.max(bodySize, baseSize);
+    // One em covers the pinned faces' left overhang. Include every effective
+    // body run because any run can start a wrapped line; marker style is separate.
+    const gutter = ((kind === 'ORDER_LIST' ? String(count).length + 1 : 1) * marker.fs + bodySize + 6) / .75;
+    const implicit = document.lists?.[p.bullet.listType] ? 0 : 21;
+    const left = props.indentStart?.v ?? implicit, hanging = props.hanging?.v ?? implicit;
+    if (left - hanging + Math.max(hanging, gutter) + 48 >= (page.pageSize?.width ?? 794) - (page.marginLeft ?? 96) - (page.marginRight ?? 96)) throw new Fault('unsupported_pdf_list_layout', 400);
+    cursor = p.startIndex + 1;
+  }
   for (const r of document.body.textRuns ?? []) text(r.ts);
   for (const s of document.body.sectionBreaks ?? []) only(s, [...geometry, 'startIndex', 'sectionId']);
   return document;

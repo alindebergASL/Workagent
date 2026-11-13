@@ -1,5 +1,6 @@
 """Deterministic worker primitives, no LibreOffice or unsandboxed rendering."""
 import importlib.util
+import copy
 import json
 import os
 from pathlib import Path
@@ -13,10 +14,30 @@ render = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(render)
 
 class RendererTests(unittest.TestCase):
-    def test_lists_refused_before_renderer_even_for_direct_worker_input(self):
-        with self.assertRaisesRegex(render.Refused, 'pdf_lists_unqualified'):
-            render.refuse_lists({'body': {'paragraphs': [{'bullet': {'listType': 'ORDER_LIST', 'listId': 'list', 'nestingLevel': 0}}]}})
-        render.refuse_lists({'body': {'paragraphs': [{'startIndex': 0}]}})
+    def test_direct_python_boundary_checks_active_lists_and_all_pdf_formatting(self):
+        document = {'documentStyle': {}, 'body': {'dataStream': 'text\r\n', 'paragraphs': [
+            {'startIndex': 4, 'bullet': {'listType': 'ORDER_LIST', 'listId': 'list', 'nestingLevel': 0}}]}}
+        self.assertEqual(render.validate_document(document), '0123456789.')
+        for symbol in render.BULLETS:
+            d = copy.deepcopy(document)
+            d['lists'] = {'ORDER_LIST': {'listType': 'BULLET_LIST', 'nestingLevel': [
+                {'bulletAlignment': 1, 'startNumber': 0, 'glyphFormat': ' %1', 'glyphSymbol': symbol},
+                {'glyphFormat': '%2.', 'glyphType': 4}]}}
+            before = copy.deepcopy(d)
+            self.assertEqual(render.validate_document(d), symbol)
+            self.assertEqual(d, before)
+        for edit in [lambda d: d['body']['paragraphs'][0]['bullet'].update(nestingLevel=1),
+                     lambda d: d['body']['paragraphs'][0]['bullet'].update(startNumber=1000000),
+                     lambda d: d['body']['paragraphs'][0]['bullet'].update(textStyle={'caps': True}),
+                     lambda d: d['body']['paragraphs'][0]['bullet'].update(textStyle={'ul': {'s': True}}),
+                     lambda d: d['body']['paragraphs'][0].update(paragraphStyle={'keepNext': 1}),
+                     lambda d: d['body']['paragraphs'][0].update(paragraphStyle={'horizontalAlign': True}),
+                     lambda d: d['body'].update(tables=[{}]),
+                     lambda d: d['body'].update(textRuns=[{'st': 0, 'ed': 1, 'ts': {'fs': 12.3}}]),
+                     lambda d: d['documentStyle'].update(defaultParagraphStyle={'textStyle': {'st': {'s': 1}}})]:
+            d = copy.deepcopy(document); edit(d)
+            with self.assertRaises(render.Refused):
+                render.validate_document(d)
     def test_installed_fonts_and_bounded_text_coverage(self):
         coverage = render.font_charsets(time.monotonic()+5)
         for text in ['', '雪 🌍', '🌍 雪', '雪🌍雪🌍 🌍雪🌍雪', 'Latin café <script> & <w:t> 00120\t\r\n']:
@@ -26,6 +47,11 @@ class RendererTests(unittest.TestCase):
                 render.check_text(text, coverage)
         with self.assertRaisesRegex(render.Refused, 'missing_glyph'):
             render.check_text('\u9fff', coverage)
+        render.check_text(''.join(render.BULLETS) + '0123456789.', coverage, marker=True)
+        for key in [k for k in coverage if k.startswith('latin')]:
+            missing = copy.deepcopy(coverage); missing[key] = [(0x20, 0x7f)]
+            with self.subTest(face=key), self.assertRaisesRegex(render.Refused, 'missing_glyph'):
+                render.check_text('●', missing, marker=True)
 
     def test_fontconfig_success_does_not_hide_substitution_or_missing_fonts(self):
         family, path, _ = render.FONTS['latin']
@@ -62,12 +88,15 @@ for text in [sys.argv[1]]:
     with zipfile.ZipFile(io.BytesIO(generated)) as a,zipfile.ZipFile(io.BytesIO(mapped)) as b:
         assert a.namelist()==b.namelist()
         for name in a.namelist():
-            if name!='word/document.xml':assert a.read(name)==b.read(name);continue
+            if name not in ('word/document.xml','word/styles.xml'):assert a.read(name)==b.read(name);continue
             before=etree.fromstring(a.read(name));after=etree.fromstring(b.read(name))
             for props in after.iter(q('rPr')):
                 fonts=props.find(q('rFonts'));assert fonts is not None
-                assert fonts.attrib=={q('ascii'):'DejaVu Serif',q('hAnsi'):'DejaVu Serif',q('eastAsia'):'WenQuanYi Zen Hei'}
+                for key,value in {'ascii':'DejaVu Serif','hAnsi':'DejaVu Serif','eastAsia':'WenQuanYi Zen Hei'}.items():assert fonts.get(q(key))==value
                 props.remove(fonts)
+            for props in before.iter(q('rPr')):
+                fonts=props.find(q('rFonts'))
+                if fonts is not None:props.remove(fonts)
             assert etree.tostring(before,method='c14n')==etree.tostring(after,method='c14n')
     # Original DOCX remains byte-exact and its native mapping is unchanged.
     assert codec['import_document'](original)['document']==native
@@ -91,6 +120,130 @@ print('preserved')
         script = f"import runpy,resource,json;m=runpy.run_path({str(Path(__file__).with_name('render.py').resolve())!r});m['limits']();print(json.dumps([resource.getrlimit(k) for k in (resource.RLIMIT_AS,resource.RLIMIT_CPU,resource.RLIMIT_FSIZE,resource.RLIMIT_NOFILE)]))"
         result = subprocess.run(['/usr/bin/python3', '-I', '-c', script], capture_output=True, check=True, timeout=3)
         self.assertEqual(json.loads(result.stdout), [[2*1024**3]*2, [15]*2, [24*1024**2]*2, [128]*2])
+
+    def test_real_docx_mapping_preserves_effective_list_styles_stock_definitions_and_sequences(self):
+        root = Path(__file__).resolve().parents[3]
+        script = r'''
+import runpy,base64,io,zipfile,copy,json
+from lxml import etree
+codec=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
+render=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py');q=codec['q']
+lines=['First 雪🌍','Second 🌍雪','Plain','Continue','Restart','Large','Next']+['Bullet'+str(i) for i in range(5)]
+stream='\r'.join(lines)+'\r\n';offset=0;paragraphs=[]
+for line in lines:
+    end=offset+len(line.encode('utf-16-le'))//2;paragraphs.append({'startIndex':end});offset=end+1
+native={'id':'test','title':'Lists','documentStyle':{'pageSize':{'width':794,'height':1123},'marginLeft':72,'marginRight':72},
+        'body':{'dataStream':stream,'paragraphs':paragraphs,'textRuns':[{'st':0,'ed':5,'ts':{'bl':1,'it':1,'ul':{'s':1},'fs':17.5}}]},'lists':{}}
+for i in [0,1,3,4,5,6]:paragraphs[i]['bullet']={'listId':'alpha' if i<5 else 'large','listType':'ORDER_LIST','nestingLevel':0}
+paragraphs[1]['paragraphStyle']={'textStyle':{'fs':12,'it':1}}
+paragraphs[4]['bullet']['startNumber']=8;paragraphs[5]['bullet']['startNumber']=998
+for i,glyph in enumerate(render['BULLETS']):
+    key='bullet'+str(i);paragraphs[7+i]['bullet']={'listId':key,'listType':key,'nestingLevel':0}
+    native['lists'][key]={'listType':'BULLET_LIST','nestingLevel':[{'bulletAlignment':1,'startNumber':0,'glyphFormat':' %1','glyphSymbol':glyph,'textStyle':{'fs':12,'bl':1,'it':1,'ul':{'s':1}}}]}
+before=copy.deepcopy(native);render['validate_document'](native)
+raw=base64.b64decode(codec['export_document'](native)['base64']);mapped=render['map_generated_fonts'](raw,codec);assert native==before
+a=zipfile.ZipFile(io.BytesIO(raw));b=zipfile.ZipFile(io.BytesIO(mapped));an=etree.fromstring(a.read('word/numbering.xml'));bn=etree.fromstring(b.read('word/numbering.xml'))
+ad=etree.fromstring(a.read('word/document.xml'));bd=etree.fromstring(b.read('word/document.xml'))
+# Marker and text styling, numId/restart references and literal UTF-16 text
+# remain byte-for-byte XML equivalent after removing only PDF font mappings.
+for tree in [ad,bd]:
+    for fonts in list(tree.iter(q('rFonts'))):fonts.getparent().remove(fonts)
+assert etree.tostring(ad,method='c14n')==etree.tostring(bd,method='c14n')
+nums={e.get(q('numId')):e for e in an.findall(q('num'))}
+active={nums[e.get(q('val'))].find(q('abstractNumId')).get(q('val')) for e in ad.iter(q('numId'))}
+for old,new in zip(an,bn):
+    if old.tag!=q('abstractNum') or old.get(q('abstractNumId')) not in active:assert etree.tostring(old)==etree.tostring(new)
+    else:
+        level=new.find(q('lvl'));ind=level.find('./'+q('pPr')+'/'+q('ind'));tab=level.find('./'+q('pPr')+'/'+q('tabs')+'/'+q('tab'))
+        assert int(ind.get(q('left')))>=int(ind.get(q('hanging')))>0 and tab.get(q('pos'))==ind.get(q('left'))
+        for prop in ['start','numFmt','lvlText','lvlJc','suff']:assert etree.tostring(old.find(q('lvl')).find(q(prop)))==etree.tostring(level.find(q(prop)))
+        for tag in ['b','i','u','sz','color']:
+            x=old.find('./'+q('lvl')+'/'+q('rPr')+'/'+q(tag));y=level.find('./'+q('rPr')+'/'+q(tag))
+            assert (etree.tostring(x) if x is not None else None)==(etree.tostring(y) if y is not None else None)
+        for fonts in new.iter(q('rFonts')):assert fonts.get(q('eastAsia'))=='WenQuanYi Zen Hei' and fonts.get(q('ascii'))=='DejaVu Serif'
+for name in a.namelist():
+    if name not in ['word/document.xml','word/numbering.xml','word/styles.xml']:assert a.read(name)==b.read(name)
+# Independent Word export remains unmodified and all sequence markers stay XML,
+# never inserted into native body text. Reimport exercises the actual codec.
+check=codec['import_document'](mapped)['document'];assert check['body']['dataStream']==stream
+assert codec['import_document'](raw)['document']['body']['dataStream']==stream
+print('preserved list styles and numbering')
+'''.replace('ROOT', repr(str(root)))
+        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        self.assertIn(b'preserved list styles', result.stdout)
+
+    def test_independent_effective_number_bound_and_continuations(self):
+        for value in [1, 32767, 32768, 65534, 65535, 65536, 65537, 999999, 1000000]:
+            for template in [False, True]:
+                d = {'documentStyle': {}, 'body': {'dataStream': 'A\r\n', 'paragraphs': [
+                    {'startIndex': 1, 'bullet': {'listId': 'a', 'listType': 'ORDER_LIST', 'nestingLevel': 0}}]}}
+                if template:
+                    d['lists'] = {'ORDER_LIST': {'listType': 'ORDER_LIST', 'nestingLevel': [
+                        {'bulletAlignment': 1, 'startNumber': value-1, 'glyphFormat': '%1.', 'glyphType': 2}]}}
+                else:
+                    d['body']['paragraphs'][0]['bullet']['startNumber'] = value-1
+                with self.subTest(value=value, template=template):
+                    if value <= 32767:
+                        render.validate_document(d)
+                    else:
+                        with self.assertRaisesRegex(render.Refused, '^unsupported_pdf_list_number$'):
+                            render.validate_document(d)
+                # An effective override wins over the template's unused start.
+                d['body']['paragraphs'][0]['bullet']['startNumber'] = 32766
+                render.validate_document(d)
+                d['body']['dataStream'] = 'A\rPlain\rB\r\n'
+                d['body']['paragraphs'] += [{'startIndex': 7}, {'startIndex': 9,
+                    'paragraphStyle': {'textStyle': {'fs': 17.5, 'it': 1}},
+                    'bullet': {'listId': 'a', 'listType': 'ORDER_LIST', 'nestingLevel': 0}}]
+                with self.assertRaisesRegex(render.Refused, '^unsupported_pdf_list_number$'):
+                    render.validate_document(d)
+                d['body']['paragraphs'][-1]['bullet']['startNumber'] = 0
+                render.validate_document(d)
+
+    def test_pdf_gutter_accounts_for_body_overhang_in_generated_ooxml(self):
+        root = Path(__file__).resolve().parents[3]
+        script = r'''
+import runpy,base64,io,zipfile,copy
+from lxml import etree
+codec=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
+render=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py');q=codec['q']
+for inheritance in ['document','default','paragraph','run','wrapped']:
+    text='A' if inheritance!='wrapped' else 'small A A A A A A'
+    d={'id':'doc','title':'Overhang','documentStyle':{},'body':{'dataStream':text+'\r\n','paragraphs':[{'startIndex':len(text),'bullet':{'listId':'a','listType':'BULLET_LIST','nestingLevel':0,'textStyle':{'fs':11,'it':0}}}]}}
+    style={'fs':200,'it':1}
+    if inheritance=='document':d['documentStyle']['textStyle']=style
+    elif inheritance=='default':d['documentStyle']['defaultParagraphStyle']={'textStyle':style}
+    elif inheritance=='paragraph':d['body']['paragraphs'][0]['paragraphStyle']={'textStyle':style}
+    else:d['body']['textRuns']=[{'st':6 if inheritance=='wrapped' else 0,'ed':len(text),'ts':style}]
+    before=copy.deepcopy(d);render['validate_document'](d)
+    raw=base64.b64decode(codec['export_document'](d)['base64']);mapped=render['map_generated_fonts'](raw,codec)
+    assert d==before
+    with zipfile.ZipFile(io.BytesIO(mapped)) as z:
+        doc=etree.fromstring(z.read('word/document.xml'));numbering=etree.fromstring(z.read('word/numbering.xml'))
+        num_id=doc.find('.//'+q('numId')).get(q('val'))
+        num=next(n for n in numbering.findall(q('num')) if n.get(q('numId'))==num_id)
+        abstract_id=num.find(q('abstractNumId')).get(q('val'))
+        abstract=next(a for a in numbering.findall(q('abstractNum')) if a.get(q('abstractNumId'))==abstract_id)
+        ind=abstract.find('.//'+q('ind'))
+        assert int(ind.get(q('hanging'))) >= (11+200+6)*20,(inheritance,etree.tostring(ind))
+        assert ''.join(e.text or '' for e in doc.iter(q('t')))==text # no fake marker runs
+    assert codec['import_document'](raw)['document']['body']['dataStream']==text+'\r\n'
+    narrow=copy.deepcopy(d);narrow['documentStyle']['pageSize']={'width':300,'height':1123}
+    try:render['validate_document'](narrow)
+    except render['Refused'] as e:assert str(e)=='unsupported_pdf_list_layout'
+    else:raise AssertionError('unsafe narrow body gutter accepted')
+for start,continued in [(32768,False),(999999,False),(1000000,False),(32767,True)]:
+    d={'id':'doc','title':'Numbers','documentStyle':{},'body':{'dataStream':'A\rB\r\n' if continued else 'A\r\n','paragraphs':[{'startIndex':1,'bullet':{'listId':'a','listType':'ORDER_LIST','nestingLevel':0,'startNumber':start-1}}]}}
+    if continued:d['body']['paragraphs'].append({'startIndex':3,'paragraphStyle':{'textStyle':{'it':1}},'bullet':{'listId':'a','listType':'ORDER_LIST','nestingLevel':0}})
+    raw=base64.b64decode(codec['export_document'](d)['base64'])
+    try:render['map_generated_fonts'](raw,codec)
+    except render['Refused'] as e:assert str(e)=='unsupported_pdf_list_number'
+    else:raise AssertionError('PDF mapper accepted unsupported effective number')
+print('body gutters preserved')
+'''.replace('ROOT', repr(str(root)))
+        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
 
     def test_child_nonzero_and_missing(self):
         code, output = render.run_bounded(['/usr/bin/python3', '-c', 'print("failure");raise SystemExit(7)'], b'', time.monotonic()+2, 100)

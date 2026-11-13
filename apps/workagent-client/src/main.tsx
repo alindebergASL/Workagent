@@ -38,7 +38,7 @@ friendly.invalid_document_body = 'The document text exceeds the supported bounds
 friendly.unsupported_document_structure = 'This document contains unsupported content or foreign artifact fields. Your whole draft is kept. Download the draft, then Open saved version to resume from the saved document; the previous draft is also retained on this device.';
 friendly.unsupported_document_resources = 'This document contains unsupported style, note or permission resources. Your local draft is kept.';
 friendly.unsupported_document_list = 'Only flat bullets and decimal lists are currently mapped. Nested lists, other numbering styles or inconsistent list references were refused; your existing content is kept. Use a level-zero bullet or decimal list.';
-friendly.pdf_lists_unqualified = 'PDF list rendering is not yet qualified. No download was made. Use Word export to retain supported lists.';
+friendly.unsupported_pdf_list_layout = 'This list layout cannot be exported as PDF. No download was made; your edits are kept. Use simple hanging indentation with room for the marker.';
 
 friendly.selection_conflict = 'The saved work changed. Attach the intended selection again before sending; your message is kept.';
 friendly.invalid_document_selection = 'Attach one body-text range of at most 10,000 UTF-16 units, with complete Unicode characters.';

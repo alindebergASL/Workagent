@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { PdfWorker, sandboxArgs, namespaceIdentity, collectChild } from '../src/pdf-worker.mjs';
+import { listDocument, glyphs, numberedDocument, overhangDocument } from './support/pdf-list-fixture.mjs';
 const venv = process.env.WORKAGENT_DOCX_VENV;
 async function probe(script, input = '') {
   const args = sandboxArgs(venv); args.splice(-1, 1, '-c', script);
@@ -69,5 +70,123 @@ print(json.dumps({'text':t}))`,result.base64);
   for(const line of ['雪🌍','🌍雪','雪🌍雪🌍','🌍雪🌍雪'])assert.ok(lines.includes(line),line);
   for(const [text,error] of [['العربية','pdf_unsupported_text'],['e\u0301','pdf_unsupported_text'],['👩\u200d💻','pdf_unsupported_text'],['\u9fff','pdf_missing_glyph']]){
     await assert.rejects(worker.run({op:'export',document:blankDocument('pdf-order','Unsupported',text)}),new RegExp(error));assert.equal(worker.active,false);
+  }
+});
+
+test('actual isolated lists: all markers/styles, independent continuations/restarts, ordinary labels and wrapped multipage text have visible ink and no overlap', async () => {
+  const worker = new PdfWorker({ venv }), document = listDocument({ long: true }), before = structuredClone(document);
+  const result = await worker.run({ op: 'export', document }); assert.deepEqual(document, before);
+  const opened = await probe(`import sys,base64,pathlib,subprocess,json,re,xml.etree.ElementTree as E,math
+p=pathlib.Path('/tmp/lists.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+text=subprocess.check_output(['/usr/bin/pdftotext','-layout',str(p),'-'],timeout=5).decode()
+fonts=subprocess.check_output(['/usr/bin/pdffonts',str(p)],timeout=5).decode()
+subprocess.run(['/usr/bin/pdftohtml','-xml','-zoom','1','-i',str(p),'/tmp/lists.xml'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+root=E.parse('/tmp/lists.xml').getroot();pages=root.findall('page');boxes=[];visible=[]
+for page in pages:
+ number=page.attrib['number'];prefix='/tmp/page'+number
+ subprocess.run(['/usr/bin/pdftoppm','-f',number,'-l',number,'-singlefile','-r','72','-gray',str(p),prefix],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+ data=pathlib.Path(prefix+'.pgm').read_bytes();header=re.match(rb'P5\\s+(\\d+)\\s+(\\d+)\\s+255\\s',data);assert header,'PGM header'
+ width,height=map(int,header.groups());pixels=data[header.end():];assert len(pixels)==width*height
+ for e in page.findall('text'):
+  value=''.join(e.itertext()).strip()
+  if not value:continue
+  x,y,w,h=[float(e.attrib[k]) for k in ('left','top','width','height')]
+  assert 0<=x<x+w<=float(page.attrib['width'])+1 and 0<=y<y+h<=float(page.attrib['height'])+1,(value,'outside page')
+  boxes.append([int(number),value,x,y,w,h,e.attrib['font']])
+  if re.fullmatch(r'[0-9]+\\.|[●•○■▪]',value) or '雪' in value:
+   ink=sum(pixels[row*width+col]<220 for row in range(max(0,int(y)),min(height,math.ceil(y+h))) for col in range(max(0,int(x)),min(width,math.ceil(x+w))))
+   assert ink>3,(value,'no visible ink');visible.append(value)
+# Every separate marker box must end before text on its line. The PDF font
+# table plus raster ink check prevents text extraction alone being the proof.
+for page,value,x,y,w,h,font in boxes:
+ if re.fullmatch(r'[0-9]+\\.|[●•○■▪]',value):
+  peers=[b for b in boxes if b[0]==page and abs(b[3]-y)<max(3,h/3) and b[2]>x and b[1]!=value]
+  assert peers,(value,'no item');assert min(b[2] for b in peers)>=x+w-1,(value,'overlap')
+print(json.dumps({'text':text,'fonts':fonts,'visible':visible,'pages':len(pages),'boxes':boxes}))`, result.base64);
+  assert.ok(opened.pages > 1); assert.match(opened.fonts, /DejaVuSerif-BoldItalic/); assert.match(opened.fonts, /WenQuanYiZenHei/);
+  for (const [marker, word] of [['1.', 'AlphaFirst'], ['2.', 'AlphaSecond'], ['3.', 'AlphaThird'], ['5.', 'BetaFive'], ['6.', 'BetaSix'], ['9.', 'AlphaNine'], ['10.', 'AlphaTen'], ['999.', 'LargeStart'], ['1000.', 'LargeNext'], ['1000.', 'MillionStart']]) {
+    assert.match(opened.text, new RegExp(marker.replace('.', '\\.') + '\\s+' + word));
+    assert.ok(opened.visible.includes(marker), `visible ${marker}`);
+  }
+  for (const glyph of glyphs) assert.ok(opened.visible.includes(glyph), `visible ${glyph}`);
+  for (let i = 0; i < 90; i++) for (const token of [`Wrapped${i}`, `Tail${i}`]) assert.equal((opened.text.match(new RegExp('\\b' + token + '\\b', 'g')) ?? []).length, 1, token);
+  for (const token of new Set(document.body.dataStream.match(/[A-Za-z]+[0-9]*/g))) {
+    const pattern = new RegExp('\\b' + token + '\\b', 'g');
+    assert.equal((opened.text.match(pattern) ?? []).length, (document.body.dataStream.match(pattern) ?? []).length, `no lost/duplicated ${token}`);
+  }
+  assert.equal((opened.text.match(/雪/g) ?? []).length, (document.body.dataStream.match(/雪/g) ?? []).length);
+  assert.equal((opened.text.match(/🌍/gu) ?? []).length, (document.body.dataStream.match(/🌍/gu) ?? []).length);
+  const first = opened.boxes.find(b => b[1] === '1.'), second = opened.boxes.find(b => b[1] === '2.');
+  assert.ok(first && second); assert.notEqual(first[6], second[6], 'different inherited marker styles');
+});
+
+
+test('actual namespace refuses original wrong-number cases and effective out-of-range continuations', async () => {
+  const bad = [listDocument({ largeNumbers: true }), numberedDocument(32767, { continuation: true, split: true }),
+    numberedDocument(65534, { continuation: true }), numberedDocument(1000000, { continuation: true }),
+    numberedDocument(1, { continuation: true, restart: 32768 })];
+  for (const n of [32768, 65534, 65535, 65536, 65537, 999999, 1000000]) for (const template of [false, true]) bad.push(numberedDocument(n, { template }));
+  const worker = new PdfWorker({ venv });
+  for (const document of bad) {
+    const before = structuredClone(document);
+    await assert.rejects(worker.run({ op: 'export', document }), /unsupported_pdf_list_number/);
+    assert.deepEqual(document, before);
+  }
+  // Exercise the independent Python boundary inside the real namespace too.
+  // Passing Node refusals alone is not renderer/namespace qualification.
+  const refused = await probe(`import json,sys,runpy
+m=runpy.run_path('/render.py');out=[]
+for d in json.load(sys.stdin):
+ try:m['validate_document'](d)
+ except m['Refused'] as e:out.append(str(e))
+ else:out.append('ACCEPTED')
+print(json.dumps(out))`, JSON.stringify(bad));
+  assert.deepEqual(refused, bad.map(() => 'unsupported_pdf_list_number'));
+});
+
+test('actual renderer preserves 32767 and bounded continuation, restart and distinct-ID numbers', async () => {
+  const worker = new PdfWorker({ venv });
+  const cases = [
+    [numberedDocument(32767), ['32767. First']],
+    [numberedDocument(32767, { template: true }), ['32767. First']],
+    [numberedDocument(32766, { continuation: true, split: true }), ['32766. First', '32767. Next']],
+    [numberedDocument(32767, { continuation: true, split: true, restart: 1 }), ['32767. First', '1. Next']],
+    [numberedDocument(32767, { continuation: true, split: true, distinct: true }), ['32767. First', '1. Next']],
+  ];
+  const overridden = numberedDocument(1000000, { template: true }); overridden.body.paragraphs[0].bullet.startNumber = 0;
+  cases.push([overridden, ['1. First']]);
+  for (const [document, expected] of cases) {
+    const before = structuredClone(document), result = await worker.run({ op: 'export', document });
+    assert.deepEqual(document, before);
+    const text = await probe(`import sys,base64,pathlib,subprocess,json
+p=pathlib.Path('/tmp/bound.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+print(json.dumps(subprocess.check_output(['/usr/bin/pdftotext','-layout',str(p),'-'],timeout=5).decode()))`, result.base64);
+    for (const line of expected) assert.ok(text.replace(/\s+/g, ' ').includes(line), text);
+  }
+});
+
+test('actual PDF raster separates marker ink from inherited 200pt italic body and wrapped runs', async () => {
+  const worker = new PdfWorker({ venv });
+  for (const options of [{}, { inheritance: 'document' }, { inheritance: 'default' }, { inheritance: 'paragraph' }, { wrapped: true }, { bodySize: 11, markerSize: 17.5 }]) {
+    const document = overhangDocument(options), before = structuredClone(document);
+    const result = await worker.run({ op: 'export', document }); assert.deepEqual(document, before);
+    const markerSize = options.markerSize ?? 11;
+    const opened = await probe(`import sys,base64,pathlib,subprocess,json,re,math
+p=pathlib.Path('/tmp/overhang.pdf');p.write_bytes(base64.b64decode(sys.stdin.buffer.read()))
+text=subprocess.check_output(['/usr/bin/pdftotext','-layout',str(p),'-'],timeout=5).decode()
+subprocess.run(['/usr/bin/pdftoppm','-f','1','-l','1','-singlefile','-r','144','-gray',str(p),'/tmp/ink'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+data=pathlib.Path('/tmp/ink.pgm').read_bytes();header=re.match(rb'P5\\s+(\\d+)\\s+(\\d+)\\s+255\\s',data);assert header
+w,h=map(int,header.groups());pixels=data[header.end():];assert len(pixels)==w*h
+# BlankDocument's 72px margin is 54pt. Demand visible marker and body ink,
+# plus a truly blank vertical strip beyond the one-em marker box. The retained
+# bad PDF's italic A crosses this strip although pdftotext reports both glyphs.
+a=math.ceil((54+${markerSize}+1)*2);b=math.floor((54+${markerSize}+5)*2)
+assert any(pixels[y*w+x]<220 for y in range(h) for x in range(108,a)), 'missing marker ink'
+assert any(pixels[y*w+x]<220 for y in range(h) for x in range(b,w)), 'missing body ink'
+assert all(pixels[y*w+x]>=220 for y in range(h) for x in range(a,b)), 'marker/body ink not separated'
+print(json.dumps({'text':text,'clearColumns':b-a}))`, result.base64);
+    assert.equal((opened.text.match(/●/g) ?? []).length, 1);
+    assert.equal((opened.text.match(/A/g) ?? []).length, (document.body.dataStream.match(/A/g) ?? []).length);
+    assert.ok(opened.clearColumns >= 7);
   }
 });
