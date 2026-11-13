@@ -181,7 +181,7 @@ Competitive superiority requires comparable real outcomes and access to the actu
 
 Do not build another fixed showcase, workflow editor, generic agent platform, second model/tool loop, universal graph database, homegrown spreadsheet engine, or cloned partner application. Do not add a process framework around every small change.
 
-Keep the existing spending authority and historical receipts. The cumulative product ceiling is $275, not new funding; reread live accounting before paid work. New paid routes, SDK purchases, private access, external effects, installed-data maintenance, destructive cleanup, default-branch merge, and public deployment retain their actual approval requirements. Ordinary reversible work should not acquire invented per-step approval gates.
+Follow the owner's fresh rebuild budget and configured OpenRouter spending limits; the legacy $275 campaign is historical, not the rebuild cap. Preserve historical receipts/liabilities and reread actual provider limits and usage before paid work. New paid routes, SDK purchases, private access, external effects, installed-data maintenance, destructive cleanup, default-branch merge, and public deployment retain their actual approval requirements. Ordinary reversible work should not acquire invented per-step approval gates.
 
 B01 implementation is active, then B02 resilience and B03 background usefulness. Codex/Astra owns frontend and backend; Parent owns publication, private installation, financial operations, paid calls and final browser verification. No license purchase, stopped legacy service restart, default merge, public deployment or broader data use is activated. Product inputs remain synthetic-only; routine reversible work continues without per-task consent.
 

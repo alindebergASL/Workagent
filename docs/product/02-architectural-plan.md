@@ -18,7 +18,7 @@ Source baseline: `0ceb9818eb5278b54c37b3cf72c1fec2a8325b1d`, containing `apps/ds
 
 The slice uses actual public DSH 0.2.2-rc.1 packages with scripted inference. Its execution and recovery checks are useful regressions, not proof of the proposed product. The old client and workshop remain separate. Pre-pivot application data is disposable with no migration requirement; no retained data is deleted in this run. Financial history remains authoritative and new work is protected. The last verified check found the old services stopped and disabled. Keep them stopped under current direction; this child performs no process check or service operation.
 
-The inspected repository authority documents retain the $275 cumulative spending ceiling and existing accounting route. Older first-use sequencing and UI designs are superseded by the owner's redirection. Safety, saved work, receipts, and actual authorization boundaries are not superseded.
+Current repository authority follows the owner's fresh rebuild budget under configured OpenRouter limits. The old $275 campaign and its ledger remain historical; transitional local certificates are not the new spending cap. Older first-use sequencing and UI designs are superseded by the owner's redirection. Safety, saved work, receipts, and actual authorization boundaries are not superseded.
 
 ## 2. Architectural decisions
 

@@ -31,7 +31,7 @@ and `configure_grant(..., predecessor_id=...)`. Installation atomically revokes 
 predecessor and inserts its successor; do **not** pre-revoke the old grant in a
 separate transaction. Old configurations, request identities and receipts stay put.
 
-The current cumulative ceiling is defined in [model spending](GENERAL_MODEL_AUTHORIZATION.md),
+Current spending authority is defined in [model spending](GENERAL_MODEL_AUTHORIZATION.md),
 not a fresh allowance. Reconcile actual current capacity; never substitute the limit for the
 available balance. Shared reservations, reported usage and unknown outcomes carry
 forward. The helper copies the predecessor's ceilings unless an explicit authorized

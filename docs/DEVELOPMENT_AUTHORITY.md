@@ -52,7 +52,8 @@ trees or use the legacy launcher.
 ## Money, data and effects
 
 The financial source remains [GENERAL_MODEL_AUTHORIZATION](GENERAL_MODEL_AUTHORIZATION.md),
-$275 cumulative, not fresh funding. Read actual accounting before any paid use;
+the owner's fresh rebuild budget under configured OpenRouter spending limits, not the
+legacy $275 campaign ceiling. Read actual provider limits and usage before paid use;
 keep allocations, usage, uncertain liabilities and verified bills distinct. Do not invent
 available balance. Use OpenRouter with default `typesafe/jev-router` and explicit-model debugging/capability
 overrides. `typesafe/jev-1.14` is a separate structured Decisions API, never a chat model.
@@ -65,12 +66,13 @@ actual headroom before paid use; dated observations belong in STATUS, not standi
 authority. Delegated coding workers have no paid-call authority. Synthetic data does
 not establish genuine execution.
 
-The old alpha's issuer remains the single ledger. New certificates within the ceiling
-are permitted only after a `pg_dump` backup kept in `.local/`; change nothing else in that
-database and tell Andrew in one line each time. Parent owns live certificate operations;
-delegated coding workers must not access the issuer database. Keep the alpha's services and financial
-data otherwise unchanged. Qualify the new accounting seam without importing legacy execution
-or creating a second financial authority.
+The old alpha ledger and certificates remain historical records, not the fresh rebuild's
+spending authority. Preserve its services/data and unknown liabilities. Do not issue new
+legacy certificates to represent the new budget, erase history or infer spend from
+allocations. Parent owns live reconciliation and adapts transitional accounting to the
+configured OpenRouter authority; delegated coding workers do not operate the issuer.
+Observe request costs and provider limits without importing legacy execution or inventing
+a replacement owner-approval gate.
 
 Synthetic-only product-model data remains the boundary until the declared scope and
 actual handling are reconciled. Execution approval does not authorize confidential data

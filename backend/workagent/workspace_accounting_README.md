@@ -1,7 +1,10 @@
 # B01 certificate-funded accounting
 
 This target subaccount has only its imported issuer certificate. Its full amount
-stays encumbered centrally under the existing cumulative $275 authority. Local
+stays recorded in the legacy $275 campaign. That campaign is historical, not the
+owner's newly authorized rebuild budget; follow GENERAL_MODEL_AUTHORIZATION.md for
+configured OpenRouter spending authority. This describes the transitional implementation,
+not permission to issue further legacy certificates for the rebuild. Local
 settlement never changes alpha, releases historical liabilities, or refunds or
 reissues a certificate. No database/socket/live checks were run for this revision.
 The initial SQL read failed because the file was under Ubuntu's private home. Parent

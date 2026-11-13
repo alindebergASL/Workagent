@@ -123,7 +123,10 @@ Node uses HTTP over `WORKAGENT_ISSUER_SOCKET`, with acknowledgements after commi
 
 Parent imports one exact issuer certificate bound to the target database/cluster,
 nonce and policy. Its full amount stays allocated under the existing cumulative
-$275 authority; local settlement never refunds or reissues central funding. The
+legacy $275 campaign; local settlement never refunds or reissues central funding.
+That historical campaign is not the owner's fresh rebuild budget or a new approval
+gate: current authority is in `docs/GENERAL_MODEL_AUTHORIZATION.md`, backed by configured
+OpenRouter limits. The existing certificate is transitional bookkeeping, not a reset of history. The
 default Jev policy reserves one million input and one million completion/reasoning
 tokens at its hard price caps ($6 temporary envelope at the default caps), even
 though output is limited to 4096 tokens. Router tiers/preferences are not dollar caps.

@@ -29,7 +29,8 @@ Repository prose does not update profile skills; scoped profile maintenance is s
 Build mode permits replacing development APIs, schemas, runtime policies, tools and UI
 when they obstruct the product. Start fresh product state: pre-pivot application data is disposable and requires no
 migration/compatibility. Do not delete it in this run. Preserve all historical financial
-receipts, allocations and unknown liabilities; the budget does not reset. New human work
+receipts, allocations and unknown liabilities. The owner has authorized a fresh rebuild
+budget under OpenRouter's configured limits; the legacy $275 campaign is not its cap. New human work
 must be safe and persistent. Regenerate affected clients. The rejected UX, old designs,
 first-use checklist and historical runtime are not implementation requirements. Keep the
 old owner services stopped under current direction; do not use the old launcher for the
