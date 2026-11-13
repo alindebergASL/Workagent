@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { id, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
+import { cellAddress } from '../../workagent-server/src/selection.mjs';
 
 // Budget the JSON string as it appears inside tool events / provider messages,
 // including its second layer of escaping. The existing whole-request guard stays.
@@ -111,7 +112,7 @@ export function createSheetReader(workId, selection) {
     const nextCursor = randomUUID(); result.nextCursor = nextCursor;
     while (index < cells.length && result.cells.length < SHEET_READ_CELLS) {
       const c = cells[index], content = cellContent(c.cell);
-      const entry = { row: c.row, column: c.column, humanProtected: protectedCells.has(`${sheetId}:${c.row}:${c.column}`), cell: content };
+      const entry = { row: c.row, column: c.column, address: cellAddress(c.row, c.column), humanProtected: protectedCells.has(`${sheetId}:${c.row}:${c.column}`), cell: content };
       if (!offset && escapedBytes({ ...result, cells: [...result.cells, entry] }) <= SHEET_READ_BYTES) {
         result.cells.push(entry); index++; continue;
       }
@@ -119,7 +120,7 @@ export function createSheetReader(workId, selection) {
       // An individual cell can exceed the page budget. Return lossless chunks
       // of its JSON, explicitly NOT a complete value/formula. No invented cells.
       const serialized = JSON.stringify(content);
-      const fragment = end => ({ row: c.row, column: c.column, humanProtected: entry.humanProtected,
+      const fragment = end => ({ row: c.row, column: c.column, address: entry.address, humanProtected: entry.humanProtected,
         fragment: { encoding: 'cell-content-json', offset, totalCodeUnits: serialized.length, text: serialized.slice(offset, end), complete: end === serialized.length } });
       let low = offset, high = serialized.length;
       while (low < high) {

@@ -40,6 +40,7 @@ test('sparse continuation covers exact range with no duplicate cells, full-map l
   const next = parse(reader, w, { cursor: first.nextCursor });
   assert.equal(next.complete, true); assert.equal(next.nextCursor, null); assert.equal(next.startStoredCell, 128);
   assert.equal(next.cells.at(-1).humanProtected, true);
+  assert.deepEqual([...first.cells, ...next.cells].map(c => c.address), Array.from({ length: 140 }, (_, row) => `A${row + 1}`));
   assert.equal(new Set([...first.cells, ...next.cells].map(c => `${c.row}:${c.column}`)).size, 140);
   assert.deepEqual(parse(reader, w, { cursor: first.nextCursor }), next, 'same cursor is repeatable');
   const other = parse(reader, w, { sheetId: 'other', range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 2 }, expected: first.expected });
@@ -48,6 +49,44 @@ test('sparse continuation covers exact range with no duplicate cells, full-map l
   assert.equal(other.cells[1].cell.v, undefined); assert.equal(other.cells[1].cell.si, 'shared');
   const overview = parse(reader, w, { overview: true });
   assert.equal(overview.complete, true); assert.equal(overview.workbookComplete, false); assert.deepEqual(overview.cells, []);
+});
+
+test('A1 addresses identify absolute sparse coordinates across column boundaries and offset ranges', () => {
+  const w = fixture(), sheet = w.book.sheets.sheet1;
+  sheet.rowCount = 10000; sheet.columnCount = 200;
+  sheet.cellData = { 0: { 0: { v: 'first' }, 25: { v: 'last single letter' }, 26: { v: 'first double letter' } },
+    2: { 25: { v: 21 }, 26: { v: 43 } }, 9: { 51: { v: false }, 52: { f: '=Z3+AA3', v: 999 } }, 9999: { 199: { v: 'last' } } };
+  const reader = createSheetReader(w.id), all = parse(reader, w, { sheetId: 'sheet1' });
+  assert.deepEqual(all.cells.map(c => [c.row, c.column, c.address]),
+    [[0, 0, 'A1'], [0, 25, 'Z1'], [0, 26, 'AA1'], [2, 25, 'Z3'], [2, 26, 'AA3'], [9, 51, 'AZ10'], [9, 52, 'BA10'], [9999, 199, 'GR10000']]);
+  const page = parse(reader, w, { sheetId: 'sheet1', range: { startRow: 2, endRow: 9, startColumn: 25, endColumn: 52 } });
+  assert.deepEqual(page.cells.map(c => [c.address, c.cell]), [['Z3', { v: 21 }], ['AA3', { v: 43 }], ['AZ10', { v: false }], ['BA10', { f: '=Z3+AA3' }]]);
+  assert.equal(page.rangeStoredCells, 4); assert.equal(page.rangeAbsentCells, 220);
+  assert.equal(page.complete, true); assert.equal(page.workbookComplete, false);
+});
+
+test('addresses and escaped overview metadata fit the byte cap before the cell-count limit', () => {
+  const w = fixture(), value = 'x'.repeat(180);
+  w.book.name = '雪"\\'.repeat(60);
+  for (let row = 0; row < 140; row++) w.book.sheets.sheet1.cellData[row] = { 0: { v: value } };
+  const reader = createSheetReader(w.id), cells = [];
+  let page = parse(reader, w, { sheetId: 'sheet1' }), pages = 0;
+  assert.ok(page.cells.length > 0 && page.cells.length < SHEET_READ_CELLS);
+  while (true) {
+    assert.equal(page.overview.name, w.book.name);
+    assert.ok(page.cells.length <= SHEET_READ_CELLS);
+    cells.push(...page.cells); pages++;
+    if (!page.nextCursor) break;
+    assert.ok(pages < 10);
+    page = parse(reader, w, { cursor: page.nextCursor });
+  }
+  assert.equal(cells.length, 140); assert.ok(pages > 1);
+  for (const [row, entry] of cells.entries()) {
+    assert.equal(entry.row, row); assert.equal(entry.column, 0); assert.equal(entry.address, `A${row + 1}`);
+    assert.deepEqual(entry.cell, { v: value });
+  }
+  const overview = parse(reader, w, { overview: true });
+  assert.deepEqual(overview.cells, []); assert.equal(overview.overview.name, w.book.name);
 });
 
 test('attached selection guides a fresh bounded default but does not constrain navigation', () => {
@@ -91,19 +130,25 @@ test('invalid selectors, unknown fields, bounds and prototype/path tricks refuse
 test('huge Unicode/escaped cell content is explicitly fragmented, lossless and never a cached formula value', () => {
   const w = fixture(); w.book.sheetOrder = ['sheet1'];
   const value = '雪🌍"\\\n\u0000'.repeat(11000);
-  w.book.sheets.sheet1.cellData = { 0: { 0: { v: value, t: 1, custom: 'omitted native metadata'.repeat(10000) } }, 1: { 0: { f: '=A1', v: 'DO NOT LEAK'.repeat(20000), t: 1 } } };
+  w.book.sheets.sheet1.columnCount = 60;
+  w.book.sheets.sheet1.cellData = { 9: { 26: { v: value, t: 1, custom: 'omitted native metadata'.repeat(10000) } }, 20: { 52: { f: '=AA10', v: 'DO NOT LEAK'.repeat(20000), t: 1 } } };
   w.book.styles = { huge: 'formatting'.repeat(100000) };
   w.humanCells = Array.from({ length: 10000 }, (_, i) => `sheet1:${i}:0`);
+  w.humanCells.push('sheet1:9:26');
   const reader = createSheetReader(w.id); let page = parse(reader, w), assembled = '', fragments = 0;
   while (true) {
     assert.equal(page.protectedCells, undefined); assert.equal(page.book, undefined);
     assert.ok(!JSON.stringify(page).includes('DO NOT LEAK'));
-    for (const entry of page.cells) if (entry.row === 0) {
+    for (const entry of page.cells) if (entry.row === 9) {
+      assert.equal(entry.column, 26); assert.equal(entry.address, 'AA10'); assert.equal(entry.humanProtected, true);
       assert.equal(entry.cell, undefined); assert.equal(entry.fragment.offset, assembled.length);
       assert.ok(!/[\uD800-\uDBFF]$/.test(entry.fragment.text));
       assembled += entry.fragment.text; fragments++;
       if (entry.fragment.complete) assert.deepEqual(JSON.parse(assembled), { v: value, t: 1 });
-    } else { assert.deepEqual(entry.cell, { f: '=A1' }); }
+    } else {
+      assert.equal(entry.row, 20); assert.equal(entry.column, 52); assert.equal(entry.address, 'BA21');
+      assert.deepEqual(entry.cell, { f: '=AA10' });
+    }
     if (!page.nextCursor) break;
     page = parse(reader, w, { cursor: page.nextCursor });
   }

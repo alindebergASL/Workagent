@@ -1,6 +1,12 @@
 import { workKind, documentSelectionText } from '../../../packages/workagent-contract/document.mjs';
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
 
+export function cellAddress(row, column) {
+  let label = '';
+  for (column++; column; column = Math.floor((column - 1) / 26)) label = String.fromCharCode(65 + (column - 1) % 26) + label;
+  return `${label}${row + 1}`;
+}
+
 // Resolve only against the owned workbook inside command admission. Client labels,
 // cell contents and purported source/overwrite permissions are never authoritative.
 export function bindSelection(w, selection, kind) {
@@ -29,8 +35,7 @@ export function bindSelection(w, selection, kind) {
     const value = c?.t === 3 && (c.v === 0 || c.v === 1 || typeof c.v === 'boolean') ? Boolean(c.v) : c?.v ?? null;
     cells.push({ row, column, ...(c?.f ? { formula: c.f } : c?.si ? { sharedFormula: c.si } : { value }), ...(c?.p?.body?.dataStream ? { text: c.p.body.dataStream } : {}) });
   }
-  const col = n => { let label = ''; for (n++; n; n = Math.floor((n - 1) / 26)) label = String.fromCharCode(65 + (n - 1) % 26) + label; return label; };
-  const bound = { workId: w.id, contentRevision: w.contentRevision, sheetId: sheet.id, sheetName: sheet.name, range: { ...r }, rangeLabel: `${col(r.startColumn)}${r.startRow + 1}:${col(r.endColumn)}${r.endRow + 1}`, cells };
+  const bound = { workId: w.id, contentRevision: w.contentRevision, sheetId: sheet.id, sheetName: sheet.name, range: { ...r }, rangeLabel: `${cellAddress(r.startRow, r.startColumn)}:${cellAddress(r.endRow, r.endColumn)}`, cells };
   if (Buffer.byteLength(JSON.stringify(bound), 'utf8') > 200000) throw new Fault('invalid_selection', 400);
   return bound;
 }

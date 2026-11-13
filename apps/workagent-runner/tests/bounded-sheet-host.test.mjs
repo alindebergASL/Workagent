@@ -98,13 +98,18 @@ test('100k fixture: selected default, cross-tab range continuation and dependenc
       expected ??= page.expected; assert.deepEqual(page.expected, expected);
       if (n === 2) {
         assert.equal(page.sheetId, 'summary'); assert.equal(page.cells.length, 1); assert.equal(page.complete, true);
+        assert.equal(page.cells[0].address, 'A1'); assert.equal(page.cells[0].row, 0); assert.equal(page.cells[0].column, 0);
         assert.equal(page.cells[0].cell.f, '=SUM(Operations!B1:B4)'); assert.equal(page.cells[0].cell.v, undefined);
         return read({ sheetId: 'operations', range: { startRow: 0, endRow: 59, startColumn: 0, endColumn: 3 }, expected });
       }
-      if (n === 3) { assert.equal(page.complete, false); return read({ cursor: page.nextCursor }); }
+      if (n === 3) {
+        assert.equal(page.cells.find(c => c.row === 1 && c.column === 1).address, 'B2');
+        assert.equal(page.complete, false); return read({ cursor: page.nextCursor });
+      }
       if (n === 4) { assert.equal(page.complete, true); return read({ sheetId: 'inputs', range: { startRow: 0, endRow: 5, startColumn: 0, endColumn: 2 }, expected }); }
       if (n === 5) {
         assert.equal(page.cells.length, 18); assert.equal(page.cells[0].cell.v, 1);
+        assert.equal(page.cells.find(c => c.row === 2 && c.column === 1).address, 'B3');
         return edit([{ sheetId: 'inputs', row: 7999, column: 9, value: 999 }]);
       }
     }
