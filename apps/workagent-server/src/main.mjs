@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { CsvExchange } from './exchange.mjs';
 import { OwnedFiles } from './owned-files.mjs';
 import { Maintenance } from './responsibilities.mjs';
 import { resolve } from 'node:path';
@@ -33,7 +34,8 @@ const host = await bootHost({ stateRoot: resolve(required('WORKAGENT_STATE_DIR')
 await workspace.recover(owner, host.inspect);
 const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(required('WORKAGENT_STATE_DIR'))), budgetReference: mode === 'openrouter' ? 'openrouter:configured-provider-limits' : 'certificate:existing-accounting' });
 const dispatcher = createDispatcher({ workspace, principal: owner, host, maintenance, capacity: 2, onError() { console.error('workspace_dispatch_failed'); } });
-const server = createServer({ workspace, maintenance, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const exchange = new CsvExchange({ workspace, files: maintenance.files });
+const server = createServer({ workspace, maintenance, exchange, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

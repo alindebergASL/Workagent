@@ -9,11 +9,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import ts from 'typescript';
+import { parseCsv } from '../../../packages/workagent-contract/csv.mjs';
 import { blankWorkbook, applyPatch, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { isHumanSheetMutation, pendingCell } from '../src/drafts.ts';
 import { Workspace } from '../../workagent-server/src/workspace.mjs';
 import { initialState } from '../../workagent-server/src/store.mjs';
 import { Maintenance } from '../../workagent-server/src/responsibilities.mjs';
+import { CsvExchange } from '../../workagent-server/src/exchange.mjs';
 import { OwnedFiles } from '../../workagent-server/src/owned-files.mjs';
 import { FileFixtureStore } from '../../workagent-server/tests/support/file-fixture.mjs';
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
@@ -21,7 +23,7 @@ const localRequire = createRequire(import.meta.url);
 const core = require('@univerjs/core');
 const { FUniver } = require('@univerjs/core/facade');
 const { UniverSheetsPlugin } = require('@univerjs/sheets');
-const { UniverFormulaEnginePlugin } = require('@univerjs/engine-formula');
+const { UniverFormulaEnginePlugin, FormulaExecutedStateType } = require('@univerjs/engine-formula');
 const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets-formula');
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 function engine(formula = {}) {
@@ -92,7 +94,7 @@ test('native human snapshot -> authoritative patch -> default native reopen reca
   } finally { await e.dispose(); }
 });
 const editorCode = ts.transpileModule(readFileSync(new URL('../src/NativeEditor.tsx', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
-function mountEditor(book) {
+function mountEditor(book, editing = {}) {
   let e, cleanup, handle, edits = 0; const events = new Map();
   const module = { exports: {} };
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
@@ -101,14 +103,14 @@ function mountEditor(book) {
     if (name === './drafts') return { isHumanSheetMutation, pendingCell };
     if (name.endsWith('.css')) return {};
     if (name === '@univerjs/preset-sheets-core/locales/en-US') return {};
-    if (name === '@univerjs/preset-sheets-core') return { CalculationMode, UniverSheetsCorePreset: options => options };
+    if (name === '@univerjs/preset-sheets-core') return { CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       e = engine(options.presets[0].formula);
       // Headless SDK has no DOM cell-editor events; retain those callbacks while
       // native command events and all formula computation use the real SDK.
       Object.defineProperty(e.api, 'Event', { value: Object.assign(Object.create(e.api.Event), { SheetEditChanging: 'SheetEditChanging', SheetEditEnded: 'SheetEditEnded' }) });
       const createWorkbook = e.api.createWorkbook.bind(e.api);
-      e.api.createWorkbook = data => { const workbook = createWorkbook(data); workbook.isCellEditing = () => false; return workbook; };
+      e.api.createWorkbook = data => { const workbook = createWorkbook(data); workbook.isCellEditing = () => editing.active ?? false; workbook.endEditingAsync = async save => { assert.equal(save, true); if (editing.refuse) return false; if (editing.wait) await editing.wait; editing.apply?.(workbook); editing.active = false; return true; }; return workbook; };
       const addEvent = e.api.addEvent.bind(e.api);
       e.api.addEvent = (event, callback) => { events.set(event, callback); return event.startsWith('SheetEdit') ? { dispose() {} } : addEvent(event, callback); };
       return { univer: e.univer, univerAPI: e.api };
@@ -157,4 +159,90 @@ test('maintenance Relink of a genuine human snapshot invalidates saved results b
   assert.ok(current.humanCells.includes('sheet1:3:1')); assert.ok(!current.humanCells.includes('sheet1:1:1'));
   const e = engine(), book = e.api.createWorkbook(current.book);
   try { await e.settle(); correct(book.save()); } finally { await e.dispose(); }
+});
+
+test('actual NativeEditor CSV export waits for native calculation and selects the active second tab', async () => {
+  const stale = fixture(); cell(stale, 1).v = 150; cell(stale, 3).v = 969;
+  stale.sheets.summary.cellData[0][0].v = 99999;
+  const view = mountEditor(stale);
+  try {
+    const native = view.e.api.getActiveWorkbook(); native.setActiveSheet('summary');
+    const exported = await view.handle.exportCsv(); // Deliberately no preceding settle.
+    assert.equal(exported.sheetName, 'Summary'); assert.deepEqual(parseCsv(Buffer.from(exported.csv)).rows, [['241']]);
+    assert.equal(view.edits, 0); assert.equal(stale.sheets.summary.cellData[0][0].v, 99999);
+    native.setActiveSheet('sheet1'); const full = await view.handle.exportCsv();
+    const rows = parseCsv(Buffer.from(full.csv)).rows;
+    assert.equal(rows[3][1], '120'); assert.equal(rows[0][2], "'=1+1"); assert.equal(rows[0][3], '#DIV/0!');
+  } finally { await view.dispose(); }
+});
+test('actual editor export commits pending input before real calculation; refused pending edit produces no CSV', async () => {
+  let release; const wait = new Promise(resolve => { release = resolve; });
+  const editing = { active: true, wait, apply: workbook => workbook.getSheetBySheetId('sheet1').getRange('B2').setValue(180) };
+  const view = mountEditor(fixture(), editing);
+  try {
+    let settled = false; const exporting = view.handle.exportCsv().then(result => { settled = true; return result; });
+    await delay(20); assert.equal(settled, false); release();
+    const result = await exporting; const rows = parseCsv(Buffer.from(result.csv)).rows;
+    assert.equal(rows[1][1], '180'); assert.equal(rows[3][1], '150');
+    editing.active = true; editing.refuse = true;
+    await assert.rejects(() => view.handle.exportCsv(), /Finish the current cell edit/);
+  } finally { await view.dispose(); }
+});
+test('export refuses a human change during calculation and an unknown result is never zero', async () => {
+  const view = mountEditor(fixture());
+  try {
+    await view.e.settle();
+    const formula = view.e.api.getFormula(), realWait = formula.onCalculationResultApplied.bind(formula);
+    let release; const gate = new Promise(resolve => { release = resolve; });
+    formula.onCalculationResultApplied = async (...args) => { await realWait(...args); await gate; };
+    view.e.api.getFormula = () => formula;
+    const exporting = view.handle.exportCsv();
+    await delay(30); view.e.api.getActiveWorkbook().getActiveSheet().getRange('B2').setValue(77); release();
+    await assert.rejects(() => exporting, /changed during calculation/);
+  } finally { await view.dispose(); }
+});
+
+test('native waiter watchdog cannot turn an unverified cached formula into an export', async () => {
+  const view = mountEditor(fixture());
+  try {
+    await view.e.settle(); const formula = view.e.api.getFormula();
+    // Reproduce the SDK waiter’s documented-by-implementation no-start path.
+    // All waiting is real; the trigger alone is withheld as a failure fixture.
+    formula.executeCalculation = () => {}; view.e.api.getFormula = () => formula;
+    await assert.rejects(() => view.handle.exportCsv(), /could not be verified/);
+  } finally { await view.dispose(); }
+});
+
+test('real bytes -> server import -> native direct correction -> native CSV export -> server reimport', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'native-csv-')), path = join(root, 'workspace.json');
+  await writeFile(path, JSON.stringify(initialState('owner')));
+  const workspace = new Workspace(new FileFixtureStore(path)), exchange = new CsvExchange({ workspace, files: new OwnedFiles(root) });
+  const bytes = Buffer.from('\ufeffidentifier,literal,quantity,empty\r\n0012,"=1+1",4,\r\n"行,😀","multi\r\nline",5,\r\n');
+  const imported = await exchange.import('owner', { commandId: 'csv-in', filename: 'unfamiliar.csv', base64: bytes.toString('base64'), synthetic: true });
+  const w = await workspace.get('owner', imported.workId), view = mountEditor(w.book);
+  try {
+    const sheet = view.e.api.getActiveWorkbook().getActiveSheet();
+    assert.equal(view.handle.save().sheets.sheet1.cellData[1][1].f, undefined);
+    sheet.getRange('C2').setValue(-7);
+    const saved = await view.handle.commit();
+    await workspace.save('owner', w.id, { commandId: 'native-save', book: saved, contentRevision: 1, permissionRevision: 1 });
+    const exported = await view.handle.exportCsv(), rows = parseCsv(Buffer.from(exported.csv)).rows;
+    assert.deepEqual(rows[1], ['0012', "'=1+1", '-7', '']); assert.deepEqual(rows[2], ['行,😀', 'multi\r\nline', '5', '']);
+    const reopened = await exchange.import('owner', { commandId: 'csv-reopen', filename: 'roundtrip.csv', base64: Buffer.from(exported.csv).toString('base64'), synthetic: true });
+    const next = await workspace.get('owner', reopened.workId); assert.equal(next.book.sheets.sheet1.cellData[1][0].v, '0012');
+    assert.equal(next.book.sheets.sheet1.cellData[1][2].v, '-7'); assert.equal(next.book.sheets.sheet1.cellData[1][2].t, 1, 'CSV type loss follows the disclosed all-text import policy');
+    assert.deepEqual((await exchange.original('owner', w.id, imported.original.id)).bytes, bytes);
+    assert.equal(await workspace.claim('owner'), null, 'both human imports and native save scheduled no model work');
+  } finally { await view.dispose(); }
+});
+
+test('export refuses a selected-tab change during pending edit completion and produces no download', async () => {
+  let release; const wait = new Promise(resolve => { release = resolve; });
+  const view = mountEditor(fixture(), { active: true, wait }); let downloads = 0;
+  try {
+    const native = view.e.api.getActiveWorkbook(); native.setActiveSheet('sheet1');
+    const exporting = view.handle.exportCsv().then(csv => { downloads++; return csv; });
+    native.setActiveSheet('summary'); release();
+    await assert.rejects(() => exporting, /sheet changed/i); assert.equal(downloads, 0);
+  } finally { await view.dispose(); }
 });

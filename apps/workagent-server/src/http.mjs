@@ -26,7 +26,7 @@ async function body(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 export function createServer(options) { return http.createServer(createHandler(options)); }
-export function createHandler({ workspace, maintenance, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, exchange, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'no-referrer');
@@ -59,6 +59,14 @@ export function createHandler({ workspace, maintenance, owner, token, origin, cl
       }
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
+      if (exchange && path === '/api/exchange/csv/preview' && req.method === 'POST') return send(200, await exchange.preview(principal, await body(req)));
+      if (exchange && path === '/api/exchange/csv/import' && req.method === 'POST') return send(200, await exchange.import(principal, await body(req)));
+      const original = /^\/api\/work\/([a-zA-Z0-9_-]+)\/original\/([a-zA-Z0-9_-]+)$/.exec(path);
+      if (exchange && original && req.method === 'GET') {
+        const result = await exchange.original(principal, original[1], original[2]);
+        res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="original.csv"; filename*=UTF-8''${encodeURIComponent(result.original.filename).replace(/'/g, '%27')}`, 'Content-Length': result.bytes.length });
+        res.end(result.bytes); return;
+      }
       if (path === '/api/sources' && req.method === 'POST') return send(200, await workspace.source(principal, await body(req)));
       if (maintenance && path === '/api/owned-sources' && req.method === 'GET') return send(200, await maintenance.sources(principal));
       if (maintenance && path === '/api/owned-sources' && req.method === 'POST') return send(200, await maintenance.publish(principal, await body(req)));
