@@ -804,6 +804,33 @@ for (const phase of ['preservation', 'GET', 'draft read', 'save read']) test(`co
   await view.open('old'); assert.equal(view.messageValue(), source.prompt); assert.deepEqual(drafts.read('old'), source); view.unmount();
 });
 
+for (const destination of ['imported', '']) for (const outcome of ['resolve', 'reject']) test(`pending commit navigation to ${destination || 'new work'} ${outcome} preserves source ownership and unlocks`, async () => {
+  const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred();
+  const source = messageDraft('Source draft'), target = messageDraft('Target draft');
+  drafts.write('old', source); drafts.write(destination || null, target);
+  const api = server(() => assert.fail('navigation must not POST')), view = mount(storage, api.fetch);
+  await view.flush(); await view.open('old'); const native = attach(view);
+  native.edit('retained native'); await view.flush(); const savedDraft = await draftRaw(storage, 'old');
+  const commit = native.handle.commit; native.handle.commit = () => gate.promise;
+  await view.open(destination);
+  assert.equal(view.native().book.id, 'old'); assert.equal(composerNodes(view).prompt.disabled, true);
+  assert.deepEqual(drafts.read('old'), source); assert.deepEqual(drafts.read(destination || null), target);
+  assert.equal(await draftRaw(storage, 'old'), savedDraft);
+  assert.equal(api.calls.filter(c => c.path === '/api/work/imported').length, 0);
+  if (outcome === 'reject') gate.reject(new Error('commit capture refused')); else gate.resolve(await commit());
+  await view.flush();
+  assert.equal(composerNodes(view).prompt.disabled, false); assert.equal(composerNodes(view).form['aria-busy'], false);
+  assert.deepEqual(drafts.read('old'), source); assert.deepEqual(drafts.read(destination || null), target);
+  assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.sheets.sheet1.cellData[0][0].v, 'retained native');
+  if (outcome === 'reject') {
+    assert.equal(view.native().book.id, 'old'); assert.match(view.text(), /commit capture refused/);
+    assert.equal(view.messageValue(), source.prompt); native.handle.commit = commit;
+    native.edit('source can continue'); await view.message('source still editable');
+    assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.sheets.sheet1.cellData[0][0].v, 'source can continue');
+  } else { assert.equal(view.native()?.book.id, destination || undefined); assert.equal(view.messageValue(), target.prompt); }
+  view.unmount();
+});
+
 for (const failure of ['GET', 'draft read', 'preservation', 'snapshot']) test(`failed ${failure} navigation unblocks the unchanged source composer and native work`, async () => {
   const storage = disk(), drafts = new resume.ComposerDrafts(storage), gate = deferred();
   const source = { prompt: 'Keep source', sourceName: 'Pasted data', sourceText: '' };
@@ -815,8 +842,8 @@ for (const failure of ['GET', 'draft read', 'preservation', 'snapshot']) test(`f
   });
   await view.flush(); await view.open('old'); const native = attach(view);
   if (failure === 'preservation' || failure === 'snapshot') { native.edit('keep native'); await view.flush(); }
-  const save = native.handle.save;
-  if (failure === 'snapshot') native.handle.save = () => { throw new Error('snapshot refused'); };
+  const commit = native.handle.commit;
+  if (failure === 'snapshot') native.handle.commit = async () => { throw new Error('snapshot refused'); };
   artifactFixture(storage).complete = async key => {
     if (fail && key === (failure === 'preservation' ? 'draft:old' : failure === 'draft read' ? 'draft:imported' : 'never')) await gate.promise;
   };
@@ -824,7 +851,7 @@ for (const failure of ['GET', 'draft read', 'preservation', 'snapshot']) test(`f
   if (failure !== 'snapshot') { assert.equal(composerNodes(view).prompt.disabled, true); gate.reject(new Error('navigation failed')); await view.flush(); }
   assert.equal(view.native().book.id, 'old'); assert.equal(composerNodes(view).prompt.disabled, false);
   assert.equal(view.messageValue(), source.prompt); assert.match(view.text(), /navigation failed|Browser draft storage could not finish|snapshot refused/);
-  fail = false; native.handle.save = save;
+  fail = false; native.handle.commit = commit;
   await view.message('source can continue'); assert.equal(drafts.read('old').prompt, 'source can continue');
   assert.deepEqual(drafts.read('imported'), messageDraft('Keep destination'));
   if (failure === 'GET' || failure === 'draft read') { await view.click('Attach selected cells'); await view.send(); assert.equal(api.calls.filter(c => c.path === '/api/work/commands').length, 1); }

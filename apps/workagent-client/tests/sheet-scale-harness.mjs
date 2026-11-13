@@ -22,10 +22,32 @@ const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
 export function mountNative(props, plugins = []) {
   let cleanup, handle, api, univer, edits = 0;
-  let starts = [], ends = [];
+  let starts = [], ends = [], validation;
+  const validationComponents = new Map();
+  const validationRequire = createRequire(import.meta.resolve('@univerjs/preset-sheets-data-validation'));
+  const validationSdk = { ...validationRequire('@univerjs/data-validation'), ...validationRequire('@univerjs/sheets-data-validation') };
+  const ComponentManager = Symbol(), IEditorService = Symbol(), DataValidationPanelService = Symbol();
+  const validationModule = { exports: {} };
+  new Function('require', 'module', 'exports', compile('../src/validation-settlement.tsx'))(name => {
+    if (name === '@univerjs/preset-sheets-core') return { ComponentManager, IEditorService };
+    if (name === '@univerjs/preset-sheets-data-validation') return { ...validationSdk, DataValidationPanelService, DATA_VALIDATION_PANEL: 'panel' };
+    return localRequire(name);
+  }, validationModule, validationModule.exports);
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './validation-settlement') return { installValidationSettlement: (univer, id, changed) => {
+      const injector = univer.__getInjector();
+      const manager = { get: key => validationComponents.get(key) ?? (() => null), register(key, component) { validationComponents.set(key, component); return { dispose() { validationComponents.delete(key); } }; } };
+      const proxy = { __getInjector: () => ({ get(token) {
+        if (token === ComponentManager) return manager;
+        if (token === IEditorService) return { getEditor() {} };
+        if (token === DataValidationPanelService) return { activeRule: null };
+        return injector.get(token);
+      } }) };
+      validation = validationModule.exports.installValidationSettlement(proxy, id, changed);
+      return validation;
+    } };
     if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
@@ -36,7 +58,8 @@ export function mountNative(props, plugins = []) {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
       univer.registerPlugin(UniverSheetsPlugin); univer.registerPlugin(UniverFormulaEnginePlugin);
       univer.registerPlugin(UniverSheetsFormulaPlugin, options.presets[0].formula);
-      for (const plugin of plugins) univer.registerPlugin(plugin);
+      const nativePlugins = new Set([validationSdk.UniverDataValidationPlugin, validationSdk.UniverSheetsDataValidationPlugin, ...plugins]);
+      for (const plugin of nativePlugins) univer.registerPlugin(plugin);
       api = FUniver.newAPI(univer);
       api.getFormula().calculationStart(force => starts.push(force));
       api.getFormula().calculationEnd(state => ends.push(state));
@@ -57,7 +80,9 @@ export function mountNative(props, plugins = []) {
     return localRequire(name);
   }, module, module.exports);
   module.exports.NativeEditor({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
-  return { api, get handle() { return handle; }, get edits() { return edits; }, resetCalculation() { starts = []; ends = []; },
+  return { api, commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
+    formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
+    get handle() { return handle; }, get edits() { return edits; }, resetCalculation() { starts = []; ends = []; },
     async settle() {
       await api.getFormula().onCalculationResultApplied(110_000);
       assert.ok(starts.length > 0, 'SDK watchdog/no-start is not calculation proof');

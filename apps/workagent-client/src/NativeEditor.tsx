@@ -7,13 +7,14 @@ import '@univerjs/preset-sheets-data-validation/lib/index.css';
 import UniverSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US';
 import { serializeCsv, type CsvResult } from '../../../packages/workagent-contract/csv.mjs';
 import { isHumanSheetMutation, pendingCell } from './drafts';
+import { installValidationSettlement } from './validation-settlement';
 import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
 import { CommandType, ICommandService, type IWorkbookData, type ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
 export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
 export type EditorHandle = { formatEdits?: () => FormatEdits | undefined; save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
-export function NativeEditor({ book, version, formatEdits, humanCells, onReady, onEdit }: { book: IWorkbookData; humanCells?: string[]; formatEdits?: FormatEdits | null; version: string; onReady: (editor: EditorHandle | null) => void; onEdit: (book: IWorkbookData) => void }) {
+export function NativeEditor({ book, version, formatEdits, humanCells, onReady, onEdit }: { book: IWorkbookData; humanCells?: string[]; formatEdits?: FormatEdits | null; version: string; onReady: (editor: EditorHandle | null) => void; onEdit: (book?: IWorkbookData) => void }) {
   const container = useRef<HTMLDivElement>(null), edit = useRef(onEdit), ready = useRef(onReady);
   edit.current = onEdit; ready.current = onReady;
   useEffect(() => {
@@ -25,6 +26,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     try {
     releaseFocus = installEditorFocus(univer, container.current!);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
+    const validation = installValidationSettlement(univer, book.id, () => { edits++; notifyEdit(); });
     // An ACK cannot clear a newer edit. Structural mutations relocate ownership;
     // deleted coordinates are retired, and native history restores their provenance.
     // null denotes a recovered legacy draft, whose provenance is unknown.
@@ -143,10 +145,12 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     const selectionChanged = () => { const key = selectionKey(); if (key !== lastSelection) { lastSelection = key; selectionEpoch++; } };
     const selected = workbook.onSelectionChange(selectionChanged);
     let pending: IWorkbookData | null = null, disposed = false, edits = 0;
-    const snapshot = () => structuredClone(pending ?? workbook.save());
+    const snapshot = () => { validation.gate.assertReady(); return structuredClone(pending ?? workbook.save()); };
     const commit = async () => {
+      await validation.gate.wait();
       if (workbook.isCellEditing() && !await workbook.endEditingAsync(true)) throw new Error('Finish the current cell edit before continuing.');
       if (disposed || workbook.isCellEditing()) throw new Error('The editor changed. Retry from the current sheet.');
+      validation.gate.assertReady();
       pending = null;
       return structuredClone(workbook.save());
     };
@@ -159,7 +163,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
         || endRow < startRow || endColumn < startColumn || (endRow - startRow + 1) * (endColumn - startColumn + 1) > 2000) throw new Error('Select a range of at most 2,000 cells.');
       return { workId: book.id, sheetId: sheet.getSheetId(), sheetName: sheet.getSheetName(), rangeLabel: ranges[0].getA1Notation(), range: { startRow, endRow, startColumn, endColumn } };
     };
-    notifyReady({ formatEdits: formatting, save: snapshot, isEditing: () => workbook.isCellEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
+    notifyReady({ formatEdits: formatting, save: snapshot, isEditing: () => workbook.isCellEditing() || validation.gate.pending, commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
       const sheetId = workbook.getActiveSheet().getSheetId();
       await commit();
       if (workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed while finishing the edit. Retry CSV export.');
@@ -182,11 +186,11 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     } });
     const changing = univerAPI.addEvent(univerAPI.Event.SheetEditChanging, event => {
       pending = pendingCell(workbook.save(), event.worksheet.getSheetId(), event.row, event.column, event.value.toPlainText(), event.value.getData());
-      edits++; notifyEdit(snapshot());
+      edits++; notifyEdit(validation.gate.pending ? undefined : snapshot());
     });
     const ended = univerAPI.addEvent(univerAPI.Event.SheetEditEnded, () => {
       pending = null;
-      edits++; notifyEdit(structuredClone(workbook.save()));
+      edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save()));
     });
     const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
       if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
@@ -217,9 +221,9 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
           formatted.get(prior.sid)!.add(cell);
         }
       }
-      if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(structuredClone(workbook.save())); }
+      if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;

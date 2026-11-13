@@ -27,7 +27,7 @@
     "test:pdf": "python3 -I services/workagent-execution/pdf/test_render.py && node apps/workagent-server/tests/pdf.test.mjs && node apps/workagent-client/tests/pdf-export.test.mjs",
     "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs",
     "test:focus": "node apps/workagent-client/tests/editor-focus.test.mjs",
-    "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs",
+    "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs && node apps/workagent-client/tests/validation-settlement.test.mjs",
     "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs"
   },
   "dependencies": {

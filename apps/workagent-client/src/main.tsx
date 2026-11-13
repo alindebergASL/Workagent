@@ -186,7 +186,10 @@ function App() {
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
     const navigation = Symbol(); navigationFlight.current = navigation; setNavigating(true);
     try {
-      const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
+      const leaving = editor.current;
+      const captured = hasDraft() && leaving ? await leaving.native.commit() : null;
+      if (navigationFlight.current !== navigation || editor.current !== leaving) return;
+      const preserved = captured ? edited(captured, true) : Promise.resolve(true);
       const ticket = fence.current.request();
       if (!await preserved || navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
       let w = await api<Work>(`/work/${workId}`);
@@ -255,7 +258,10 @@ function App() {
     if (editor.current?.kind === 'document' && editor.current.native.isEditing()) { setError('Native document input is still finishing. Retry switching work after it finishes.'); return; }
     const navigation = Symbol(); navigationFlight.current = navigation; setNavigating(true);
     try {
-      const preserved = hasDraft() && editor.current ? edited(editor.current.native.save(), true) : Promise.resolve(true);
+      const leaving = editor.current;
+      const captured = hasDraft() && leaving ? await leaving.native.commit() : null;
+      if (navigationFlight.current !== navigation || editor.current !== leaving) return;
+      const preserved = captured ? edited(captured, true) : Promise.resolve(true);
       const ticket = fence.current.request();
       if (!await preserved || navigationFlight.current !== navigation || !fence.current.current(ticket) || saveFlight.current) return;
       if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
@@ -286,12 +292,12 @@ function App() {
       if (active.current === workId && base.current?.version === state.version) recovery.current = { workId, record };
     });
   }
-  async function edited(book: NativeContent, onlyOwned = false) {
-    if (!active.current || !base.current || book.id !== active.current) return false;
+  async function edited(book?: NativeContent, onlyOwned = false) {
+    if (!active.current || !base.current || (book && book.id !== active.current)) return false;
     fence.current.edit(); dirty.current = true; setDraft(true);
     const workId = active.current, version = base.current.version;
     if (composer.current.selection?.kind === 'document') setSelectionInvalid(true);
-    try { await persistDraft(book, onlyOwned); return true; }
+    try { if (book) await persistDraft(book, onlyOwned); return true; }
     catch (error) { if (active.current === workId && base.current?.version === version) report(error); return false; }
   }
   async function save() {
