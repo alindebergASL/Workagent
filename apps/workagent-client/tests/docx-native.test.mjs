@@ -57,6 +57,7 @@ function editorFixture(props, clipboardRead = async () => []) {
   const code = ts.transpileModule(readFileSync(new URL('../src/DocumentEditor.tsx', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
   new Function('require', 'module', 'exports', code)(name => {
     if (name.endsWith('/workagent-contract/document.mjs')) return documentContract;
+    if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return { useRef: value => ({ current: value === null ? element : value }), useEffect: fn => { cleanup = fn(); } };
     if (name === '@univerjs/presets') return { LocaleType, mergeLocales: x => x, createUniver: () => {
       instance = new Univer({ locale: LocaleType.EN_US, locales: { enUS: {} } });

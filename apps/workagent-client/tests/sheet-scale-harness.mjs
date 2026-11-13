@@ -26,6 +26,7 @@ export function mountNative(props, plugins = []) {
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
@@ -87,6 +88,7 @@ export function mountApp(storage, fetcher) {
   };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', 'localStorage', 'document', 'window', 'fetch', 'crypto', 'setTimeout', 'clearTimeout', appCode)(name => {
+    if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './NativeEditor') return { NativeEditor };

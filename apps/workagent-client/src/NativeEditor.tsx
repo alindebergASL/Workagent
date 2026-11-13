@@ -4,6 +4,7 @@ import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, Inser
 import UniverSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US';
 import { serializeCsv, type CsvResult } from '../../../packages/workagent-contract/csv.mjs';
 import { isHumanSheetMutation, pendingCell } from './drafts';
+import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
 import type { IWorkbookData, ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
@@ -17,6 +18,9 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
     const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })] });
+    let releaseFocus = () => {};
+    try {
+    releaseFocus = installEditorFocus(univer, container.current!);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
     // An ACK cannot clear a newer edit. Structural mutations relocate ownership;
     // deleted coordinates are retired, and undo restores styles via native mutations.
@@ -145,7 +149,8 @@ export function NativeEditor({ book, version, formatEdits, onReady, onEdit }: { 
       }
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; selected.dispose(); before.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
   return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;
 }

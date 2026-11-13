@@ -42,6 +42,7 @@ function mountEditor(book, editing = {}) {
   const module = { exports: {} };
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return react;
     if (name === './drafts') return { isHumanSheetMutation, pendingCell };
     if (name.endsWith('.css')) return {};

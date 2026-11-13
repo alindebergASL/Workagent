@@ -5,6 +5,7 @@ import UniverDocsCoreEnUS from '@univerjs/preset-docs-core/locales/en-US';
 import { ICommandService, JSONX, TextXActionType, UpdateDocsAttributeType, type IDocumentData } from '@univerjs/core';
 import '@univerjs/preset-docs-core/lib/index.css';
 import { validateDocument, documentSelectionText, type DocumentSelection } from '../../../packages/workagent-contract/document.mjs';
+import { installEditorFocus } from './editor-focus';
 export type DocumentCapture = Omit<DocumentSelection, 'contentRevision'> & { quote: string; title: string; editorId: string; selectionEpoch: number; contentEpoch: number };
 export type DocumentHandle = { editorId: string; save: () => IDocumentData; commit: () => Promise<IDocumentData>; isEditing: () => boolean; contentEpoch: () => number; selection: () => DocumentCapture; selectionEpoch: () => number };
 export function DocumentEditor({ document: data, version, onReady, onEdit, onError, onSelectionChange }: { document: IDocumentData; version: string; onReady: (e: DocumentHandle | null) => void; onEdit: (d: IDocumentData) => void; onError: (e: unknown) => void; onSelectionChange?: () => void }) {
@@ -18,6 +19,8 @@ export function DocumentEditor({ document: data, version, onReady, onEdit, onErr
     try {
     const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverDocsCoreEnUS) }, presets: [UniverDocsCorePreset({ container: container.current! })] });
     dispose = () => univer.dispose();
+    const releaseFocus = installEditorFocus(univer, container.current!);
+    dispose = () => { releaseFocus(); univer.dispose(); };
     let disposed = false, composing = false, pendingInput = 0, pendingClipboard = 0, epoch = 0;
     const inputCommand = (id: string, params?: object) => (!params || !('unitId' in params) || params.unitId === data.id) && id.startsWith('doc.command.');
     if (data.lists || data.body?.paragraphs?.some(p => p.bullet)) validateDocument(data);
@@ -154,6 +157,7 @@ export function DocumentEditor({ document: data, version, onReady, onEdit, onErr
       });
     }
     dispose = () => {
+      releaseFocus();
       disposed = true; pendingClipboard = 0;
       // The SDK generation fence cancels a read that resumes after disposal.
       clipboard.dismissPasteOptions();
