@@ -134,11 +134,15 @@ test('App durable chart draft, lost ACK exact retry, stale save/model protection
   const attach=async()=>{await app.open(workId);for(let i=0;i<100&&!app.native();i++){await delay(10);await app.flush();}view=mountNative(app.native());await view.settle();};
   try{
     await attach();view.handle.charts.stage();await app.open(other);assert.equal(app.native().book.id,workId);assert.match(app.text(),/Apply or cancel/);
-    view.handle.charts.put(chart());await app.flush();assert.match(app.text(),/Unsaved changes/);await app.save();await delay(20);await app.flush();assert.equal(calls.length,1);
+    view.handle.charts.put(chart());
+    const clipboardController=view.nativeClipboard();
+    try { assert.equal(await view.clipboard.legacyPaste(undefined,'23',undefined,undefined,{unitId:workId,subUnitId:'sheet1',range:{startRow:2,endRow:2,startColumn:1,endColumn:1}}),true); }
+    finally { clipboardController.dispose(); }
+    await app.flush();assert.match(app.text(),/Unsaved changes/);await app.save();await delay(20);await app.flush();assert.equal(calls.length,1);
     view.handle.charts.put(chart({title:'Newer human chart'}));await app.flush();await close(view);view=null;app.unmount();
     app=mountApp(storage,fetcher);await attach();assert.equal(sheetCharts(view.handle.save())[0].title,'Newer human chart');
     await app.save();await delay(30);await app.flush();assert.deepEqual(calls[1],calls[0]);assert.match(app.text(),/Unsaved changes/);
-    await app.save();await delay(30);await app.flush();const saved=await ws.get('owner',workId);assert.equal(sheetCharts(saved.book)[0].title,'Newer human chart');
+    await app.save();await delay(30);await app.flush();const saved=await ws.get('owner',workId);assert.equal(sheetCharts(saved.book)[0].title,'Newer human chart');assert.equal(saved.book.sheets.sheet1.cellData[2][1].v,23);assert.ok(saved.humanCells.includes('sheet1:2:1'));
     await assert.rejects(()=>ws.save('owner',workId,{commandId:'stale',book:withCharts(initial.book,[]),contentRevision:initial.contentRevision,permissionRevision:1}),/save_conflict/);
     assert.equal((await ws.mutate('owner',workId,{commandId:'old-model',expected:initial.expected,patch:{cells:[{sheetId:'sheet1',row:2,column:1,value:90}]}})).status,'proposed');
     const reopened=new Workspace(new FileFixtureStore(path));assert.deepEqual(sheetCharts((await reopened.get('owner',workId)).book),sheetCharts(saved.book));

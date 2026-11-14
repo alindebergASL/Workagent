@@ -2,10 +2,11 @@
 // native SDK/prototype mutation, browser storage quota or pending keystroke proof.
 import assert from 'node:assert/strict';
 import { mountConditionalEditor } from './conditional-editor-harness.mjs';
-import { createRequire } from 'node:module';
+import { createRequire, Module } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { dirname } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import ts from 'typescript';
 import * as drafts from '../src/drafts.ts';
@@ -48,6 +49,17 @@ new Function('require', 'module', 'exports', compile('../src/SheetCharts.tsx'))(
 export const { SheetCharts, ChartGraphic } = chartPanelModule.exports;
 const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src/main.tsx');
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
+// Expose unexported installed controllers for headless tests without replacing
+// their implementation. They use the same CJS dependencies as the native model.
+const installedControllers = new Map();
+function installedController(require, packageName, className) {
+  if (installedControllers.has(className)) return installedControllers.get(className);
+  const filename = require.resolve(packageName), m = new Module(filename);
+  m.filename = filename; m.paths = Module._nodeModulePaths(dirname(filename));
+  const previous = globalThis.Path2D; globalThis.Path2D ??= class {};
+  try { m._compile(readFileSync(filename, 'utf8') + `\nmodule.exports.__controller = ${className};`, filename); installedControllers.set(className, m.exports.__controller); return m.exports.__controller; }
+  finally { if (previous === undefined) delete globalThis.Path2D; else globalThis.Path2D = previous; }
+}
 export function mountNative(props, plugins = [], editing, lifecycle) {
   globalThis.window ??= new EventTarget();
   globalThis.document ??= {activeElement:null};
@@ -140,7 +152,16 @@ export function mountNative(props, plugins = [], editing, lifecycle) {
   const wrap = props => ({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
   const panel = lifecycle ? mountConditionalEditor(module.exports.NativeEditor, wrap(props), undefined, lifecycle) : null;
   if (!panel) module.exports.NativeEditor(wrap(props));
-  return { panel, update(next) { panel.update(wrap(next)); }, api, editorApi, events, messages, clipboard: univer.__getInjector().get(loadPreset('@univerjs/preset-sheets-core').ISheetClipboardService), conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
+  return { injector: univer.__getInjector(), nativeClipboard() {
+      const injector = univer.__getInjector();
+      const controllers = [injector.createInstance(require('@univerjs/sheets-ui').SheetClipboardController),
+        injector.createInstance(installedController(require, '@univerjs/sheets-formula-ui', 'FormulaClipboardController')),
+        injector.createInstance(installedController(validationRequire, '@univerjs/sheets-data-validation-ui', 'DataValidationCopyPasteController')),
+        injector.createInstance(installedController(validationRequire, '@univerjs/sheets-data-validation-ui', 'DataValidationAutoFillController')),
+        injector.createInstance(installedController(conditionalRequire, '@univerjs/sheets-conditional-formatting-ui', 'ConditionalFormattingCopyPasteController')),
+        injector.createInstance(installedController(conditionalRequire, '@univerjs/sheets-conditional-formatting-ui', 'ConditionalFormattingAutoFillController'))];
+      return { dispose() { controllers.reverse().forEach(c => c.dispose()); } };
+    }, panel, update(next) { panel.update(wrap(next)); }, api, editorApi, events, messages, clipboard: univer.__getInjector().get(loadPreset('@univerjs/preset-sheets-core').ISheetClipboardService), conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
     formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
     openConditionalEditor(rule, onEditorExit) { const injector=univer.__getInjector(); return mountConditionalEditor(injector.get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY), {rule,onEditorExit}, injector); },
     openIconMenu(range, onEditorExit) {
