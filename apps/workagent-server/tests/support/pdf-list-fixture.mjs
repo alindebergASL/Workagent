@@ -56,3 +56,39 @@ export function overhangDocument({ inheritance = 'run', bodySize = 200, markerSi
   else d.body.textRuns = [{ st: wrapped ? 18 : 0, ed: d.body.paragraphs[0].startIndex, ts: style }];
   return d;
 }
+
+// Reused by native SDK checks and Parent's isolated LibreOffice/Poppler proof.
+export const nestedWordCases = [
+  { name: 'nonreferencing child', input: {items:[[90,1],[90,0],[90,1]],overrides:{}}, expected:['b.','4.','b.'] },
+  { name: 'shared counter with Plain', expected: ['3.','b.','3.b.i.','c.','4.','e.','5.','b.','5.b.i.'] },
+  { name: 'ancestor reset after subtree restart', input: { items: [[90,0],[90,1],[91,1],[90,1],[91,1],[91,0],[91,1],[90,1],[90,0],[91,1],[90,1]] }, expected: ['3.','b.','e.','f.','g.','4.','b.','c.','5.','b.','c.'] },
+  { name: 'skipped ancestors', input: { items: [[90,2],[90,1],[90,0],[90,1]], overrides: {} }, expected: ['3.b.i.','c.','4.','b.'] },
+  { name: 'independent identities', input: { items: [[90,0],[90,1],[91,0],[91,1],[90,0],[90,1],[91,0],[91,1]], independent: true }, expected: ['3.','b.','3.','e.','4.','b.','4.','b.'] },
+  { name: 'nonreferencing skipped leaf', input: { items: [[90,2],[90,1],[90,0],[90,1]], overrides: {}, leaf_pattern: '%3.' }, expected: ['i.','c.','4.','b.'] },
+];
+export function nestedNativeCases() {
+  const cases = [];
+  const add = (name, type, depths, expected, starts = {}) => {
+    const document = blankDocument('doc', name, depths.map((_, i) => `Item${i}`).join('\n'));
+    document.body.paragraphs.forEach((p, i) => { p.bullet = { listId: 'main', listType: type, nestingLevel: depths[i], ...(starts[i] === undefined ? {} : { startNumber: starts[i] }) }; });
+    cases.push({ name, document, expected }); return document;
+  };
+  add('partial outdent restart', 'ORDER_LIST_2', [2,1,0,1], ['1.1.6.','1.2.','2.','2.1.'], {0:5});
+  for (const [type, cycle] of [['ORDER_LIST',['1.','a.','i.']], ['ORDER_LIST_1',['1)','a)','i)']], ['ORDER_LIST_3',['A.','a.','i.']], ['ORDER_LIST_4',['A.','1.','i.']], ['ORDER_LIST_5',['01.','a.','i.']], ['BULLET_LIST',['●','○','■']]]) {
+    add(type, type, Array.from({length:9}, (_, i) => i), Array.from({length:9}, (_, i) => cycle[i%3]));
+  }
+  add('hierarchical preset', 'ORDER_LIST_2', [0,1,2,3,4,5,6], Array.from({length:7}, (_, i) => '1.'.repeat(i+1)));
+  const styled = add('definition marker and wrapped body', 'custom', [0,1,2,1,0,1,2], ['03.','BB.','03.BB.iv.','CC.','04.','BB.','04.BB.iv.']);
+  styled.lists = { custom: { listType: 'ORDER_LIST', nestingLevel: [
+    { bulletAlignment:1, startNumber:2, glyphType:3, glyphFormat:'%1.', textStyle:{ fs:14, cl:{rgb:'#880000'} }, paragraphProperties:{indentStart:{v:21},hanging:{v:21}} },
+    { bulletAlignment:1, startNumber:27, glyphType:4, glyphFormat:'%2.', textStyle:{ fs:16, bl:1 }, paragraphProperties:{indentStart:{v:42},hanging:{v:21}} },
+    { bulletAlignment:1, startNumber:3, glyphType:7, glyphFormat:'%1.%2.%3.', textStyle:{ fs:18, it:1 }, paragraphProperties:{indentStart:{v:63},hanging:{v:21}} },
+  ] } };
+  const wrapped = add('deep wrapping', 'BULLET_LIST', [8], ['■']);
+  const text = 'DeepStart ' + 'wrapped text stays inside the page '.repeat(50) + 'DeepEnd';
+  wrapped.body.dataStream = text + '\r\n'; wrapped.body.paragraphs[0].startIndex = text.length; wrapped.body.sectionBreaks = [{startIndex:text.length+1}];
+  for (const [type, start, expected] of [['ORDER_LIST',32766,'32767.'],['ORDER_LIST_5',32766,'32767.'],['ORDER_LIST_3',27,'BB.']]) add(`bounded ${type}`, type, [0], [expected], {0:start});
+  const roman = add('maximum Roman counter', 'roman', [0], ['M'.repeat(32)+'DCCLXVII.'], {0:32766});
+  roman.lists = {roman:{listType:'ORDER_LIST',nestingLevel:[{bulletAlignment:1,startNumber:0,glyphType:6,glyphFormat:'%1.',textStyle:{fs:6}}]}};
+  return cases;
+}

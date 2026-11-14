@@ -17,6 +17,8 @@ export const contrastNative = (inheritance = 'default') => JSON.parse(run("impor
 export function pdfIntermediate(document) {
   return JSON.parse(run(`import runpy,base64,json,sys
 c=runpy.run_path(sys.argv[1]);r=runpy.run_path(sys.argv[2])
-try:print(json.dumps({'base64':base64.b64encode(r['export_intermediate'](json.loads(sys.argv[3]),c)).decode()}))
+try:
+ d=json.loads(sys.argv[3]);markers=[];r['validate_document'](d,markers)
+ print(json.dumps({'base64':base64.b64encode(r['export_intermediate'](d,c)).decode(),'markers':markers}))
 except r['Refused'] as e:print(json.dumps({'error':str(e)}))`, root + 'services/workagent-execution/docx/codec.py', root + 'services/workagent-execution/pdf/render.py', JSON.stringify(document)));
 }

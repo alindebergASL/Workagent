@@ -7,8 +7,19 @@ export const PDF_WARNINGS = [
   'PDF preserves visible list-marker and body styles but does not retain conflicting paragraph-mark editing metadata. Native documents and saved/source files are unchanged; Word export still refuses that conflict.',
   'Fonts may be substituted; line wrapping, pagination and layout may differ from the native editor and Word. Native default hyphenation/canvas settings, metadata, themes and style names are not retained. No exact layout or full Word fidelity.',
   'PDF rendering uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused; this is not full Unicode coverage. Native documents, original files and Word exports retain their existing mapping.',
-  'Flat Unicode bullets and decimal lists retain markers, effective marker styles, identities and starts/restarts. PDF supports effective item numbers 1–32,767, including continuations; larger numbers are refused. Native documents and Word retain their existing 1–1,000,000 start bounds. PDF reserves room for markers and body-font overhang; wrapping and pagination may change, and layouts that cannot fit are refused. Nested lists, other numbering formats and unmapped list layout are refused. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
+  'Lists up to nine levels retain standard Unicode bullets, decimal/zero-padded decimal, letter and Roman markers, supported hierarchical patterns, effective marker styles, identities and starts/restarts. PDF supports effective item numbers 1–32,767, including continuations; larger numbers are refused. Native documents and Word retain their existing 1–1,000,000 start bounds. PDF reserves room for markers and body-font overhang; wrapping and pagination may change, and layouts that cannot fit are refused. Custom outlines, nondefault restart rules, full level overrides, other numbering formats and unmapped list layout are refused. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
 ];
+// Match the pinned native marker formats, including repeated Word letters.
+function numberMarker(value, glyph) {
+  if (value < 1 || value > 32767) throw new Fault('unsupported_pdf_list_number', 400);
+  if (glyph === 2 || glyph === 3) return String(value).padStart(glyph === 3 ? 2 : 1, '0');
+  if (glyph === 4 || glyph === 5) return String.fromCharCode((glyph === 4 ? 65 : 97) + (value - 1) % 26).repeat(Math.floor((value - 1) / 26) + 1);
+  let result = '';
+  for (const [amount, symbol] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']]) {
+    result += symbol.repeat(Math.floor(value / amount)); value %= amount;
+  }
+  return glyph === 6 ? result : result.toLowerCase();
+}
 // The shared validator rejects foreign objects. This narrower policy also
 // refuses native features the DOCX bridge cannot represent, before rendering.
 export function validatePdfDocument(input) {
@@ -45,8 +56,9 @@ export function validatePdfDocument(input) {
   for (const p of document.body.paragraphs) {
     while (runCursor < runs.length && runs[runCursor].ed <= cursor) runCursor++;
     if (!p.bullet) { cursor = p.startIndex + 1; continue; }
-    const { level, kind: listKind } = documentListDefinition(document, p.bullet);
-    if ((!document.lists?.[p.bullet.listType] && !['ORDER_LIST','BULLET_LIST'].includes(p.bullet.listType)) || p.bullet.nestingLevel !== 0 || (listKind === 'ORDER_LIST' && (level.glyphType !== 2 || level.glyphFormat !== '%1.'))) throw new Fault('unsupported_pdf_list', 400);
+    const depth = p.bullet.nestingLevel;
+    const levels = Array.from({ length: depth + 1 }, (_, nestingLevel) => documentListDefinition(document, { ...p.bullet, nestingLevel }).level);
+    const level = levels[depth];
     text(p.bullet.textStyle); text(level.textStyle);
     const props = level.paragraphProperties ?? {};
     only(props, ['indentStart', 'hanging']);
@@ -60,12 +72,12 @@ export function validatePdfDocument(input) {
     const marker = { fs: 11, ...document.documentStyle.textStyle, ...ps.textStyle,
       ...(first && first.st <= cursor && cursor < first.ed ? first.ts : {}),
       ...(cursor === p.startIndex ? ps.paragraphMarkTextStyle : {}), ...p.bullet.textStyle, ...level.textStyle };
-    const count = p.bullet.startNumber !== undefined ? p.bullet.startNumber + 1 : (sequences.get(p.bullet.listId) ?? level.startNumber) + 1;
-    sequences.set(p.bullet.listId, count);
-    const { kind } = documentListDefinition(document, p.bullet);
-    // The actual renderer is qualified only through 32767. Check effective
-    // values, including continuation across plain paragraphs and style changes.
-    if (kind === 'ORDER_LIST' && (count < 1 || count > 32767)) throw new Fault('unsupported_pdf_list_number', 400);
+    const sequence = sequences.get(p.bullet.listId) ?? new Map();
+    sequences.set(p.bullet.listId, sequence);
+    for (let n = 0; n < depth; n++) if (!sequence.has(n)) sequence.set(n, levels[n].startNumber + 1);
+    sequence.set(depth, p.bullet.startNumber !== undefined ? p.bullet.startNumber + 1 : (sequence.get(depth) ?? level.startNumber) + 1);
+    for (const n of sequence.keys()) if (n > depth) sequence.delete(n);
+    const label = level.glyphSymbol || level.glyphFormat.replace(/%([1-9])/g, (_, ref) => numberMarker(sequence.get(Number(ref) - 1), levels[Number(ref) - 1].glyphType));
     const baseSize = ps.textStyle?.fs ?? document.documentStyle.textStyle?.fs ?? 11;
     let bodySize = 0, covered = cursor;
     for (let i = runCursor; i < runs.length && runs[i].st < p.startIndex; i++) {
@@ -75,11 +87,11 @@ export function validatePdfDocument(input) {
       covered = Math.min(p.startIndex, r.ed);
     }
     if (covered < p.startIndex) bodySize = Math.max(bodySize, baseSize);
-    // One em covers the pinned faces' left overhang. Include every effective
+    // Marker W/M can exceed one em; reserve 1.5 per glyph.
+    // One body em covers the pinned faces' left overhang. Include every effective
     // body run because any run can start a wrapped line; marker style is separate.
-    const gutter = ((kind === 'ORDER_LIST' ? String(count).length + 1 : 1) * marker.fs + bodySize + 6) / .75;
-    const implicit = document.lists?.[p.bullet.listType] ? 0 : 21;
-    const left = props.indentStart?.v ?? implicit, hanging = props.hanging?.v ?? implicit;
+    const gutter = (1.5 * label.length * marker.fs + bodySize + 6) / .75;
+    const left = props.indentStart?.v ?? 0, hanging = props.hanging?.v ?? 0;
     if (left - hanging + Math.max(hanging, gutter) + 48 >= (page.pageSize?.width ?? 794) - (page.marginLeft ?? 96) - (page.marginRight ?? 96)) throw new Fault('unsupported_pdf_list_layout', 400);
     cursor = p.startIndex + 1;
   }

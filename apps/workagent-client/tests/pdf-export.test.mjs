@@ -5,9 +5,9 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
 import { validatePdfDocument } from '../../workagent-server/src/pdf-exchange.mjs';
-import { trustedCodec } from '../../workagent-server/tests/support/docx-fixture.mjs';
+import { trustedCodec, nestedDocx } from '../../workagent-server/tests/support/docx-fixture.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
-import { listDocument } from '../../workagent-server/tests/support/pdf-list-fixture.mjs';
+import { listDocument, nestedNativeCases, nestedWordCases } from '../../workagent-server/tests/support/pdf-list-fixture.mjs';
 import { importedWord, importedSaved, pdfIntermediate, contrastNative } from '../../workagent-server/tests/support/pdf-imported-fixture.mjs';
 import { PDF_WARNINGS } from '../../workagent-server/src/pdf-exchange.mjs';
 function fixture(file, boundary, names, edit = s => s) {
@@ -119,7 +119,7 @@ test('PDF consumer dispatches flat lists unchanged, discloses bounds and never s
   const snapshot = listDocument(), before = structuredClone(snapshot), calls = [];
   const native = { commit: async () => snapshot, save: () => snapshot, isEditing: () => false, contentEpoch: () => 0 };
   const view = mount(storage(), { api: async (path, input) => { calls.push({ path, input }); return result; }, editor: () => native, work });
-  await view.click(label); assert.equal(view.downloads.length, 1); assert.match(view.text(), /Nested lists/); assert.match(view.text(), /1–32,767, including continuations/); assert.match(view.text(), /1–1,000,000 start bounds/); assert.deepEqual(snapshot, before);
+  await view.click(label); assert.equal(view.downloads.length, 1); assert.match(view.text(), /Lists up to nine levels/); assert.match(view.text(), /1–32,767, including continuations/); assert.match(view.text(), /1–1,000,000 start bounds/); assert.deepEqual(snapshot, before);
   assert.deepEqual(calls.map(c => c.path), ['/exchange/pdf/export']); assert.deepEqual(calls[0].input.document, before); view.unmount();
 });
 for (const change of ['none', 'editor', 'navigation', 'revision', 'permission', 'edit', 'undo', 'pending', 'unmount']) test(`PDF consumer held response with ${change}: no stale download, no save, bounded double click`, async () => {
@@ -231,4 +231,22 @@ test('failed native commands release only their calls; syncOnly, disposal and a 
     const next = editorFixture({ document: blankDocument('next', 'New', 'Retained') });
     try { assert.equal((await next.handle.commit()).body.dataStream, 'Retained\r\n'); } finally { next.dispose(); }
   } finally { gate.resolve(true); editor.dispose(); }
+});
+
+test('nested PDF mapping matches actual SDK markers, level styles and immutable input', () => {
+  const cases = [...nestedNativeCases(), ...nestedWordCases.map(c => ({ ...c, document: trustedCodec({op:'import',base64:nestedDocx(c.input)}).document }))];
+  for (const { name, document, expected } of cases) {
+    const before = structuredClone(document), editor = editorFixture({document});
+    try {
+      const markers = nativeMarkers(document, editor.instance, true);
+      assert.deepEqual(markers.map(m => m[0]), expected, name);
+      assert.deepEqual(validatePdfDocument(document), document);
+      const result = pdfIntermediate(document); assert.equal(result.error, undefined, name);
+      assert.deepEqual(result.markers, expected, name + ' Python marker sizing');
+      const reopened = trustedCodec({op:'import',base64:result.base64}).document;
+      assert.deepEqual(nativeMarkers(reopened, editor.instance, true), markers, name);
+      assert.equal(reopened.body.dataStream, document.body.dataStream);
+      assert.deepEqual(document, before);
+    } finally { editor.dispose(); }
+  }
 });

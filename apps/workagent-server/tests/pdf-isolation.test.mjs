@@ -3,10 +3,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
+import { blankDocument, documentListDefinition } from '../../../packages/workagent-contract/document.mjs';
 import { PdfWorker, sandboxArgs, namespaceIdentity, collectChild } from '../src/pdf-worker.mjs';
-import { listDocument, glyphs, numberedDocument, overhangDocument } from './support/pdf-list-fixture.mjs';
+import { listDocument, glyphs, numberedDocument, overhangDocument, nestedNativeCases, nestedWordCases } from './support/pdf-list-fixture.mjs';
 import { importedWord, importedSaved, contrastNative } from './support/pdf-imported-fixture.mjs';
+import { nestedDocx } from './support/docx-fixture.mjs';
 import { DocxWorker } from '../src/docx-worker.mjs';
 const venv = process.env.WORKAGENT_DOCX_VENV;
 test('actual namespace imported Word and saved colour conflict preserve content, numbering origins and visible markers', async () => {
@@ -268,5 +269,47 @@ print(json.dumps({'text':text,'clearColumns':b-a}))`, result.base64);
     assert.equal((opened.text.match(/●/g) ?? []).length, 1);
     assert.equal((opened.text.match(/A/g) ?? []).length, (document.body.dataStream.match(/A/g) ?? []).length);
     assert.ok(opened.clearColumns >= 7);
+  }
+});
+
+test('nested PDF actual render: native markers, independent text and page/marker/body bounds', async () => {
+  const word = new DocxWorker({venv}), pdf = new PdfWorker({venv});
+  for (const c of [...nestedNativeCases(), ...nestedWordCases]) {
+    const {name, expected} = c;
+    const document = c.document ?? (await word.run({op:'import',base64:nestedDocx(c.input)})).document;
+    const before = structuredClone(document);
+    const result = await pdf.run({op:'export',document});
+    const page = {...document.documentStyle,...document.body.sectionBreaks?.[0]};
+    const origins = document.body.paragraphs.filter(p=>p.bullet).map(p=>{
+      const props = documentListDefinition(document,p.bullet).level.paragraphProperties ?? {};
+      return ((page.marginLeft ?? 96)+(props.indentStart?.v ?? 0)-(props.hanging?.v ?? 0))*.75;
+    });
+    const opened = await probe(`import sys,base64,pathlib,subprocess,json,re,xml.etree.ElementTree as E
+request=json.loads(sys.stdin.buffer.read());p=pathlib.Path('/tmp/nested.pdf');p.write_bytes(base64.b64decode(request['base64']))
+text=subprocess.check_output(['/usr/bin/pdftotext','-raw',str(p),'-'],timeout=5).decode()
+subprocess.run(['/usr/bin/pdftohtml','-xml','-zoom','1','-i',str(p),'/tmp/nested.xml'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=5)
+root=E.parse('/tmp/nested.xml');markers=[];positions=[]
+for page in root.iter('page'):
+ boxes=[]
+ for e in page.iter('text'):
+  t=''.join(e.itertext()).strip()
+  if not t:continue
+  x,y,w,h=[float(e.attrib[k]) for k in ('left','top','width','height')]
+  assert w>0 and h>0 and x>=0 and y>=0 and x+w<=float(page.attrib['width'])+1 and y+h<=float(page.attrib['height'])+1,('clipped',t,x,y,w,h)
+  boxes.append((t,x,y,w,h))
+ for t,x,y,w,h in boxes:
+  if not re.fullmatch(r'[0-9A-Za-z.]+[.)]|[●•○■▪]',t):continue
+  markers.append(t);positions.append(x)
+  body=[b for b in boxes if b[0]!=t and abs((b[2]+b[4])-(y+h))<max(h,b[4])*.6 and b[1]>x]
+  assert body and min(b[1] for b in body)>x+w+2,('marker/body overlap',t,boxes)
+ if 'DeepStart' in request['source']:
+  body=[b for b in boxes if b[0]!='■']
+  assert body and all(b[1]>=body[0][1]-1 for b in body),('wrapped body lost indentation',body)
+assert markers==request['expected'],(markers,request['expected'])
+for x,origin in zip(positions,request['origins']):assert abs(x-origin)<3,('flattened or shifted marker',x,origin)
+print(json.dumps({'text':text,'markers':markers,'pages':len(list(root.iter('page')))}))`, JSON.stringify({base64:result.base64,expected,origins,source:document.body.dataStream}));
+    assert.deepEqual(opened.markers, expected, name);
+    for (const token of document.body.dataStream.split(/\s+/).filter(Boolean)) assert.ok(opened.text.includes(token), name + ': missing ' + token);
+    assert.deepEqual(document,before,name);
   }
 });

@@ -10,9 +10,9 @@ import { PdfExchange, validatePdfDocument, pdfBytes, PDF_BYTES } from '../src/pd
 import { PdfWorker, sandboxArgs, namespaceIdentity, collectChild } from '../src/pdf-worker.mjs';
 import { PostgresStore, initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
-import { listDocument, numberedDocument, overhangDocument } from './support/pdf-list-fixture.mjs';
+import { listDocument, numberedDocument, overhangDocument, nestedNativeCases, nestedWordCases } from './support/pdf-list-fixture.mjs';
 import { importedWord, importedSaved, pdfIntermediate } from './support/pdf-imported-fixture.mjs';
-import { trustedCodec } from './support/docx-fixture.mjs';
+import { trustedCodec, nestedDocx } from './support/docx-fixture.mjs';
 const bytes = Buffer.from('%PDF-1.7\nfixture only\n%%EOF\n'), result = { base64: bytes.toString('base64') };
 const deferred = () => { let resolve; const promise = new Promise(r => resolve = r); return { resolve, promise }; };
 test('imported conflict snapshot maps PDF content while default Word stays strict', () => {
@@ -26,7 +26,7 @@ test('imported conflict snapshot maps PDF content while default Word stays stric
   assert.deepEqual(saved, before);
   assert.ok(pdfIntermediate(native).base64);
   const bad = [];
-  for (const edit of [d => d.body.paragraphs[1].bullet.nestingLevel = 1,
+  for (const edit of [d => d.body.paragraphs[1].bullet.nestingLevel = 9,
     d => d.body.paragraphs[1].paragraphStyle.direction = 1,
     d => d.lists['word-num-7'].nestingLevel[0].paragraphProperties.hanging.v = 100]) {
     const d = structuredClone(native); edit(d); bad.push(d); assert.throws(() => validatePdfDocument(d));
@@ -52,7 +52,7 @@ test('flat lists, all mapped bullets and restarts dispatch unchanged without wri
 test('active unsupported list formatting/layout refuses at Node boundary; unused stock levels survive', async () => {
   const good = listDocument(); assert.deepEqual(validatePdfDocument(good), good);
   for (const edit of [
-    d => d.body.paragraphs[1].bullet.nestingLevel = 1,
+    d => d.body.paragraphs[1].bullet.nestingLevel = 9,
     d => d.body.paragraphs[1].bullet.startNumber = 1000000,
     d => d.lists.bullet0.nestingLevel[0].glyphSymbol = '★',
     d => d.lists.bullet0.nestingLevel[0].paragraphProperties.spaceAbove = { v: 1 },
@@ -74,7 +74,7 @@ test('Node and independent Python policy agree on native list layouts before con
   }
   const invalid = [];
   for (const edit of [
-    d => d.body.paragraphs[1].bullet.nestingLevel = 1,
+    d => d.body.paragraphs[1].bullet.nestingLevel = 9,
     d => d.body.paragraphs[1].bullet.textStyle = { bbl: { s: 1 } },
     d => d.documentStyle.defaultParagraphStyle = { indentStart: { v: 5 } },
     d => d.lists.bullet0.nestingLevel[0].glyphSymbol = '★',
@@ -218,11 +218,33 @@ for (const mode of ['timeout', 'disconnect', 'oversize']) test(`real process gro
   if (status) assert.match(status, /State:\s+Z/);
 });
 
-test('newly supported native hierarchy and nondecimal lists refuse before PDF worker dispatch',async()=>{
+test('supported native hierarchy and nondecimal lists dispatch unchanged without writes',async()=>{
  for(const [listType,nestingLevel] of [['ORDER_LIST',1],['BULLET_LIST',8],['ORDER_LIST_3',0]]){
   const f=fixture();f.input.document.body.paragraphs[0].bullet={listId:'one',listType,nestingLevel};
   const before=structuredClone(f.state);
-  await assert.rejects(f.pdf.export('owner',f.input),e=>e.code==='unsupported_pdf_list');
-  assert.equal(f.calls.length,0);assert.deepEqual(f.state,before);
+  await f.pdf.export('owner',f.input);
+  assert.equal(f.calls.length,1);assert.deepEqual(f.calls[0].document,f.input.document);assert.deepEqual(f.state,before);
  }
+});
+
+test('nested counter and layout policies agree, including referenced ancestors and unused descendants', () => {
+  const good = nestedNativeCases().map(c => c.document);
+  for (const c of nestedWordCases) good.push(trustedCodec({op:'import',base64:nestedDocx(c.input)}).document);
+  const base = good.find(d => d.title === 'definition marker and wrapped body');
+  const unused = structuredClone(base); unused.lists.custom.nestingLevel.push({bulletAlignment:1,startNumber:999999,glyphType:60,glyphFormat:'unmapped'}); good.push(unused);
+  const bad = [];
+  for (const edit of [d => d.documentStyle.pageSize.width = 200, d => d.lists.custom.nestingLevel[2].textStyle.fs = 1000]) {
+    const d = structuredClone(base); edit(d); bad.push(d);
+  }
+  const tooWide = blankDocument('doc','letters exceed margin','Item'); tooWide.body.paragraphs[0].bullet = {listId:'a',listType:'ORDER_LIST_3',nestingLevel:0,startNumber:32766}; bad.push(tooWide);
+  for (const d of good) assert.deepEqual(validatePdfDocument(d), d);
+  for (const d of bad) assert.throws(() => validatePdfDocument(d), /unsupported_pdf_list_layout/);
+  pythonPolicy(good,bad,'unsupported_pdf_list_layout');
+  const ancestor = structuredClone(base); ancestor.body.paragraphs[0].bullet.startNumber = 32767;
+  const child = structuredClone(base); child.body.paragraphs[2].bullet.startNumber = 32767;
+  pythonPolicy([], [ancestor,child], 'unsupported_pdf_list_number');
+  for (const d of [ancestor,child]) assert.throws(() => validatePdfDocument(d), /unsupported_pdf_list_number/);
+  for (const edit of [d => d.lists.custom.nestingLevel[1].glyphType = 60, d => d.lists.custom.nestingLevel[2].glyphFormat = '%1-%3', d => d.lists.custom.nestingLevel[2].isLegal = true, d => d.body.paragraphs[2].bullet.nestingLevel = 9]) {
+    const d = structuredClone(base); edit(d); assert.throws(() => validatePdfDocument(d)); pythonPolicy([], [d], 'unsupported_document_list');
+  }
 });

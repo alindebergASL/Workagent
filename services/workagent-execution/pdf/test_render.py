@@ -154,7 +154,7 @@ print('imported and saved PDF sequences preserved; Word conflict refused without
     def test_direct_python_boundary_checks_active_lists_and_all_pdf_formatting(self):
         document = {'documentStyle': {}, 'body': {'dataStream': 'text\r\n', 'paragraphs': [
             {'startIndex': 4, 'bullet': {'listType': 'ORDER_LIST', 'listId': 'list', 'nestingLevel': 0}}]}}
-        self.assertEqual(render.validate_document(document), '0123456789.')
+        self.assertEqual(render.validate_document(document), '1.')
         for symbol in render.BULLETS:
             d = copy.deepcopy(document)
             d['lists'] = {'ORDER_LIST': {'listType': 'BULLET_LIST', 'nestingLevel': [
@@ -163,7 +163,7 @@ print('imported and saved PDF sequences preserved; Word conflict refused without
             before = copy.deepcopy(d)
             self.assertEqual(render.validate_document(d), symbol)
             self.assertEqual(d, before)
-        for edit in [lambda d: d['body']['paragraphs'][0]['bullet'].update(nestingLevel=1),
+        for edit in [lambda d: d['body']['paragraphs'][0]['bullet'].update(nestingLevel=9),
                      lambda d: d['body']['paragraphs'][0]['bullet'].update(startNumber=1000000),
                      lambda d: d['body']['paragraphs'][0]['bullet'].update(textStyle={'caps': True}),
                      lambda d: d['body']['paragraphs'][0]['bullet'].update(textStyle={'ul': {'s': True}}),
@@ -252,6 +252,36 @@ print('preserved')
                 result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script, text], capture_output=True, timeout=12)
                 self.assertEqual(result.returncode, 0, result.stderr.decode())
                 self.assertEqual(result.stdout.strip(), b'preserved')
+
+    def test_nested_shared_counter_gutters_are_per_level_and_numbering_is_unchanged(self):
+        root = Path(__file__).resolve().parents[3]
+        script = r"""
+import runpy,io,zipfile,base64,copy
+from lxml import etree
+c=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
+r=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py')
+f=runpy.run_path(ROOT+'/services/workagent-execution/docx/test_codec.py')
+source=f['nested_fixture']();d=c['import_document'](source)['document'];before=copy.deepcopy(d);labels=[]
+r['validate_document'](d,labels)
+assert labels==['3.','b.','3.b.i.','c.','4.','e.','5.','b.','5.b.i.'],labels
+raw=base64.b64decode(c['export_document'](d)['base64']);mapped=r['export_intermediate'](d,c);q=c['q']
+with zipfile.ZipFile(io.BytesIO(raw)) as a,zipfile.ZipFile(io.BytesIO(mapped)) as b:
+ old=etree.fromstring(a.read('word/numbering.xml'));new=etree.fromstring(b.read('word/numbering.xml'))
+ assert [etree.tostring(n) for n in old.findall(q('num'))]==[etree.tostring(n) for n in new.findall(q('num'))]
+ active=new.findall(q('abstractNum'))[-1];widths=[]
+ for depth,lvl in enumerate(active.findall(q('lvl'))):
+  ind=lvl.find('./'+q('pPr')+'/'+q('ind'));left=int(ind.get(q('left')));hanging=int(ind.get(q('hanging')))
+  assert left-hanging==315*depth
+  label_width=max(len(label) for label,p in zip(labels,[p for p in d['body']['paragraphs'] if 'bullet' in p]) if p['bullet']['nestingLevel']==depth)
+  assert hanging>=(label_width*11+11+6)*20
+  widths.append(hanging)
+ assert widths[2]>widths[1]==widths[0],widths
+ for x,y in zip(old.iter(q('lvlText')),new.iter(q('lvlText'))):assert etree.tostring(x)==etree.tostring(y)
+assert d==before
+print('nested labels and separate gutters verified; not rendering proof')
+""".replace('ROOT', repr(str(root)))
+        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
 
     def test_limits_in_real_child(self):
         script = f"import runpy,resource,json;m=runpy.run_path({str(Path(__file__).with_name('render.py').resolve())!r});m['limits']();print(json.dumps([resource.getrlimit(k) for k in (resource.RLIMIT_AS,resource.RLIMIT_CPU,resource.RLIMIT_FSIZE,resource.RLIMIT_NOFILE)]))"
@@ -379,8 +409,16 @@ for start,continued in [(32768,False),(999999,False),(1000000,False),(32767,True
     else:raise AssertionError('PDF mapper accepted unsupported effective number')
 print('body gutters preserved')
 '''.replace('ROOT', repr(str(root)))
-        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
-        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        # Each codec process has its unchanged eight-second CPU budget. Exercise
+        # these independent requests separately, as the production worker does.
+        cases = [([name], []) for name in ['document', 'default', 'paragraph', 'run', 'wrapped']]
+        cases += [([], [pair]) for pair in [(32768, False), (999999, False), (1000000, False), (32767, True)]]
+        for inheritances, boundaries in cases:
+            with self.subTest(inheritances=inheritances, boundaries=boundaries):
+                single = script.replace("['document','default','paragraph','run','wrapped']", repr(inheritances))
+                single = single.replace('[(32768,False),(999999,False),(1000000,False),(32767,True)]', repr(boundaries))
+                result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', single], capture_output=True, timeout=12)
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
 
     def test_child_nonzero_and_missing(self):
         code, output = render.run_bounded(['/usr/bin/python3', '-c', 'print("failure");raise SystemExit(7)'], b'', time.monotonic()+2, 100)

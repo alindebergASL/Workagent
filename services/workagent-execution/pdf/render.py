@@ -148,7 +148,52 @@ def check_text(text, coverage, marker=False):
                 raise Refused('pdf_missing_glyph')
 
 
-def validate_document(document):
+def list_level(document, item, depth):
+    """The pinned native presets; custom definitions replace them in full."""
+    kind = item['listType']
+    templates = document.get('lists', {})
+    if not isinstance(templates, dict):
+        raise Refused('unsupported_document_list')
+    template = templates.get(kind)
+    if kind not in templates:
+        if kind not in ('BULLET_LIST', 'ORDER_LIST', 'ORDER_LIST_1', 'ORDER_LIST_2', 'ORDER_LIST_3', 'ORDER_LIST_4', 'ORDER_LIST_5') or (kind == 'ORDER_LIST_2' and depth > 6):
+            raise Refused('unsupported_document_list')
+        glyph = 2 if kind == 'ORDER_LIST_2' else [4 if kind in ('ORDER_LIST_3', 'ORDER_LIST_4') else 3 if kind == 'ORDER_LIST_5' else 2, 2 if kind == 'ORDER_LIST_4' else 5, 7][depth % 3]
+        pattern = ''.join(f'%{n+1}.' for n in range(depth+1)) if kind == 'ORDER_LIST_2' else f'%{depth+1}' + (')' if kind == 'ORDER_LIST_1' else '.')
+        level = dict(bulletAlignment=1, startNumber=0, glyphFormat=f' %{depth+1}' if kind == 'BULLET_LIST' else pattern,
+                     paragraphProperties={'indentStart': {'v': 21*(depth+1)}, 'hanging': {'v': 21}},
+                     **({'glyphSymbol': BULLETS[(0, 2, 3)[depth % 3]]} if kind == 'BULLET_LIST' else {'glyphType': glyph}))
+    else:
+        if not isinstance(template, dict) or set(template) != {'listType', 'nestingLevel'} or template['listType'] not in ('ORDER_LIST', 'BULLET_LIST') or not isinstance(template['nestingLevel'], list) or not depth < len(template['nestingLevel']) <= 9:
+            raise Refused('unsupported_document_list')
+        level = template['nestingLevel'][depth]
+    keys = {'bulletAlignment', 'startNumber', 'glyphFormat', 'glyphType', 'glyphSymbol', 'textStyle', 'paragraphProperties', 'isLegal'}
+    if not isinstance(level, dict) or set(level) - keys or type(level.get('bulletAlignment')) is not int or level['bulletAlignment'] != 1 or level.get('isLegal', False) is not False:
+        raise Refused('unsupported_document_list')
+    if level.get('glyphSymbol'):
+        valid = 'glyphType' not in level and level['glyphSymbol'] in BULLETS and level.get('glyphFormat') in (f' %{depth+1}', f'%{depth+1}')
+    else:
+        valid = type(level.get('glyphType')) is int and level['glyphType'] in (2, 3, 4, 5, 6, 7) and level.get('glyphFormat') in (f'%{depth+1}.', f'%{depth+1})', ''.join(f'%{n+1}.' for n in range(depth+1)))
+    if not valid or type(level.get('startNumber')) is not int or not 0 <= level['startNumber'] <= 999999:
+        raise Refused('unsupported_document_list')
+    return level
+
+
+def number_marker(value, glyph):
+    if not 1 <= value <= 32767:
+        raise Refused('unsupported_pdf_list_number')
+    if glyph in (2, 3):
+        return str(value).zfill(2 if glyph == 3 else 1)
+    if glyph in (4, 5):
+        # Univer/Word use a..z, aa, bb (not spreadsheet column notation).
+        return chr((65 if glyph == 4 else 97) + (value-1) % 26) * ((value-1)//26+1)
+    result = ''
+    for amount, symbol in [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]:
+        result += symbol * (value // amount); value %= amount
+    return result if glyph == 6 else result.lower()
+
+
+def validate_document(document, marker_records=None):
     """Independent PDF policy before the DOCX child or LibreOffice conversion.
 
     The codec still validates its native mapping (including effective marker
@@ -231,32 +276,16 @@ def validate_document(document):
             continue
         item = p['bullet']
         only(item, ['listId', 'listType', 'nestingLevel', 'startNumber', 'textStyle'])
-        if type(item.get('nestingLevel')) is not int or item['nestingLevel'] != 0:
+        if type(item.get('nestingLevel')) is not int or not 0 <= item['nestingLevel'] <= 8:
             raise Refused('unsupported_document_list')
         for key in ('listId', 'listType'):
             if not isinstance(item.get(key), str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', item[key]) or item[key] in ('__proto__', 'constructor', 'prototype'):
                 raise Refused('unsupported_document_list')
-        kind = item['listType']
-        template = document.get('lists', {}).get(kind)
-        level = dict(bulletAlignment=1, startNumber=0, glyphFormat='%1.' if kind == 'ORDER_LIST' else ' %1',
-                     **({'glyphType': 2} if kind == 'ORDER_LIST' else {'glyphSymbol': '●'}))
-        if template is not None:
-            only(template, ['listType', 'nestingLevel'])
-            if not isinstance(template.get('nestingLevel'), list) or not 1 <= len(template['nestingLevel']) <= 9:
-                raise Refused('unsupported_document_list')
-            kind = template['listType']; level = template['nestingLevel'][0]
-        only(level, ['bulletAlignment', 'startNumber', 'glyphFormat', 'glyphType', 'glyphSymbol', 'textStyle', 'paragraphProperties', 'isLegal'])
-        if kind not in ('ORDER_LIST', 'BULLET_LIST') or type(level.get('bulletAlignment')) is not int or level['bulletAlignment'] != 1 or level.get('isLegal', False) is not False:
+        depth = item['nestingLevel']
+        levels = [list_level(document, item, n) for n in range(depth+1)]
+        level = levels[depth]
+        if 'startNumber' in item and (type(item['startNumber']) is not int or not 0 <= item['startNumber'] <= 999999):
             raise Refused('unsupported_document_list')
-        if kind == 'ORDER_LIST':
-            valid = level.get('glyphType') == 2 and not level.get('glyphSymbol') and level.get('glyphFormat') == '%1.'
-        else:
-            valid = level.get('glyphSymbol') in BULLETS and level.get('glyphFormat') in (' %1', '%1')
-        if not valid:
-            raise Refused('unsupported_document_list')
-        for offset in (level.get('startNumber'), item.get('startNumber', 0)):
-            if type(offset) is not int or not 0 <= offset <= 999999:
-                raise Refused('unsupported_document_list')
         if identities.setdefault(item['listId'], item['listType']) != item['listType']:
             raise Refused('unsupported_document_list')
         text(level.get('textStyle', {})); text(item.get('textStyle', {}))
@@ -275,10 +304,19 @@ def validate_document(document):
         if cursor == p['startIndex']:
             effective.update(ps.get('paragraphMarkTextStyle', {}))
         effective.update(item.get('textStyle', {})); effective.update(level.get('textStyle', {}))
-        count = item['startNumber'] + 1 if 'startNumber' in item else counts.get(item['listId'], level['startNumber']) + 1
-        counts[item['listId']] = count
-        if kind == 'ORDER_LIST' and not 1 <= count <= 32767:
-            raise Refused('unsupported_pdf_list_number')
+        sequence = counts.setdefault(item['listId'], {})
+        for n in range(depth):
+            sequence.setdefault(n, levels[n]['startNumber'] + 1)
+        sequence[depth] = item['startNumber'] + 1 if 'startNumber' in item else sequence.get(depth, level['startNumber']) + 1
+        for n in list(sequence):
+            if n > depth:
+                del sequence[n]
+        def replacement(match):
+            n = int(match[1]) - 1
+            if levels[n].get('glyphSymbol'):
+                raise Refused('unsupported_document_list')
+            return number_marker(sequence[n], levels[n]['glyphType'])
+        label = level.get('glyphSymbol') or re.sub(r'%([1-9])', replacement, level['glyphFormat'])
         base_size = ps.get('textStyle', {}).get('fs', style.get('textStyle', {}).get('fs', 11))
         body_size = 0; covered = cursor; i = run_cursor
         while i < len(runs) and runs[i]['st'] < p['startIndex']:
@@ -291,21 +329,26 @@ def validate_document(document):
             body_size = max(body_size, base_size)
         # Reserve one body em for left overhang in the pinned faces, including
         # later runs that may begin a wrapped line. Marker style is independent.
-        gutter = ((len(str(count)) + 1 if kind == 'ORDER_LIST' else 1) * effective['fs'] + body_size + 6) / .75
-        implicit = 21 if template is None else 0
-        left, hanging = (props.get(k, {}).get('v', implicit) for k in ('indentStart', 'hanging'))
+        gutter = (1.5 * len(label) * effective['fs'] + body_size + 6) / .75
+        left, hanging = (props.get(k, {}).get('v', 0) for k in ('indentStart', 'hanging'))
         if left - hanging + max(hanging, gutter) + 48 >= size['width'] - page.get('marginLeft', 96) - page.get('marginRight', 96):
             raise Refused('unsupported_pdf_list_layout')
-        markers.append('0123456789.' if kind == 'ORDER_LIST' else level['glyphSymbol'])
+        markers.append(label)
+        if marker_records is not None:
+            marker_records.append(label)
         cursor = p['startIndex'] + 1
     return ''.join(markers)
 
 
-def map_generated_fonts(data, codec):
+def map_generated_fonts(data, codec, marker_records=None):
     # Only called for our codec's bounded output. Reuse its strict ZIP/XML
     # preflight (duplicates, trailing records, inflated bounds, DTDs, etc.).
     # Preserve namespace prefixes and every other part/element/attribute/text.
     codec['preflight'](data)
+    if marker_records is None:
+        marker_records = []
+        validate_document(codec['import_document'](data)['document'], marker_records)
+    labels = iter(marker_records)
     from lxml import etree
     q = codec['q']
     out = io.BytesIO()
@@ -315,7 +358,7 @@ def map_generated_fonts(data, codec):
         numbering = etree.fromstring(source.read('word/numbering.xml'), parser)
         nums = {e.get(q('numId')): e for e in numbering.findall(q('num'))}
         abstracts = {e.get(q('abstractNumId')): e for e in numbering.findall(q('abstractNum'))}
-        active = set(); counts = {}; gutters = {}
+        active = set(); gutters = {}
         section = document.find('.//' + q('sectPr'))
         size, margins = section.find(q('pgSz')), section.find(q('pgMar'))
         available = (int(size.get(q('w'))) - int(margins.get(q('left'))) - int(margins.get(q('right')))) / 20
@@ -325,16 +368,12 @@ def map_generated_fonts(data, codec):
                 continue
             num_id = np.find(q('numId')).get(q('val'))
             num = nums[num_id]; abstract_id = num.find(q('abstractNumId')).get(q('val'))
-            active.add(abstract_id); level = abstracts[abstract_id].find(q('lvl'))
-            start = level.find(q('start')).get(q('val'))
-            override = num.find('./' + q('lvlOverride') + '/' + q('startOverride'))
-            if override is not None:
-                start = override.get(q('val'))
-            count = counts.get(num_id, int(start) - 1) + 1; counts[num_id] = count
-            ordered = level.find(q('numFmt')).get(q('val')) == 'decimal'
-            if ordered and not 1 <= count <= 32767:
-                raise Refused('unsupported_pdf_list_number')
-            label = str(count) + '.' if ordered else level.find(q('lvlText')).get(q('val'))
+            depth = np.find(q('ilvl')).get(q('val'))
+            active.add(abstract_id)
+            level = next(l for l in abstracts[abstract_id].findall(q('lvl')) if l.get(q('ilvl')) == depth)
+            # Size the actual native marker. Do not reconstruct counters from
+            # concrete Word numIds: several can share one abstract sequence.
+            label = next(labels)
             # Effective common numbering size overrides paragraph-mark size.
             mark_size = p.find('./' + q('pPr') + '/' + q('rPr') + '/' + q('sz'))
             level_size = level.find('./' + q('rPr') + '/' + q('sz'))
@@ -348,12 +387,15 @@ def map_generated_fonts(data, codec):
                     continue
                 sz = run.find('./' + q('rPr') + '/' + q('sz'))
                 body_size = max(body_size, int(sz.get(q('val'))) / 2 if sz is not None else 11)
-            # One em per label glyph plus one body em and a 6pt clear gap.
+            # Reserve 1.5 em per marker glyph: bold W/M exceed one em in
+            # the pinned faces. Add one body em and a 6pt clear gap.
             # The pinned DejaVu Serif faces' global xMin is above -1em; include
             # all body runs so wrapped-line overhang also stays in the gutter.
-            gutters[abstract_id] = max(gutters.get(abstract_id, 0), math.ceil((len(label) * points + body_size + 6) * 20))
-        for abstract_id, gutter in gutters.items():
-            level = abstracts[abstract_id].find(q('lvl'))
+            gutters[(abstract_id, depth)] = max(gutters.get((abstract_id, depth), 0), math.ceil((1.5 * len(label) * points + body_size + 6) * 20))
+        if next(labels, None) is not None:
+            raise Refused('pdf_codec_refused')
+        for (abstract_id, depth), gutter in gutters.items():
+            level = next(l for l in abstracts[abstract_id].findall(q('lvl')) if l.get(q('ilvl')) == depth)
             pp = level.find(q('pPr'))
             if pp is None:
                 pp = etree.Element(q('pPr'))
@@ -396,7 +438,8 @@ def map_generated_fonts(data, codec):
 
 
 def export_intermediate(document, codec):
-    validate_document(document)
+    markers = []
+    validate_document(document, markers)
     try:
         result = codec['export_document'](document, _pdf_visible_markers=True)
     except ValueError as error:
@@ -405,7 +448,7 @@ def export_intermediate(document, codec):
         if str(error) in ('Unsupported marker formatting', 'Unsupported marker underline'):
             raise Refused('unsupported_pdf_marker_formatting') from error
         raise
-    return map_generated_fonts(base64.b64decode(result['base64'], validate=True), codec)
+    return map_generated_fonts(base64.b64decode(result['base64'], validate=True), codec, markers)
 
 
 def intermediate():

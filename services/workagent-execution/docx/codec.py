@@ -14,7 +14,7 @@ from docx.oxml import OxmlElement
 BYTES, INFLATED, ENTRY = 2_000_000, 20_000_000, 5_000_000
 POLICY = [
  'Bounded Word exchange: paragraphs, literal Unicode text, bold/italic/single underline, font size, RGB colour, simple alignment, nine-level bullets and conventional decimal, letter and Roman lists, and one page geometry. Original bytes remain downloadable.',
- 'Custom marker patterns, nondefault restart rules and full level overrides are refused. Separate numbering instances, per-level starts and restarts are preserved; explicit native restarts become separate Word numbering instances. PDF remains flat bullets/decimal only. Standard Symbol bullet glyphs map to Unicode bullets. Tables, images, links, fields, tracked changes, headers/footers, notes, embedded objects, macros and multiple sections are refused. No full Word or layout fidelity.',
+ 'Custom marker patterns, nondefault restart rules and full level overrides are refused. Separate numbering instances, per-level starts and restarts are preserved; explicit native restarts become separate Word numbering instances. PDF applies additional text, counter and layout limits. Standard Symbol bullet glyphs map to Unicode bullets. Tables, images, links, fields, tracked changes, headers/footers, notes, embedded objects, macros and multiple sections are refused. No full Word or layout fidelity.',
  'Metadata, themes, font substitution, style names and unsupported passive formatting/layout are not preserved. Inherited supported formatting is resolved explicitly. Page measurements round to Word twips; font sizes must be half-point values.',
  'Limits: 2 MB compressed, 20 MB inflated, 5 MB per part, 256 parts, 200 KB text, 10,000 paragraphs/runs, 512 relationships; no external references.'
 ]
