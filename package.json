@@ -27,7 +27,7 @@
     "test:pdf": "/usr/bin/python3 -I services/workagent-execution/pdf/test_render.py && /usr/bin/python3 -I services/workagent-execution/pdf/test_extract.py && /usr/bin/python3 -I services/workagent-execution/pdf/test_ocr.py && node apps/workagent-server/tests/pdf.test.mjs && node apps/workagent-client/tests/pdf-export.test.mjs && node apps/workagent-server/tests/pdf-import.test.mjs && node apps/workagent-client/tests/pdf-import.test.mjs",
     "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs && node apps/workagent-server/tests/pdf-import-isolation.test.mjs && node apps/workagent-server/tests/pdf-ocr-isolation.test.mjs",
     "test:focus": "node apps/workagent-client/tests/editor-focus.test.mjs",
-    "test:charts": "node apps/workagent-client/tests/sheet-charts.test.mjs && node apps/workagent-client/tests/chart-cell-operations.test.mjs",
+    "test:charts": "node apps/workagent-server/tests/model-charts.test.mjs && node apps/workagent-runner/tests/model-charts.test.mjs && node apps/workagent-client/tests/sheet-charts.test.mjs && node apps/workagent-client/tests/chart-cell-operations.test.mjs",
     "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs && node apps/workagent-client/tests/validation-settlement.test.mjs",
     "test:conditional": "node apps/workagent-client/tests/conditional-formatting.test.mjs && node apps/workagent-client/tests/conditional-editor.test.mjs",
     "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs"

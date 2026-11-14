@@ -1,4 +1,5 @@
 import { conditionalAt, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { chartDefinitionChanges } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { controlCells, controlAt } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID, createHash } from 'node:crypto';
@@ -20,6 +21,9 @@ function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.seque
 // Shared authoritative editor commit for agent and deterministic maintenance writes.
 export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed') {
   requireSheet(w);
+  // All chart definitions require explicit human review, including additions
+  // and mixed patches. Validate the complete result before retaining a proposal.
+  if (patch.chartOps?.length) { applyPatch(w.book, patch); return { status: 'protected', reason: 'chart_definition' }; }
   const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)) || controlAt(w.book, c.sheetId, c.row, c.column) || conditionalAt(w.book, c.sheetId, c.row, c.column));
   if (protectedCell) return { status: 'protected', reason: 'human_edit' };
   if (!same(expected, preconditions(s, w)) || ['cancellation_requested', 'stopped'].includes(w.status)) return { status: 'protected', reason: 'revision_changed' };
@@ -163,7 +167,7 @@ export class Workspace {
         const current = preconditions(s, w);
         const result = commitEditorPatch(s, w, patch, input.expected);
         if (result.status === 'protected') {
-          const proposal = { id: randomUUID(), patch, originalExpected: input.expected, expected: current, reason: result.reason, status: 'pending' };
+          const proposal = { id: randomUUID(), patch, ...(patch.chartOps?.length ? { chartChanges: chartDefinitionChanges(w.book, patch) } : {}), originalExpected: input.expected, expected: current, reason: result.reason, status: 'pending' };
           w.proposals.push(proposal); event(s, w, 'change_proposed'); return { status: 'proposed', proposalId: proposal.id };
         }
         return result;

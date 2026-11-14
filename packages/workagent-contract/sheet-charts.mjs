@@ -1,9 +1,55 @@
 import { Fault, id } from './index.mjs';
+export const CHART_EDIT_SCOPE = 'edit_sheet supports chartOps:[{op:"create",chart},{op:"update",chart},{op:"delete",id}], at most 16 operations on distinct IDs. Supply cells:[] for chart-only patches. chart is a full {id,title,type,sheetId,range:{startRow,endRow,startColumn,endColumn}} definition. Use stable IDs; create requires a new ID, update/delete an existing ID. Only bar/line; at most 8 charts, 100 data rows, 4 numeric series. Sources are zero-based inclusive rectangles including a header row and label column, within resulting sheet bounds and without merges. Every chart or mixed cell/chart patch is a visible proposal, never applied until explicit human acceptance. Formula results remain unknown; definitions do not calculate values. No raw resources or other keys.';
 export const CHART_RESOURCE = 'SHEET_WORKAGENT_CHARTS_PLUGIN';
 export const CHART_LIMITS = Object.freeze({ charts: 8, points: 100, series: 4 });
 export const CHART_SCOPE = 'Workagent chart panel: bar and line charts, up to 8 charts, 100 data rows and 4 numeric series each. First row supplies series names; first column supplies labels. Blanks, errors and non-numbers are gaps, not zero. All rows are included, even hidden rows. Charts are saved with this sheet, not embedded Univer drawings. Cell-only paste and autofill (including copy-down/right) update fixed source cells with native Undo/Redo. They must stay within sheet bounds and avoid merged cells. While charts exist, tab structure, row/column insertion/deletion/moves, range moves, sorting, merging and cut are refused. Copy/paste or fill touching dropdown/checkbox or conditional-formatting rules, object/file paste, cross-workbook cell copies and changing a previous paste/fill mode remain unsupported; direct cell edits and external cell text paste remain available. XLSX chart export is unavailable; CSV loses charts.';
 const bad = () => { throw new Fault('invalid_sheet_charts', 400); };
 function object(v, keys) { if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).some(k => !keys.includes(k))) bad(); }
+// Full definitions only; IDs are caller supplied and remain stable on retry.
+export function validateChartOps(ops) {
+  if (!Array.isArray(ops) || ops.length > 16) bad();
+  const seen = new Set();
+  for (const op of ops) {
+    object(op, op?.op === 'delete' ? ['op', 'id'] : ['op', 'chart']);
+    if (!['create', 'update', 'delete'].includes(op.op)) bad();
+    if (op.op !== 'delete') validateChartDefinition(op.chart);
+    const key = id(op.op === 'delete' ? op.id : op.chart.id);
+    if (seen.has(key)) bad();
+    seen.add(key);
+  }
+  return ops;
+}
+function validateChartDefinition(chart) {
+  object(chart, ['id', 'title', 'type', 'sheetId', 'range']);
+  id(chart.id); id(chart.sheetId);
+  if (typeof chart.title !== 'string' || chart.title.length > 160 || !['bar', 'line'].includes(chart.type)) bad();
+  const r = chart.range;
+  object(r, ['startRow', 'endRow', 'startColumn', 'endColumn']);
+  if (!['startRow', 'endRow', 'startColumn', 'endColumn'].every(k => Number.isSafeInteger(r[k]) && r[k] >= 0)
+    || r.endRow <= r.startRow || r.endColumn <= r.startColumn
+    || r.endRow - r.startRow > CHART_LIMITS.points || r.endColumn - r.startColumn > CHART_LIMITS.series) bad();
+}
+export function applyChartOps(book, ops) {
+  validateChartOps(ops);
+  const charts = new Map(validateCharts(book).map(c => [c.id, c]));
+  for (const op of ops) {
+    const key = op.op === 'delete' ? op.id : op.chart.id;
+    if (op.op === 'create' ? charts.has(key) : !charts.has(key)) bad();
+    if (op.op === 'delete') charts.delete(key);
+    else charts.set(key, structuredClone(op.chart));
+  }
+  return withCharts(book, [...charts.values()]);
+}
+// Definition-only review data, bound to the proposal's saved revision. Never
+// calculate cells or apply a speculative patch to a document for presentation.
+export function chartDefinitionChanges(book, patch) {
+  const current = new Map(validateCharts(book).map(c => [c.id, c]));
+  const describe = chart => chart ? { chart: structuredClone(chart), sheetName: book.sheets[chart.sheetId]?.name
+    ?? patch.addSheets?.find(s => s.id === chart.sheetId)?.name ?? chart.sheetId } : null;
+  return (patch.chartOps ?? []).map(op => ({ op: op.op,
+    before: describe(current.get(op.op === 'delete' ? op.id : op.chart.id)),
+    after: describe(op.op === 'delete' ? null : op.chart) }));
+}
 export function sheetCharts(book) {
   const resource = book.resources?.find(r => r.name === CHART_RESOURCE);
   if (!resource) return [];
@@ -13,17 +59,12 @@ export function validateCharts(book, charts = sheetCharts(book)) {
   if (!Array.isArray(charts) || charts.length > CHART_LIMITS.charts) bad();
   const ids = new Set();
   for (const chart of charts) {
-    object(chart, ['id', 'title', 'type', 'sheetId', 'range']);
-    id(chart.id); id(chart.sheetId);
+    validateChartDefinition(chart);
     if (ids.has(chart.id)) bad(); ids.add(chart.id);
-    if (typeof chart.title !== 'string' || chart.title.length > 160 || !['bar', 'line'].includes(chart.type)) bad();
     const sheet = Object.hasOwn(book.sheets, chart.sheetId) && book.sheets[chart.sheetId];
     if (!book.sheetOrder.includes(chart.sheetId) || !sheet) bad();
     const r = chart.range;
-    object(r, ['startRow', 'endRow', 'startColumn', 'endColumn']);
-    if (!['startRow', 'endRow', 'startColumn', 'endColumn'].every(k => Number.isSafeInteger(r[k]) && r[k] >= 0)
-      || r.endRow <= r.startRow || r.endColumn <= r.startColumn || r.endRow >= sheet.rowCount || r.endColumn >= sheet.columnCount
-      || r.endRow - r.startRow > CHART_LIMITS.points || r.endColumn - r.startColumn > CHART_LIMITS.series) bad();
+    if (r.endRow >= sheet.rowCount || r.endColumn >= sheet.columnCount) bad();
     // Merged values have ambiguous rectangular series/label semantics.
     if ((sheet.mergeData ?? []).some(m => m.startRow <= r.endRow && m.endRow >= r.startRow && m.startColumn <= r.endColumn && m.endColumn >= r.startColumn)) bad();
   }

@@ -1,4 +1,4 @@
-import { validateCharts, chartRangeLabel } from '../../../packages/workagent-contract/sheet-charts.mjs';
+import { validateCharts, chartRangeLabel, CHART_EDIT_SCOPE } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { randomUUID } from 'node:crypto';
 import { id, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { cellAddress } from '../../workagent-server/src/selection.mjs';
@@ -99,7 +99,7 @@ export function createSheetReader(workId, selection) {
       formulaCells: tabs.reduce((n, t) => n + t.info.formulaCells, 0), protectedCellCount: w.humanCells.length };
     const base = { charts: chartContext(w.book),
       chartCoordinates: 'Chart range row/column indexes are zero-based and both endpoints are inclusive. A1 ranges include both endpoints. The first source row is headers; the first column is labels; every remaining column is a numeric series. Header cells are references, not calculated titles. Blanks, errors and non-numbers are gaps.',
-      chartEditing: 'Chart definitions are human-editable in the Workagent panel; model chart mutation is not supported.', expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
+      chartEditing: CHART_EDIT_SCOPE, expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
       limits: { escapedContentBytes: SHEET_READ_BYTES, storedCellsPerPage: SHEET_READ_CELLS } };
     // Preserve the old shape only when the entire response, including native
     // metadata and the protection map, fits the same byte budget.

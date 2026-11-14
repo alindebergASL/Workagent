@@ -335,3 +335,126 @@ test('App NativeEditor reuse hides old charts before effects on navigation and s
     await app.save();await delay(30);await app.flush();assert.equal(app.native().version,version,'save rebases the active controller');view.update(app.native());assert.equal(view.handle.charts,old);assert.equal(sheetCharts((await ws.get('owner',ids.a)).book)[0].title,'A saved again');await delay(1100);await app.open(ids.a);assert.notEqual(app.native().version,version);view.update(app.native());assert.notEqual(view.handle.charts,old);await readyCharts(view);view.panel.flush();assertPanelOwner(view.panel.tree,'A saved again',77);assert.throws(old.assertReady,/editor changed/);
   } finally {if(view)await close(view);app.unmount();}
 });
+
+test('App shows inert definition-only chart proposal additions, before/after updates and removals without changing saved book', async () => {
+  let state=initialState('owner');
+  const ws=new Workspace({read:async fn=>structuredClone(await fn(structuredClone(state))),transaction:async fn=>{const next=structuredClone(state),result=await fn(next);state=next;return structuredClone(result);}});
+  const {workId}=await ws.createBlank('owner',{commandId:'blank-preview',title:'Preview'});
+  const old=chart({title:'<img src=x onerror=bad()>',type:'bar'}),removed=chart({id:'remove',title:'Remove me'});
+  const book=withCharts(fixture(workId),[old,removed]);
+  await ws.save('owner',workId,{commandId:'seed-preview',book,contentRevision:1,permissionRevision:1});
+  const before=await ws.get('owner',workId);
+  const patch={cells:[],addSheets:[{id:'source2',name:'New <script>tab</script>'}],chartOps:[
+    {op:'update',chart:{...old,title:'<script>after()</script>',type:'line',range:{startRow:1,endRow:3,startColumn:1,endColumn:3}}},
+    {op:'delete',id:'remove'}, {op:'create',chart:chart({id:'new',title:'Added chart',sheetId:'source2'})},
+  ]};
+  await ws.mutate('owner',workId,{commandId:'model-preview',expected:before.expected,patch});
+  const pending=await ws.get('owner',workId),calls=[];
+  const app=mountApp(memoryStorage(),async(url,options)=>{calls.push({url,options});const result=url==='/api/work'?[{id:workId,title:'Preview',status:'ready'}]:url==='/api/events'?{kind:'reset',cursor:state.sequence,events:[],works:[],snapshots:[]}:await ws.get('owner',workId);return {ok:true,status:200,json:async()=>structuredClone(result)};});
+  try {
+    await app.open(workId);await app.flush();
+    const html=renderToStaticMarkup(app.tree);
+    assert.match(app.text(),/3 chart changes/);assert.doesNotMatch(app.text(),/0 cells changed/);
+    assert.match(app.text(),/Definition preview/);assert.match(app.text(),/unchanged until/);
+    assert.match(app.text(),/Update chart/);assert.match(app.text(),/Remove chart/);assert.match(app.text(),/Add chart/);
+    assert.match(app.text(),/bar.*Sheet 1.*A1:C5/);assert.match(app.text(),/line.*Sheet 1.*B2:D4/);
+    assert.match(app.text(),/New <script>tab<\/script>.*A1:C5/);
+    assert.match(html,/&lt;script&gt;after/);assert.doesNotMatch(html,/<script|<img|<svg/);
+    assert.deepEqual(app.native().book,before.book);assert.deepEqual((await ws.get('owner',workId)).book,before.book);
+    assert.deepEqual((await ws.get('owner',workId)).proposals,pending.proposals);
+    assert.ok(calls.every(c=>!c.options?.body),'preview never saves or applies');
+  } finally {app.unmount();}
+});
+
+test('synthetic explicit chart proposal acceptance feeds native calculation and the actual SVG renderer', async () => {
+  let state=initialState('owner');
+  const ws=new Workspace({read:async fn=>structuredClone(await fn(structuredClone(state))),transaction:async fn=>{const next=structuredClone(state),result=await fn(next);state=next;return structuredClone(result);}});
+  const {workId}=await ws.createBlank('owner',{commandId:'blank-accept',title:'Acceptance fixture'});
+  const book=fixture(workId);
+  await ws.save('owner',workId,{commandId:'seed-accept',book,contentRevision:1,permissionRevision:1});
+  const before=await ws.get('owner',workId);
+  const patch={cells:[{sheetId:'sheet1',row:2,column:1,value:-7}],chartOps:[{op:'create',chart:chart({type:'line'})}]};
+  const proposed=await ws.mutate('owner',workId,{commandId:'synthetic-chart',expected:before.expected,patch});
+  assert.equal(proposed.status,'proposed');assert.deepEqual((await ws.get('owner',workId)).book,before.book);
+  await ws.decide('owner',workId,proposed.proposalId,{commandId:'synthetic-explicit-accept',expected:before.expected,decision:'accept'});
+  const accepted=await ws.get('owner',workId),view=mountNative({book:accepted.book,version:'isolated-accepted'});
+  try {
+    const current=await readyCharts(view);
+    assert.deepEqual(current.data['chart-1'].series[1].values,[0,-14,null,20]);
+    const html=renderToStaticMarkup(React.createElement(ChartGraphic,{chart:current.charts[0],data:current.data['chart-1']}));
+    assert.match(html,/<svg/);assert.doesNotMatch(html,/999|NaN|Infinity/);
+    assert.deepEqual(sheetCharts(view.handle.save()),[chart({type:'line'})]);
+    assert.deepEqual(sheetControls(view.handle.save()),sheetControls(book));
+  } finally {await close(view);}
+});
+
+for (const laterSave of [false, true]) test(`App mixed chart cell preview ${laterSave ? 'withholds unavailable proposal revision after human edits' : 'never displays shared formula caches'}`, async () => {
+  let state=initialState('owner');
+  const ws=new Workspace({read:async fn=>structuredClone(await fn(structuredClone(state))),transaction:async fn=>{const next=structuredClone(state),result=await fn(next);state=next;return structuredClone(result);}});
+  const {workId}=await ws.createBlank('owner',{commandId:'mixed-blank',title:'Mixed preview'});
+  const book=withCharts(blankWorkbook(workId),[chart({title:'Original chart'})]);
+  book.sheets.sheet1.cellData={
+    0:{1:{f:'=2',si:'shared',v:888888,t:2}},
+    1:{1:{si:'shared',v:999999,t:2}},
+    2:{1:{v:false,t:3}},3:{1:{v:0,t:2}},4:{1:{v:true,t:3}},
+    5:{1:{p:{body:{dataStream:'Literal <b>rich</b>\r\n'}},v:'WRONG_LITERAL_CACHE',t:1}},
+    6:{1:{si:'shared',p:{body:{dataStream:'WRONG_RICH_FORMULA\r\n'}},v:777777,t:2}},
+  };
+  await ws.save('owner',workId,{commandId:'mixed-seed',book,contentRevision:1,permissionRevision:1});
+  const before=await ws.get('owner',workId);
+  const cells=[{sheetId:'sheet1',row:0,column:1,value:null,formula:'=3'},...Array.from({length:6},(_,i)=>({sheetId:'sheet1',row:i+1,column:1,value:[7,false,0,true,'<script>literal</script>',null][i]})),{sheetId:'newtab',row:1,column:1,value:0}];
+  await ws.mutate('owner',workId,{commandId:'mixed-proposal',expected:before.expected,patch:{cells,addSheets:[{id:'newtab',name:'Proposed tab'}],chartOps:[{op:'update',chart:chart({title:'Proposed chart',type:'line'})},{op:'create',chart:chart({id:'newchart',sheetId:'newtab',title:'New chart'})}]}});
+  const pending=await ws.get('owner',workId),proposal=structuredClone(pending.proposals[0]);
+  if(laterSave){
+    pending.book.sheets.sheet1.cellData[1][1]={v:123456,t:2};
+    pending.book.sheets.sheet1.name='Later renamed sheet';
+    await ws.save('owner',workId,{commandId:'mixed-later',book:pending.book,contentRevision:pending.contentRevision,permissionRevision:1});
+  }
+  const calls=[],app=mountApp(memoryStorage(),async(url,options)=>{calls.push({url,options});const result=url==='/api/work'?[{id:workId,title:'Mixed preview',status:'ready'}]:url==='/api/events'?{kind:'reset',cursor:state.sequence,events:[],works:[],snapshots:[]}:await ws.get('owner',workId);return {ok:true,status:200,json:async()=>structuredClone(result)};});
+  try {
+    await app.open(workId);await app.flush();
+    const article=treeNodes(app.tree).find(n=>n.props.className==='proposal'),html=renderToStaticMarkup(article);
+    if(laterSave){
+      assert.doesNotMatch(html,/123456/);
+      assert.match(html,/unavailable at proposal revision/);
+      assert.doesNotMatch(html,/Later renamed sheet/);
+      assert.match(html,/out of date/);
+    } else {
+      assert.doesNotMatch(html,/999999|888888|777777|WRONG_LITERAL_CACHE|WRONG_RICH_FORMULA/);
+      assert.match(html,/shared.*unknown/i);
+      assert.match(html,/<del>false<\/del>.*<strong>false<\/strong>/);
+      assert.match(html,/<del>0<\/del>.*<strong>0<\/strong>/);
+      assert.match(html,/<del>true<\/del>.*<strong>true<\/strong>/);
+      assert.match(html,/Literal &lt;b&gt;rich&lt;\/b&gt;/);
+      assert.match(html,/<del>=2<\/del>.*<strong>=3<\/strong>/);
+    }
+    assert.match(html,/Cell changes.*proposal revision 2/);
+    assert.match(html,/Definition preview at saved revision 2/);
+    assert.match(html,/Original chart.*Proposed chart/);
+    assert.match(html,/Proposed tab.*row 2, column 2/);
+    assert.match(html,/<strong>7<\/strong>/);assert.match(html,/<strong>\(empty\)<\/strong>/);
+    assert.match(html,/&lt;script&gt;literal&lt;\/script&gt;/);assert.doesNotMatch(html,/<script|<svg/);
+    assert.deepEqual((await ws.get('owner',workId)).proposals[0],proposal);
+    assert.ok(calls.every(c=>!c.options?.body),'preview never saves or applies');
+  } finally {app.unmount();}
+});
+
+test('App cell-only proposals retain current-cell context and raw false/zero values', async () => {
+  const state=initialState('owner'),ws=new Workspace({read:async fn=>fn(state),transaction:async fn=>fn(state)});
+  const {workId}=await ws.createBlank('owner',{commandId:'cell-only-blank',title:'Cells'});
+  let work=await ws.get('owner',workId);
+  work.book.sheets.sheet1.cellData={0:{0:{v:true,t:3},1:{v:1,t:2}}};
+  await ws.save('owner',workId,{commandId:'cell-only-seed',book:work.book,contentRevision:1,permissionRevision:1});
+  work=await ws.get('owner',workId);
+  await ws.mutate('owner',workId,{commandId:'cell-only-proposal',expected:work.expected,patch:{cells:[{sheetId:'sheet1',row:0,column:0,value:false},{sheetId:'sheet1',row:0,column:1,value:0}]}});
+  work=await ws.get('owner',workId);work.book.sheets.sheet1.name='Current cell-only sheet';work.book.sheets.sheet1.cellData[0][1]={v:5,t:2};
+  await ws.save('owner',workId,{commandId:'cell-only-later',book:work.book,contentRevision:work.contentRevision,permissionRevision:1});
+  const app=mountApp(memoryStorage(),async url=>({ok:true,status:200,json:async()=>structuredClone(url==='/api/work'?[{id:workId,title:'Cells',status:'ready'}]:url==='/api/events'?{kind:'reset',cursor:state.sequence,events:[],works:[],snapshots:[]}:await ws.get('owner',workId))}));
+  try {
+    await app.open(workId);await app.flush();
+    const html=renderToStaticMarkup(treeNodes(app.tree).find(n=>n.props.className==='proposal'));
+    assert.match(html,/Current cell-only sheet, row 1, column 1: <del>true<\/del> → <strong>false<\/strong>/);
+    assert.match(html,/Current cell-only sheet, row 1, column 2: <del>5<\/del> → <strong>0<\/strong>/);
+    assert.doesNotMatch(html,/Cell changes: before at proposal revision|unavailable at proposal revision/);
+  } finally {app.unmount();}
+});

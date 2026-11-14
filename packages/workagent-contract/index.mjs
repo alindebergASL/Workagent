@@ -1,4 +1,5 @@
 import { validateSheetResources } from './sheet-controls.mjs';
+import { applyChartOps, validateChartOps } from './sheet-charts.mjs';
 export class Fault extends Error {
   constructor(code, status = 409) { super(code); this.code = code; this.status = status; }
 }
@@ -56,11 +57,15 @@ export function blankWorkbook(workId, title = 'Working sheet') {
   return { id: workId, name: title, appVersion: '1.4.0', locale: 'enUS', styles: {}, sheetOrder: ['sheet1'], sheets: { sheet1: { id: 'sheet1', name: 'Sheet 1', rowCount: 200, columnCount: 26, cellData: {}, defaultColumnWidth: 110, defaultRowHeight: 24 } } };
 }
 export function validatePatch(patch) {
+  const keys = (v, allowed) => { if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).some(k => !allowed.includes(k))) throw new Fault('invalid_patch', 400); };
+  keys(patch, ['title', 'addSheets', 'cells', 'chartOps']);
   if (!patch || !Array.isArray(patch.cells) || patch.cells.length > 2000) throw new Fault('invalid_patch', 400);
+  if (patch.chartOps !== undefined) validateChartOps(patch.chartOps);
   if (patch.title !== undefined) text(patch.title, 200);
   if (patch.addSheets !== undefined && (!Array.isArray(patch.addSheets) || patch.addSheets.length > 10)) throw new Fault('invalid_sheets', 400);
-  for (const sheet of patch.addSheets ?? []) { id(sheet.id); text(sheet.name, 100); }
+  for (const sheet of patch.addSheets ?? []) { keys(sheet, ['id', 'name']); id(sheet.id); text(sheet.name, 100); }
   for (const c of patch.cells) {
+    keys(c, ['sheetId', 'row', 'column', 'value', 'formula']);
     id(c.sheetId);
     if (!Number.isInteger(c.row) || c.row < 0 || c.row >= 10000 || !Number.isInteger(c.column) || c.column < 0 || c.column >= 200) throw new Fault('cell_bounds', 400);
     if (c.value !== null && !['string', 'number', 'boolean'].includes(typeof c.value)) throw new Fault('invalid_cell', 400);
@@ -79,9 +84,10 @@ export function withoutFormulaResults(book) {
   return result;
 }
 export function applyPatch(book, patch) {
+  patch = validatePatch(patch);
   // Omit derived results until the native engine calculates again; readers
   // must not mistake a pre-patch cached value for the current result.
-  const result = withoutFormulaResults(book);
+  let result = withoutFormulaResults(book);
   if (patch.title) result.name = patch.title;
   for (const s of patch.addSheets ?? []) {
     if (result.sheets[s.id]) throw new Fault('sheet_exists');
@@ -99,6 +105,7 @@ export function applyPatch(book, patch) {
     else { cell.t = typeof c.value === 'number' ? 2 : typeof c.value === 'boolean' ? 3 : 1; }
     sheet.cellData[c.row][c.column] = cell;
   }
+  if (patch.chartOps?.length) result = applyChartOps(result, patch.chartOps);
   // Read and validate the bounded control resource once. Resolve only patched
   // cells; the SDK's RuleMatrix gives the last overlapping rule precedence.
   const controls = validateSheetResources(result) ?? {};

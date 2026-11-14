@@ -186,7 +186,7 @@ test('chart read context explicitly includes both inclusive endpoints, all serie
     assert.deepEqual(source, originSource); assert.deepEqual(rawChart, chart(originRange));
     assert.match(result.chartCoordinates, /zero-based.*inclusive/);
     assert.match(result.chartCoordinates, /header.*references.*not.*calculated/i);
-    assert.match(result.chartEditing, /model chart mutation is not supported/);
+    assert.match(result.chartEditing, /chartOps/); assert.match(result.chartEditing, /visible proposal, never applied until explicit human acceptance/);
     assert.doesNotMatch(JSON.stringify(source), /STALE HEADER|STALE RICH HEADER|99999|88888/);
     assert.doesNotMatch(JSON.stringify(result), /STALE HEADER|99999|88888/);
     if (result.book) assert.deepEqual(result.book.resources, original.book.resources);
