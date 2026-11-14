@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { Workspace } from '../src/workspace.mjs';
 import { initialState, PostgresStore } from '../src/store.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
-import { applyPatch, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
+import { applyPatch, blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
+import { CONTROL_RESOURCE, controlAt } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { Readable } from 'node:stream';
 import { createHandler } from '../src/http.mjs';
 async function setup() {
@@ -18,6 +19,120 @@ async function setup() {
   return { ws, store, path, command, wid: started.workId };
 }
 const patch = value => ({ cells: [{ sheetId: 'sheet1', row: 0, column: 0, value }] });
+const checkbox = (formula1, formula2) => ({ uid: 'check', type: 'checkbox', formula1, formula2,
+  ranges: [{ startRow: 10, endRow: 11, startColumn: 4, endColumn: 5 }] });
+function checkboxBook(rule = checkbox('1', '0')) {
+  const book = blankWorkbook('synthetic-checkbox');
+  book.sheetOrder.push('other'); book.sheets.other = { ...structuredClone(book.sheets.sheet1), id: 'other', name: 'Other' };
+  book.resources = [{ name: CONTROL_RESOURCE, data: JSON.stringify({ sheet1: [rule] }) }];
+  book.sheets.sheet1.cellData = { 10: { 4: { s: { bl: 1 } } } };
+  return book;
+}
+function freeze(value) { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
+test('authoritative checkbox Booleans use numeric states only inside the effective control, without mutating inputs', () => {
+  for (const aliases of [[undefined, undefined], ['1', '0'], ['TRUE', 'FALSE'], ['true', 'false']]) {
+    const book = freeze(checkboxBook(checkbox(...aliases))), before = JSON.stringify(book);
+    const cells = [];
+    for (const sheetId of ['sheet1', 'other']) for (const row of [9, 10, 11, 12]) for (const column of [3, 4, 5, 6]) {
+      cells.push({ sheetId, row, column, value: (row + column) % 2 === 0 });
+    }
+    const input = freeze({ cells }), raw = JSON.stringify(input), result = applyPatch(book, input);
+    for (const c of cells) {
+      const controlled = c.sheetId === 'sheet1' && c.row >= 10 && c.row <= 11 && c.column >= 4 && c.column <= 5;
+      const cell = result.sheets[c.sheetId].cellData[c.row][c.column];
+      assert.equal(cell.v, controlled ? Number(c.value) : c.value); assert.equal(cell.t, controlled ? 2 : 3);
+    }
+    assert.deepEqual(result.sheets.sheet1.cellData[10][4].s, { bl: 1 });
+    assert.deepEqual(result.resources, book.resources);
+    assert.equal(JSON.stringify(book), before); assert.equal(JSON.stringify(input), raw);
+  }
+  const other = checkboxBook(); other.resources[0].data = JSON.stringify({ other: [checkbox()] });
+  const result = applyPatch(other, { cells: ['sheet1', 'other'].map(sheetId => ({ sheetId, row: 10, column: 4, value: false })) });
+  assert.equal(result.sheets.sheet1.cellData[10][4].v, false);
+  assert.equal(result.sheets.other.cellData[10][4].v, 0);
+});
+test('checkbox patches preserve formulas, nulls, strings, numbers and final duplicate-cell writes', () => {
+  const book = checkboxBook(), target = { sheetId: 'sheet1', row: 10, column: 4 };
+  for (const value of [null, '', 'FALSE', 'TRUE', '0', '1', '=1+1', 0, 1, 7]) {
+    const cell = applyPatch(book, { cells: [{ ...target, value: true }, { ...target, value }] }).sheets.sheet1.cellData[10][4];
+    assert.equal(cell.v, value); assert.equal(cell.t, typeof value === 'number' ? 2 : 1);
+    assert.equal(cell.f, undefined);
+  }
+  const cell = applyPatch(book, { cells: [{ ...target, value: true, formula: '=1+1' }] }).sheets.sheet1.cellData[10][4];
+  assert.equal(cell.f, '=1+1'); assert.equal(cell.v, undefined); assert.equal(cell.t, undefined);
+  const edge = checkboxBook({ ...checkbox(), ranges: [{ startRow: 9999, endRow: 9999, startColumn: 199, endColumn: 199 }] });
+  edge.sheets.sheet1.rowCount = 10000; edge.sheets.sheet1.columnCount = 200;
+  assert.equal(applyPatch(edge, { cells: [{ sheetId: 'sheet1', row: 9999, column: 199, value: false }] }).sheets.sheet1.cellData[9999][199].v, 0);
+});
+test('last overlapping native control wins; empty checkbox formulas are refused without inventing a state', () => {
+  const check = checkbox('1', '0'), list = { ...checkbox(), uid: 'list', type: 'list', formula1: '["Ready"]' };
+  const input = { cells: [{ sheetId: 'sheet1', row: 10, column: 4, value: true }] };
+  for (const rules of [[check, list], [list, check]]) {
+    const book = checkboxBook(); book.resources[0].data = JSON.stringify({ sheet1: rules });
+    assert.equal(controlAt(book, 'sheet1', 10, 4).uid, rules.at(-1).uid);
+    const cell = applyPatch(book, input).sheets.sheet1.cellData[10][4];
+    assert.equal(cell.v, rules.at(-1).type === 'checkbox' ? 1 : true);
+  }
+  for (const aliases of [['', ''], ['', '0'], ['1', ''], ['yes', 'no']]) for (const value of [true, false]) {
+    const book = freeze(checkboxBook(checkbox(...aliases)));
+    assert.throws(() => applyPatch(book, { cells: [{ ...input.cells[0], value }] }), e => e.code === 'unsupported_sheet_controls' && e.status === 400);
+  }
+});
+test('offline Workspace checkbox proposals retain raw identity and protection through retry, stale acceptance and revocation', async () => {
+  const { ws, wid, store, path } = await setup(), original = await ws.get('owner', wid);
+  const book = checkboxBook(); book.id = wid;
+  await ws.save('owner', wid, { commandId: 'checkbox-save', book, contentRevision: original.contentRevision, permissionRevision: 1 });
+  const before = await ws.get('owner', wid);
+  const input = freeze({ commandId: 'checkbox-model', expected: before.expected, patch: { cells: [
+    { sheetId: 'sheet1', row: 10, column: 4, value: true }, { sheetId: 'other', row: 10, column: 4, value: false },
+  ] } });
+  const proposed = await ws.mutate('owner', wid, input);
+  assert.equal(proposed.status, 'proposed'); assert.deepEqual(await ws.mutate('owner', wid, input), proposed);
+  const pending = await ws.get('owner', wid);
+  assert.deepEqual(pending.book, before.book); assert.deepEqual(pending.proposals[0].patch, input.patch);
+  assert.ok(pending.humanCells.includes('sheet1:10:4'));
+  const accept = freeze({ commandId: 'checkbox-accept', decision: 'accept', expected: pending.expected });
+  const accepted = await ws.decide('owner', wid, proposed.proposalId, accept);
+  const bytes = await readFile(path, 'utf8');
+  assert.deepEqual(await ws.decide('owner', wid, proposed.proposalId, accept), accepted);
+  assert.deepEqual(await ws.mutate('owner', wid, input), proposed);
+  assert.equal(await readFile(path, 'utf8'), bytes);
+  const current = await ws.get('owner', wid);
+  assert.equal(current.book.sheets.sheet1.cellData[10][4].v, 1);
+  assert.equal(current.book.sheets.other.cellData[10][4].v, false);
+  assert.deepEqual(current.proposals[0].patch, input.patch);
+  await assert.rejects(ws.mutate('owner', wid, { ...input, patch: { cells: [{ ...input.patch.cells[0], value: 1 }] } }), /command_conflict/);
+  const next = await ws.mutate('owner', wid, { ...input, commandId: 'checkbox-next', expected: current.expected });
+  const unprotected = await ws.mutate('owner', wid, { commandId: 'ordinary-boolean', expected: current.expected, patch: { cells: [{ sheetId: 'other', row: 0, column: 0, value: true }] } });
+  assert.equal(unprotected.status, 'applied');
+  const changed = await readFile(path, 'utf8');
+  await assert.rejects(ws.decide('owner', wid, next.proposalId, { commandId: 'stale-checkbox', decision: 'accept', expected: current.expected }), /proposal_conflict/);
+  assert.equal(await readFile(path, 'utf8'), changed);
+  await store.transaction(s => { s.permissionRevision++; s.enabled = false; });
+  const revoked = await readFile(path, 'utf8');
+  await assert.rejects(ws.decide('owner', wid, next.proposalId, { ...accept, commandId: 'revoked-checkbox' }), /access_denied/);
+  await assert.rejects(ws.mutate('owner', wid, { ...input, commandId: 'revoked-write' }), /access_denied/);
+  assert.equal(await readFile(path, 'utf8'), revoked);
+});
+test('ambiguous checkbox acceptance refuses the whole patch and leaves proposal, revisions and retry identity unchanged', async () => {
+  const { ws, wid, path } = await setup(), original = await ws.get('owner', wid);
+  const book = checkboxBook(checkbox('', '')); book.id = wid;
+  await ws.save('owner', wid, { commandId: 'empty-control', book, contentRevision: original.contentRevision, permissionRevision: 1 });
+  const before = await ws.get('owner', wid);
+  const input = { commandId: 'ambiguous-model', expected: before.expected, patch: { cells: [
+    { sheetId: 'other', row: 0, column: 0, value: 42 }, { sheetId: 'sheet1', row: 10, column: 4, value: true },
+  ] } };
+  const proposed = await ws.mutate('owner', wid, input), bytes = await readFile(path, 'utf8');
+  const accept = { commandId: 'ambiguous-accept', decision: 'accept', expected: before.expected };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await assert.rejects(ws.decide('owner', wid, proposed.proposalId, accept), e => e.code === 'unsupported_sheet_controls' && e.status === 400);
+    assert.equal(await readFile(path, 'utf8'), bytes);
+  }
+  assert.deepEqual(await ws.mutate('owner', wid, input), proposed);
+  const pending = await ws.get('owner', wid);
+  assert.equal(pending.proposals[0].status, 'pending'); assert.deepEqual(pending.proposals[0].patch, input.patch);
+  assert.deepEqual(pending.book, before.book); assert.deepEqual(pending.expected, before.expected);
+});
 function commandRoute(ws, onCommand) {
   const token = 'synthetic-test-access-key-at-least-32-characters', origin = 'https://private.example.test';
   const handle = createHandler({ workspace: ws, owner: 'owner', token, origin, clientRoot: tmpdir(), onCommand });

@@ -14,7 +14,7 @@ export const revision = value => {
   if (!Number.isSafeInteger(value) || value < 0) throw new Fault('invalid_revision', 400);
   return value;
 };
-export function validateWorkbook(book) {
+function validateWorkbookShape(book) {
   if (!book || typeof book !== 'object' || JSON.stringify(book).length > 4_000_000) throw new Fault('invalid_workbook', 400);
   id(book.id); text(book.name, 200);
   if (!Array.isArray(book.sheetOrder) || book.sheetOrder.length < 1 || book.sheetOrder.length > 20 || new Set(book.sheetOrder).size !== book.sheetOrder.length) throw new Fault('invalid_sheets', 400);
@@ -28,6 +28,9 @@ export function validateWorkbook(book) {
       for (const col of Object.keys(cells)) if (!/^\d+$/.test(col) || +col >= sheet.columnCount) throw new Fault('cell_bounds', 400);
     }
   }
+}
+export function validateWorkbook(book) {
+  validateWorkbookShape(book);
   validateSheetResources(book);
   return structuredClone(book);
 }
@@ -96,6 +99,21 @@ export function applyPatch(book, patch) {
     else { cell.t = typeof c.value === 'number' ? 2 : typeof c.value === 'boolean' ? 3 : 1; }
     sheet.cellData[c.row][c.column] = cell;
   }
-  return validateWorkbook(result);
+  // Read and validate the bounded control resource once. Resolve only patched
+  // cells; the SDK's RuleMatrix gives the last overlapping rule precedence.
+  const controls = validateSheetResources(result) ?? {};
+  for (const c of patch.cells) {
+    const cell = result.sheets[c.sheetId].cellData[c.row][c.column];
+    if (cell.f || typeof cell.v !== 'boolean') continue;
+    const rule = (controls[c.sheetId] ?? []).findLast(rule => rule.ranges.some(r =>
+      c.row >= r.startRow && c.row <= r.endRow && c.column >= r.startColumn && c.column <= r.endColumn));
+    if (rule?.type !== 'checkbox') continue;
+    // Explicit empty formulas are legal metadata, but unlike omitted defaults
+    // Univer does not map them to 1/0. Do not guess or rewrite the source rule.
+    if (rule.formula1 === '' || rule.formula2 === '') throw new Fault('unsupported_sheet_controls', 400);
+    cell.v = Number(cell.v); cell.t = 2;
+  }
+  validateWorkbookShape(result);
+  return structuredClone(result);
 }
 export const anchor = c => `${c.sheetId}:${c.row}:${c.column}`;

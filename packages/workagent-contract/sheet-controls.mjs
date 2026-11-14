@@ -13,7 +13,7 @@ export function sheetControls(book) {
 export function validateSheetResources(book) {
   if (book.resources === undefined) return;
   if (!Array.isArray(book.resources) || book.resources.length > 16) bad();
-  const names = new Set(); let rules = 0, area = 0, ranges = 0;
+  const names = new Set(); let rules = 0, area = 0, ranges = 0, controls;
   for (const resource of book.resources) {
     object(resource, ['name','data']);
     if (names.has(resource.name) || typeof resource.data !== 'string' || resource.data.length > 500000) bad();
@@ -33,6 +33,7 @@ export function validateSheetResources(book) {
     }
     let data; try { data = resource.data ? JSON.parse(resource.data) : {}; } catch { bad(); }
     object(data);
+    controls = data;
     for (const [sid, list] of Object.entries(data)) {
       id(sid); const sheet = book.sheets[sid];
       if (!book.sheetOrder.includes(sid) || !sheet || !Array.isArray(list) || (rules += list.length) > 256) bad();
@@ -60,6 +61,7 @@ export function validateSheetResources(book) {
       }
     }
   }
+  return controls;
 }
 export function controlCells(book) {
   const cells = new Map();
@@ -71,5 +73,5 @@ export function controlCells(book) {
   return cells;
 }
 export function controlAt(book, sid, row, column) {
-  return (sheetControls(book)[sid] ?? []).find(rule => rule.ranges.some(r => row >= r.startRow && row <= r.endRow && column >= r.startColumn && column <= r.endColumn));
+  return (sheetControls(book)[sid] ?? []).findLast(rule => rule.ranges.some(r => row >= r.startRow && row <= r.endRow && column >= r.startColumn && column <= r.endColumn));
 }
