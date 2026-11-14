@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mountNative, mountApp, memoryStorage } from './sheet-scale-harness.mjs';
 import { blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
-import { CONDITIONAL_RESOURCE, conditionalRules, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { CONDITIONAL_RESOURCE, CONDITIONAL_ICON_FAMILIES, conditionalRules, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { serializeCsv } from '../../../packages/workagent-contract/csv.mjs';
 import { Workspace, commitEditorPatch } from '../../workagent-server/src/workspace.mjs';
@@ -12,6 +12,7 @@ const range = {startRow:0,endRow:3,startColumn:0,endColumn:0};
 const rule = () => ({cfId:'numeric',stopIfTrue:false,ranges:[range],rule:{type:'highlightCell',subType:'number',operator:'greaterThan',value:5,style:{bg:{rgb:'#ff0000'},bl:1}}});
 const scale = (three = false) => ({ cfId:'scale', stopIfTrue:false, ranges:[range], rule:{type:'colorScale',config:[{index:0,color:'#ff0000',value:{type:'min'}}, ...(three ? [{index:1,color:'#ffff00',value:{type:'percentile',value:50}}] : []), {index:three ? 2 : 1,color:'#00ff00',value:{type:'max'}}]} });
 const bar = () => ({cfId:'bar',stopIfTrue:false,ranges:[range],rule:{type:'dataBar',isShowValue:true,config:{min:{type:'min'},max:{type:'max'},isGradient:false,positiveColor:'#ffbe38',nativeColor:'#abd91a'}}});
+const icons = (family='3Arrows') => ({cfId:'icons',stopIfTrue:false,ranges:[range],rule:{type:'iconSet',isShowValue:true,config:Array.from({length:CONDITIONAL_ICON_FAMILIES[family]},(_,i)=>({iconType:family,iconId:String(i),operator:i===CONDITIONAL_ICON_FAMILIES[family]-1?'lessThanOrEqual':'greaterThanOrEqual',value:{type:'num',value:(CONDITIONAL_ICON_FAMILIES[family]-1-i)*10}}))}});
 const withRules = () => {const b=blankWorkbook('book');b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[rule()]})}];return b;};
 test('open conditional form retains the editor through clean navigation and dirty Save until Submit or Cancel', async () => {
   const state = initialState('owner'), ws = new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
@@ -120,26 +121,26 @@ for(const axis of ['row','column']) test(`native ${axis} movement/deletion/undo 
   const view=mountNative({book:b,version:axis});
   try {await view.settle();const wb=view.api.getActiveWorkbook(),s=wb.getActiveSheet();
     const r=s.newConditionalFormattingRule().setDataBar({...bar().rule.config,isShowValue:true}).setRanges([s.getRange('D5').getRange()]).build();s.addConditionalFormattingRule(r);
-    for(const extra of [scale(),rule()])s.addConditionalFormattingRule({...extra,ranges:r.ranges});
+    for(const extra of [scale(),rule(),icons()])s.addConditionalFormattingRule({...extra,ranges:r.ranges});
     if(axis==='row')s.insertRowsBefore(1,1);else s.insertColumnsBefore(1,1);
     const shifted=axis==='row'?1003:804;assert.ok(view.handle.formatEdits().sheet1.includes(shifted));
     const current=s.getConditionalFormattingRules()[0].ranges[0];assert.equal(current[axis==='row'?'startRow':'startColumn'],5-Number(axis==='column'));
     if(axis==='row')s.moveRows(s.getRange('D6'),9);else s.moveColumns(s.getRange('E5'),8);
     const moved=axis==='row'?1603:807;assert.ok(view.handle.formatEdits().sheet1.includes(moved));
     wb.undo();assert.ok(view.handle.formatEdits().sheet1.includes(shifted));wb.redo();
-    for(const id of [r.cfId,'scale','numeric'])s.deleteConditionalFormattingRule(id);assert.equal(conditionalCells(view.handle.save()).size,0);
+    for(const id of [r.cfId,'scale','numeric','icons'])s.deleteConditionalFormattingRule(id);assert.equal(conditionalCells(view.handle.save()).size,0);
     if(axis==='row')s.deleteRows(8,1);else s.deleteColumns(7,1);
     assert.ok(!view.handle.formatEdits().sheet1.includes(moved));wb.undo();assert.ok(view.handle.formatEdits().sheet1.includes(moved));
     assert.ok(!view.handle.formatEdits().sheet1.includes(0));validateWorkbook(view.handle.save());
   }finally{view.dispose();}
 });
 
-for (const axis of ['row', 'column']) for (const preloaded of [true, false]) test(`mixed highlight/scale/bar ${preloaded ? 'preloaded' : 'new'} boundary rules survive ${axis} delete, undo, redo, Save and cold reopen`, async () => {
+for (const axis of ['row', 'column']) for (const preloaded of [true, false]) test(`mixed highlight/scale/bar/icon ${preloaded ? 'preloaded' : 'new'} boundary rules survive ${axis} delete, undo, redo, Save and cold reopen`, async () => {
   const state = initialState('owner'), ws = new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId} = await ws.createBlank('owner', {commandId:'new',title:'Boundary rules'});
   const b = state.works[workId].book;
   b.sheets.sheet1.cellData = {0:{0:{v:'deleted',t:1}},2:{2:{f:'=1+2'}}};
-  const rules = [0, 1, 2].map(i => ({...(i === 2 ? bar() : i ? scale(true) : rule()), cfId:`boundary${i}`, ranges:[{
+  const rules = [0, 1, 2, 3].map(i => ({...(i === 3 ? icons() : i === 2 ? bar() : i ? scale(true) : rule()), cfId:`boundary${i}`, ranges:[{
     startRow:axis === 'row' ? 199 : i, endRow:axis === 'row' ? 199 : i,
     startColumn:axis === 'row' ? i : 25, endColumn:axis === 'row' ? i : 25,
   }]}));
@@ -163,7 +164,7 @@ for (const axis of ['row', 'column']) for (const preloaded of [true, false]) tes
       assert.equal(snapshot.sheets.sheet1.cellData[axis === 'row' ? 0 : 1][axis === 'row' ? 1 : 0].v,42);
       assert.equal(snapshot.sheets.sheet1.cellData[axis === 'row' ? 1 : 2][axis === 'row' ? 2 : 1].f,'=1+2');
       for (const r of conditionalRules(snapshot).sheet1) assert.equal(r.ranges[0][axis === 'row' ? 'endRow' : 'endColumn'],axis === 'row' ? 198 : 24);
-      assert.equal(conditionalRules(snapshot).sheet1.length,3);
+      assert.equal(conditionalRules(snapshot).sheet1.length,4);
     };
     checkDeleted(); await persist();
     wb.undo();
@@ -197,7 +198,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
   b.sheets.sheet1.cellData={2:{2:{f:'=1+2'}}};
   b.sheetOrder.push('sheet2'); b.sheets.sheet2={...structuredClone(b.sheets.sheet1),id:'sheet2',name:'Other'};
   b.sheets.sheet2.cellData[0]={0:{v:'keep',t:1}};
-  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[bar()]})}];
+  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[bar(),icons()]})}];
   state.works[workId].humanCells=['sheet1:3:0','sheet2:0:0'];
   let view=mountNative({book:structuredClone(b),humanCells:state.works[workId].humanCells,version:'tabs'}), serial=0, saved;
   const persist=async()=>{
@@ -216,7 +217,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
     const exchange=new XlsxExchange({workspace:ws,worker:{async run(){exports++;return {base64:'UEs=',warnings:[]};}}});
     await exchange.export('owner',{workId,book:removed.book});assert.equal(exports,1);
     wb.undo(); saved=await persist();
-    assert.deepEqual(conditionalRules(saved.book).sheet1,[bar()]);
+    assert.deepEqual(conditionalRules(saved.book).sheet1,[bar(),icons()]);
     assert.ok(saved.humanCells.includes('sheet1:3:0'));
     assert.ok(saved.humanCells.includes('sheet2:0:0'));
     assert.equal(saved.book.sheets.sheet2.cellData[0][0].v,'keep');
@@ -224,7 +225,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
     wb.undo(); saved=await persist();
   } finally {view.dispose();}
   view=mountNative({book:saved.book,humanCells:saved.humanCells,version:'cold-tabs'});
-  try {await view.settle();validateWorkbook(view.handle.save());assert.deepEqual(conditionalRules(view.handle.save()).sheet1,[bar()]);}
+  try {await view.settle();validateWorkbook(view.handle.save());assert.deepEqual(conditionalRules(view.handle.save()).sheet1,[bar(),icons()]);}
   finally {view.dispose();}
   assert.equal((await ws.mutate('owner',workId,{commandId:'agent',expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:3,column:0,value:99}]}})).status,'proposed');
 });
@@ -408,7 +409,7 @@ test('malformed scale thresholds refuse before native mutation or server save an
   } finally {view.dispose();}
 });
 
-test('mixed scale/bar draft and lost Save acknowledgement survive remount and exact retry through NativeEditor commit', async () => {
+test('mixed scale/bar/icon draft and lost Save acknowledgement survive remount and exact retry through NativeEditor commit', async () => {
   const state=initialState('owner'), ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Scale draft'});
   state.works[workId].book.sheets.sheet1.cellData={0:{0:{v:0,t:2},2:{f:'=1+2'}},1:{0:{v:100,t:2}}};
@@ -424,7 +425,7 @@ test('mixed scale/bar draft and lost Save acknowledgement survive remount and ex
   let app=mountApp(storage,fetcher),view;
   try {
     await app.open(workId);view=mountNative(app.native());await view.settle();
-    const sheet=view.api.getActiveWorkbook().getActiveSheet();sheet.addConditionalFormattingRule(scale(true));sheet.addConditionalFormattingRule(bar());
+    const sheet=view.api.getActiveWorkbook().getActiveSheet();sheet.addConditionalFormattingRule(scale(true));sheet.addConditionalFormattingRule(bar());sheet.addConditionalFormattingRule(icons());
     const pending=await view.handle.commit();await app.flush();await app.save();await app.flush();
     assert.equal(calls.length,1);view.dispose();view=null;app.unmount();
     app=mountApp(storage,fetcher);await app.open(workId);view=mountNative(app.native());await view.settle();
@@ -440,7 +441,7 @@ for (const axis of ['row','column']) for (const partial of [false,true]) test(`c
   b.sheets.sheet1.cellData={0:{0:{v:0,t:2,s:{it:1}},2:{f:'=1+2'}},1:{0:{v:50,t:2}},2:{0:{v:100,t:2}}};
   const r={startRow:0,endRow:499,startColumn:0,endColumn:99};
   const ranges=partial?Array.from({length:500},(_,i)=>({startRow:Math.floor(i/10)*3,endRow:Math.floor(i/10)*3+1,startColumn:(i%10)*3,endColumn:(i%10)*3+1})):[r];
-  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:partial ? [{...scale(),ranges:ranges.slice(0,250)},{...rule(),ranges:ranges.slice(250)},{...bar(),ranges}] : [{...scale(),ranges:[{...r,endRow:299}]},{...rule(),ranges:[{...r,startRow:300}]},{...bar(),ranges}]})}];
+  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:partial ? [{...scale(),ranges:ranges.slice(0,125)},{...rule(),ranges:ranges.slice(125,250)},{...icons(),ranges:ranges.slice(250)},{...bar(),ranges}] : [{...scale(),ranges:[{...r,endRow:199}]},{...rule(),ranges:[{...r,startRow:200,endRow:299}]},{...icons(),ranges:[{...r,startRow:300}]},{...bar(),ranges}]})}];
   const v=mountNative({book:b,version:`${axis}-${partial}`,humanCells:['sheet1:499:99']});
   try {
     await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet();s.getRange('B2').setValue(42);
@@ -457,7 +458,7 @@ for (const axis of ['row','column']) for (const partial of [false,true]) test(`c
   } finally {v.dispose();}
 });
 
-for (const axis of ['row','column']) test(`${axis} insertion inherits only authored formatting for bars, scales and numeric/text highlights through Undo/Redo, removal and reopen`, async () => {
+for (const axis of ['row','column']) test(`${axis} insertion inherits only authored formatting for icons, bars, scales and numeric/text highlights through Undo/Redo, removal and reopen`, async () => {
   const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Inherited styles'});const b=state.works[workId].book;
   const cell=(along,across)=>axis==='row'?[along,across]:[across,along];
@@ -467,11 +468,11 @@ for (const axis of ['row','column']) test(`${axis} insertion inherits only autho
   put(0,2,{v:10,t:2,s:{it:1}});put(0,3,{v:'Ready',t:1,s:{bg:{rgb:'#112233'},ff:'Arial'}});put(0,4,{v:9,t:2,s:{bl:1}});put(0,5,{f:'=1+2'});
   // Keep a visible bar on the inherited row; its value is the data minimum.
   const inheritedBar=bar();inheritedBar.rule.config.min={type:'num',value:0};
-  const rules=[{...inheritedBar,ranges:[rr(0,1)]},{...scale(),ranges:[rr(0,1)]},{...rule(),ranges:[rr(2,2)]},{cfId:'text',stopIfTrue:false,ranges:[rr(3,3)],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready',style:{bg:{rgb:'#00ff00'},bl:1}}}];
+  const rules=[{...icons(),ranges:[rr(0,1)]},{...inheritedBar,ranges:[rr(0,1)]},{...scale(),ranges:[rr(0,1)]},{...rule(),ranges:[rr(2,2)]},{cfId:'text',stopIfTrue:false,ranges:[rr(3,3)],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready',style:{bg:{rgb:'#00ff00'},bl:1}}}];
   b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:rules})}];
   let v=mountNative({book:structuredClone(b),version:axis}),saved;
   const styles=(snapshot,along,across)=>{const [r,c]=cell(along,across),s=snapshot.sheets.sheet1.cellData[r]?.[c]?.s;return typeof s==='string'?snapshot.styles[s]:s;};
-  const check=async()=>{const snapshot=await v.handle.commit();for(const row of Object.values(snapshot.sheets.sheet1.cellData))for(const cell of Object.values(row)){assert.equal(cell.dataBar,undefined);assert.equal(cell.fontRenderExtension,undefined);}assert.equal(styles(snapshot,1,0),undefined);assert.deepEqual(styles(snapshot,1,1),{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1});assert.deepEqual(styles(snapshot,1,2),{it:1});assert.deepEqual(styles(snapshot,1,3),{bg:{rgb:'#112233'},ff:'Arial'});assert.deepEqual(styles(snapshot,1,4),{bl:1});return snapshot;};
+  const check=async()=>{const snapshot=await v.handle.commit();for(const row of Object.values(snapshot.sheets.sheet1.cellData))for(const cell of Object.values(row)){assert.equal(cell.dataBar,undefined);assert.equal(cell.iconSet,undefined);assert.equal(cell.fontRenderExtension,undefined);}assert.equal(styles(snapshot,1,0),undefined);assert.deepEqual(styles(snapshot,1,1),{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1});assert.deepEqual(styles(snapshot,1,2),{it:1});assert.deepEqual(styles(snapshot,1,3),{bg:{rgb:'#112233'},ff:'Arial'});assert.deepEqual(styles(snapshot,1,4),{bl:1});return snapshot;};
   try {
     await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet(),before=await v.handle.commit();
     for(const across of [0,1,2,3]){const [r,c]=cell(0,across);assert.ok(v.conditional.composeStyle(workId,'sheet1',r,c)?.style?.bg);if(across<2)assert.equal(v.conditional.composeStyle(workId,'sheet1',r,c).dataBar.value,20);}
@@ -554,16 +555,17 @@ test('sheet duplication preflights aggregate conditional limits and allows bound
   } finally {w.dispose();}
 });
 
-test('scale/bar calculation and disposal are isolated between simultaneous native editor instances', async () => {
-  const make=(id,values)=>{const b=blankWorkbook(id);b.sheets.sheet1.cellData={0:{0:{v:values[0],t:2},2:{f:'=1+2'}},1:{0:{v:values[1],t:2}}};b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[scale(),bar()]})}];return b;};
+test('scale/bar/icon calculation and disposal are isolated between simultaneous native editor instances', async () => {
+  const make=(id,values)=>{const b=blankWorkbook(id);b.sheets.sheet1.cellData={0:{0:{v:values[0],t:2},2:{f:'=1+2'}},1:{0:{v:values[1],t:2}}};b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[scale(),bar(),icons()]})}];return b;};
   const a=mountNative({book:make('local-a',[-1000,-999]),version:'a'}),b=mountNative({book:make('local-b',[-1e308,1e308]),version:'b'});
   let disposed=false;
   try {
     await a.settle();await b.settle();
     assert.equal(a.conditional.composeStyle('local-a','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');
     assert.equal(a.conditional.composeStyle('local-a','sheet1',0,0).dataBar.startPoint,100);assert.equal(a.conditional.composeStyle('local-a','sheet1',1,0).dataBar,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).dataBar.startPoint,50);
+    assert.equal(a.conditional.composeStyle('local-a','sheet1',0,0).iconSet.iconId,'2');assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).iconSet.iconId,'0');
     a.dispose();disposed=true;await b.conditionalSettled(()=>b.api.getActiveWorkbook().getActiveSheet().getRange('A1:A2').setValues([[-20],[-10]]));
-    assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal((await b.handle.commit()).sheets.sheet1.cellData[1][0].s,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).dataBar,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',0,0).dataBar.startPoint,100);
+    assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal((await b.handle.commit()).sheets.sheet1.cellData[1][0].s,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).dataBar,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',0,0).dataBar.startPoint,100);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).iconSet.iconId,'2');
   } finally {if(!disposed)a.dispose();b.dispose();}
 });
 
@@ -831,5 +833,139 @@ test('native panel-shaped bar values, custom colors, flags, live ranges and edit
     await v.conditionalSettled(()=>s.getRange('B2').setValue(25));assert.equal(v.conditional.composeStyle(b.id,'sheet1',1,1).dataBar.value,100);assert.equal(s.getSheet().getCell(1,1).fontRenderExtension.isSkip,false);
     wb.undo();await v.conditionalSettled(()=>wb.undo());assert.deepEqual(conditionalRules(await v.handle.commit()).sheet1,[r]);
     assert.deepEqual((await v.handle.commit()).sheets.sheet1.cellData,before.sheets.sheet1.cellData);
+  }finally{v.dispose();}
+});
+
+test('all allowed icon families match the installed registry and actual facade/UI command/render contracts',async()=>{
+  const b=blankWorkbook('icon-registry');b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  const v=mountNative({book:b,version:'registry'});
+  try {await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),registry=s.newConditionalFormattingRule().getIconMap();
+    assert.deepEqual(Object.fromEntries(Object.entries(registry).map(([k,list])=>[k,list.length])),CONDITIONAL_ICON_FAMILIES);
+    for(const [family,count] of Object.entries(CONDITIONAL_ICON_FAMILIES)) {
+      const r=icons(family);r.ranges=[{...range,endRow:count-1}];
+      s.getRange(`A1:A${count}`).setValues(Array.from({length:count},(_,i)=>[(count-1-i)*10]));
+      const built=s.newConditionalFormattingRule().setIconSet({iconConfigs:r.rule.config,isShowValue:true}).setRanges(r.ranges).build();
+      assert.deepEqual(built.rule,r.rule);
+      assert.equal(await v.commands.executeCommand('sheet.command.add-icon-set-conditional-rule',{ranges:r.ranges,config:built.rule.config,isShowValue:true}),true);
+      for(let row=0;row<count;row++)assert.deepEqual(v.conditional.composeStyle(b.id,'sheet1',row,0).iconSet,{iconType:family,iconId:String(row),isShowValue:true});
+      const drawn=v.drawIcons('sheet1',r.ranges[0]);assert.equal(drawn.length,count);
+      drawn.forEach((d,i)=>{assert.equal(d.source,registry[family][i]);assert.deepEqual(d.geometry,[2,i*24+4.5,15,15]);});
+      validateWorkbook(await v.handle.commit());s.deleteConditionalFormattingRule(s.getConditionalFormattingRules()[0].cfId);
+    }
+  }finally{v.dispose();}
+});
+
+test('icon thresholds retain exact comparators, associations, ties, reversal and no-icon composition on fixed data',async()=>{
+  const b=blankWorkbook('icon-boundaries');b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  [0,10,20,30,40].forEach((value,row)=>(b.sheets.sheet1.cellData[row]??={})[0]={v:value,t:2,s:{it:1}});
+  const v=mountNative({book:b,version:'boundaries'});
+  try{await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet(),r=icons();r.ranges=[{...range,endRow:7}];s.addConditionalFormattingRule(r);
+    const ids=()=>Array.from({length:5},(_,row)=>v.conditional.composeStyle(b.id,'sheet1',row,0)?.iconSet?.iconId);
+    const set=async(config,show=true)=>v.conditionalSettled(()=>s.setConditionalFormattingRule('icons',{...r,rule:{...r.rule,config,isShowValue:show}}));
+    assert.deepEqual(ids(),['2','1','0','0','0']);
+    let c=structuredClone(r.rule.config);c[0].operator='greaterThan';c[1].operator='greaterThan';await set(c);assert.deepEqual(ids(),['2','2','1','0','0']);
+    c[0].value.value=40;c[1].value.value=30;await set(c);assert.deepEqual(ids(),['2','2','2','2','1'],'authored changes affect fixed data');
+    c=structuredClone(r.rule.config);c[0].value.value=10;c[1].value.value=30;await set(c);assert.deepEqual(ids(),['2','0','0','1','1'],'crossings sort whole bands');
+    c[1].value={type:'percent',value:75};await set(c);assert.deepEqual(ids(),['2','0','0','1','1'],'mixed threshold crossing keeps icon associations');assert.deepEqual(conditionalRules(await v.handle.commit()).sheet1[0].rule.config,c);
+    c[0].value.value=20;c[1].value={type:'num',value:20};await set(c);assert.deepEqual(ids(),['2','2','0','0','0']);
+    c[0].operator='greaterThan';await set(c);assert.deepEqual(ids(),['2','2','1','0','0'],'first matching band at a tie');
+    c=structuredClone(r.rule.config);c.forEach((p,i)=>{p.iconId=String(2-i);});await set(c);assert.deepEqual(ids(),['0','1','2','2','2'],'native reversal changes icons only');
+    c=structuredClone(r.rule.config);c.forEach((p,i)=>{p.iconType='5Rating';p.iconId=String(4-i);});await set(c,false);
+    assert.deepEqual(ids(),['2','3','4','4','4']);assert.equal(s.getSheet().getCell(0,0).fontRenderExtension.isSkip,true);
+    await v.conditionalSettled(()=>s.getRange('A6:A8').setValues([['text'],[true],[null]]));
+    for(let row=5;row<8;row++){assert.equal(v.conditional.composeStyle(b.id,'sheet1',row,0)?.iconSet,undefined);assert.ok(!s.getSheet().getCell(row,0)?.fontRenderExtension?.isSkip);}
+    s.addConditionalFormattingRule({...scale(),ranges:r.ranges});s.addConditionalFormattingRule({...bar(),ranges:r.ranges});s.addConditionalFormattingRule({...rule(),ranges:r.ranges});
+    s.addConditionalFormattingRule({...icons('3Flags'),cfId:'lower-icons',ranges:r.ranges});
+    await v.conditionalSettled(()=>s.moveConditionalFormattingRule('icons','lower-icons','before'));
+    c[0].iconType='EMPTY_ICON_TYPE';c[0].iconId='';await set(c);
+    const result=v.conditional.composeStyle(b.id,'sheet1',3,0);assert.equal(result.iconSet,undefined);assert.ok(result.style.bg);assert.ok(result.dataBar);assert.equal(result.isShowValue,true);
+    assert.equal(s.getSheet().getCell(3,0).fontRenderExtension.leftOffset,undefined,'no phantom icon spacing');
+    assert.equal(v.drawIcons('sheet1',r.ranges[0]).length,2);
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule('icons',{...r,stopIfTrue:true}));assert.equal(v.conditional.composeStyle(b.id,'sheet1',3,0).style,undefined);
+    const text={...rule(),cfId:'text',ranges:r.ranges,rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'text',style:{bl:1}}};s.addConditionalFormattingRule(text);
+    assert.equal(v.conditional.composeStyle(b.id,'sheet1',5,0).style.bl,1,'non-numeric icon result never stops unrelated formatting');
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule('icons',{...r,ranges:[{...range,startColumn:1,endColumn:1}]}));assert.equal(v.conditional.composeStyle(b.id,'sheet1',3,0).iconSet.iconType,'3Flags');
+    await v.conditionalSettled(()=>wb.undo());assert.equal(ids()[3],'0');s.deleteConditionalFormattingRule('icons');assert.equal(v.conditional.composeStyle(b.id,'sheet1',3,0).iconSet.iconType,'3Flags');await v.conditionalSettled(()=>wb.undo());assert.equal(ids()[3],'0');
+    const raw=(await v.handle.commit()).sheets.sheet1.cellData;for(let row=0;row<5;row++){assert.deepEqual(raw[row][0].s,{it:1});assert.equal(raw[row][0].iconSet,undefined);}
+  }finally{v.dispose();}
+});
+
+test('icon percent/percentile resolve interior, signed, extreme, constant and empty data; formula edits invalidate native cache',async()=>{
+  const b=blankWorkbook('icon-relative');b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};const v=mountNative({book:b,version:'relative'});
+  try{await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),r=icons();r.ranges=[{...range,endRow:4}];s.addConditionalFormattingRule(r);
+    const check=expected=>assert.deepEqual(expected.map((_,row)=>v.conditional.composeStyle(b.id,'sheet1',row,0)?.iconSet?.iconId),expected);
+    for(const [values,type,upper,lower,expected] of [
+      [[0,10,15,20],'percent',75,50,['2','1','0','0']],
+      [[0,10,15,20],'percent',100,75,['2','2','1','0']],
+      [[0,10,15,20],'percentile',75,50,['2','2','1','0']],
+      [[-20,-15,-10,0],'percent',75,50,['2','2','1','0']],
+      [[-1e308,-5e307,0,5e307,1e308],'percent',75,25,['2','1','1','0','0']],
+      [[-1e308,-5e307,0,5e307,1e308],'percentile',75,25,['2','1','1','0','0']],
+      [[1e307,5e307,1e308],'percent',75,25,['2','1','0']],
+      [[-1e308,-5e307,-1e307],'percent',75,25,['2','1','0']],
+      [[7,7,7],'percent',75,25,['0','0','0']], [[-7,-7,-7],'percentile',75,25,['0','0','0']],
+      [[0,0,0],'percent',75,25,['0','0','0']], [[null,'text',true],'percent',75,25,[undefined,undefined,undefined]],
+    ]) {
+      await v.conditionalSettled(()=>s.getRange('A1:A5').setValues(Array.from({length:5},(_,i)=>[values[i]??null])));
+      const c=structuredClone(r.rule.config);c[0].value={type,value:upper};c[1].value={type,value:lower};
+      await v.conditionalSettled(()=>s.setConditionalFormattingRule('icons',{...r,rule:{...r.rule,config:c}}));check(expected);
+    }
+    await v.conditionalSettled(()=>s.getRange('A1:A5').setValues([[0],[10],[{f:'=A2*1.5'}],[20],[null]]));await v.settle();
+    const c=structuredClone(r.rule.config);c[0].value={type:'percent',value:75};c[1].value={type:'percentile',value:50};
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule('icons',{...r,rule:{...r.rule,config:c}}));check(['2','2','0','0']);
+    await v.conditionalSettled(()=>s.getRange('A2').setValue(8));await v.settle();check(['2','2','1','0']);
+    await v.conditionalSettled(()=>s.getRange('A3').setValue('=A2*2'));await v.settle();check(['2','2','0','0']);
+    assert.equal((await v.handle.commit()).sheets.sheet1.cellData[2][0].f,'=A2*2');
+    for(const formula of ['="text"','=TRUE()']) {await v.conditionalSettled(()=>s.getRange('A3').setValue(formula));await v.settle();assert.equal(v.conditional.composeStyle(b.id,'sheet1',2,0)?.iconSet,undefined);assert.ok(!s.getSheet().getCell(2,0)?.fontRenderExtension?.isSkip);}
+    await v.conditionalSettled(()=>s.getRange('A3').setValue('=0'));await v.settle();assert.equal(v.conditional.composeStyle(b.id,'sheet1',2,0).iconSet.iconId,'2');
+  }finally{v.dispose();}
+});
+
+test('malformed icon metadata refuses before actual mutation, evaluation, persistence or Undo changes',async()=>{
+  const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
+  const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Icon refusal'}),b=state.works[workId].book;b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  const v=mountNative({book:structuredClone(b),version:'refusal'});
+  try{await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet();s.addConditionalFormattingRule(icons());s.getRange('B2').setValue(42);
+    const before=await v.handle.commit(),provenance=v.handle.formatEdits(),saved=await ws.get('owner',workId);let mutations=0;
+    const listener=v.commands.onCommandExecuted(c=>{if(/sheet\.mutation\.(add|set)-conditional-rule/.test(c.id))mutations++;});
+    for(const change of [r=>r.config=null,r=>r.config.pop(),r=>r.config.push(...r.config),r=>r.config[0]=null,r=>r.extra={},r=>r.isShowValue=1,
+      r=>r.config[0].url='https://example.com/icon.svg',r=>r.config[0].iconType='CUSTOM',r=>r.config[0].iconType='constructor',r=>r.config[0].iconId='3',r=>r.config[0].iconId=0,r=>r.config[0].iconId='01',r=>r.config[0].iconId='-1',r=>r.config[0].iconType='EMPTY_ICON_TYPE',r=>r.config[0].operator='lessThan',r=>r.config[0].operator='equal',
+      r=>r.config[0].value={type:'formula',value:'=WEBSERVICE("https://example.com")'},r=>r.config[2].value={type:'formula',value:'=A1'},r=>r.config[0].value={type:'min'},r=>r.config[0].value={type:'num',value:1e308},r=>r.config[0].value={type:'num',value:NaN},r=>r.config[0].value={type:'num',value:Infinity},r=>r.config[0].value={type:'num',value:'10'},r=>r.config[0].value={type:'percent',value:-1},r=>r.config[1].value={type:'percentile',value:101},r=>r.config[2].value={type:'percent',value:Number.MAX_SAFE_INTEGER},r=>r.config[0].value.extra={},r=>delete r.config[0].iconId]){
+      const r=icons();change(r.rule);s.addConditionalFormattingRule({...r,cfId:'invalid'});s.setConditionalFormattingRule('icons',r);
+      assert.equal(mutations,0);assert.deepEqual(await v.handle.commit(),before);assert.deepEqual(v.handle.formatEdits(),provenance);
+      const book=structuredClone(before);book.resources.find(x=>x.name===CONDITIONAL_RESOURCE).data=JSON.stringify({sheet1:[r]});
+      await assert.rejects(()=>ws.save('owner',workId,{commandId:'invalid',book,contentRevision:1,permissionRevision:1}));assert.deepEqual(await ws.get('owner',workId),saved);
+    }
+    listener.dispose();wb.undo();assert.equal((await v.handle.commit()).sheets.sheet1.cellData[1]?.[1]?.v,undefined);
+  }finally{v.dispose();}
+});
+
+test('icon-only native save/reopen and removal preserve blank ownership, maintenance proposals and export refusal',async()=>{
+  const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
+  const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Icons'}),b=state.works[workId].book;
+  b.sheets.sheet1.cellData={0:{0:{v:20,t:2,s:{it:1}},2:{f:'=1+2'}},1:{0:{v:0,t:2}}};let v=mountNative({book:structuredClone(b),version:'icons'}),saved;
+  try{await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),raw=(await v.handle.commit()).sheets.sheet1.cellData;
+    const r=icons();r.rule.isShowValue=false;s.addConditionalFormattingRule(r);
+    const book=await v.handle.commit();assert.deepEqual(book.sheets.sheet1.cellData,raw);
+    const input={commandId:'save',book,formatEdits:v.handle.formatEdits(),contentRevision:1,permissionRevision:1};
+    const ack=await ws.save('owner',workId,input);assert.deepEqual(await ws.save('owner',workId,input),ack);saved=await ws.get('owner',workId);
+    assert.ok(saved.humanCells.includes('sheet1:3:0'));assert.ok(!saved.humanCells.includes('sheet1:0:2'));
+    const patch={cells:[{sheetId:'sheet1',row:3,column:0,value:99}]};
+    assert.equal((await ws.mutate('owner',workId,{commandId:'model',expected:saved.expected,patch})).status,'proposed');
+    const resourceOnly=structuredClone(state.works[workId]);resourceOnly.humanCells=[];
+    assert.deepEqual(commitEditorPatch(state,resourceOnly,patch,saved.expected,'maintenance_changed'),{status:'protected',reason:'human_edit'});
+    assert.deepEqual((await ws.get('owner',workId)).book,saved.book);
+    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book}),/xlsx_conditional_formatting_not_supported/);
+    assert.throws(()=>serializeCsv(book,'sheet1'),/cannot preserve conditional/);
+    s.deleteConditionalFormattingRule('icons');assert.equal(v.conditional.composeStyle(workId,'sheet1',0,0)?.iconSet,undefined);
+    assert.ok(!s.getSheet().getCell(0,0).fontRenderExtension?.isSkip);
+    await ws.save('owner',workId,{commandId:'remove',book:await v.handle.commit(),formatEdits:v.handle.formatEdits(),contentRevision:saved.contentRevision,permissionRevision:1});
+    assert.ok((await ws.get('owner',workId)).humanCells.includes('sheet1:3:0'));
+  }finally{v.dispose();}
+  v=mountNative({book:saved.book,humanCells:saved.humanCells,version:'cold-icons'});
+  try{await v.settle();assert.equal(v.edits,0);assert.deepEqual(v.handle.formatEdits(),{});const book=await v.handle.commit();
+    assert.deepEqual(conditionalRules(book),conditionalRules(saved.book));assert.deepEqual(book.sheets.sheet1.cellData,saved.book.sheets.sheet1.cellData);
+    assert.deepEqual(v.conditional.composeStyle(workId,'sheet1',0,0).iconSet,{iconType:'3Arrows',iconId:'0',isShowValue:false});
+    assert.equal(v.drawIcons('sheet1',range).length,2);
   }finally{v.dispose();}
 });

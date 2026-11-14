@@ -204,10 +204,11 @@ test('actual SDK calculation between App save and ACK is Saved and continuation 
   api.works.old.book.sheets.sheet1.cellData = { 0: { 0: { v: 1, t: 2 }, 1: { f: '=A1*2', si: 'shared' } }, 1: { 1: { si: 'shared' } } };
   const view = mount(storage, api.fetch); await view.flush(); await view.open('old');
   const univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
+  univer.registerPlugin(sdkRequire('@univerjs/engine-render').UniverRenderEnginePlugin);
   univer.registerPlugin(sdkRequire('@univerjs/sheets').UniverSheetsPlugin);
   univer.registerPlugin(sdkRequire('@univerjs/engine-formula').UniverFormulaEnginePlugin);
   univer.registerPlugin(sdkRequire('@univerjs/sheets-formula').UniverSheetsFormulaPlugin);
-  const sdk = FUniver.newAPI(univer), book = sdk.createWorkbook(structuredClone(view.native().book));
+  const sdk = FUniver.newAPI(univer), book = sdk.createWorkbook(structuredClone(view.native().book), {skipAutoRender:true});
   try {
     await sdk.getFormula().onCalculationResultApplied(4000);
     view.native().onReady({ save: () => structuredClone(book.save()), commit: async () => structuredClone(book.save()), isEditing: () => false });

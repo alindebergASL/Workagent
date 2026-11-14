@@ -25,6 +25,8 @@ const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 function engine(formula = {}) {
   const univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
+  // Real preset loading registers UI facade observers; retain their native render dependency.
+  univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
   univer.registerPlugin(UniverSheetsPlugin);
   univer.registerPlugin(UniverFormulaEnginePlugin);
   univer.registerPlugin(UniverSheetsFormulaPlugin, formula);
@@ -44,7 +46,7 @@ test('XLSX Unicode sheet references and literal strings calculate with the insta
   const imported=trustedCodec({op:'import',base64:exported.base64}).book;
   const e=engine({initialFormulaComputing:CalculationMode.FORCED});
   try {
-    const book=e.api.createWorkbook(imported); await e.settle();
+    const book=e.api.createWorkbook(imported, {skipAutoRender:true}); await e.settle();
     const cells=book.save().sheets.sheet2.cellData[0];
     assert.equal(cells[0].v,112.5); assert.equal(cells[1].v,'秘密');
   } finally {await e.dispose();}

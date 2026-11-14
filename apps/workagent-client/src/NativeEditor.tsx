@@ -1,3 +1,4 @@
+import { conditionalRuleEditor, type ConditionalPanelProps } from './conditional-icon-editor';
 import { CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset } from '@univerjs/preset-sheets-conditional-formatting';
 import UniverSheetsConditionalFormattingEnUS from '@univerjs/preset-sheets-conditional-formatting/locales/en-US';
 import '@univerjs/preset-sheets-conditional-formatting/lib/index.css';
@@ -60,7 +61,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
         if (count > 256 || ranges > 1000 || area > 100000) throw new Error('conditional rule limit');
       }
       catch {
-        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Use bounded numeric/text highlights, two/three-color scales or native data bars with minimum/maximum, numeric, percent or percentile thresholds. Formula/custom thresholds and icons are unsupported. Existing sheet edits are kept.' });
+        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Use bounded numeric/text highlights, two/three-color scales, data bars or built-in 3/4/5-icon sets. Icon boundaries support numeric or 0–100 percent/percentile values and > or >=. Formula/custom thresholds, external icons and out-of-range quick presets are refused; use the rule editor. Existing sheet edits are kept.' });
         throw new CanceledError();
       }
     });
@@ -84,11 +85,12 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     // otherwise acknowledge only the previous rule and lose the typed draft.
     let conditionalPanel: HTMLDivElement | null = null;
     const components = univer.__getInjector().get(ComponentManager);
-    const NativeConditionalPanel = components.get(CF_PANEL_KEY) as ComponentType;
+    const NativeConditionalPanel = components.get(CF_PANEL_KEY) as ComponentType<ConditionalPanelProps>;
+    const RuleEditComponent = conditionalRuleEditor(NativeConditionalPanel, univer.__getInjector(), book.id, () => structuredClone(workbook.save()));
     const panelRegistration = components.register(CF_PANEL_KEY, (props: object) => createElement('div', {
       ref: (node: HTMLDivElement | null) => { conditionalPanel = node; },
       onInputCapture: () => { edits++; notifyEdit(); },
-    }, createElement(NativeConditionalPanel, props)), { override: true });
+    }, createElement(NativeConditionalPanel, { ...props, RuleEditComponent })), { override: true });
     const conditionalEditing = () => {
       const submit = univer.__getInjector().get(LocaleService).t('sheets-conditional-formatting-ui.panel.submit');
       return !!conditionalPanel && [...conditionalPanel.querySelectorAll('button')].some(button => button.textContent?.trim() === submit);

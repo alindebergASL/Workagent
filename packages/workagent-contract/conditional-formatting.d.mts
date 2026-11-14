@@ -2,6 +2,8 @@ import type { IWorkbookData } from '@univerjs/core';
 export type ConditionalScaleThreshold = { type: 'min' | 'max'; value?: number } | { type: 'num' | 'percent' | 'percentile'; value: number };
 export type ConditionalScale = { type: 'colorScale'; config: { index: number; color: string; value: ConditionalScaleThreshold }[] };
 export type ConditionalBar = { type: 'dataBar'; isShowValue?: boolean; config: { min: ConditionalScaleThreshold; max: ConditionalScaleThreshold; positiveColor?: string; nativeColor?: string; isGradient?: boolean } };
+export type ConditionalIconSet = { type: 'iconSet'; isShowValue?: boolean; config: { operator: 'greaterThan' | 'greaterThanOrEqual' | 'lessThanOrEqual'; value: { type: 'num' | 'percent' | 'percentile'; value: number }; iconType: string; iconId: string }[] };
+export const CONDITIONAL_ICON_FAMILIES: Readonly<Record<string, number>>;
 export const CONDITIONAL_RESOURCE: string;
 export const CONDITIONAL_SCOPE: string;
 export function conditionalRules(book: IWorkbookData): Record<string, { cfId: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[]; stopIfTrue: boolean; rule: unknown }[]>;

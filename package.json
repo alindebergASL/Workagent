@@ -28,7 +28,7 @@
     "test:pdf-isolation": "node apps/workagent-server/tests/pdf-isolation.test.mjs",
     "test:focus": "node apps/workagent-client/tests/editor-focus.test.mjs",
     "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs && node apps/workagent-client/tests/validation-settlement.test.mjs",
-    "test:conditional": "node apps/workagent-client/tests/conditional-formatting.test.mjs",
+    "test:conditional": "node apps/workagent-client/tests/conditional-formatting.test.mjs && node apps/workagent-client/tests/conditional-editor.test.mjs",
     "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs"
   },
   "dependencies": {

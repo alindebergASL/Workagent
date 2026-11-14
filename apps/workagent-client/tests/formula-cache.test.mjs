@@ -25,6 +25,8 @@ const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 function engine(formula = {}) {
   const univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
+  // Real preset loading registers UI facade observers; retain their native render dependency.
+  univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
   univer.registerPlugin(UniverSheetsPlugin);
   univer.registerPlugin(UniverFormulaEnginePlugin);
   univer.registerPlugin(UniverSheetsFormulaPlugin, formula);
@@ -49,7 +51,7 @@ function fixture() {
   return book;
 }
 async function humanSnapshot() {
-  const e = engine(), book = e.api.createWorkbook(fixture());
+  const e = engine(), book = e.api.createWorkbook(fixture(), {skipAutoRender:true});
   try {
     await e.settle(); assert.equal(cell(book.save(), 3).v, 210);
     book.getActiveSheet().getRange('B2').setValue(999);
@@ -80,7 +82,7 @@ test('native human snapshot -> authoritative patch -> default native reopen reca
   assert.equal(cell(modelRead, 0, 2).v, '=1+1');
   assert.equal(cell(modelRead, 3).f, '=B2-B3');
   const patched = applyPatch(saved, { cells: [{ sheetId: 'sheet1', row: 1, column: 1, value: 150 }] });
-  const e = engine(), book = e.api.createWorkbook(structuredClone(patched));
+  const e = engine(), book = e.api.createWorkbook(structuredClone(patched), {skipAutoRender:true});
   try {
     await e.settle(); correct(book.save());
     // This is the same authoritative workbook read_sheet returns, before any client opens.
@@ -127,7 +129,7 @@ test('maintenance Relink of a genuine human snapshot invalidates saved results b
   assert.equal(cell(current.book, 1).v, 150); assert.equal(cell(current.book, 3).v, undefined);
   assert.equal(cell(current.book, 2, 2).v, undefined);
   assert.ok(current.humanCells.includes('sheet1:3:1')); assert.ok(!current.humanCells.includes('sheet1:1:1'));
-  const e = engine(), book = e.api.createWorkbook(current.book);
+  const e = engine(), book = e.api.createWorkbook(current.book, {skipAutoRender:true});
   try { await e.settle(); correct(book.save()); } finally { await e.dispose(); }
 });
 

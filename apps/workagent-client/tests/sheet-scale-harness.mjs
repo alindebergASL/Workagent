@@ -1,6 +1,7 @@
 // Same headless consumer technique as formula-cache/csv-app tests. No DOM,
 // native SDK/prototype mutation, browser storage quota or pending keystroke proof.
 import assert from 'node:assert/strict';
+import { mountConditionalEditor } from './conditional-editor-harness.mjs';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -13,6 +14,14 @@ import { artifactFixture, FixtureArtifactStorage } from './artifact-storage-fixt
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
 // Event-only DOM seam: no canvas, layout, browser or focus assertions.
 const localRequire = createRequire(import.meta.url);
+// Native validation preset imports static dropdown paths at module load. Store
+// those paths only; this harness never claims dropdown canvas rendering.
+function loadPreset(name) {
+  const previous = globalThis.Path2D;
+  globalThis.Path2D ??= class { constructor(path) { this.path = path; } };
+  try { return localRequire(name); }
+  finally { if (previous === undefined) delete globalThis.Path2D; else globalThis.Path2D = previous; }
+}
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
 const conditionalRequire = createRequire(import.meta.resolve('@univerjs/preset-sheets-conditional-formatting'));
 const conditionalSdk = conditionalRequire('@univerjs/sheets-conditional-formatting');
@@ -31,6 +40,8 @@ new Function('require', 'module', 'exports', compile('../src/native-conditional.
   if (name === '@univerjs/preset-sheets-conditional-formatting') return conditionalSdk;
   return localRequire(name);
 }, conditionalModule, conditionalModule.exports);
+const iconEditorModule = { exports: {} };
+new Function('require', 'module', 'exports', compile('../src/conditional-icon-editor.tsx'))(name => name === '@univerjs/preset-sheets-core' ? loadPreset(name) : localRequire(name), iconEditorModule, iconEditorModule.exports);
 const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src/main.tsx');
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
 export function mountNative(props, plugins = [], editing) {
@@ -55,6 +66,7 @@ export function mountNative(props, plugins = [], editing) {
   const react = { createElement: localRequire('react').createElement, useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './conditional-icon-editor') return iconEditorModule.exports;
     if (name === './native-conditional') return conditionalModule.exports;
     if (name === './validation-settlement') return { installValidationSettlement: (univer, id, changed) => {
       const injector = univer.__getInjector();
@@ -72,16 +84,20 @@ export function mountNative(props, plugins = [], editing) {
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
-    if (name === '@univerjs/preset-sheets-conditional-formatting') return { ...conditionalSdk, CF_PANEL_KEY: conditionalUI.CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset: () => ({}) };
-    if (name === '@univerjs/preset-sheets-data-validation') return { UniverSheetsDataValidationPreset: () => ({}) };
-    if (name === '@univerjs/preset-sheets-core') return { ...sheets, ComponentManager: ui.ComponentManager, IMessageService, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => ({ ...options, plugins: [[UniverSheetsPlugin, {}]] }) };
+    if (['@univerjs/preset-sheets-conditional-formatting', '@univerjs/preset-sheets-data-validation', '@univerjs/preset-sheets-core'].includes(name)) return loadPreset(name);
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
       for (const dependency of [[ui.IDialogService,{useClass:ui.DesktopDialogService}], [ui.IMessageService,{useValue:{show(message){messages.push(message.content);}}}], [ui.ILayoutService,{useClass:ui.DesktopLayoutService}], [ui.IPlatformService,{useClass:ui.PlatformService}], [ui.IUIPartsService,{useClass:ui.UIPartsService}], [ui.IUIRuntimeScopeService,{useClass:ui.UIRuntimeScopeService}], [ui.IRibbonService,{useClass:ui.DesktopRibbonService}], [ui.IContextMenuService,{useClass:ui.ContextMenuService}], [ui.FormatPainterSessionService], [ui.IShortcutService, {useValue:{registerShortcut(){return {dispose(){}};}}}], [ui.ComponentManager], [ui.IconManager], [ui.IMenuManagerService, {useClass:ui.MenuManagerService}], [ui.ISidebarService, {useClass:ui.DesktopSidebarService}]]) univer.__getInjector().add(dependency);
       univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
-      univer.registerPlugin(UniverSheetsPlugin, options.presets[0].plugins[0][1]); univer.registerPlugin(UniverFormulaEnginePlugin);
-      univer.registerPlugin(UniverSheetsFormulaPlugin, options.presets[0].formula);
-      const nativePlugins = new Set([conditionalSdk.UniverSheetsConditionalFormattingPlugin, conditionalUI.UniverSheetsConditionalFormattingUIPlugin, validationSdk.UniverDataValidationPlugin, validationSdk.UniverSheetsDataValidationPlugin, ...plugins]);
+      // Run the actual preset factories and consume their actual model configs.
+      // DOM/layout plugins remain outside this explicitly headless harness.
+      const entries = options.presets.flatMap(p => p.plugins).map(p => Array.isArray(p) ? p : [p, {}]);
+      const configFor = plugin => { const entry=entries.find(p=>p[0]===plugin);assert.ok(entry,`${plugin.pluginName} missing from native preset`);return entry[1]; };
+      univer.registerPlugin(UniverSheetsPlugin, configFor(UniverSheetsPlugin)); univer.registerPlugin(UniverFormulaEnginePlugin, configFor(UniverFormulaEnginePlugin));
+      univer.registerPlugin(UniverSheetsFormulaPlugin, configFor(UniverSheetsFormulaPlugin));
+      const nativePlugins = new Set([conditionalSdk.UniverSheetsConditionalFormattingPlugin, conditionalUI.UniverSheetsConditionalFormattingUIPlugin, validationSdk.UniverDataValidationPlugin, validationSdk.UniverSheetsDataValidationPlugin]);
+      for (const plugin of nativePlugins) configFor(plugin);
+      for (const plugin of plugins) nativePlugins.add(plugin);
       for (const plugin of nativePlugins) univer.registerPlugin(plugin);
       for (const plugin of options.plugins ?? []) univer.registerPlugin(plugin);
       api = FUniver.newAPI(univer);
@@ -118,6 +134,19 @@ export function mountNative(props, plugins = [], editing) {
   module.exports.NativeEditor({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
   return { api, editorApi, events, messages, conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
     formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
+    openConditionalEditor(rule, onEditorExit) { const injector=univer.__getInjector(); return mountConditionalEditor(injector.get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY), {rule,onEditorExit}, injector); },
+    openIconMenu(range, onEditorExit) {
+      const injector=univer.__getInjector();
+      injector.get(sheets.SheetsSelectionsService).setSelections([{range,primary:null,style:null}]);
+      const previousFrame=globalThis.requestAnimationFrame;
+      globalThis.requestAnimationFrame??=fn=>{fn();return null;}; // Already completed headless sidebar frame.
+      try { injector.get(core.ICommandService).syncExecuteCommand(conditionalUI.OpenConditionalFormattingOperator.id,{value:8}); }
+      finally { if(previousFrame===undefined)delete globalThis.requestAnimationFrame;else globalThis.requestAnimationFrame=previousFrame; }
+      const {children}=injector.get(ui.ISidebarService).options;
+      assert.equal(children.label,conditionalUI.CF_PANEL_KEY);
+      const rule=children.rule;
+      return {rule, editor:mountConditionalEditor(injector.get(ui.ComponentManager).get(children.label),{rule,onEditorExit},injector)};
+    },
     // Exercise the production wrapper's event/ref seam; no native form rendering.
     conditionalPanel() {
       const wrapper = univer.__getInjector().get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY)({}).props;
@@ -141,6 +170,23 @@ export function mountNative(props, plugins = [], editing) {
         getCellWithCoordByIndex(row,col) { return { startX:col*104,endX:(col+1)*104,startY:row*24,endY:(row+1)*24,isMerged:false,isMergedMainCell:false,mergeInfo:{startRow:row,endRow:row,startColumn:col,endColumn:col} }; },
       }, [range]); } finally { renderer.dispose(); }
       return { paths, gradients };
+    },
+    // Real installed icon registry, image selection, content interceptor and
+    // ConditionalFormattingIcon.draw. Image loading and the recording canvas
+    // are fixtures: this checks draw contracts, not browser pixels/decoding.
+    drawIcons(sid, range) {
+      const previousImage = globalThis.Image, calls = [];
+      globalThis.Image = class { set src(value) { this.source = value; this.onload?.(); } };
+      let renderer;
+      try {
+        renderer = new conditionalSdk.ConditionalFormattingIcon();
+        const worksheet = api.getActiveWorkbook().getSheetBySheetId(sid).getSheet();
+        renderer.draw({save(){},restore(){},drawImage(img,...geometry){calls.push({source:img.source,geometry});}}, {scaleX:1,scaleY:1}, {
+          worksheet, rowColumnSegment:range,
+          getCellWithCoordByIndex(row,col) { return {startX:col*104,endX:(col+1)*104,startY:row*24,endY:(row+1)*24,isMerged:false,isMergedMainCell:false,mergeInfo:{startRow:row,endRow:row,startColumn:col,endColumn:col}}; },
+        }, [range]);
+      } finally { renderer?.dispose(); if(previousImage===undefined)delete globalThis.Image;else globalThis.Image=previousImage; }
+      return calls;
     },
     async conditionalSettled(action) {
       const model = univer.__getInjector().get(conditionalSdk.ConditionalFormattingViewModel);

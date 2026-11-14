@@ -1,7 +1,7 @@
 import { Plugin, UniverInstanceType, setDependencies, DependentOn, CanceledError, CellValueType, ColorKit, Injector, IUniverInstanceService, type ICommandInfo, type IRange, type IWorkbookData, type Workbook, type Worksheet } from '@univerjs/core';
 import { UniverSheetsPlugin, SheetInterceptorService, IMessageService, getSheetCommandTarget } from '@univerjs/preset-sheets-core';
 import { UniverSheetsConditionalFormattingPlugin, ConditionalFormattingViewModel, ConditionalFormattingStyleComposer, ConditionalFormattingRuleModel, ConditionalFormattingRangeIndexModel, ConditionalFormattingFormulaService, type IConditionFormattingRule } from '@univerjs/preset-sheets-conditional-formatting';
-import { conditionalRules, validateConditionalRules, type ConditionalScale, type ConditionalBar, type ConditionalScaleThreshold } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { conditionalRules, validateConditionalRules, type ConditionalScale, type ConditionalBar, type ConditionalScaleThreshold, type ConditionalIconSet } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 
 type Point = { value: number; color: number[]; index: number };
 // Convex combinations and normalized distances avoid overflowing b-a across
@@ -96,12 +96,35 @@ function barResult(rule: ConditionalBar, bounds: BarBounds | undefined, value: n
   return { startPoint, value: amount, color: value < 0 ? rule.config.nativeColor ?? '#abd91a' : rule.config.positiveColor ?? '#ffbe38',
     isGradient: rule.config.isGradient ?? false, isShowValue: rule.isShowValue ?? true };
 }
+type IconBand = { point: ConditionalIconSet['config'][number]; value: number; index: number };
+function bandsFor(rule: IConditionFormattingRule, sheet: Worksheet): IconBand[] {
+  const config = (rule.rule as ConditionalIconSet).config.slice(0, -1);
+  const relative = config.some(p => p.value.type !== 'num');
+  const sorted = relative ? valuesFor(rule, sheet) : [];
+  if (relative && !sorted.length) return [];
+  // Keep icon + comparator + threshold together. Resolve mixed types before
+  // descending sort. At coincidences, first authored matching band wins.
+  return config.map((point, index) => ({ point, index, value: resolveThreshold(point.value, sorted) }))
+    .sort((a, b) => a.value > b.value ? -1 : a.value < b.value ? 1 : a.index - b.index);
+}
+function iconResult(rule: ConditionalIconSet, bands: IconBand[], value: number | undefined) {
+  if (value === undefined) return;
+  const point = bands.find(b => b.point.operator === 'greaterThan' ? value > b.value : value >= b.value)?.point ?? rule.config.at(-1)!;
+  return { iconType: point.iconType, iconId: point.iconId, isShowValue: rule.isShowValue ?? true };
+}
 // Native draw treats value=0 as a one-pixel negative bar. Keep its show-value
 // composition (including hidden zero text), but give the renderer no zero bar.
 class NativeConditionalComposer extends ConditionalFormattingStyleComposer {
   override composeStyle(unit: string, sid: string, row: number, col: number) {
     const result = super.composeStyle(unit, sid, row, col);
-    if (result?.dataBar?.value === 0) { const { dataBar: _zero, ...rest } = result; return rest; }
+    if (result?.dataBar?.value === 0 || result?.iconSet?.iconType === 'EMPTY_ICON_TYPE') {
+      const rest = { ...result };
+      if (rest.dataBar?.value === 0) delete rest.dataBar;
+      // A selected no-icon band overrides lower icons without reserving glyph
+      // space. Explicit show/hide and native stopIfTrue semantics still apply.
+      if (rest.iconSet?.iconType === 'EMPTY_ICON_TYPE') delete rest.iconSet;
+      return rest;
+    }
     return result;
   }
 }
@@ -111,17 +134,20 @@ class NativeConditionalComposer extends ConditionalFormattingStyleComposer {
 class NativeConditionalViewModel extends ConditionalFormattingViewModel {
   private points = new Map<IConditionFormattingRule, Point[]>();
   private bounds = new Map<IConditionFormattingRule, BarBounds | undefined>();
+  private bands = new Map<IConditionFormattingRule, IconBand[]>();
   constructor(injector: Injector, private rules: ConditionalFormattingRuleModel, index: ConditionalFormattingRangeIndexModel, formulas: ConditionalFormattingFormulaService, private instances: IUniverInstanceService) {
-    // Give native computation a read view excluding scales and bars. This avoids running
+    // Give native computation a read view excluding scales, bars and icons. This avoids running
     // its faulty numeric arithmetic at all; it never changes the authored model.
     const nativeRules = new Proxy(rules, { get(target, key, receiver) {
-      if (key === 'getSubunitRules') return (unit: string, sheet: string) => target.getSubunitRules(unit, sheet)?.filter(r => !['colorScale', 'dataBar'].includes(r.rule.type)) ?? null;
+      if (key === 'getSubunitRules') return (unit: string, sheet: string) => target.getSubunitRules(unit, sheet)?.filter(r => !['colorScale', 'dataBar', 'iconSet'].includes(r.rule.type)) ?? null;
       return Reflect.get(target, key, receiver);
     } });
     super(injector, nativeRules, index, formulas, instances);
-    this.disposeWithMe(this.markDirty$.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
-    this.disposeWithMe(this.cacheClear$.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
-    this.disposeWithMe(rules.$ruleChange.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
+    const clear = () => { this.points.clear(); this.bounds.clear(); this.bands.clear(); };
+    this.disposeWithMe(this.markDirty$.subscribe(clear));
+    this.disposeWithMe(this.cacheClear$.subscribe(clear));
+    this.disposeWithMe(rules.$ruleChange.subscribe(clear));
+    this.disposeWithMe({ dispose: clear });
   }
   override getCellCfs(unit: string, sid: string, row: number, col: number) {
     const native = super.getCellCfs(unit, sid, row, col) ?? [];
@@ -129,6 +155,11 @@ class NativeConditionalViewModel extends ConditionalFormattingViewModel {
     if (!sheet) return native;
     return (this.rules.getSubunitRules(unit, sid) ?? []).filter(r => r.ranges.some(range => row >= range.startRow && row <= range.endRow && col >= range.startColumn && col <= range.endColumn))
       .map((rule, priority) => {
+        if (rule.rule.type === 'iconSet') {
+          if (!this.bands.has(rule)) this.bands.set(rule, bandsFor(rule, sheet));
+          const result = iconResult(rule.rule as ConditionalIconSet, this.bands.get(rule)!, numeric(sheet, row, col));
+          return { cfId: rule.cfId, result, matched: !!result, priority };
+        }
         if (rule.rule.type === 'dataBar') {
           if (!this.bounds.has(rule)) this.bounds.set(rule, boundsFor(rule, sheet));
           const result = barResult(rule.rule as ConditionalBar, this.bounds.get(rule), numeric(sheet, row, col));
