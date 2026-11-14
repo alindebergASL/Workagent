@@ -1,3 +1,4 @@
+import { hasConditionalRules } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { CONTROL_RESOURCE, controlCells, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID } from 'node:crypto';
@@ -97,6 +98,7 @@ export class XlsxExchange {
     if (Object.keys(input).some(k => !['workId', 'book'].includes(k))) throw new Fault('invalid_xlsx_input', 400);
     const book = withoutFormulaResults(validateWorkbook(input.book));
     if (book.id !== input.workId) throw new Fault('invalid_workbook', 400);
+    if (hasConditionalRules(book)) throw new Fault('xlsx_conditional_formatting_not_supported', 400);
     if (Object.values(sheetControls(book)).some(rules => rules.some(rule => rule.type !== 'list'))) throw new Fault('xlsx_controls_not_supported', 400);
     const result = await this.worker.run({ op: 'export', book });
     await this.grant(principal, grant, input.workId);

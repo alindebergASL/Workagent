@@ -1,6 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset } from '@univerjs/preset-sheets-conditional-formatting';
+import UniverSheetsConditionalFormattingEnUS from '@univerjs/preset-sheets-conditional-formatting/locales/en-US';
+import '@univerjs/preset-sheets-conditional-formatting/lib/index.css';
+import { CONDITIONAL_SCOPE, conditionalRules, validateConditionalRules } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { createElement, useEffect, useRef, type ComponentType } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
-import { adjustRangeOnMutation, CalculationMode, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SetRangeValuesCommand, SheetInterceptorService, UniverSheetsCorePreset, type ISetRangeValuesCommandParams, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
+import { adjustRangeOnMutation, CalculationMode, ComponentManager, IMessageService, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SetRangeValuesCommand, SheetInterceptorService, UniverSheetsCorePreset, type ISetRangeValuesCommandParams, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
 import { UniverSheetsDataValidationPreset } from '@univerjs/preset-sheets-data-validation';
 import UniverSheetsDataValidationEnUS from '@univerjs/preset-sheets-data-validation/locales/en-US';
 import '@univerjs/preset-sheets-data-validation/lib/index.css';
@@ -10,7 +14,7 @@ import { isHumanSheetMutation, pendingCell } from './drafts';
 import { installValidationSettlement } from './validation-settlement';
 import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
-import { CellValueType, CommandType, ICommandService, isICellData, type IWorkbookData, type ICellData } from '@univerjs/core';
+import { CanceledError, LocaleService, CellValueType, CommandType, ICommandService, isICellData, type IWorkbookData, type ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
 export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
 export type EditorHandle = { formatEdits?: () => FormatEdits | undefined; save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
@@ -21,11 +25,60 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     const notifyEdit = edit.current, notifyReady = ready.current;
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
-    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } }), UniverSheetsDataValidationPreset()] });
+    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS, UniverSheetsConditionalFormattingEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } }), UniverSheetsDataValidationPreset(), UniverSheetsConditionalFormattingPreset()] });
     let releaseFocus = () => {};
     try {
     releaseFocus = installEditorFocus(univer, container.current!);
+    validateConditionalRules(book);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
+    // Validate actual mutations before the SDK can install/evaluate a rule. No
+    // formula rule or opaque plugin payload reaches the conditional engine.
+    const conditionalGuard = univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, command => {
+      if (!['sheet.mutation.add-conditional-rule', 'sheet.mutation.set-conditional-rule'].includes(command.id)) return;
+      const p = command.params as { unitId: string; subUnitId: string; cfId?: string; rule: ReturnType<typeof conditionalRules>[string][number] };
+      if (p.unitId !== book.id) return;
+      const current = workbook.save(), data = conditionalRules(current), rules = data[p.subUnitId] ?? [];
+      const cfId = p.cfId || p.rule.cfId;
+      const next = command.id === 'sheet.mutation.add-conditional-rule' ? [p.rule, ...rules]
+        : rules.map(rule => rule.cfId === cfId ? p.rule : rule);
+      try {
+        // The SDK changes sheet dimensions before updating rules one by one.
+        // Other, already validated rules can still have their old coordinates.
+        // Validate the incoming rule against the current sheet, and enforce the
+        // resource budgets without rechecking those transient old coordinates.
+        validateConditionalRules(current, { [p.subUnitId]: [p.rule] });
+        let count = 0, ranges = 0, area = 0;
+        for (const list of Object.values({ ...data, [p.subUnitId]: next })) {
+          if (new Set(list.map(rule => rule.cfId)).size !== list.length) throw new Error('duplicate rule');
+          count += list.length;
+          for (const rule of list) for (const range of rule.ranges) {
+            ranges++; area += (range.endRow - range.startRow + 1) * (range.endColumn - range.startColumn + 1);
+          }
+        }
+        if (count > 256 || ranges > 1000 || area > 100000) throw new Error('conditional rule limit');
+      }
+      catch {
+        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Only bounded numeric comparisons and literal text highlights are supported. Existing sheet edits are kept.' });
+        throw new CanceledError();
+      }
+    });
+    // The SDK panel submits its local form on Done. Saving an open form would
+    // otherwise acknowledge only the previous rule and lose the typed draft.
+    let conditionalPanel: HTMLDivElement | null = null;
+    const components = univer.__getInjector().get(ComponentManager);
+    const NativeConditionalPanel = components.get(CF_PANEL_KEY) as ComponentType;
+    const panelRegistration = components.register(CF_PANEL_KEY, (props: object) => createElement('div', {
+      ref: (node: HTMLDivElement | null) => { conditionalPanel = node; },
+      onInputCapture: () => { edits++; notifyEdit(); },
+    }, createElement(NativeConditionalPanel, props)), { override: true });
+    const conditionalEditing = () => {
+      const submit = univer.__getInjector().get(LocaleService).t('sheets-conditional-formatting-ui.panel.submit');
+      return !!conditionalPanel && [...conditionalPanel.querySelectorAll('button')].some(button => button.textContent?.trim() === submit);
+    };
+    const conditionalReady = () => {
+      if (conditionalEditing())
+        throw new Error('Finish the conditional-formatting rule with Done or Cancel before saving or leaving this sheet. Your open rule is kept.');
+    };
     const validation = installValidationSettlement(univer, book.id, () => { edits++; notifyEdit(); });
     // The native dropdown clears rich text/formulas but omits the value type.
     // Specify STRING before the SDK infers numbers/booleans, so its ordinary
@@ -106,6 +159,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     };
     const stable = (value: unknown): string => JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v)
       ? Object.fromEntries(Object.keys(v).sort().map(k => [k, v[k]])) : v);
+    const authoredStyle = (sid: string, row: number, column: number) => workbook.getWorkbook().getStyles().getStyleByCell(workbook.getSheetBySheetId(sid)?.getSheet().getCellRaw(row, column));
     const beforeStyles = new WeakMap<object, { sid: string; cells: [number, string][] }>();
     const structuralIds = new Set([InsertRowMutation.id, InsertColMutation.id, RemoveRowMutation.id, RemoveColMutation.id, MoveRowsMutation.id, MoveColsMutation.id]);
     // Attach metadata to the SDK's own structural history entry. A deleted blank
@@ -183,13 +237,18 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
           for (let r = range.startRow; r <= range.endRow; r++) for (let c = range.startColumn; c <= range.endColumn; c++) cells.add(r * 200 + c);
         }
       }
-      if (cells.size) beforeStyles.set(params, { sid: params.subUnitId, cells: [...cells].map(cell => [cell, stable(sheet.getRange(Math.floor(cell / 200), cell % 200).getCellStyleData())]) });
+      const sid = params.subUnitId;
+      if (cells.size) beforeStyles.set(params, { sid, cells: [...cells].map(cell => [cell, stable(authoredStyle(sid, Math.floor(cell / 200), cell % 200))]) });
     });
     // Rule mutations carry deliberate human intent, including blank ranges and
     // removal. Reuse the bounded provenance/draft/retry channel for their cells.
     const ruleRanges = () => {
       const raw = workbook.save().resources?.find(r => r.name === 'SHEET_DATA_VALIDATION_PLUGIN')?.data;
-      return raw ? JSON.parse(raw) as Record<string, { uid: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[] }[]> : {};
+      const controls = raw ? JSON.parse(raw) as Record<string, { uid: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[] }[]> : {};
+      const conditional = conditionalRules(workbook.save());
+      return Object.fromEntries([...new Set([...Object.keys(controls), ...Object.keys(conditional)])].map(sid => [sid,
+        [...(controls[sid] ?? []).map(r => ({ ...r, uid: `control:${r.uid}` })),
+          ...(conditional[sid] ?? []).map((r, priority) => ({ ...r, uid: `conditional:${r.cfId}`, priority }))]]));
     };
     let priorRules = ruleRanges();
     let selectionEpoch = 0;
@@ -198,14 +257,21 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     const selectionChanged = () => { const key = selectionKey(); if (key !== lastSelection) { lastSelection = key; selectionEpoch++; } };
     const selected = workbook.onSelectionChange(selectionChanged);
     let pending: IWorkbookData | null = null, disposed = false, edits = 0;
-    const snapshot = () => { validation.gate.assertReady(); return structuredClone(pending ?? workbook.save()); };
+    const snapshot = () => {
+      conditionalReady(); validation.gate.assertReady();
+      const saved = structuredClone(pending ?? workbook.save());
+      validateConditionalRules(saved);
+      return saved;
+    };
     const commit = async () => {
+      conditionalReady();
       await validation.gate.wait();
       if (workbook.isCellEditing() && !await workbook.endEditingAsync(true)) throw new Error('Finish the current cell edit before continuing.');
       if (disposed || workbook.isCellEditing()) throw new Error('The editor changed. Retry from the current sheet.');
+      conditionalReady();
       validation.gate.assertReady();
       pending = null;
-      return structuredClone(workbook.save());
+      return snapshot();
     };
     const selection = (): SheetSelection => {
       if (disposed) throw new Error('The editor changed. Attach the selection again.');
@@ -216,7 +282,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
         || endRow < startRow || endColumn < startColumn || (endRow - startRow + 1) * (endColumn - startColumn + 1) > 2000) throw new Error('Select a range of at most 2,000 cells.');
       return { workId: book.id, sheetId: sheet.getSheetId(), sheetName: sheet.getSheetName(), rangeLabel: ranges[0].getA1Notation(), range: { startRow, endRow, startColumn, endColumn } };
     };
-    notifyReady({ formatEdits: formatting, save: snapshot, isEditing: () => workbook.isCellEditing() || validation.gate.pending, commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
+    notifyReady({ formatEdits: formatting, save: snapshot, isEditing: () => workbook.isCellEditing() || validation.gate.pending || conditionalEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
       const sheetId = workbook.getActiveSheet().getSheetId();
       await commit();
       if (workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed while finishing the edit. Retry CSV export.');
@@ -239,7 +305,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     } });
     const changing = univerAPI.addEvent(univerAPI.Event.SheetEditChanging, event => {
       pending = pendingCell(workbook.save(), event.worksheet.getSheetId(), event.row, event.column, event.value.toPlainText(), event.value.getData());
-      edits++; notifyEdit(validation.gate.pending ? undefined : snapshot());
+      edits++; notifyEdit(validation.gate.pending || conditionalEditing() ? undefined : snapshot());
     });
     const ended = univerAPI.addEvent(univerAPI.Event.SheetEditEnded, () => {
       pending = null;
@@ -247,7 +313,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     });
     const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
       if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
-      if (command.id.startsWith('data-validation.mutation.')) {
+      if (command.id.startsWith('data-validation.mutation.') || /^sheet\.mutation\.(add|set|delete|move)-conditional-rule$/.test(command.id)) {
         const next = ruleRanges();
         for (const sid of new Set([...Object.keys(priorRules), ...Object.keys(next)])) {
           const old = priorRules[sid] ?? [], current = next[sid] ?? [];
@@ -269,15 +335,15 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
       if (prior) {
         beforeStyles.delete(params!);
         const sheet = workbook.getSheetBySheetId(prior.sid);
-        for (const [cell, old] of prior.cells) if (sheet && (command.id === 'sheet.mutation.set.numfmt' || command.id === 'sheet.mutation.remove.numfmt' || old !== stable(sheet.getRange(Math.floor(cell / 200), cell % 200).getCellStyleData()))) {
+        for (const [cell, old] of prior.cells) if (sheet && (command.id === 'sheet.mutation.set.numfmt' || command.id === 'sheet.mutation.remove.numfmt' || old !== stable(authoredStyle(prior.sid, Math.floor(cell / 200), cell % 200)))) {
           if (!formatted.has(prior.sid)) formatted.set(prior.sid, new Set());
           formatted.get(prior.sid)!.add(cell);
         }
       }
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; panelRegistration.dispose(); conditionalGuard.dispose(); literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
-  return <div className="native-editor" ref={container} aria-label="Editable spreadsheet" />;
+  return <><p className="exchange-policy">{CONDITIONAL_SCOPE}</p><div className="native-editor" ref={container} aria-label="Editable spreadsheet" /></>;
 }

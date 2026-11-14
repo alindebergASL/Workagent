@@ -1,3 +1,4 @@
+import { CONDITIONAL_RESOURCE, validateConditionalRules } from './conditional-formatting.mjs';
 // Univer 1.4 DataValidationResourceController: sheet ID -> ISheetDataValidationRule[].
 import { Fault, id } from './index.mjs';
 export const CONTROL_RESOURCE = 'SHEET_DATA_VALIDATION_PLUGIN';
@@ -16,6 +17,12 @@ export function validateSheetResources(book) {
     object(resource, ['name','data']);
     if (names.has(resource.name) || typeof resource.data !== 'string' || resource.data.length > 500000) bad();
     names.add(resource.name);
+    if (resource.name === CONDITIONAL_RESOURCE) {
+      const counts = validateConditionalRules(book);
+      rules += counts.rules; ranges += counts.ranges; area += counts.area;
+      if (rules > 256 || ranges > 1000 || area > 100000) bad();
+      continue;
+    }
     if (resource.name !== CONTROL_RESOURCE) {
       // These installed core plugins emit empty resources in supported books.
       // Refuse unsupported populated resources, never discard or pass them through.

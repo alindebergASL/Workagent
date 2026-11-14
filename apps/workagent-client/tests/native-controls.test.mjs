@@ -112,7 +112,7 @@ for (const imported of [false, true]) test(`${imported ? 'imported' : 'new nativ
     await wb.redo(); assert.equal(view.handle.save().sheets.sheet1.cellData[1][1].v, 1);
     // An additional workbook in this same SDK instance must not inherit the hook.
     const foreign = blankWorkbook('foreign'); foreign.resources = [{ name: CONTROL_RESOURCE, data: JSON.stringify(rules) }];
-    view.api.createWorkbook(foreign);
+    view.api.createWorkbook(foreign, { skipAutoRender: true });
     await command(payload('0012'), 0, 0, 0, 0, 'sheet1', foreign.id);
     assert.equal(view.api.getActiveWorkbook().save().sheets.sheet1.cellData[0][0].v, 12);
     saved = view.handle.save(); validateWorkbook(saved);

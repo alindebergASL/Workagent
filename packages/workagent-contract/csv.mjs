@@ -1,3 +1,4 @@
+import { hasConditionalRules } from './conditional-formatting.mjs';
 // CSV is data. No field becomes a formula, hyperlink, object key or instruction.
 export const CSV_LIMITS = Object.freeze({ bytes: 1_000_000, rows: 10000, columns: 200, cells: 50000, field: 20000 });
 export const CSV_POLICY = 'UTF-8 CSV; comma delimiter. Every field (including numbers, booleans and dates) imports as literal text. Leading zeros and whitespace are preserved. Ragged rows are padded with empty cells; empty files are refused. The first row is data, not special headers.';
@@ -34,6 +35,7 @@ export function csvWorkbook(parsed, workId, name) {
   return { id: workId, name, appVersion: '1.4.0', locale: 'enUS', styles: {}, sheetOrder: ['sheet1'], sheets: { sheet1: { id: 'sheet1', name: 'Imported CSV', rowCount: Math.max(200, parsed.rowCount), columnCount: Math.max(26, parsed.columns), cellData, defaultColumnWidth: 110, defaultRowHeight: 24 } } };
 }
 export function serializeCsv(book, sheetId) {
+  if (hasConditionalRules(book)) fail('CSV cannot preserve conditional formatting. Your native sheet is kept. Remove rules in a separate copy to export.');
   const sheet = book.sheets?.[sheetId]; if (!sheet || !book.sheetOrder.includes(sheetId)) fail('Select a sheet before exporting.');
   let lastRow = -1, lastCol = -1, neutralized = 0, unknown = 0;
   for (const [r, cells] of Object.entries(sheet.cellData ?? {})) for (const [c, cell] of Object.entries(cells)) {

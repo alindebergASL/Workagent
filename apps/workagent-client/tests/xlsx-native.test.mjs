@@ -39,10 +39,11 @@ function engine(formula = {}) {
 const editorCode = ts.transpileModule(readFileSync(new URL('../src/NativeEditor.tsx', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
 function mountEditor(book, editing = {}) {
   let e, cleanup, handle, edits = 0; const events = new Map();
+  const ComponentManager = Symbol('exchange-only component registry');
   const module = { exports: {} };
   const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   new Function('require', 'module', 'exports', editorCode)(name => {
-    // This exchange-only engine omits the validation preset and native forms.
+    // This exchange-only engine omits the validation/conditional presets and native forms.
     if (name === './validation-settlement') return { installValidationSettlement: () => ({ gate: { pending: false, assertReady() {}, async wait() {} }, dispose() {} }) };
     if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
     if (name === 'react') return react;
@@ -51,9 +52,12 @@ function mountEditor(book, editing = {}) {
     if (name === '@univerjs/preset-sheets-core/locales/en-US') return {};
     if (name === '@univerjs/preset-sheets-data-validation') return { UniverSheetsDataValidationPreset: () => ({}) };
     if (name === '@univerjs/preset-sheets-data-validation/locales/en-US') return {};
-    if (name === '@univerjs/preset-sheets-core') return { ...require('@univerjs/sheets'), CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
+    if (name === '@univerjs/preset-sheets-conditional-formatting') return { CF_PANEL_KEY: 'conditional-panel', UniverSheetsConditionalFormattingPreset: () => ({}) };
+    if (name === '@univerjs/preset-sheets-conditional-formatting/locales/en-US') return {};
+    if (name === '@univerjs/preset-sheets-core') return { ...require('@univerjs/sheets'), ComponentManager, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       e = engine(options.presets[0].formula);
+      e.univer.__getInjector().add([ComponentManager, { useValue: { get: () => () => null, register: () => ({ dispose() {} }) } }]);
       // Headless SDK has no DOM cell-editor events; retain those callbacks while
       // native command events and all formula computation use the real SDK.
       Object.defineProperty(e.api, 'Event', { value: Object.assign(Object.create(e.api.Event), { SheetEditChanging: 'SheetEditChanging', SheetEditEnded: 'SheetEditEnded' }) });

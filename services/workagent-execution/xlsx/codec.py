@@ -118,6 +118,13 @@ def export_validations(book):
         need(isinstance(resource, dict) and set(resource) == {'name', 'data'}, 'Unsupported native resource')
         name, data = resource['name'], resource['data']
         need(name not in names and isinstance(data, str) and len(data) <= 500000, 'Invalid native resource'); names.add(name)
+        if name == 'SHEET_CONDITIONAL_FORMATTING_PLUGIN':
+            conditional = json.loads(data) if data else {}
+            need(isinstance(conditional, dict) and all(
+                re.fullmatch(r'[a-zA-Z0-9_-]{1,100}', sid) and sid not in ('__proto__', 'constructor', 'prototype')
+                and (sid in book['sheetOrder'] or sid not in book['sheets']) and rules == []
+                for sid, rules in conditional.items()), 'Conditional formatting cannot be exported')
+            continue
         if name != CONTROL_RESOURCE:
             need(name in EMPTY_RESOURCES and data in ('', '{}', '[]'), 'Unsupported native resource'); continue
         controls = json.loads(data) if data else {}

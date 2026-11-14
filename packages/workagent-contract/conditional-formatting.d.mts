@@ -1,0 +1,8 @@
+import type { IWorkbookData } from '@univerjs/core';
+export const CONDITIONAL_RESOURCE: string;
+export const CONDITIONAL_SCOPE: string;
+export function conditionalRules(book: IWorkbookData): Record<string, { cfId: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[]; stopIfTrue: boolean; rule: unknown }[]>;
+export function validateConditionalRules(book: IWorkbookData, data?: unknown): { rules: number; ranges: number; area: number };
+export function conditionalCells(book: IWorkbookData): Map<string, string>;
+export function conditionalAt(book: IWorkbookData, sid: string, row: number, column: number): boolean;
+export function hasConditionalRules(book: IWorkbookData): boolean;

@@ -77,6 +77,23 @@ def zip_headers(data, name, *, size=None, crc=None, compressed_delta=0, local_me
     return bytes(raw)
 
 class CodecTests(unittest.TestCase):
+    def test_empty_conditional_resource_exports_but_rules_are_refused(self):
+        book = codec.import_book(fixture())['book']
+        for data in ['', '{}', json.dumps({'sheet1': []}), json.dumps({'deleted_sheet': [], 'sheet1': []})]:
+            book['resources'] = [{'name': 'SHEET_CONDITIONAL_FORMATTING_PLUGIN', 'data': data}]
+            result = codec.export_book(book)
+            reopened = codec.import_book(base64.b64decode(result['base64']))['book']
+            self.assertEqual(reopened['sheets']['sheet1']['cellData']['0']['0']['v'], '00120')
+        for data in [{'sheet1': [{'cfId': 'numeric', 'rule': {'type': 'highlightCell'}}]},
+                     {'deleted_sheet': [{}]}, {'deleted_sheet': {}}, {'__proto__': []},
+                     {'constructor': []}, {'prototype': []}, {'foreign/sheet': []}]:
+            book['resources'][0]['data'] = json.dumps(data)
+            with self.assertRaises(ValueError):
+                codec.export_book(book)
+        book['resources'] = [{'name': 'FOREIGN_PLUGIN', 'data': '{}'}]
+        with self.assertRaises(ValueError):
+            codec.export_book(book)
+
     def test_inline_lists_real_xml_multisheet_roundtrip(self):
         book = codec.import_book(fixture())['book']
         rules = {}

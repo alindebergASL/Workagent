@@ -10,8 +10,14 @@ import * as drafts from '../src/drafts.ts';
 import * as resume from '../src/resume.ts';
 import { artifactFixture, FixtureArtifactStorage } from './artifact-storage-fixture.mjs';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
+// Event-only DOM seam: no canvas, layout, browser or focus assertions.
 const localRequire = createRequire(import.meta.url);
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
+const conditionalRequire = createRequire(import.meta.resolve('@univerjs/preset-sheets-conditional-formatting'));
+const conditionalSdk = conditionalRequire('@univerjs/sheets-conditional-formatting');
+const conditionalUI = conditionalRequire('@univerjs/sheets-conditional-formatting-ui');
+const ui = require('@univerjs/ui');
+conditionalRequire('@univerjs/sheets-conditional-formatting/facade');
 const core = require('@univerjs/core'), { FUniver } = require('@univerjs/core/facade');
 const sheets = require('@univerjs/sheets'), { UniverSheetsPlugin } = sheets;
 const { UniverFormulaEnginePlugin, FormulaExecutedStateType } = require('@univerjs/engine-formula');
@@ -21,11 +27,15 @@ const compile = file => ts.transpileModule(readFileSync(new URL(file, import.met
 const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src/main.tsx');
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
 export function mountNative(props, plugins = []) {
+  globalThis.window ??= new EventTarget();
+  globalThis.document ??= {activeElement:null};
   let cleanup, handle, api, univer, edits = 0;
   let starts = [], ends = [], validation;
   const validationComponents = new Map();
   const validationRequire = createRequire(import.meta.resolve('@univerjs/preset-sheets-data-validation'));
+  validationRequire('@univerjs/sheets-data-validation/facade');
   const validationSdk = { ...validationRequire('@univerjs/data-validation'), ...validationRequire('@univerjs/sheets-data-validation') };
+  const IMessageService = Symbol();
   const ComponentManager = Symbol(), IEditorService = Symbol(), DataValidationPanelService = Symbol();
   const validationModule = { exports: {} };
   new Function('require', 'module', 'exports', compile('../src/validation-settlement.tsx'))(name => {
@@ -33,7 +43,7 @@ export function mountNative(props, plugins = []) {
     if (name === '@univerjs/preset-sheets-data-validation') return { ...validationSdk, DataValidationPanelService, DATA_VALIDATION_PANEL: 'panel' };
     return localRequire(name);
   }, validationModule, validationModule.exports);
-  const react = { useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
+  const react = { createElement: localRequire('react').createElement, useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
     if (name === './validation-settlement') return { installValidationSettlement: (univer, id, changed) => {
@@ -52,13 +62,17 @@ export function mountNative(props, plugins = []) {
     if (name === 'react') return react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
+    if (name === '@univerjs/preset-sheets-conditional-formatting') return { ...conditionalSdk, CF_PANEL_KEY: conditionalUI.CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset: () => ({}) };
     if (name === '@univerjs/preset-sheets-data-validation') return { UniverSheetsDataValidationPreset: () => ({}) };
-    if (name === '@univerjs/preset-sheets-core') return { ...sheets, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
+    if (name === '@univerjs/preset-sheets-core') return { ...sheets, ComponentManager: ui.ComponentManager, IMessageService, CalculationMode, FormulaExecutedStateType, UniverSheetsCorePreset: options => options };
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
+      for (const dependency of [[ui.IDialogService,{useClass:ui.DesktopDialogService}], [ui.IMessageService,{useClass:ui.MockMessageService}], [ui.ILayoutService,{useClass:ui.DesktopLayoutService}], [ui.IPlatformService,{useClass:ui.PlatformService}], [ui.IUIPartsService,{useClass:ui.UIPartsService}], [ui.IUIRuntimeScopeService,{useClass:ui.UIRuntimeScopeService}], [ui.IRibbonService,{useClass:ui.DesktopRibbonService}], [ui.IContextMenuService,{useClass:ui.ContextMenuService}], [ui.FormatPainterSessionService], [ui.IShortcutService, {useValue:{registerShortcut(){return {dispose(){}};}}}], [ui.ComponentManager], [ui.IconManager], [ui.IMenuManagerService, {useClass:ui.MenuManagerService}], [ui.ISidebarService, {useClass:ui.DesktopSidebarService}]]) univer.__getInjector().add(dependency);
+      univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
       univer.registerPlugin(UniverSheetsPlugin); univer.registerPlugin(UniverFormulaEnginePlugin);
       univer.registerPlugin(UniverSheetsFormulaPlugin, options.presets[0].formula);
-      const nativePlugins = new Set([validationSdk.UniverDataValidationPlugin, validationSdk.UniverSheetsDataValidationPlugin, ...plugins]);
+      univer.__getInjector().add([IMessageService, { useValue: { show() {} } }]);
+      const nativePlugins = new Set([conditionalSdk.UniverSheetsConditionalFormattingPlugin, conditionalUI.UniverSheetsConditionalFormattingUIPlugin, validationSdk.UniverDataValidationPlugin, validationSdk.UniverSheetsDataValidationPlugin, ...plugins]);
       for (const plugin of nativePlugins) univer.registerPlugin(plugin);
       api = FUniver.newAPI(univer);
       api.getFormula().calculationStart(force => starts.push(force));
@@ -68,7 +82,7 @@ export function mountNative(props, plugins = []) {
       const adapter = new Proxy(api, { get(target, key) {
         if (key === 'Event') return { ...target.Event, SheetEditChanging: 'headless-changing', SheetEditEnded: 'headless-ended', BeforeCommandExecute: target.Event.BeforeCommandExecute, CommandExecuted: target.Event.CommandExecuted };
         if (key === 'addEvent') return (event, fn) => event.startsWith('headless-') ? { dispose() {} } : target.addEvent(event, fn);
-        if (key === 'createWorkbook') return data => new Proxy(target.createWorkbook(data), { get(workbook, property) {
+        if (key === 'createWorkbook') return data => new Proxy(target.createWorkbook(data, {skipAutoRender:true}), { get(workbook, property) {
           if (property === 'isCellEditing') return () => false;
           if (property === 'endEditingAsync') return () => { throw new Error('DOM editing is outside this qualification'); };
           const value = workbook[property]; return typeof value === 'function' ? value.bind(workbook) : value;
@@ -80,8 +94,21 @@ export function mountNative(props, plugins = []) {
     return localRequire(name);
   }, module, module.exports);
   module.exports.NativeEditor({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
-  return { api, commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
+  return { api, conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
     formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
+    // Exercise the production wrapper's event/ref seam; no native form rendering.
+    conditionalPanel() {
+      const wrapper = univer.__getInjector().get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY)({}).props;
+      const submit = univer.__getInjector().get(core.LocaleService).t('sheets-conditional-formatting-ui.panel.submit');
+      return { attach: () => wrapper.ref({ querySelectorAll: () => [{ textContent: submit }] }),
+        input: () => wrapper.onInputCapture(), close: () => wrapper.ref(null) };
+    },
+    async conditionalSettled(action) {
+      const model = univer.__getInjector().get(conditionalSdk.ConditionalFormattingViewModel);
+      let subscription, timer;
+      const settled = new Promise((resolve, reject) => { timer = setTimeout(() => { subscription.unsubscribe(); reject(new Error('SDK conditional invalidation missing')); }, 2000); subscription = model.markDirty$.subscribe(() => { clearTimeout(timer); subscription.unsubscribe(); resolve(); }); });
+      action(); await settled;
+    },
     get handle() { return handle; }, get edits() { return edits; }, resetCalculation() { starts = []; ends = []; },
     async settle() {
       await api.getFormula().onCalculationResultApplied(110_000);

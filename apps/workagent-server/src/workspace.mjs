@@ -1,3 +1,4 @@
+import { conditionalAt, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { controlCells, controlAt } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID, createHash } from 'node:crypto';
@@ -19,7 +20,7 @@ function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.seque
 // Shared authoritative editor commit for agent and deterministic maintenance writes.
 export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed') {
   requireSheet(w);
-  const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)) || controlAt(w.book, c.sheetId, c.row, c.column));
+  const protectedCell = patch.cells.some(c => w.humanCells.includes(anchor(c)) || controlAt(w.book, c.sheetId, c.row, c.column) || conditionalAt(w.book, c.sheetId, c.row, c.column));
   if (protectedCell) return { status: 'protected', reason: 'human_edit' };
   if (!same(expected, preconditions(s, w)) || ['cancellation_requested', 'stopped'].includes(w.status)) return { status: 'protected', reason: 'revision_changed' };
   w.book = applyPatch(w.book, patch); w.contentRevision++; event(s, w, kind);
@@ -114,6 +115,8 @@ export class Workspace {
           return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
         }
         const human = new Set(w.humanCells);
+        const oldConditional = conditionalCells(w.book), newConditional = conditionalCells(book);
+        for (const key of new Set([...oldConditional.keys(), ...newConditional.keys()])) if (oldConditional.get(key) !== newConditional.get(key)) human.add(key);
         const oldControls = controlCells(w.book), newControls = controlCells(book);
         for (const key of new Set([...oldControls.keys(), ...newControls.keys()])) if (oldControls.get(key) !== newControls.get(key)) human.add(key);
         for (const [sid, cells] of Object.entries(formatEdits ?? {})) for (const cell of cells) human.add(`${sid}:${Math.floor(cell / 200)}:${cell % 200}`);

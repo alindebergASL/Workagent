@@ -64,7 +64,7 @@ test('actual import UI previews before mutation, retains exact bytes/identity ac
   const props = { api, editor: () => null, work: null, onImported: async () => { lists++; }, onOpen: async id => { assert.equal(id, 'new'); open++; } };
   let view = mount(disk, props); await view.choose(); assert.equal(calls.length, 1); assert.match(view.text(), /Typed text/); assert.match(view.text(), /0012/);
   assert.match(view.text(), /Bounded literal inline-list dropdowns preserve choices/);
-  assert.match(view.text(), /Native checkboxes still prevent XLSX export/);
+  assert.match(view.text(), /Native checkboxes and native conditional-formatting rules prevent XLSX export/);
   assert.match(view.text(), /Reference\/name\/custom validation is not retained or evaluated/);
   await view.click('Import XLSX as new work'); const original = new MaintenanceActions(disk, 'xlsx-import').read();
   assert.equal(original.input.base64, Buffer.from('identifier,text\r\n0012,=1+1\r\n').toString('base64')); assert.equal(open, 0); view.unmount();
@@ -101,4 +101,17 @@ test('XLSX local quota includes other drafts and refusal creates no import effec
   const disk=storage(); disk.setItem('workagent-human-draft','x'.repeat(4_000_000));let imports=0;
   const view=mount(disk,{api:async(path)=>{if(path.endsWith('/preview'))return preview;imports++;},editor:()=>null,work:null,onImported:async()=>{},onOpen:async()=>{}});
   await view.choose();await view.click('Import XLSX as new work');assert.equal(imports,0);assert.match(view.text(),/storage is full/);assert.equal(new MaintenanceActions(disk,'xlsx-import').read(),null);view.unmount();
+});
+for (const [code, message] of [
+  ['xlsx_controls_not_supported', /cannot preserve native checkboxes/],
+  ['xlsx_conditional_formatting_not_supported', /cannot yet preserve conditional formatting/],
+]) test(`XLSX UI explains ${code} and creates no download`, async () => {
+  const native = {commit:async()=>({id:'current'})};
+  const view = mount(storage(), {api:async()=>{throw new Error(code);},editor:()=>native,work:{id:'current'},onImported:async()=>{},onOpen:async()=>{}});
+  try {
+    await view.click('Export all tabs XLSX');
+    assert.match(view.text(), message);
+    assert.match(view.text(), /native sheet and original file are kept/);
+    assert.equal(view.downloads.length, 0);
+  } finally { view.unmount(); }
 });

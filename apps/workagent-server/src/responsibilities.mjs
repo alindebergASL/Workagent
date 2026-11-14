@@ -1,3 +1,4 @@
+import { conditionalAt } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID } from 'node:crypto';
 import { Fault, id, text, revision, anchor, validatePatch } from '../../../packages/workagent-contract/index.mjs';
@@ -193,7 +194,7 @@ export class Maintenance {
     else if (r.endAt && now >= Date.parse(r.endAt)) { r.status = 'ended'; r.revision++; outcome = 'ended'; }
     else if (r.revision !== job.responsibilityRevision) outcome = 'configuration_changed';
     else if (observation.error) outcome = observation.error;
-    else if (r.detached || w.humanCells.includes(anchor(r.target))) { r.detached = true; outcome = 'protected'; }
+    else if (r.detached || w.humanCells.includes(anchor(r.target)) || conditionalAt(w.book, r.target.sheetId, r.target.row, r.target.column)) { r.detached = true; outcome = 'protected'; }
     else if (Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && ['queued', 'running'].includes(j.status))
       || !same(job.expected, preconditions(s, w))) outcome = 'work_changed';
     else {
