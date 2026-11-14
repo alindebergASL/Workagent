@@ -151,7 +151,7 @@ test('bounded model context includes charts, XLSX refuses before worker and CSV 
   const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'start',title:'Exchange'});state.works[workId].book=withCharts(fixture(workId),[chart()]);
   const w=await ws.get('owner',workId),reader=createSheetReader(workId),result=JSON.parse(reader(w,JSON.stringify({overview:true})));
-  assert.deepEqual(result.charts,[chart()]);assert.ok(escapedBytes(result)<=SHEET_READ_BYTES);assert.equal(result.cells.length,0);
+  assert.deepEqual(result.charts.map(({source,...raw})=>raw),[chart()]);assert.equal(result.charts[0].source.rangeA1,'A1:C5');assert.equal(result.charts[0].source.seriesCount,2);assert.ok(escapedBytes(result)<=SHEET_READ_BYTES);assert.equal(result.cells.length,0);
   const exchange=new XlsxExchange({workspace:ws,worker:{run(){assert.fail('chart-bearing export reached worker');}}});
   await assert.rejects(()=>exchange.export('owner',{workId,book:w.book}),/xlsx_charts_not_supported/);
   assert.deepEqual((await ws.get('owner',workId)).book,w.book);assert.match(CSV_LOSSES,/charts/);assert.match(CHART_SCOPE,/CSV loses charts/);

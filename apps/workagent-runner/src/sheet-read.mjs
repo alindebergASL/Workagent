@@ -1,4 +1,4 @@
-import { sheetCharts } from '../../../packages/workagent-contract/sheet-charts.mjs';
+import { validateCharts, chartRangeLabel } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { randomUUID } from 'node:crypto';
 import { id, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { cellAddress } from '../../workagent-server/src/selection.mjs';
@@ -38,6 +38,21 @@ function cellContent(cell) {
   // Native formula/shared-formula identity survives; untrusted caches do not.
   const fields = cell?.f || cell?.si ? ['f', 'si'] : ['v', 't', 'p'];
   return Object.fromEntries(fields.filter(k => own(cell, k)).map(k => [k, cell[k]]));
+}
+
+function chartContext(book) {
+  // Derive references only from validated inclusive bounds, without reading cells
+  // or presenting persisted formula-header caches as current series names.
+  return validateCharts(book).map(chart => {
+    const r = chart.range;
+    const column = c => ({ headerCell: cellAddress(r.startRow, c),
+      dataRangeA1: chartRangeLabel({ ...r, startRow: r.startRow + 1, startColumn: c, endColumn: c }) });
+    return { ...chart, source: {
+      rangeA1: chartRangeLabel(r), headerRangeA1: chartRangeLabel({ ...r, endRow: r.startRow }),
+      labels: column(r.startColumn), seriesCount: r.endColumn - r.startColumn,
+      series: Array.from({ length: r.endColumn - r.startColumn }, (_, i) => column(r.startColumn + i + 1)),
+    } };
+  });
 }
 
 // One reader per running job. Opaque cursors are never interpreted as paths,
@@ -82,7 +97,9 @@ export function createSheetReader(workId, selection) {
       storedCells: tabs.reduce((n, t) => n + t.info.storedCells, 0),
       populatedCells: tabs.reduce((n, t) => n + t.info.populatedCells, 0),
       formulaCells: tabs.reduce((n, t) => n + t.info.formulaCells, 0), protectedCellCount: w.humanCells.length };
-    const base = { charts: sheetCharts(w.book), chartEditing: 'Chart definitions are human-editable in the Workagent panel; model chart mutation is not supported.', expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
+    const base = { charts: chartContext(w.book),
+      chartCoordinates: 'Chart range row/column indexes are zero-based and both endpoints are inclusive. A1 ranges include both endpoints. The first source row is headers; the first column is labels; every remaining column is a numeric series. Header cells are references, not calculated titles. Blanks, errors and non-numbers are gaps.',
+      chartEditing: 'Chart definitions are human-editable in the Workagent panel; model chart mutation is not supported.', expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
       limits: { escapedContentBytes: SHEET_READ_BYTES, storedCellsPerPage: SHEET_READ_CELLS } };
     // Preserve the old shape only when the entire response, including native
     // metadata and the protection map, fits the same byte budget.
@@ -96,7 +113,19 @@ export function createSheetReader(workId, selection) {
         'Sparse pages contain stored cells only. Unreturned cells are not inferred values. Follow nextCursor until complete, or read another sheetId/range.',
         'To combine independent reads at one snapshot, pass the exact expected object. Revision changes require a fresh read; do not combine stale pages.'],
       cells: [], nextCursor: null };
-    if (q.overview) return JSON.stringify({ ...result, complete: true, coverage: 'overview only; no cells' });
+    // Keep all chart definitions/references, even in an empty overview. Very long
+    // display names can otherwise consume the budget before any cell can fit.
+    // Reserve space for range/cursor metadata and a useful cell fragment.
+    if (escapedBytes(result) > SHEET_READ_BYTES - 2048) {
+      const { name, ...bookInfo } = overview;
+      result.overview = { ...bookInfo, sheets: overview.sheets.map(({ name, ...sheetInfo }) => sheetInfo) };
+      result.omissions.push('Workbook and tab display names are omitted to fit the byte limit; sheet IDs, counts, chart definitions and source references are retained.');
+    }
+    if (q.overview) {
+      const summary = { ...result, complete: true, coverage: 'overview only; no cells' };
+      if (escapedBytes(summary) > SHEET_READ_BYTES) fail('read_metadata_exceeds_limit');
+      return JSON.stringify(summary);
+    }
     const selected = selection?.workId === workId && selection.contentRevision === w.expected.contentRevision
       && w.book.sheetOrder.includes(selection.sheetId) ? selection : null;
     const sheetId = state?.sheetId ?? q.sheetId ?? selected?.sheetId ?? w.book.sheetOrder[0];

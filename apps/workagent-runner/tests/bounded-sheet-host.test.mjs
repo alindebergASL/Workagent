@@ -10,6 +10,7 @@ import { bootHost } from '../src/host.mjs';
 import { OpenRouterProvider } from '../src/provider.mjs';
 import { createDispatcher } from '../src/dispatch.mjs';
 import { SHEET_READ_BYTES } from '../src/sheet-read.mjs';
+import { withCharts } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { Workspace } from '../../workagent-server/src/workspace.mjs';
 import { initialState } from '../../workagent-server/src/store.mjs';
 import { FileFixtureStore } from '../../workagent-server/tests/support/file-fixture.mjs';
@@ -79,7 +80,8 @@ async function execute(f, step, { selection, policyOverride } = {}) {
 }
 
 test('100k fixture: selected default, cross-tab range continuation and dependencies traverse actual DSH/wire under 1 MB; off-page human edits still propose', { timeout: 120000 }, async t => {
-  const f = await setup(), book = workload(100000); book.id = f.workId;
+  const f = await setup(), book = withCharts(workload(100000), [{ id: 'read-context', title: 'Source chart', type: 'line', sheetId: 'operations',
+    range: { startRow: 0, endRow: 3, startColumn: 0, endColumn: 2 } }]); book.id = f.workId;
   await f.workspace.save('owner', f.workId, { commandId: 'seed', book, contentRevision: 1, permissionRevision: 1 });
   // JSON persistence normalizes the fixture generator's -0 to +0. Compare the
   // entire post-host book with the authoritative saved snapshot, not raw input.
@@ -92,6 +94,9 @@ test('100k fixture: selected default, cross-tab range continuation and dependenc
     if (n === 1) return read();
     if (n <= 5) {
       const page = toolResult(wire); reads.push(page);
+      assert.equal(page.charts[0].source.rangeA1, 'A1:C4');
+      assert.equal(page.charts[0].source.seriesCount, 2);
+      assert.deepEqual(page.charts[0].source.series, [{ headerCell: 'B1', dataRangeA1: 'B2:B4' }, { headerCell: 'C1', dataRangeA1: 'C2:C4' }]);
       assert.equal(page.book, undefined); assert.equal(page.protectedCells, undefined);
       assert.equal(page.overview.populatedCells, 100000); assert.equal(page.overview.storedCells, 100002); assert.equal(page.overview.formulaCells, 14000);
       assert.ok(Buffer.byteLength(JSON.stringify(wire.messages.findLast(m => m.role === 'tool').content)) <= SHEET_READ_BYTES);

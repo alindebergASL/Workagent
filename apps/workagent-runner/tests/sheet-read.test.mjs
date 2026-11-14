@@ -1,7 +1,8 @@
 // Local fixtures only. No provider, browser, database, native calculation or cost.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { blankWorkbook } from '../../../packages/workagent-contract/index.mjs';
+import { blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
+import { CHART_RESOURCE, withCharts } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { createSheetReader, escapedBytes, SHEET_READ_BYTES, SHEET_READ_CELLS } from '../src/sheet-read.mjs';
 
 function fixture() {
@@ -162,4 +163,118 @@ test('large native metadata alone falls back to a useful bounded read', () => {
   const page = parse(createSheetReader(w.id), w);
   assert.equal(page.book, undefined); assert.equal(page.cells[0].cell.v, 'retained');
   assert.equal(page.cells[0].cell.custom, undefined); assert.ok(page.omissions.length);
+});
+
+const chart = (range, extra = {}) => ({ id: 'chart-1', title: 'Saved chart title', type: 'bar', sheetId: 'sheet1', range, ...extra });
+const originRange = { startRow: 0, endRow: 3, startColumn: 0, endColumn: 2 };
+const originSource = {
+  rangeA1: 'A1:C4', headerRangeA1: 'A1:C1',
+  labels: { headerCell: 'A1', dataRangeA1: 'A2:A4' }, seriesCount: 2,
+  series: [{ headerCell: 'B1', dataRangeA1: 'B2:B4' }, { headerCell: 'C1', dataRangeA1: 'C2:C4' }],
+};
+
+test('chart read context explicitly includes both inclusive endpoints, all series and header coordinates in every read shape', () => {
+  const w = { ...fixture(), book: withCharts(blankWorkbook('owned'), [chart(originRange)]), humanCells: ['sheet1:2:1'] };
+  w.book.sheets.sheet1.cellData = { 0: { 0: { v: 'Label' }, 1: { v: 'Amount' }, 2: { f: '=A9', v: 'STALE HEADER', p: { body: { dataStream: 'STALE RICH HEADER' } } } },
+    1: { 0: { v: 'One' }, 1: { v: 3 }, 2: { f: '=B2*2', v: 99999 } },
+    2: { 1: { v: 4 } }, 3: { 2: { si: 'shared', v: 88888 } } };
+  w.proposals = [{ id: 'retained-pending', status: 'pending' }];
+  const original = structuredClone(w), reader = createSheetReader(w.id);
+  for (const q of [undefined, { overview: true }, { sheetId: 'sheet1', range: originRange },
+    { sheetId: 'sheet1', range: { startRow: 10, endRow: 10, startColumn: 0, endColumn: 0 } }]) {
+    const result = parse(reader, w, q), { source, ...rawChart } = result.charts[0];
+    assert.deepEqual(source, originSource); assert.deepEqual(rawChart, chart(originRange));
+    assert.match(result.chartCoordinates, /zero-based.*inclusive/);
+    assert.match(result.chartCoordinates, /header.*references.*not.*calculated/i);
+    assert.match(result.chartEditing, /model chart mutation is not supported/);
+    assert.doesNotMatch(JSON.stringify(source), /STALE HEADER|STALE RICH HEADER|99999|88888/);
+    assert.doesNotMatch(JSON.stringify(result), /STALE HEADER|99999|88888/);
+    if (result.book) assert.deepEqual(result.book.resources, original.book.resources);
+    if (result.cells?.length) assert.equal(result.cells.find(c => c.address === 'B3').humanProtected, true);
+  }
+  assert.deepEqual(w, original, 'reads preserve resources, coordinates, protections and pending proposals');
+});
+
+test('chart source coordinates support offset ranges, AA columns, one through four series and 100 data rows', () => {
+  const w = fixture(); w.book.sheets.sheet1.columnCount = 200;
+  w.book = withCharts(w.book, [chart({ startRow: 4, endRow: 8, startColumn: 3, endColumn: 5 })]);
+  const reader = createSheetReader(w.id);
+  assert.deepEqual(parse(reader, w, { overview: true }).charts[0].source, {
+    rangeA1: 'D5:F9', headerRangeA1: 'D5:F5', labels: { headerCell: 'D5', dataRangeA1: 'D6:D9' }, seriesCount: 2,
+    series: [{ headerCell: 'E5', dataRangeA1: 'E6:E9' }, { headerCell: 'F5', dataRangeA1: 'F6:F9' }],
+  });
+  for (let count = 1; count <= 4; count++) {
+    w.book = withCharts(w.book, [chart({ startRow: 4, endRow: 104, startColumn: 25, endColumn: 25 + count })]);
+    const source = parse(reader, w, { overview: true }).charts[0].source;
+    assert.equal(source.rangeA1, `Z5:${['AA', 'AB', 'AC', 'AD'][count - 1]}105`);
+    assert.equal(source.headerRangeA1, `Z5:${['AA', 'AB', 'AC', 'AD'][count - 1]}5`);
+    assert.deepEqual(source.labels, { headerCell: 'Z5', dataRangeA1: 'Z6:Z105' });
+    assert.equal(source.seriesCount, count);
+    assert.deepEqual(source.series, ['AA', 'AB', 'AC', 'AD'].slice(0, count).map(c => ({ headerCell: `${c}5`, dataRangeA1: `${c}6:${c}105` })));
+  }
+});
+
+test('zero charts remain explicit and invalid chart bounds never acquire plausible source descriptors', () => {
+  const w = fixture(), reader = createSheetReader(w.id);
+  assert.deepEqual(parse(reader, w, { overview: true }).charts, []);
+  for (const range of [{ ...originRange, endColumn: 0 }, { ...originRange, endColumn: 5 },
+    { ...originRange, endRow: 101 }, { ...originRange, startRow: -1 }, { ...originRange, endColumn: 2.5 }]) {
+    w.book.resources = [{ name: CHART_RESOURCE, data: JSON.stringify([chart(range)]) }];
+    assert.throws(() => reader(w, JSON.stringify({ overview: true })), /invalid_sheet_charts/);
+  }
+});
+
+test('eight charts with maximal Unicode metadata fit empty overview and preserve paged/fragmented cells within the byte cap', t => {
+  const w = { ...fixture(), book: blankWorkbook('owned'), humanCells: [] };
+  const unicode = '\uFFFF';
+  w.book.id = 'w'.repeat(100); w.book.name = unicode.repeat(200); w.book.sheetOrder = []; w.book.sheets = {};
+  for (let i = 0; i < 20; i++) {
+    const sid = `s${i}`.padEnd(100, 'x'); w.book.sheetOrder.push(sid);
+    w.book.sheets[sid] = { id: sid, name: unicode.repeat(100), rowCount: 10000, columnCount: 200, cellData: {} };
+  }
+  const sid = w.book.sheetOrder[0];
+  w.book = withCharts(w.book, Array.from({ length: 8 }, (_, i) => chart(
+    { startRow: 9899, endRow: 9999, startColumn: 195, endColumn: 199 },
+    { id: `c${i}`.padEnd(100, 'x'), title: unicode.repeat(160), sheetId: sid })));
+  validateWorkbook(w.book);
+  const reader = createSheetReader(w.id), overview = parse(reader, w, { overview: true });
+  assert.equal(overview.charts.length, 8); assert.deepEqual(overview.cells, []);
+  for (const c of overview.charts) { assert.equal(c.source.seriesCount, 4); assert.equal(c.source.rangeA1, 'GN9900:GR10000'); }
+  const escaped = structuredClone(w); escaped.book.name = '\uD800'.repeat(200);
+  for (const sheet of Object.values(escaped.book.sheets)) sheet.name = '\u0000'.repeat(100);
+  const escapedCharts = JSON.parse(escaped.book.resources[0].data).map(c => ({ ...c, title: '\uD800'.repeat(160) }));
+  escaped.book = withCharts(escaped.book, escapedCharts); validateWorkbook(escaped.book);
+  const escapedOverview = parse(reader, escaped, { overview: true });
+  assert.deepEqual(escapedOverview.charts.map(({ source, ...raw }) => raw), escapedCharts);
+  assert.deepEqual(escapedOverview.charts.map(c => c.source), overview.charts.map(c => c.source));
+  assert.ok(escapedOverview.omissions.some(s => /display names.*omitted/.test(s)));
+  const value = '雪🌍"\\\n'.repeat(3000);
+  for (let row = 0; row < 140; row++) w.book.sheets[sid].cellData[row] = { 0: { v: row === 0 ? value : `row ${row}` } };
+  const original = structuredClone(w); let page = parse(reader, w), assembled = '', ordinary = [], pages = 0;
+  while (true) {
+    assert.deepEqual(page.charts, overview.charts); assert.ok(page.cells.length <= SHEET_READ_CELLS);
+    for (const c of page.cells) {
+      if (c.fragment) { assert.equal(c.fragment.offset, assembled.length); assembled += c.fragment.text; }
+      else ordinary.push(c);
+    }
+    pages++; assert.ok(pages < 100);
+    if (!page.nextCursor) break;
+    page = parse(reader, w, { cursor: page.nextCursor });
+  }
+  assert.ok(pages > 1); assert.deepEqual(JSON.parse(assembled), { v: value });
+  assert.deepEqual(ordinary.map(c => c.address), Array.from({ length: 139 }, (_, i) => `A${i + 2}`));
+  assert.equal(page.complete, true); assert.deepEqual(w, original);
+  t.diagnostic(`Maximum Unicode overview ${escapedBytes(overview)} escaped bytes; escaped metadata overview ${escapedBytes(escapedOverview)}; ${pages} lossless cell pages.`);
+});
+
+test('chart descriptors add no cell scans or header evaluation to a bounded overview read', () => {
+  const w = fixture(); let scans = 0, cellReads = 0;
+  const cells = new Proxy(w.book.sheets.sheet1.cellData, { ownKeys(target) { scans++; return Reflect.ownKeys(target); },
+    get(target, key) { cellReads++; return Reflect.get(target, key); } });
+  w.book.sheets.sheet1.cellData = cells;
+  const reader = createSheetReader(w.id); parse(reader, w, { overview: true });
+  const baseline = { scans, cellReads }; scans = 0; cellReads = 0;
+  w.book = withCharts(w.book, [chart(originRange)]);
+  assert.deepEqual(parse(reader, w, { overview: true }).charts[0].source, originSource);
+  assert.deepEqual({ scans, cellReads }, baseline);
 });
