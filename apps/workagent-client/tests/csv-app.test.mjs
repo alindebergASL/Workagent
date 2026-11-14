@@ -8,6 +8,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { blankWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { DraftFence } from '../src/drafts.ts';
 import * as resume from '../src/resume.ts';
@@ -346,6 +347,92 @@ function attachDoc(view) {
   view.doc().onReady(handle);
   return { handle, edit(value) { data = blankDocument(data.id, data.title, value); view.doc().onEdit(structuredClone(data)); } };
 }
+for (const change of ['title-only', 'body-change']) for (const [label, body, expected] of [
+  ['paragraphs and literal text', '  Café e\u0301 雪🌍 <img src=x onerror="alert(1)">  \r\rSecond <script>alert(1)</script> & literal\r  Last paragraph  \r\n', '  Café e\u0301 雪🌍 <img src=x onerror="alert(1)">  \n\nSecond <script>alert(1)</script> & literal\n  Last paragraph  '],
+  ['empty document', '\r\n', ''],
+  ['single paragraph', '  One paragraph  \r\n', '  One paragraph  '],
+  ['leading and trailing blank paragraphs', '\r\r  Middle  \r\r\r\n', '\n\n  Middle  \n\n'],
+]) test(`document proposal preview: ${change}, ${label}`, async () => {
+  const api = server(() => assert.fail('preview must not write'));
+  api.works.old = docWork('old');
+  const proposed = blankDocument('old', 'Proposed title');
+  proposed.body.dataStream = body;
+  proposed.body.paragraphs = [...body.matchAll(/\r/g)].map(m => ({ startIndex: m.index }));
+  proposed.body.sectionBreaks = [{ startIndex: body.length - 1 }];
+  if (body.indexOf('\r') > 0) proposed.body.textRuns = [{ st: 0, ed: body.indexOf('\r'), ts: { bl: 1 } }];
+  if (change === 'title-only') api.works.old.document = { ...structuredClone(proposed), title: 'Original title' };
+  const proposal = { id: `fixture-${change}`, kind: 'document', status: 'pending', reason: 'human_edit', patch: { document: proposed } };
+  api.works.old.proposals = [proposal];
+  const original = JSON.stringify(api.works.old), view = mount(disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old');
+    const preview = view.elements().find(n => n.type === 'pre' && n.props.className === 'document-preview');
+    assert.ok(preview); assert.equal(preview.props.children, expected);
+    assert.equal(typeof preview.props.children, 'string');
+    assert.equal(preview.props.dangerouslySetInnerHTML, undefined);
+    const html = renderToStaticMarkup(preview);
+    assert.doesNotMatch(html, /<img|<script/);
+    if (label === 'paragraphs and literal text') {
+      assert.match(html, /&lt;img/); assert.match(html, /&lt;script&gt;/);
+      assert.ok(html.includes('Café e\u0301 雪🌍'));
+    }
+    assert.match(view.text(), /includes your edits/);
+    assert.match(view.text(), /Native styles are included; the preview below shows text only/);
+    assert.equal(JSON.stringify(view.pdf().work), original, 'rendering preserves the loaded proposal and snapshot bytes');
+    assert.equal(JSON.stringify(view.doc().document), JSON.stringify(api.works.old.document));
+    assert.equal(JSON.stringify(api.works.old), original);
+    assert.equal(api.calls.filter(c => c.input).length, 0);
+  } finally { view.unmount(); }
+});
+
+for (const change of ['title-only', 'body-change']) for (const decision of ['accept', 'reject']) test(`document proposal preview: ${change} ${decision} retains original decision identity and native snapshot`, async () => {
+  const api = server(() => assert.fail('clean review must not save or send'));
+  api.works.old = docWork('old');
+  api.works.old.document = blankDocument('old', 'Original title', '  Original é e\u0301 雪🌍\n\nLiteral <b>text</b>  ');
+  const proposed = change === 'title-only' ? { ...structuredClone(api.works.old.document), title: 'Proposed title' } : blankDocument('old', 'Original title', '  Changed é e\u0301 雪🌍\n\nLiteral <b>text</b>  ');
+  const proposal = { id: `fixture-${change}-${decision}`, kind: 'document', status: 'pending', reason: 'human_edit', patch: { document: proposed } };
+  api.works.old.proposals = [proposal];
+  const before = JSON.stringify(api.works.old.document), patch = JSON.stringify(proposal), expected = structuredClone(api.works.old.expected), decisions = [];
+  const view = mount(disk(), async (path, options) => {
+    if (!path.includes('/proposals/')) return api.fetch(path, options);
+    const input = JSON.parse(options.body); decisions.push({ path, input });
+    if (input.decision === 'accept') api.works.old.document = structuredClone(proposal.patch.document);
+    api.works.old.proposals = [];
+    api.works.old.contentRevision++; api.works.old.eventSequence++;
+    return { ok: true, status: 200, json: async () => ({}) };
+  });
+  try {
+    await view.flush(); await view.open('old'); attachDoc(view);
+    assert.equal(decisions.length, 0);
+    await view.click(decision === 'accept' ? 'Accept changes' : 'Keep current');
+    assert.equal(decisions.length, 1);
+    assert.equal(decisions[0].path, `/api/work/old/proposals/${proposal.id}`);
+    const { commandId, ...input } = decisions[0].input;
+    assert.ok(commandId); assert.deepEqual(input, { decision, expected });
+    assert.equal(JSON.stringify(proposal), patch);
+    assert.equal(JSON.stringify(view.doc().document), decision === 'accept' ? JSON.stringify(proposed) : before);
+    assert.equal(api.calls.filter(c => c.input).length, 0);
+  } finally { view.unmount(); }
+});
+
+test('document proposal preview keeps dirty work and pending proposal when saving is refused', async () => {
+  const api = server(() => { throw new Error('fixture save refused'); }), storage = disk();
+  api.works.old = docWork('old');
+  api.works.old.proposals = [{ id: 'fixture-protected', kind: 'document', status: 'pending', reason: 'human_edit', patch: { document: blankDocument('old', 'Proposal', 'First\n\nSecond') } }];
+  const before = JSON.stringify(api.works.old), decisions = [];
+  const view = mount(storage, async (path, options) => { if (path.includes('/proposals/')) { decisions.push(path); assert.fail('dirty work must block review'); } return api.fetch(path, options); });
+  try {
+    await view.flush(); await view.open('old'); attachDoc(view).edit('  Human\n\nDraft 雪🌍  '); await view.flush();
+    await view.click('Accept changes');
+    assert.match(view.text(), /fixture save refused/); assert.match(view.text(), /Unsaved changes/);
+    assert.deepEqual(decisions, []); assert.equal(JSON.stringify(api.works.old), before);
+    assert.equal(view.elements().find(n => n.type === 'pre' && n.props.className === 'document-preview').props.children, 'First\n\nSecond');
+    const savedAttempt = api.calls.find(c => c.path.endsWith('/save'));
+    assert.equal(savedAttempt.input.document.body.dataStream, '  Human\r\rDraft 雪🌍  \r\n');
+    assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.body.dataStream, savedAttempt.input.document.body.dataStream);
+  } finally { view.unmount(); }
+});
+
 test('PDF import refresh and explicit document navigation preserve dirty edits, composer and pending proposal', async () => {
   const storage = disk(), api = server(() => assert.fail('import navigation must not write'));
   api.works.old = docWork('old'); api.works.imported = docWork('imported');
