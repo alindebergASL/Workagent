@@ -78,8 +78,9 @@ def map_text(raw, pages):
     return {'text': text, 'pages': pages}
 
 def extract(request):
-    if not isinstance(request, dict) or set(request) != {'op', 'base64'} or request['op'] != 'import':
+    if not isinstance(request, dict) or not {'op', 'base64'} <= set(request) or set(request) - {'op', 'base64', 'mode'} or request['op'] != 'import':
         raise Refused('invalid_pdf_input')
+    if 'mode' in request and request['mode'] != 'text': raise Refused('invalid_pdf_mode')
     encoded = request['base64']
     if not isinstance(encoded, str) or len(encoded) > ((PDF_BYTES + 2) // 3) * 4:
         raise Refused('pdf_input_limit')

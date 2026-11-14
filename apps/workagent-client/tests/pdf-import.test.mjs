@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { randomUUID } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
 import { ApiError } from '../src/resume.ts';
 import * as documents from '../../../packages/workagent-contract/document.mjs';
@@ -14,7 +15,7 @@ const uploads = new Map();
 const pdfUpload = { put: async (key, bytes) => { uploads.set(key, bytes); }, get: async key => { if (!uploads.has(key)) throw new Error('missing retained upload'); return uploads.get(key); } };
 const storage = () => { const map = new Map(); return { getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: k => map.delete(k) }; };
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
-const preview = { filename: 'unknown.pdf', bytes: 30, encoding: 'UTF-8', sample: '# Literal source\nText', clipped: false, paragraphs: 2, pages: 2, previewHash: 'a'.repeat(64), warnings: ['Fixture loss warning'] };
+const preview = { mode: 'text', language: null, filename: 'unknown.pdf', bytes: 30, encoding: 'UTF-8', sample: '# Literal source\nText', clipped: false, paragraphs: 2, pages: 2, previewHash: 'a'.repeat(64), warnings: ['Fixture loss warning'] };
 function mount(disk, props) {
   let index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [], downloads = [], blobs = [];
   const react = {
@@ -30,7 +31,9 @@ function mount(disk, props) {
   const flush = async () => { for (let i = 0; i < 8; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
   return { flush, downloads, blobs, text: () => text(tree),
-    async choose(content = 'identifier,text\r\n0012,=1+1\r\n', name = 'unknown.pdf') { const file = new File([content], name); const input = nodes(tree).find(n => n.type === 'input' && n.props.type === 'file'); assert.ok(!input.props.disabled); input.props.onChange({ target: { files: [file], value: name } }); await flush(); },
+    async choose(content = 'identifier,text\r\n0012,=1+1\r\n', name = 'unknown.pdf', autoPreview = true) { const file = new File([content], name); const input = nodes(tree).find(n => n.type === 'input' && n.props.type === 'file'); assert.ok(!input.props.disabled); input.props.onChange({ target: { files: [file], value: name } }); await flush(); if (autoPreview) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === 'Preview selected PDF'); assert.ok(button); button.props.onClick(); await flush(); } },
+    async mode(value) { const select = nodes(tree).find(n => n.type === 'select'); select.props.onChange({ target: { value } }); await flush(); },
+    hasButton(label) { return nodes(tree).some(n => n.type === 'button' && text(n.props.children) === label); },
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     async update(next) { props = { ...props, ...next }; dirty = true; await flush(); },
     unmount() { mounted = false; hooks.forEach(h => h?.cleanup?.()); },
@@ -136,4 +139,37 @@ test('per-page refusal discloses blank-page restriction and image-text loss with
   assert.match(view.text(), /blank or scanned-only pages/);
   assert.match(view.text(), /Text inside images is omitted even on pages that also have a text layer/);
   assert.ok(!view.text().includes('Import as new work')); view.unmount();
+});
+test('explicit mode and preview action; stale text response cannot authorize OCR adoption',async()=>{
+ const generated=spawnSync('/usr/bin/python3',['-I','services/workagent-execution/pdf/fixtures/ocr_import.py'],{encoding:'utf8',timeout:10000});
+ assert.equal(generated.status,0,generated.stderr);const realPdf=Buffer.from(generated.stdout.trim(),'base64');assert.match(realPdf.toString('ascii',0,8),/^%PDF-/);
+ const calls=[],old=deferred();let count=0;
+ const props={api:async(path,input)=>{calls.push({path,input:structuredClone(input)});if(path.endsWith('/preview')){if(++count===1)return old.promise;return {...preview,mode:input.mode,language:'English',sample:'Reference 00120\nGuests 0042'};}return {workId:'ocr-new'};},editor:()=>assert.fail('draft untouched'),work:null,onImported:async()=>{},onOpen:async()=>assert.fail('no automatic open')};
+ const disk=storage(),v=mount(disk,props);await v.choose(realPdf,'scan.pdf',false);
+ assert.equal(calls.length,0);assert.ok(!v.hasButton('Import as new work'));
+ await v.click('Preview selected PDF');assert.equal(calls[0].input.mode,'text');
+ await v.mode('ocr-eng');old.resolve(preview);await v.flush();assert.ok(!v.hasButton('Import as new work'));
+ await v.click('Preview selected PDF');assert.equal(calls[1].input.mode,'ocr-eng');assert.match(v.text(),/Reference 00120/);assert.match(v.text(),/names and numbers/);
+ await v.mode('text');assert.ok(!v.hasButton('Import as new work'));await v.mode('ocr-eng');await v.click('Preview selected PDF');
+ await v.click('Import as new work');assert.equal(calls.at(-1).input.mode,'ocr-eng');assert.equal(calls.at(-1).input.base64,realPdf.toString('base64'));v.unmount();
+});
+for(const pendingMode of [undefined,'text','ocr-eng'])test(`mode switch never rewrites another tab's pending ${pendingMode ?? 'legacy'} request`,async()=>{
+ const disk=storage(),calls=[],actions=new MaintenanceActions(disk,'pdf-import');
+ const v=mount(disk,{api:async(path,input)=>{if(path.endsWith('/preview'))return {...preview,mode:input.mode,language:input.mode==='ocr-eng'?'English':null};calls.push(structuredClone(input));return {workId:'retried'};},editor:()=>assert.fail('draft untouched'),work:null,onImported:async()=>{},onOpen:async()=>assert.fail('no automatic open')});
+ await v.choose('A bytes','A.pdf');
+ const other={filename:'B.pdf',previewHash:'b'.repeat(64),synthetic:true,...(pendingMode?{mode:pendingMode}:{})};
+ await pdfUpload.put(other.previewHash,Buffer.from('B original bytes').toString('base64'));
+ const b=actions.prepare('import','/exchange/pdf/import',other,randomUUID);
+ await v.mode('ocr-eng');assert.deepEqual(actions.read(),b);assert.ok(!v.hasButton('Import as new work'));
+ await v.click('Preview selected PDF');assert.match(v.text(),/Another unresolved request.*B.pdf/);assert.deepEqual(actions.read(),b);assert.equal(calls.length,0);
+ // A fresh mount sees the pending identity; selecting another mode still must
+ // retry B with the exact legacy/explicit fields, never A's bytes or mode.
+ v.unmount();const reload=mount(disk,{api:async(path,input)=>{calls.push(structuredClone(input));return {workId:'retried'};},editor:()=>assert.fail('draft untouched'),work:null,onImported:async()=>{},onOpen:async()=>{}});
+ await reload.mode('ocr-eng');await reload.click('Retry unresolved PDF import: B.pdf');
+ assert.deepEqual(calls,[{...b.input,base64:Buffer.from('B original bytes').toString('base64')}]);reload.unmount();
+});
+test('mismatched OCR preview and truthful blank/failed OCR refusal never expose adoption',async()=>{
+ for(const result of [{...preview,mode:'text'},{...preview,mode:'ocr-eng',language:'English',clipped:true}]){
+ const v=mount(storage(),{api:async()=>result,editor:()=>null,work:null,onImported:async()=>{},onOpen:async()=>{}});await v.mode('ocr-eng');await v.choose();assert.ok(!v.hasButton('Import as new work'));assert.match(v.text(),/mode mismatch/);v.unmount();}
+ const v=mount(storage(),{api:async()=>{throw Error('pdf_ocr_page_without_text');},editor:()=>null,work:null,onImported:async()=>{},onOpen:async()=>{}});await v.mode('ocr-eng');await v.choose();assert.match(v.text(),/blank or recognition may have failed/);assert.ok(!v.hasButton('Import as new work'));v.unmount();
 });

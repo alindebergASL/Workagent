@@ -103,3 +103,53 @@ test('strict input/result limits and narrower import namespace; no fallback',asy
  for(const value of [{pages:201,text:'A'},{pages:1,text:'A'.repeat(200001)},{pages:1,text:'A\n'.repeat(10000)},{pages:1,text:'\ud800'},{pages:1,text:'A\f'},{pages:1,text:'  '}])assert.throws(()=>validatePdfText(value));
  const worker=new PdfWorker();const c=new AbortController();c.abort();await assert.rejects(worker.run({op:'import',base64},{signal:c.signal}),/pdf_import_cancelled/);assert.equal(worker.active,false);
 });
+test('explicit modes bind previews, original metadata and dedup; legacy pending input stays exact', async () => {
+ const f=await fixture(), calls=[];
+ f.pdf.worker={run:async request=>{calls.push(structuredClone(request));return structuredClone(output);}};
+ const legacy=await f.pdf.preview('owner',input), text=await f.pdf.preview('owner',{...input,mode:'text'}), ocr=await f.pdf.preview('owner',{...input,mode:'ocr-eng'});
+ assert.equal(ocr.mode,'ocr-eng');assert.equal(ocr.language,'English');assert.equal(ocr.clipped,false);
+ assert.equal(new Set([legacy.previewHash,text.previewHash,ocr.previewHash]).size,3);
+ assert.deepEqual(calls.map(c=>c.mode),[undefined,'text','ocr-eng']);
+ for(const [mode,previewHash] of [['ocr-eng',text.previewHash],['text',ocr.previewHash],['ocr-eng',legacy.previewHash]])
+  await assert.rejects(f.pdf.import('owner',{...input,mode,previewHash,commandId:'cross-mode'}),/pdf_preview_changed/);
+ const old={...input,previewHash:legacy.previewHash,commandId:'old-pending'};
+ const retained=await f.pdf.import('owner',old);
+ assert.deepEqual(await f.pdf.import('owner',structuredClone(old)),retained);
+ const a={...input,mode:'ocr-eng',previewHash:ocr.previewHash,commandId:'ocr-adopt'};
+ const made=await f.pdf.import('owner',a);
+ assert.equal(made.original.mode,'ocr-eng');assert.equal(made.original.language,'English');assert.match(made.original.encoding,/English OCR/);
+ assert.equal(made.original.hash,hashBytes(bytes));assert.deepEqual((await f.exchange.original('owner',made.workId,made.original.id)).bytes,bytes);
+ const w=await f.workspace.get('owner',made.workId);assert.equal(w.humanDocument,true);assert.deepEqual(w.proposals,[]);
+ f.pdf.worker={run:()=>assert.fail('retry must not run OCR')};assert.deepEqual(await f.pdf.import('owner',a),made);
+ await assert.rejects(f.pdf.import('owner',{...a,mode:'text'}),/command_conflict/);
+});
+test('OCR preview exposes all bounded recognized text; text preview stays clipped and limits differ',async()=>{
+ const f=await fixture();f.pdf.worker={run:async()=>({pages:5,text:'Review 00120\n'.repeat(1000)})};
+ const p=await f.pdf.preview('owner',{...input,mode:'ocr-eng'});assert.equal(p.sample.length,13000);assert.equal(p.clipped,false);
+ assert.equal((await f.pdf.preview('owner',{...input,mode:'text'})).sample.length,4000);
+ f.pdf.worker={run:async()=>({pages:6,text:'Six pages'})};await assert.rejects(f.pdf.preview('owner',{...input,mode:'ocr-eng'}),/pdf_invalid_extraction/);
+ for(const mode of [null,'ocr','eng','',42])assert.throws(()=>decodePdfUpload({...input,mode}),/invalid_pdf_mode/);
+ assert.throws(()=>decodePdfUpload({...input,mode:'ocr-eng',language:'eng'}),/invalid_pdf_input/);
+ const w=new PdfWorker();for(const req of [{op:'import',base64,mode:'ocr'},{op:'import',base64,mode:'ocr-eng',language:'eng'},{op:'export',document:{},mode:'ocr-eng'}])await assert.rejects(w.run(req),/invalid_pdf/);
+ const args=sandboxArgs(undefined,'import','ocr-eng');assert.ok(args.some(v=>v.endsWith('/ocr.py')));assert.ok(args.includes('OMP_THREAD_LIMIT'));
+ assert.ok(!args.includes('/venv'));assert.ok(!args.includes('--share-net'));assert.ok(args.includes('--clearenv'));
+});
+test('OCR import rollback, abort and permission revision checks retain prior document and proposal',async()=>{
+ const f=await fixture(),req={...input,mode:'ocr-eng'},created=await f.workspace.createBlank('owner',{commandId:'keep',title:'Keep draft',kind:'document'});
+ const w=await f.workspace.get('owner',created.workId);await f.workspace.mutateDocument('owner',w.id,{commandId:'keep-proposal',expected:w.expected,document:{...w.document,title:'Pending'}});
+ const before=await f.state(),a={...req,previewHash:(await f.pdf.preview('owner',req)).previewHash,commandId:'ocr-write'};
+ const c=new AbortController();c.abort();await assert.rejects(f.pdf.preview('owner',req,{signal:c.signal}),/pdf_import_cancelled/);
+ const tx=f.store.transaction.bind(f.store);f.store.transaction=fn=>tx(async s=>{await fn(s);throw Error('rollback');});
+ await assert.rejects(f.pdf.import('owner',a),/rollback/);f.store.transaction=tx;assert.deepEqual(await f.state(),before);
+ f.pdf.worker={run:async()=>{await tx(s=>s.permissionRevision++);return structuredClone(output);}};
+ await assert.rejects(f.pdf.import('owner',a),/access_changed/);
+ const after=await f.state();assert.deepEqual(after.works,before.works);assert.deepEqual(after.commands,before.commands);assert.deepEqual(after.jobs,before.jobs);
+ f.pdf.worker={run:async()=>structuredClone(output)};const made=await f.pdf.import('owner',a);
+ assert.notEqual(made.workId,w.id);assert.deepEqual((await f.state()).works[w.id],before.works[w.id]);
+});
+test('OCR preview observes caller cancellation during the final grant read',async()=>{
+ const f=await fixture(),c=new AbortController(),access=f.pdf.access.bind(f.pdf);
+ f.pdf.access=async(principal,expected)=>{const r=await access(principal,expected);if(expected!==undefined)c.abort();return r;};
+ await assert.rejects(f.pdf.preview('owner',{...input,mode:'ocr-eng'},{signal:c.signal}),/pdf_import_cancelled/);
+ assert.deepEqual((await f.state()).works,{});
+});

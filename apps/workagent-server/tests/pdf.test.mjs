@@ -194,7 +194,7 @@ test('namespace mount/environment allowlist and identity use actual actor; unava
   }
 });
 function child(script) { return spawn('/usr/bin/python3', ['-c', script], { detached: true, env: {}, stdio: ['pipe', 'pipe', 'pipe'] }); }
-for (const [code,status] of [['pdf_page_without_text',400],['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400],['unsupported_pdf_marker_formatting',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
+for (const [code,status] of [['pdf_ocr_page_limit',400],['pdf_ocr_page_without_text',400],['pdf_ocr_raster_limit',400],['pdf_ocr_output_limit',400],['pdf_ocr_resource_limit',400],['pdf_ocr_runtime_unavailable',503],['pdf_ocr_render_failed',503],['pdf_ocr_diagnostics',503],['pdf_ocr_timeout',503],['invalid_pdf_mode',400],['pdf_page_without_text',400],['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400],['unsupported_pdf_marker_formatting',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
   await assert.rejects(collectChild(child(`print('{"error":"${code}"}');raise SystemExit(1)`),''), error=>error.code===code && error.status===status);
 });
 for (const [name, script, error] of [
@@ -247,4 +247,14 @@ test('nested counter and layout policies agree, including referenced ancestors a
   for (const edit of [d => d.lists.custom.nestingLevel[1].glyphType = 60, d => d.lists.custom.nestingLevel[2].glyphFormat = '%1-%3', d => d.lists.custom.nestingLevel[2].isLegal = true, d => d.body.paragraphs[2].bullet.nestingLevel = 9]) {
     const d = structuredClone(base); edit(d); assert.throws(() => validatePdfDocument(d)); pythonPolicy([], [d], 'unsupported_document_list');
   }
+});
+
+for (const abort of [false, true]) test(`OCR outer watchdog and caller abort terminate child: ${abort}`, async () => {
+ const c=child("import time;print('ready',flush=True);time.sleep(20)"), controller=new AbortController();
+ const result=collectChild(c,'',{operation:'import',mode:'ocr-eng',timeoutMs:100,signal:controller.signal});
+ if(abort)c.stdout.once('data',()=>controller.abort());
+ await assert.rejects(result,abort?/pdf_import_cancelled/:/pdf_worker_timeout/);
+});
+test('OCR wrapper refuses stderr even with successful valid output',async()=>{
+ await assert.rejects(collectChild(child(`import sys;print('{"pages":1,"text":"Recognized"}');print('unexpected warning',file=sys.stderr)`),'',{operation:'import',mode:'ocr-eng'}),/pdf_ocr_diagnostics/);
 });
