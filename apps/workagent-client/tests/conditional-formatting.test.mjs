@@ -11,6 +11,7 @@ import { XlsxExchange } from '../../workagent-server/src/xlsx-exchange.mjs';
 const range = {startRow:0,endRow:3,startColumn:0,endColumn:0};
 const rule = () => ({cfId:'numeric',stopIfTrue:false,ranges:[range],rule:{type:'highlightCell',subType:'number',operator:'greaterThan',value:5,style:{bg:{rgb:'#ff0000'},bl:1}}});
 const scale = (three = false) => ({ cfId:'scale', stopIfTrue:false, ranges:[range], rule:{type:'colorScale',config:[{index:0,color:'#ff0000',value:{type:'min'}}, ...(three ? [{index:1,color:'#ffff00',value:{type:'percentile',value:50}}] : []), {index:three ? 2 : 1,color:'#00ff00',value:{type:'max'}}]} });
+const bar = () => ({cfId:'bar',stopIfTrue:false,ranges:[range],rule:{type:'dataBar',isShowValue:true,config:{min:{type:'min'},max:{type:'max'},isGradient:false,positiveColor:'#ffbe38',nativeColor:'#abd91a'}}});
 const withRules = () => {const b=blankWorkbook('book');b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[rule()]})}];return b;};
 test('open conditional form retains the editor through clean navigation and dirty Save until Submit or Cancel', async () => {
   const state = initialState('owner'), ws = new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
@@ -118,26 +119,27 @@ for(const axis of ['row','column']) test(`native ${axis} movement/deletion/undo 
   const b=blankWorkbook('structure');b.sheets.sheet1.cellData={0:{0:{f:'=1+2'}}};
   const view=mountNative({book:b,version:axis});
   try {await view.settle();const wb=view.api.getActiveWorkbook(),s=wb.getActiveSheet();
-    const r=s.newConditionalFormattingRule().whenNumberGreaterThan(5).setRanges([s.getRange('D5').getRange()]).setBackground('#ff0000').build();s.addConditionalFormattingRule(r);
+    const r=s.newConditionalFormattingRule().setDataBar({...bar().rule.config,isShowValue:true}).setRanges([s.getRange('D5').getRange()]).build();s.addConditionalFormattingRule(r);
+    for(const extra of [scale(),rule()])s.addConditionalFormattingRule({...extra,ranges:r.ranges});
     if(axis==='row')s.insertRowsBefore(1,1);else s.insertColumnsBefore(1,1);
     const shifted=axis==='row'?1003:804;assert.ok(view.handle.formatEdits().sheet1.includes(shifted));
     const current=s.getConditionalFormattingRules()[0].ranges[0];assert.equal(current[axis==='row'?'startRow':'startColumn'],5-Number(axis==='column'));
     if(axis==='row')s.moveRows(s.getRange('D6'),9);else s.moveColumns(s.getRange('E5'),8);
     const moved=axis==='row'?1603:807;assert.ok(view.handle.formatEdits().sheet1.includes(moved));
     wb.undo();assert.ok(view.handle.formatEdits().sheet1.includes(shifted));wb.redo();
-    s.deleteConditionalFormattingRule(r.cfId);assert.equal(conditionalCells(view.handle.save()).size,0);
+    for(const id of [r.cfId,'scale','numeric'])s.deleteConditionalFormattingRule(id);assert.equal(conditionalCells(view.handle.save()).size,0);
     if(axis==='row')s.deleteRows(8,1);else s.deleteColumns(7,1);
     assert.ok(!view.handle.formatEdits().sheet1.includes(moved));wb.undo();assert.ok(view.handle.formatEdits().sheet1.includes(moved));
     assert.ok(!view.handle.formatEdits().sheet1.includes(0));validateWorkbook(view.handle.save());
   }finally{view.dispose();}
 });
 
-for (const axis of ['row', 'column']) for (const preloaded of [true, false]) test(`mixed highlight/scale ${preloaded ? 'preloaded' : 'new'} boundary rules survive ${axis} delete, undo, redo, Save and cold reopen`, async () => {
+for (const axis of ['row', 'column']) for (const preloaded of [true, false]) test(`mixed highlight/scale/bar ${preloaded ? 'preloaded' : 'new'} boundary rules survive ${axis} delete, undo, redo, Save and cold reopen`, async () => {
   const state = initialState('owner'), ws = new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId} = await ws.createBlank('owner', {commandId:'new',title:'Boundary rules'});
   const b = state.works[workId].book;
   b.sheets.sheet1.cellData = {0:{0:{v:'deleted',t:1}},2:{2:{f:'=1+2'}}};
-  const rules = [0, 1].map(i => ({...(i ? scale(true) : rule()), cfId:`boundary${i}`, ranges:[{
+  const rules = [0, 1, 2].map(i => ({...(i === 2 ? bar() : i ? scale(true) : rule()), cfId:`boundary${i}`, ranges:[{
     startRow:axis === 'row' ? 199 : i, endRow:axis === 'row' ? 199 : i,
     startColumn:axis === 'row' ? i : 25, endColumn:axis === 'row' ? i : 25,
   }]}));
@@ -161,7 +163,7 @@ for (const axis of ['row', 'column']) for (const preloaded of [true, false]) tes
       assert.equal(snapshot.sheets.sheet1.cellData[axis === 'row' ? 0 : 1][axis === 'row' ? 1 : 0].v,42);
       assert.equal(snapshot.sheets.sheet1.cellData[axis === 'row' ? 1 : 2][axis === 'row' ? 2 : 1].f,'=1+2');
       for (const r of conditionalRules(snapshot).sheet1) assert.equal(r.ranges[0][axis === 'row' ? 'endRow' : 'endColumn'],axis === 'row' ? 198 : 24);
-      assert.equal(conditionalRules(snapshot).sheet1.length,2);
+      assert.equal(conditionalRules(snapshot).sheet1.length,3);
     };
     checkDeleted(); await persist();
     wb.undo();
@@ -195,7 +197,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
   b.sheets.sheet1.cellData={2:{2:{f:'=1+2'}}};
   b.sheetOrder.push('sheet2'); b.sheets.sheet2={...structuredClone(b.sheets.sheet1),id:'sheet2',name:'Other'};
   b.sheets.sheet2.cellData[0]={0:{v:'keep',t:1}};
-  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[rule()]})}];
+  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[bar()]})}];
   state.works[workId].humanCells=['sheet1:3:0','sheet2:0:0'];
   let view=mountNative({book:structuredClone(b),humanCells:state.works[workId].humanCells,version:'tabs'}), serial=0, saved;
   const persist=async()=>{
@@ -214,7 +216,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
     const exchange=new XlsxExchange({workspace:ws,worker:{async run(){exports++;return {base64:'UEs=',warnings:[]};}}});
     await exchange.export('owner',{workId,book:removed.book});assert.equal(exports,1);
     wb.undo(); saved=await persist();
-    assert.deepEqual(conditionalRules(saved.book).sheet1,[rule()]);
+    assert.deepEqual(conditionalRules(saved.book).sheet1,[bar()]);
     assert.ok(saved.humanCells.includes('sheet1:3:0'));
     assert.ok(saved.humanCells.includes('sheet2:0:0'));
     assert.equal(saved.book.sheets.sheet2.cellData[0][0].v,'keep');
@@ -222,7 +224,7 @@ test('deleted CF tab leaves only harmless empty buckets; undo restores rules and
     wb.undo(); saved=await persist();
   } finally {view.dispose();}
   view=mountNative({book:saved.book,humanCells:saved.humanCells,version:'cold-tabs'});
-  try {await view.settle();validateWorkbook(view.handle.save());assert.deepEqual(conditionalRules(view.handle.save()).sheet1,[rule()]);}
+  try {await view.settle();validateWorkbook(view.handle.save());assert.deepEqual(conditionalRules(view.handle.save()).sheet1,[bar()]);}
   finally {view.dispose();}
   assert.equal((await ws.mutate('owner',workId,{commandId:'agent',expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:3,column:0,value:99}]}})).status,'proposed');
 });
@@ -406,7 +408,7 @@ test('malformed scale thresholds refuse before native mutation or server save an
   } finally {view.dispose();}
 });
 
-test('scale draft and lost Save acknowledgement survive remount and exact retry through NativeEditor commit', async () => {
+test('mixed scale/bar draft and lost Save acknowledgement survive remount and exact retry through NativeEditor commit', async () => {
   const state=initialState('owner'), ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Scale draft'});
   state.works[workId].book.sheets.sheet1.cellData={0:{0:{v:0,t:2},2:{f:'=1+2'}},1:{0:{v:100,t:2}}};
@@ -422,7 +424,7 @@ test('scale draft and lost Save acknowledgement survive remount and exact retry 
   let app=mountApp(storage,fetcher),view;
   try {
     await app.open(workId);view=mountNative(app.native());await view.settle();
-    const sheet=view.api.getActiveWorkbook().getActiveSheet();sheet.addConditionalFormattingRule(scale(true));
+    const sheet=view.api.getActiveWorkbook().getActiveSheet();sheet.addConditionalFormattingRule(scale(true));sheet.addConditionalFormattingRule(bar());
     const pending=await view.handle.commit();await app.flush();await app.save();await app.flush();
     assert.equal(calls.length,1);view.dispose();view=null;app.unmount();
     app=mountApp(storage,fetcher);await app.open(workId);view=mountNative(app.native());await view.settle();
@@ -438,7 +440,7 @@ for (const axis of ['row','column']) for (const partial of [false,true]) test(`c
   b.sheets.sheet1.cellData={0:{0:{v:0,t:2,s:{it:1}},2:{f:'=1+2'}},1:{0:{v:50,t:2}},2:{0:{v:100,t:2}}};
   const r={startRow:0,endRow:499,startColumn:0,endColumn:99};
   const ranges=partial?Array.from({length:500},(_,i)=>({startRow:Math.floor(i/10)*3,endRow:Math.floor(i/10)*3+1,startColumn:(i%10)*3,endColumn:(i%10)*3+1})):[r];
-  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{...scale(),ranges},{...rule(),ranges}]})}];
+  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:partial ? [{...scale(),ranges:ranges.slice(0,250)},{...rule(),ranges:ranges.slice(250)},{...bar(),ranges}] : [{...scale(),ranges:[{...r,endRow:299}]},{...rule(),ranges:[{...r,startRow:300}]},{...bar(),ranges}]})}];
   const v=mountNative({book:b,version:`${axis}-${partial}`,humanCells:['sheet1:499:99']});
   try {
     await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet();s.getRange('B2').setValue(42);
@@ -455,22 +457,24 @@ for (const axis of ['row','column']) for (const partial of [false,true]) test(`c
   } finally {v.dispose();}
 });
 
-for (const axis of ['row','column']) test(`${axis} insertion inherits only authored formatting for scales and numeric/text highlights through Undo/Redo, removal and reopen`, async () => {
+for (const axis of ['row','column']) test(`${axis} insertion inherits only authored formatting for bars, scales and numeric/text highlights through Undo/Redo, removal and reopen`, async () => {
   const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Inherited styles'});const b=state.works[workId].book;
   const cell=(along,across)=>axis==='row'?[along,across]:[across,along];
   const put=(along,across,data)=>{const [r,c]=cell(along,across);(b.sheets.sheet1.cellData[r]??={})[c]=data;};
   const rr=(start,end)=>axis==='row'?{startRow:0,endRow:2,startColumn:start,endColumn:end}:{startRow:start,endRow:end,startColumn:0,endColumn:2};
-  for(let along=0;along<3;along++){put(along,0,{v:along*50,t:2});put(along,1,{v:along*50,t:2,...(along===0?{s:{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1}}:{})});}
+  for(let along=0;along<3;along++){put(along,0,{v:25+along*50,t:2});put(along,1,{v:25+along*50,t:2,...(along===0?{s:{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1}}:{})});}
   put(0,2,{v:10,t:2,s:{it:1}});put(0,3,{v:'Ready',t:1,s:{bg:{rgb:'#112233'},ff:'Arial'}});put(0,4,{v:9,t:2,s:{bl:1}});put(0,5,{f:'=1+2'});
-  const rules=[{...scale(),ranges:[rr(0,1)]},{...rule(),ranges:[rr(2,2)]},{cfId:'text',stopIfTrue:false,ranges:[rr(3,3)],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready',style:{bg:{rgb:'#00ff00'},bl:1}}}];
+  // Keep a visible bar on the inherited row; its value is the data minimum.
+  const inheritedBar=bar();inheritedBar.rule.config.min={type:'num',value:0};
+  const rules=[{...inheritedBar,ranges:[rr(0,1)]},{...scale(),ranges:[rr(0,1)]},{...rule(),ranges:[rr(2,2)]},{cfId:'text',stopIfTrue:false,ranges:[rr(3,3)],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready',style:{bg:{rgb:'#00ff00'},bl:1}}}];
   b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:rules})}];
   let v=mountNative({book:structuredClone(b),version:axis}),saved;
   const styles=(snapshot,along,across)=>{const [r,c]=cell(along,across),s=snapshot.sheets.sheet1.cellData[r]?.[c]?.s;return typeof s==='string'?snapshot.styles[s]:s;};
-  const check=async()=>{const snapshot=await v.handle.commit();assert.equal(styles(snapshot,1,0),undefined);assert.deepEqual(styles(snapshot,1,1),{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1});assert.deepEqual(styles(snapshot,1,2),{it:1});assert.deepEqual(styles(snapshot,1,3),{bg:{rgb:'#112233'},ff:'Arial'});assert.deepEqual(styles(snapshot,1,4),{bl:1});return snapshot;};
+  const check=async()=>{const snapshot=await v.handle.commit();for(const row of Object.values(snapshot.sheets.sheet1.cellData))for(const cell of Object.values(row)){assert.equal(cell.dataBar,undefined);assert.equal(cell.fontRenderExtension,undefined);}assert.equal(styles(snapshot,1,0),undefined);assert.deepEqual(styles(snapshot,1,1),{bg:{rgb:'#123456'},ff:'Arial',bl:1,it:1});assert.deepEqual(styles(snapshot,1,2),{it:1});assert.deepEqual(styles(snapshot,1,3),{bg:{rgb:'#112233'},ff:'Arial'});assert.deepEqual(styles(snapshot,1,4),{bl:1});return snapshot;};
   try {
     await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet(),before=await v.handle.commit();
-    for(const across of [0,1,2,3]){const [r,c]=cell(0,across);assert.ok(v.conditional.composeStyle(workId,'sheet1',r,c)?.style?.bg);}
+    for(const across of [0,1,2,3]){const [r,c]=cell(0,across);assert.ok(v.conditional.composeStyle(workId,'sheet1',r,c)?.style?.bg);if(across<2)assert.equal(v.conditional.composeStyle(workId,'sheet1',r,c).dataBar.value,20);}
     if(axis==='row')s.insertRowsBefore(1,1);else s.insertColumnsBefore(1,1);
     await check();wb.undo();await v.settle();assert.deepEqual((await v.handle.commit()).sheets.sheet1.cellData,before.sheets.sheet1.cellData);wb.redo();await check();
     for(const r of rules)s.deleteConditionalFormattingRule(r.cfId);
@@ -550,14 +554,282 @@ test('sheet duplication preflights aggregate conditional limits and allows bound
   } finally {w.dispose();}
 });
 
-test('scale calculation and disposal are isolated between simultaneous native editor instances', async () => {
-  const make=(id,values)=>{const b=blankWorkbook(id);b.sheets.sheet1.cellData={0:{0:{v:values[0],t:2},2:{f:'=1+2'}},1:{0:{v:values[1],t:2}}};b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[scale()]})}];return b;};
+test('scale/bar calculation and disposal are isolated between simultaneous native editor instances', async () => {
+  const make=(id,values)=>{const b=blankWorkbook(id);b.sheets.sheet1.cellData={0:{0:{v:values[0],t:2},2:{f:'=1+2'}},1:{0:{v:values[1],t:2}}};b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[scale(),bar()]})}];return b;};
   const a=mountNative({book:make('local-a',[-1000,-999]),version:'a'}),b=mountNative({book:make('local-b',[-1e308,1e308]),version:'b'});
   let disposed=false;
   try {
     await a.settle();await b.settle();
     assert.equal(a.conditional.composeStyle('local-a','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');
+    assert.equal(a.conditional.composeStyle('local-a','sheet1',0,0).dataBar.startPoint,100);assert.equal(a.conditional.composeStyle('local-a','sheet1',1,0).dataBar,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).dataBar.startPoint,50);
     a.dispose();disposed=true;await b.conditionalSettled(()=>b.api.getActiveWorkbook().getActiveSheet().getRange('A1:A2').setValues([[-20],[-10]]));
-    assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal((await b.handle.commit()).sheets.sheet1.cellData[1][0].s,undefined);
+    assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).style.bg.rgb,'rgb(0,255,0)');assert.equal((await b.handle.commit()).sheets.sheet1.cellData[1][0].s,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',1,0).dataBar,undefined);assert.equal(b.conditional.composeStyle('local-b','sheet1',0,0).dataBar.startPoint,100);
   } finally {if(!disposed)a.dispose();b.dispose();}
+});
+
+for (const [name, values, axis, lengths] of [
+  ['positive',[10,20,40],0,[0,100/3,100]], ['negative',[-40,-20,-10],100,[-100,-100/3,0]],
+  ['mixed',[-20,0,60],25,[-100,0,100]], ['extreme',[-1e308,0,1e308],50,[-100,0,100]],
+  ['positive extremes',[1e307,5e307,1e308],0,[0,400/9,100]], ['negative extremes',[-1e308,-5e307,-1e307],100,[-100,-400/9,0]],
+  ['maximum finite',[Number.MAX_VALUE,Number.MAX_VALUE,Number.MAX_VALUE],0,[100,100,100]],
+  ['positive constant',[7,7,7],0,[100,100,100]], ['negative constant',[-7,-7,-7],100,[-100,-100,-100]],
+  ['zero',[0,0,0],0,[0,0,0]], ['empty',[null,'text',true],0,[0,0,0]],
+]) test(`native data-bar ${name} geometry, renderer paths and authored values`, async () => {
+  const b=blankWorkbook(`bar-${name.replaceAll(' ','-')}`);
+  b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  values.forEach((v,row)=>{if(v!==null)(b.sheets.sheet1.cellData[row]??={})[0]={v,t:typeof v==='number'?2:typeof v==='boolean'?3:1};});
+  const v=mountNative({book:b,version:name});
+  try {
+    await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),raw=structuredClone((await v.handle.commit()).sheets.sheet1.cellData);
+    // Real UI quick-insert command, then real panel-shaped edit below.
+    assert.equal(await v.commands.executeCommand('sheet.command.add-data-bar-conditional-rule',{ranges:[range],...bar().rule.config,isShowValue:true}),true);
+    const r=s.getConditionalFormattingRules()[0];
+    for (const gradient of [false,true]) {
+      await v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,{...r,rule:{...r.rule,isShowValue:false,config:{...r.rule.config,isGradient:gradient}}}));
+      for(let row=0;row<3;row++) {
+        const result=v.conditional.composeStyle(b.id,'sheet1',row,0),data=result?.dataBar;
+        if(!lengths[row]) assert.equal(data,undefined); else {
+          assert.ok(Math.abs(data.value-lengths[row])<1e-10);assert.equal(data.startPoint,axis);assert.equal(data.isGradient,gradient);
+          assert.equal(data.color,values[row]<0?'#abd91a':'#ffbe38');
+          assert.equal(result.isShowValue,false);
+        }
+        if(typeof values[row]==='number') assert.equal(s.getSheet().getCell(row,0).fontRenderExtension.isSkip,true);
+      }
+      const drawn=v.drawBars('sheet1',range);
+      assert.equal(drawn.paths.length,lengths.filter(Boolean).length,'actual SDK draw must skip zero and empty cells');
+      assert.equal(drawn.gradients.length,gradient?drawn.paths.length:0);
+      let p=0;
+      lengths.forEach(length=>{if(!length)return;const path=drawn.paths[p++],xs=path.points.map(x=>x[0]);
+        assert.ok(path.points.flat().every(Number.isFinite));
+        const expectedWidth=100*(length>0?1-axis/100:axis/100)*Math.abs(length)/100;
+        assert.ok(Math.abs(Math.max(...xs)-Math.min(...xs)-expectedWidth)<1e-10);
+        assert.equal(length>0?Math.min(...xs):Math.max(...xs),2+axis,'bar starts at the correct zero axis');
+        assert.ok(Math.min(...xs)>=2 && Math.max(...xs)<=102);
+      });
+    }
+    assert.deepEqual((await v.handle.commit()).sheets.sheet1.cellData,raw,'rendering is never authored cell content');
+    assert.ok(!v.handle.formatEdits().sheet1.includes(2));
+  } finally {v.dispose();}
+});
+
+// These observations use the installed renderer as well as native composition;
+// changing thresholds on the same cells must change the recorded bar lengths.
+function assertBarGeometry(v, id, values, lengths, axis, covered) {
+  values.forEach((value,row)=>{
+    const data=v.conditional.composeStyle(id,'sheet1',row,0)?.dataBar;
+    if(!lengths[row]) assert.equal(data,undefined,`row ${row} has no bar`);
+    else {
+      assert.ok(Math.abs(data.value-lengths[row])<1e-10,`row ${row}: ${data.value} vs ${lengths[row]}`);
+      assert.ok(Math.abs(data.startPoint-axis)<1e-10);
+      assert.equal(data.color,value<0?'#abd91a':'#ffbe38');
+    }
+  });
+  const drawn=v.drawBars('sheet1',covered);
+  assert.equal(drawn.paths.length,lengths.filter(Boolean).length);
+  let p=0;
+  lengths.forEach(length=>{
+    if(!length)return;
+    const path=drawn.paths[p++],xs=path.points.map(point=>point[0]);
+    assert.ok(path.points.flat().every(Number.isFinite));
+    const width=(length>0?100-axis:axis)*Math.abs(length)/100;
+    assert.ok(Math.abs(Math.max(...xs)-Math.min(...xs)-width)<1e-10);
+    assert.ok(Math.abs((length>0?Math.min(...xs):Math.max(...xs))-(2+axis))<1e-10);
+    assert.ok(Math.min(...xs)>=2 && Math.max(...xs)<=102);
+  });
+}
+const num=value=>({type:'num',value}), percent=value=>({type:'percent',value}), percentile=value=>({type:'percentile',value});
+for(const [name,values,cases] of [
+  ['positive',[0,5,10,15,20,25],[
+    [num(0),num(20),0,[0,25,50,75,100,100]],
+    [num(10),num(20),0,[0,0,0,50,100,100]],
+    [num(10),num(15),0,[0,0,0,100,100,100]],
+    [num(10),num(10),0,[0,0,100,100,100,100]],
+    [num(0),num(0),0,[0,0,0,0,0,0]],
+  ]],
+  ['negative',[-25,-20,-15,-10,-5,0],[
+    [num(-20),num(0),100,[-100,-100,-75,-50,-25,0]],
+    [num(-20),num(-10),100,[-100,-100,-50,0,0,0]],
+    [num(-15),num(-10),100,[-100,-100,-100,0,0,0]],
+    [num(-10),num(-10),100,[-100,-100,-100,-100,0,0]],
+  ]],
+  ['interior positive',[0,10,15,20],[
+    [percent(0),percent(100),0,[0,50,75,100]],
+    [percent(50),percent(100),0,[0,0,50,100]],
+    [percent(50),percent(75),0,[0,0,100,100]],
+    [percentile(50),percentile(100),0,[0,0,100/3,100]],
+    [percentile(50),percentile(75),0,[0,0,200/3,100]],
+  ]],
+  ['interior negative',[-20,-15,-10,0],[
+    [percent(0),percent(100),100,[-100,-75,-50,0]],
+    [percent(0),percent(50),100,[-100,-50,0,0]],
+    [percent(25),percent(50),100,[-100,-100,0,0]],
+    [percentile(0),percentile(50),100,[-100,-100/3,0,0]],
+    [percentile(25),percentile(50),100,[-100,-200/3,0,0]],
+  ]],
+  ['crossed mixed types',[-100,-50,0,50,100],[
+    [{type:'min'},{type:'max'},50,[-100,-50,0,50,100]],
+    [num(200),{type:'max'},0,[0,0,0,0,0]],
+    [{type:'min'},num(-200),100,[0,0,0,0,0]],
+    [percent(75),num(-100),200/3,[-100,-50,0,100,100]],
+    [num(-50),percent(75),50,[-100,-100,0,100,100]],
+  ]],
+  ['extreme positive',[1e308,1.25e308,1.5e308,Number.MAX_VALUE],[
+    [{type:'min'},{type:'max'},0,[0,100*(.25/(Number.MAX_VALUE/1e308-1)),100*(.5/(Number.MAX_VALUE/1e308-1)),100]],
+    [percent(50),percent(100),0,[0,0,100*((1.5-(1+Number.MAX_VALUE/1e308)/2)/((Number.MAX_VALUE/1e308-1)/2)),100]],
+    [percentile(25),percentile(75),0,[0,100*(.0625/(.3125+(Number.MAX_VALUE/1e308-1.5)/4)),100*(.3125/(.3125+(Number.MAX_VALUE/1e308-1.5)/4)),100]],
+  ]],
+  ['extreme negative',[-Number.MAX_VALUE,-1.5e308,-1.25e308,-1e308],[
+    [percent(0),percent(50),100,[-100,-100*((1.5-(1+Number.MAX_VALUE/1e308)/2)/((Number.MAX_VALUE/1e308-1)/2)),0,0]],
+    [percentile(25),percentile(75),100,[-100,-100*(.3125/(.3125+(Number.MAX_VALUE/1e308-1.5)/4)),-100*(.0625/(.3125+(Number.MAX_VALUE/1e308-1.5)/4)),0]],
+  ]],
+  ['extreme crossing',[-Number.MAX_VALUE,-Number.MAX_VALUE/2,0,Number.MAX_VALUE/2,Number.MAX_VALUE],[
+    [{type:'min'},{type:'max'},50,[-100,-50,0,50,100]],
+    [percent(25),percentile(75),50,[-100,-100,0,100,100]],
+  ]],
+]) test(`data-bar retained endpoints: ${name}`,async()=>{
+  const b=blankWorkbook(`bounds-${name.replaceAll(' ','-')}`),covered={...range,endRow:values.length-1};
+  b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  values.forEach((value,row)=>{(b.sheets.sheet1.cellData[row]??={})[0]={v:value,t:2,s:{it:1}};});
+  const v=mountNative({book:b,version:name});
+  try {
+    await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),raw=(await v.handle.commit()).sheets.sheet1.cellData;
+    const r={...bar(),ranges:[covered]};s.addConditionalFormattingRule(r);
+    for(const [min,max,axis,lengths] of cases){
+      const changed={...r,rule:{...r.rule,config:{...r.rule.config,min,max}}};
+      await v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,changed));
+      assertBarGeometry(v,b.id,values,lengths,axis,covered);
+      const saved=await v.handle.commit();
+      assert.deepEqual(saved.sheets.sheet1.cellData,raw);
+      assert.deepEqual(conditionalRules(saved).sheet1,[changed]);
+    }
+  }finally{v.dispose();}
+});
+
+test('interior bar thresholds recalculate after native data and formula edits',async()=>{
+  const b=blankWorkbook('bar-bound-edits');b.sheets.sheet1.cellData={0:{0:{v:0,t:2}},1:{0:{v:10,t:2}},2:{0:{f:'=A2*1.5'}},3:{0:{v:20,t:2}}};
+  const v=mountNative({book:b,version:'bound-edits'});
+  try {
+    await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet(),r=bar();s.addConditionalFormattingRule(r);
+    const set=async(min,max)=>v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,{...r,rule:{...r.rule,config:{...r.rule.config,min,max}}}));
+    await set(percent(50),percent(100));assertBarGeometry(v,b.id,[0,10,15,20],[0,0,50,100],0,range);
+    await set(percentile(50),percentile(100));assertBarGeometry(v,b.id,[0,10,15,20],[0,0,100/3,100],0,range);
+    await v.conditionalSettled(()=>s.getRange('A2').setValue(8));await v.settle();
+    assertBarGeometry(v,b.id,[0,8,12,20],[0,0,20,100],0,range);
+    await set(percent(50),percent(75));assertBarGeometry(v,b.id,[0,8,12,20],[0,0,40,100],0,range);
+    await v.conditionalSettled(()=>s.getRange('A3').setValue('=A2*2'));await v.settle();
+    assertBarGeometry(v,b.id,[0,8,16,20],[0,0,100,100],0,range);
+    await set(percentile(50),percentile(75));assertBarGeometry(v,b.id,[0,8,16,20],[0,0,80,100],0,range);
+    const saved=await v.handle.commit();assert.equal(saved.sheets.sheet1.cellData[2][0].f,'=A2*2');assert.equal(saved.sheets.sheet1.cellData[1][0].v,8);
+  }finally{v.dispose();}
+});
+
+test('bar threshold crossings, equal bounds, percent/percentile, formula changes and flags use actual native composition',async()=>{
+  const b=blankWorkbook('bar-thresholds');b.sheets.sheet1.cellData={0:{0:{v:-100,t:2},2:{f:'=1+2'}},1:{0:{f:'=A1/2'}},2:{0:{v:100,t:2}}};
+  const v=mountNative({book:b,version:'thresholds'});
+  try {
+    await v.settle();const s=v.api.getActiveWorkbook().getActiveSheet();
+    const r=s.newConditionalFormattingRule().setDataBar({min:{type:'min'},max:{type:'max'},isShowValue:true}).setRanges([range]).build();s.addConditionalFormattingRule(r);
+    const data=row=>v.conditional.composeStyle(b.id,'sheet1',row,0)?.dataBar;
+    assert.equal(data(1).value,-50);assert.equal(data(1).startPoint,50);assert.equal(data(1).color,'#abd91a');assert.equal(data(1).isGradient,false);
+    for(const [min,max,expectedAxis] of [
+      [{type:'percent',value:0},{type:'percentile',value:100},50],
+      [{type:'num',value:200},{type:'max'},0], // crossing: 200 and 100, do not collapse
+      [{type:'min'},{type:'num',value:-200},100],
+      [{type:'num',value:50},{type:'num',value:50},0],
+      [{type:'num',value:0},{type:'num',value:0},0],
+    ]) {
+      const changed={...r,rule:{...r.rule,config:{...r.rule.config,min,max}}};
+      await v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,changed));
+      const result=data(expectedAxis===100?0:2);
+      if(min.value===0&&max.value===0 || min.value===200 || max.value===-200)assert.equal(result,undefined);else {assert.equal(result.startPoint,expectedAxis);assert.ok(Number.isFinite(result.value));}
+      if(min.value===200)assert.equal(data(2),undefined,'100 is the zero-length endpoint of sorted [100,200]');
+      assert.deepEqual(conditionalRules(await v.handle.commit()).sheet1[0].rule,JSON.parse(JSON.stringify(changed.rule)));
+    }
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,r));
+    await v.conditionalSettled(()=>s.getRange('A1').setValue(200));await v.settle();
+    assert.equal(data(1),undefined,'recalculated 100 is the lower endpoint of [100,200]');
+    await v.conditionalSettled(()=>s.getRange('A1').setValue(-1e308));await v.settle();
+    assert.equal(data(1).value,-50);assert.ok(Number.isFinite(data(1).startPoint));
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule(r.cfId,{...r,rule:{...r.rule,config:{...r.rule.config,min:{type:'percent',value:0},max:{type:'percent',value:100}}}}));
+    await v.conditionalSettled(()=>s.getRange('A3').setValue(1e308)); // A3 has no dependents; SDK correctly reports SKIP, not SUCCESS.
+    assert.equal(data(1).value,-50);assert.equal(data(1).startPoint,50);
+  }finally{v.dispose();}
+});
+
+test('data bars persist through Workspace, protect blank ranges and removal, coexist with scale/highlight/control priority and reopen cleanly',async()=>{
+  const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
+  const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Bars'}),b=state.works[workId].book;
+  b.sheets.sheet1.cellData={0:{0:{v:-10,t:2,s:{it:1}},2:{f:'=1+2'}},1:{0:{v:20,t:2}},2:{0:{v:40,t:2}}};
+  let v=mountNative({book:structuredClone(b),version:'bars'}),saved;
+  try {
+    await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet(),raw=(await v.handle.commit()).sheets.sheet1.cellData;
+    s.addConditionalFormattingRule(bar());
+    const barOnly={...structuredClone(state.works[workId]),book:await v.handle.commit(),humanCells:[]};
+    assert.deepEqual(commitEditorPatch(state,barOnly,{cells:[{sheetId:'sheet1',row:3,column:0,value:99}]},(await ws.get('owner',workId)).expected,'maintenance_changed'),{status:'protected',reason:'human_edit'});
+    s.addConditionalFormattingRule(scale());
+    const highlight={...rule(),stopIfTrue:true};s.addConditionalFormattingRule(highlight);
+    assert.equal(v.conditional.composeStyle(workId,'sheet1',1,0).dataBar,undefined);
+    await v.conditionalSettled(()=>s.moveConditionalFormattingRule('bar','numeric','before'));
+    assert.equal(v.conditional.composeStyle(workId,'sheet1',1,0).dataBar.value,50);
+    await v.conditionalSettled(()=>wb.undo());assert.equal(v.conditional.composeStyle(workId,'sheet1',1,0).dataBar,undefined);
+    await v.conditionalSettled(()=>wb.redo());assert.equal(v.conditional.composeStyle(workId,'sheet1',1,0).dataBar.value,50);
+    s.getRange('D1:D4').setDataValidation(v.api.newDataValidation().requireValueInList(['0012','TRUE']).build());
+    s.getRange('E1:E4').setDataValidation(v.api.newDataValidation().requireCheckbox().build());
+    const book=await v.handle.commit();assert.deepEqual(book.sheets.sheet1.cellData,raw);
+    const input={commandId:'save',book,formatEdits:v.handle.formatEdits(),contentRevision:1,permissionRevision:1};
+    const ack=await ws.save('owner',workId,input);assert.deepEqual(await ws.save('owner',workId,input),ack);saved=await ws.get('owner',workId);
+    assert.ok(saved.humanCells.includes('sheet1:3:0'));assert.ok(!saved.humanCells.includes('sheet1:0:2'));
+    const patch={cells:[{sheetId:'sheet1',row:3,column:0,value:99}]};
+    assert.equal((await ws.mutate('owner',workId,{commandId:'agent',expected:saved.expected,patch})).status,'proposed');
+    const resourceOnly=structuredClone(state.works[workId]);resourceOnly.humanCells=[];
+    assert.deepEqual(commitEditorPatch(state,resourceOnly,patch,saved.expected,'maintenance_changed'),{status:'protected',reason:'human_edit'});
+    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book}),/xlsx_conditional_formatting_not_supported/);
+    assert.throws(()=>serializeCsv(book,'sheet1'),/cannot preserve conditional/);
+    for(const id of ['numeric','scale','bar'])s.deleteConditionalFormattingRule(id);
+    await ws.save('owner',workId,{commandId:'remove',book:await v.handle.commit(),formatEdits:v.handle.formatEdits(),contentRevision:saved.contentRevision,permissionRevision:1});
+    assert.ok((await ws.get('owner',workId)).humanCells.includes('sheet1:3:0'));
+  }finally{v.dispose();}
+  v=mountNative({book:saved.book,humanCells:saved.humanCells,version:'cold-bars'});
+  try{await v.settle();assert.equal(v.edits,0);assert.deepEqual(v.handle.formatEdits(),{});const book=await v.handle.commit();
+    assert.deepEqual(conditionalRules(book),conditionalRules(saved.book));assert.deepEqual(sheetControls(book),sheetControls(saved.book));
+    assert.deepEqual(book.sheets.sheet1.cellData,saved.book.sheets.sheet1.cellData);assert.equal(v.conditional.composeStyle(workId,'sheet1',1,0).dataBar.value,50);
+  }finally{v.dispose();}
+});
+
+test('unsupported data-bar options refuse atomically before native evaluation and Workspace persistence',async()=>{
+  const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
+  const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Refusal'}),b=state.works[workId].book;b.sheets.sheet1.cellData={0:{2:{f:'=1+2'}}};
+  const v=mountNative({book:structuredClone(b),version:'invalid-bars'});
+  try{await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet();s.addConditionalFormattingRule(bar());s.getRange('B2').setValue(42);
+    const before=await v.handle.commit(),provenance=v.handle.formatEdits(),saved=await ws.get('owner',workId);
+    for(const change of [r=>r.config.min={type:'formula',value:'=WEBSERVICE("https://example.com")'},r=>r.config.max={type:'formula',value:'=A1'},r=>r.config.min.value=Infinity,r=>r.config.max={type:'num',value:1e308},r=>r.config.min={type:'percent',value:-1},r=>r.config.max={type:'percentile',value:101},r=>r.config.min={type:'max'},r=>r.config.max={type:'min'},r=>r.config.min.sheetId='foreign',r=>r.config.positiveColor='url(https://example.com)',r=>r.config.nativeColor='rgb(256,0,0)',r=>r.config.axisColor='#000000',r=>r.config.isGradient=1,r=>r.isShowValue='false',r=>r.style={},r=>{r.config.min={type:'num',value:2};r.config.max={type:'num',value:1};}]){
+      const r=bar();change(r.rule);s.addConditionalFormattingRule({...r,cfId:'invalid'});s.setConditionalFormattingRule('bar',r);
+      assert.deepEqual(await v.handle.commit(),before);assert.deepEqual(v.handle.formatEdits(),provenance);
+      const book=structuredClone(before);book.resources.find(x=>x.name===CONDITIONAL_RESOURCE).data=JSON.stringify({sheet1:[r]});
+      await assert.rejects(()=>ws.save('owner',workId,{commandId:'invalid',book,contentRevision:1,permissionRevision:1}));
+      assert.deepEqual(await ws.get('owner',workId),saved);
+    }
+    wb.undo();assert.equal((await v.handle.commit()).sheets.sheet1.cellData[1]?.[1]?.v,undefined,'refusals create no Undo entry');
+  }finally{v.dispose();}
+});
+
+test('native panel-shaped bar values, custom colors, flags, live ranges and edits retain exact authored resource',async()=>{
+  const b=blankWorkbook('bar-panel');b.sheets.sheet1.cellData={0:{0:{v:-100,t:2},2:{f:'=1+2'}},1:{0:{v:50,t:2}},2:{0:{v:100,t:2}}};
+  const v=mountNative({book:b,version:'panel'});
+  try{await v.settle();const wb=v.api.getActiveWorkbook(),s=wb.getActiveSheet();
+    const r=bar();r.rule.config={min:{type:'min',value:0},max:{type:'max',value:100},positiveColor:'rgb(12, 34, 56)',nativeColor:'#abc',isGradient:true};r.rule.isShowValue=false;
+    s.addConditionalFormattingRule(r);
+    const before=await v.handle.commit();assert.deepEqual(conditionalRules(before).sheet1,[r]);
+    const bars=v.drawBars('sheet1',range);assert.equal(bars.gradients.length,3);
+    assert.deepEqual(bars.gradients[0].stops,[[0,'rgb(255 255 255)'],[1,'#abc']]);
+    assert.deepEqual(bars.gradients[1].stops,[[0,'rgb(12, 34, 56)'],[1,'rgb(255 255 255)']]);
+    assert.equal(s.getSheet().getCell(1,0).fontRenderExtension.isSkip,true);
+    const moved={...r,ranges:[{...range,startColumn:1,endColumn:1}],rule:{...r.rule,isShowValue:true}};
+    await v.conditionalSettled(()=>s.setConditionalFormattingRule('bar',moved));
+    assert.equal(v.conditional.composeStyle(b.id,'sheet1',1,0)?.dataBar,undefined);assert.equal(v.conditional.composeStyle(b.id,'sheet1',1,1)?.dataBar,undefined);
+    assert.ok(v.handle.formatEdits().sheet1.includes(601),'new blank range is human intent');assert.ok(v.handle.formatEdits().sheet1.includes(600),'previous blank range remains human intent');
+    await v.conditionalSettled(()=>s.getRange('B2').setValue(25));assert.equal(v.conditional.composeStyle(b.id,'sheet1',1,1).dataBar.value,100);assert.equal(s.getSheet().getCell(1,1).fontRenderExtension.isSkip,false);
+    wb.undo();await v.conditionalSettled(()=>wb.undo());assert.deepEqual(conditionalRules(await v.handle.commit()).sheet1,[r]);
+    assert.deepEqual((await v.handle.commit()).sheets.sheet1.cellData,before.sheets.sheet1.cellData);
+  }finally{v.dispose();}
 });

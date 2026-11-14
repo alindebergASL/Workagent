@@ -1,7 +1,7 @@
 // Installed Univer 1.4 ConditionalFormattingService resource, not computed styles.
 import { Fault, id } from './index.mjs';
 export const CONDITIONAL_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN';
-export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Two/three-color scales support minimum/maximum, finite numeric thresholds within ±9,007,199,254,740,991 and percent/percentile thresholds from 0 to 100. Resolved thresholds keep their colors when they cross; coincident thresholds use the first authored point. Empty cells have no scale, and constant minimum/maximum ranges use the minimum color. Finish the native rule with Submit before saving. Formula/custom thresholds, icons, bars and charts remain unsupported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
+export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Two/three-color scales support minimum/maximum, finite numeric thresholds within ±9,007,199,254,740,991 and percent/percentile thresholds from 0 to 100. Resolved thresholds keep their colors when they cross; coincident thresholds use the first authored point. Empty cells have no scale, and constant minimum/maximum ranges use the minimum color. Finish the native rule with Submit before saving. Native data bars support the same bounded thresholds, positive/negative colors, solid/gradient fills and showing/hiding values. Bars scale between resolved bounds, ordered when crossing, with a proportional zero axis inside or at the nearest edge. Equal nonzero bounds fill at or beyond the bound away from zero; zero/empty cells have no bar. Formula/custom thresholds, icons and charts remain unsupported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
 const bad = () => { throw new Fault('unsupported_conditional_formatting', 400); };
 const color = value => {
   if (typeof value !== 'string' || value.length > 32) return false;
@@ -36,6 +36,26 @@ function validateScale(rule) {
     previous.set(type, value);
   }
 }
+// The native panel retains unused numeric min/max values; the facade/presets
+// can omit colors and flags. Explicit unknown fields and nonbooleans still refuse.
+function validateBar(rule) {
+  object(rule, ['type', 'config', 'isShowValue']);
+  if (rule.isShowValue !== undefined && typeof rule.isShowValue !== 'boolean') bad();
+  object(rule.config, ['min', 'max', 'positiveColor', 'nativeColor', 'isGradient']);
+  const c = rule.config;
+  if (c.isGradient !== undefined && typeof c.isGradient !== 'boolean') bad();
+  for (const key of ['positiveColor', 'nativeColor']) if (c[key] !== undefined && !color(c[key])) bad();
+  for (const key of ['min', 'max']) {
+    object(c[key], ['type', 'value']);
+    const { type, value } = c[key];
+    if (![key, 'num', 'percent', 'percentile'].includes(type)) bad();
+    if (value !== undefined || type !== key) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER) bad();
+      if (['percent', 'percentile'].includes(type) && (value < 0 || value > 100)) bad();
+    }
+  }
+  if (c.min.type === c.max.type && c.min.value > c.max.value) bad();
+}
 export function conditionalRules(book) {
   const raw = book.resources?.find(r => r.name === CONDITIONAL_RESOURCE)?.data;
   try { return raw ? JSON.parse(raw) : {}; } catch { bad(); }
@@ -56,6 +76,7 @@ export function validateConditionalRules(book, data = conditionalRules(book)) {
       const rule = entry.rule;
       object(rule);
       if (rule.type === 'colorScale') validateScale(rule);
+      else if (rule.type === 'dataBar') validateBar(rule);
       else {
         object(rule, ['type', 'subType', 'operator', 'value', 'style']);
         if (rule.type !== 'highlightCell') bad();

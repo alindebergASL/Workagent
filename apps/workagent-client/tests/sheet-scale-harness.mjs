@@ -125,6 +125,23 @@ export function mountNative(props, plugins = [], editing) {
       return { attach: () => wrapper.ref({ querySelectorAll: () => [{ textContent: submit }] }),
         input: () => wrapper.onInputCapture(), close: () => wrapper.ref(null) };
     },
+    // Actual installed DataBar.draw and worksheet content interceptors. Only
+    // cell layout and the canvas recording surface are synthetic (104x24 cells).
+    drawBars(sid, range) {
+      const worksheet = api.getActiveWorkbook().getSheetBySheetId(sid).getSheet();
+      const paths = [], gradients = []; let points = [];
+      const ctx = { save() {}, restore() {}, beginPath() { points = []; }, closePath() {}, stroke() {},
+        moveTo(x,y) { points.push([x,y]); }, lineTo(x,y) { points.push([x,y]); },
+        arcTo(x,y,x2,y2,r) { points.push([x,y],[x2,y2]); assert.ok(Number.isFinite(r)); },
+        fill() { paths.push({ points: structuredClone(points), color: this.fillStyle }); },
+        createLinearGradient(...coords) { const gradient={coords,stops:[],addColorStop(at,color){this.stops.push([at,color]);}};gradients.push(gradient);return gradient; },
+      };
+      const renderer = new conditionalSdk.DataBar();
+      try { renderer.draw(ctx, {scaleX:1,scaleY:1}, { worksheet, rowColumnSegment:range,
+        getCellWithCoordByIndex(row,col) { return { startX:col*104,endX:(col+1)*104,startY:row*24,endY:(row+1)*24,isMerged:false,isMergedMainCell:false,mergeInfo:{startRow:row,endRow:row,startColumn:col,endColumn:col} }; },
+      }, [range]); } finally { renderer.dispose(); }
+      return { paths, gradients };
+    },
     async conditionalSettled(action) {
       const model = univer.__getInjector().get(conditionalSdk.ConditionalFormattingViewModel);
       let subscription, timer;

@@ -60,7 +60,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
         if (count > 256 || ranges > 1000 || area > 100000) throw new Error('conditional rule limit');
       }
       catch {
-        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Use bounded numeric/text highlights or two/three-color scales with minimum/maximum, numeric, percent or percentile thresholds. Formula/custom thresholds, bars and icons are unsupported. Existing sheet edits are kept.' });
+        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Use bounded numeric/text highlights, two/three-color scales or native data bars with minimum/maximum, numeric, percent or percentile thresholds. Formula/custom thresholds and icons are unsupported. Existing sheet edits are kept.' });
         throw new CanceledError();
       }
     });

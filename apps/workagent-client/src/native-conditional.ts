@@ -1,7 +1,7 @@
 import { Plugin, UniverInstanceType, setDependencies, DependentOn, CanceledError, CellValueType, ColorKit, Injector, IUniverInstanceService, type ICommandInfo, type IRange, type IWorkbookData, type Workbook, type Worksheet } from '@univerjs/core';
 import { UniverSheetsPlugin, SheetInterceptorService, IMessageService, getSheetCommandTarget } from '@univerjs/preset-sheets-core';
-import { UniverSheetsConditionalFormattingPlugin, ConditionalFormattingViewModel, ConditionalFormattingRuleModel, ConditionalFormattingRangeIndexModel, ConditionalFormattingFormulaService, type IConditionFormattingRule } from '@univerjs/preset-sheets-conditional-formatting';
-import { conditionalRules, validateConditionalRules, type ConditionalScale } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { UniverSheetsConditionalFormattingPlugin, ConditionalFormattingViewModel, ConditionalFormattingStyleComposer, ConditionalFormattingRuleModel, ConditionalFormattingRangeIndexModel, ConditionalFormattingFormulaService, type IConditionFormattingRule } from '@univerjs/preset-sheets-conditional-formatting';
+import { conditionalRules, validateConditionalRules, type ConditionalScale, type ConditionalBar, type ConditionalScaleThreshold } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 
 type Point = { value: number; color: number[]; index: number };
 // Convex combinations and normalized distances avoid overflowing b-a across
@@ -14,31 +14,34 @@ const numeric = (sheet: Worksheet, row: number, col: number) => {
   const cell = sheet.getCellRaw(row, col);
   return cell?.t === CellValueType.NUMBER && typeof cell.v === 'number' && Number.isFinite(cell.v) ? cell.v : undefined;
 };
-function pointsFor(rule: IConditionFormattingRule, sheet: Worksheet): Point[] {
-  const config = (rule.rule as ConditionalScale).config;
+function valuesFor(rule: IConditionFormattingRule, sheet: Worksheet) {
   const values = new Map<number, number>();
-  if (config.some(p => p.value.type !== 'num')) for (const r of rule.ranges) {
-    for (let row = r.startRow; row <= r.endRow; row++) for (let col = r.startColumn; col <= r.endColumn; col++) {
-      const value = numeric(sheet, row, col);
-      if (value !== undefined) values.set(row * 200 + col, value);
+  for (const r of rule.ranges) for (let row = r.startRow; row <= r.endRow; row++) for (let col = r.startColumn; col <= r.endColumn; col++) {
+    const value = numeric(sheet, row, col);
+    if (value !== undefined) values.set(row * 200 + col, value);
+  }
+  return [...values.values()].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+}
+function resolveThreshold(threshold: ConditionalScaleThreshold, sorted: number[]) {
+  const min = sorted[0], max = sorted.at(-1)!;
+  switch (threshold.type) {
+    case 'min': return min;
+    case 'max': return max;
+    case 'num': return threshold.value;
+    case 'percent': return blend(min, max, threshold.value / 100);
+    case 'percentile': {
+      const rank = (sorted.length - 1) * threshold.value / 100, lo = Math.floor(rank), hi = Math.ceil(rank);
+      return blend(sorted[lo], sorted[hi], rank - lo);
     }
   }
-  const sorted = [...values.values()].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-  if (!sorted.length && config.some(p => p.value.type !== 'num')) return [];
-  const min = sorted[0], max = sorted.at(-1)!;
+}
+function pointsFor(rule: IConditionFormattingRule, sheet: Worksheet): Point[] {
+  const config = (rule.rule as ConditionalScale).config;
+  const relative = config.some(p => p.value.type !== 'num');
+  const sorted = relative ? valuesFor(rule, sheet) : [];
+  if (!sorted.length && relative) return [];
   return config.map(p => {
-    const threshold = p.value;
-    let value: number;
-    switch (threshold.type) {
-      case 'min': value = min; break;
-      case 'max': value = max; break;
-      case 'num': value = threshold.value; break;
-      case 'percent': value = blend(min, max, threshold.value / 100); break;
-      case 'percentile': {
-        const rank = (sorted.length - 1) * threshold.value / 100, lo = Math.floor(rank), hi = Math.ceil(rank);
-        value = blend(sorted[lo], sorted[hi], rank - lo); break;
-      }
-    }
+    const value = resolveThreshold(p.value, sorted);
     const { r, g, b } = new ColorKit(p.color).toRgb();
     return { value, color: [r, g, b], index: p.index };
   }).sort((a, b) => a.value < b.value ? -1 : a.value > b.value ? 1 : a.index - b.index)
@@ -60,21 +63,65 @@ function scaleColor(points: Point[], value: number | undefined) {
   return `rgb(${color.map(c => Math.round(c)).join(',')})`;
 }
 
+type BarBounds = { min: number; max: number; startPoint: number };
+function boundsFor(rule: IConditionFormattingRule, sheet: Worksheet): BarBounds | undefined {
+  const { min: lower, max: upper } = (rule.rule as ConditionalBar).config;
+  const relative = lower.type !== 'num' || upper.type !== 'num';
+  const sorted = relative ? valuesFor(rule, sheet) : [];
+  if (relative && !sorted.length) return;
+  const a = resolveThreshold(lower, sorted), b = resolveThreshold(upper, sorted);
+  // Retain both resolved endpoints, including mixed threshold crossings, without
+  // changing the authored bounds. Same-sign intervals put the axis at an edge.
+  const min = Math.min(a, b), max = Math.max(a, b);
+  return { min, max, startPoint: min >= 0 ? 0 : max <= 0 ? 100 : fraction(0, min, max) * 100 };
+}
+function barResult(rule: ConditionalBar, bounds: BarBounds | undefined, value: number | undefined) {
+  if (!bounds || value === undefined) return;
+  const { min, max, startPoint } = bounds;
+  let amount = 0;
+  if (value !== 0) {
+    // Equal nonzero endpoints form a step away from zero, including full bars
+    // for constant nonzero ranges. Equal zero endpoints produce no bars.
+    if (min === max) amount = min > 0 && value >= min ? 100 : min < 0 && value <= min ? -100 : 0;
+    else if (min >= 0 || max <= 0) {
+      // Clamp before subtracting so even opposite-sign outliers cannot overflow.
+      const clamped = Math.max(min, Math.min(max, value));
+      amount = min >= 0 ? fraction(clamped, min, max) * 100 : -fraction(clamped, max, min) * 100;
+    } else {
+      // Crossing zero keeps proportional side widths and per-side saturation.
+      // Divide before multiplying; neither max-min nor |min|+max is safe here.
+      amount = value > 0 ? Math.min(value / max, 1) * 100 : -Math.min(value / min, 1) * 100;
+    }
+  }
+  return { startPoint, value: amount, color: value < 0 ? rule.config.nativeColor ?? '#abd91a' : rule.config.positiveColor ?? '#ffbe38',
+    isGradient: rule.config.isGradient ?? false, isShowValue: rule.isShowValue ?? true };
+}
+// Native draw treats value=0 as a one-pixel negative bar. Keep its show-value
+// composition (including hidden zero text), but give the renderer no zero bar.
+class NativeConditionalComposer extends ConditionalFormattingStyleComposer {
+  override composeStyle(unit: string, sid: string, row: number, col: number) {
+    const result = super.composeStyle(unit, sid, row, col);
+    if (result?.dataBar?.value === 0) { const { dataBar: _zero, ...rest } = result; return rest; }
+    return result;
+  }
+}
+
 // Public DI override, owned/disposed by this Univer instance. Native highlights,
 // invalidation, priority/stopIfTrue composition and rendering remain in the SDK.
-class ScaleViewModel extends ConditionalFormattingViewModel {
+class NativeConditionalViewModel extends ConditionalFormattingViewModel {
   private points = new Map<IConditionFormattingRule, Point[]>();
+  private bounds = new Map<IConditionFormattingRule, BarBounds | undefined>();
   constructor(injector: Injector, private rules: ConditionalFormattingRuleModel, index: ConditionalFormattingRangeIndexModel, formulas: ConditionalFormattingFormulaService, private instances: IUniverInstanceService) {
-    // Give native computation a read view excluding scales. This avoids running
-    // its faulty scale arithmetic at all; it never changes the authored model.
+    // Give native computation a read view excluding scales and bars. This avoids running
+    // its faulty numeric arithmetic at all; it never changes the authored model.
     const nativeRules = new Proxy(rules, { get(target, key, receiver) {
-      if (key === 'getSubunitRules') return (unit: string, sheet: string) => target.getSubunitRules(unit, sheet)?.filter(r => r.rule.type !== 'colorScale') ?? null;
+      if (key === 'getSubunitRules') return (unit: string, sheet: string) => target.getSubunitRules(unit, sheet)?.filter(r => !['colorScale', 'dataBar'].includes(r.rule.type)) ?? null;
       return Reflect.get(target, key, receiver);
     } });
     super(injector, nativeRules, index, formulas, instances);
-    this.disposeWithMe(this.markDirty$.subscribe(() => this.points.clear()));
-    this.disposeWithMe(this.cacheClear$.subscribe(() => this.points.clear()));
-    this.disposeWithMe(rules.$ruleChange.subscribe(() => this.points.clear()));
+    this.disposeWithMe(this.markDirty$.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
+    this.disposeWithMe(this.cacheClear$.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
+    this.disposeWithMe(rules.$ruleChange.subscribe(() => { this.points.clear(); this.bounds.clear(); }));
   }
   override getCellCfs(unit: string, sid: string, row: number, col: number) {
     const native = super.getCellCfs(unit, sid, row, col) ?? [];
@@ -82,6 +129,11 @@ class ScaleViewModel extends ConditionalFormattingViewModel {
     if (!sheet) return native;
     return (this.rules.getSubunitRules(unit, sid) ?? []).filter(r => r.ranges.some(range => row >= range.startRow && row <= range.endRow && col >= range.startColumn && col <= range.endColumn))
       .map((rule, priority) => {
+        if (rule.rule.type === 'dataBar') {
+          if (!this.bounds.has(rule)) this.bounds.set(rule, boundsFor(rule, sheet));
+          const result = barResult(rule.rule as ConditionalBar, this.bounds.get(rule), numeric(sheet, row, col));
+          return { cfId: rule.cfId, result, matched: !!result, priority };
+        }
         if (rule.rule.type !== 'colorScale') return { ...native.find(r => r.cfId === rule.cfId)!, priority };
         let points = this.points.get(rule);
         if (!points) { points = pointsFor(rule, sheet); this.points.set(rule, points); }
@@ -118,7 +170,8 @@ export class NativeConditionalPlugin extends Plugin {
   static override type = UniverInstanceType.UNIVER_SHEET;
   constructor(_config: unknown, protected readonly _injector: Injector) {
     super();
-    _injector.replace([ConditionalFormattingViewModel, { useFactory: (i: Injector) => new ScaleViewModel(i, i.get(ConditionalFormattingRuleModel), i.get(ConditionalFormattingRangeIndexModel), i.get(ConditionalFormattingFormulaService), i.get(IUniverInstanceService)), deps: [Injector] }]);
+    _injector.replace([ConditionalFormattingStyleComposer, { useFactory: (i: Injector) => new NativeConditionalComposer(i.get(ConditionalFormattingRuleModel), i.get(ConditionalFormattingViewModel)), deps: [Injector] }]);
+    _injector.replace([ConditionalFormattingViewModel, { useFactory: (i: Injector) => new NativeConditionalViewModel(i, i.get(ConditionalFormattingRuleModel), i.get(ConditionalFormattingRangeIndexModel), i.get(ConditionalFormattingFormulaService), i.get(IUniverInstanceService)), deps: [Injector] }]);
   }
 }
 setDependencies(NativeConditionalPlugin, [Injector], 1);
