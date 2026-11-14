@@ -11,7 +11,7 @@ import { XlsxExchange } from '../../workagent-server/src/xlsx-exchange.mjs';
 const range = {startRow:0,endRow:3,startColumn:0,endColumn:0};
 const rule = () => ({cfId:'numeric',stopIfTrue:false,ranges:[range],rule:{type:'highlightCell',subType:'number',operator:'greaterThan',value:5,style:{bg:{rgb:'#ff0000'},bl:1}}});
 const withRules = () => {const b=blankWorkbook('book');b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[rule()]})}];return b;};
-test('open conditional form retains the editor through clean navigation and dirty Save until Done or Cancel', async () => {
+test('open conditional form retains the editor through clean navigation and dirty Save until Submit or Cancel', async () => {
   const state = initialState('owner'), ws = new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId} = await ws.createBlank('owner',{commandId:'new',title:'Panel draft'});
   const other = (await ws.createBlank('owner',{commandId:'other',title:'Other'})).workId;
@@ -30,12 +30,12 @@ test('open conditional form retains the editor through clean navigation and dirt
     const version = app.native().version, panel = view.conditionalPanel(); panel.attach();
     assert.equal(view.handle.isEditing(),true,'opening a form protects it before input');
     await app.open(other); assert.equal(app.native().version,version);
-    assert.match(app.text(),/Done or Cancel/);
+    assert.match(app.text(),/Submit or Cancel/);
     view.api.getActiveWorkbook().getActiveSheet().getRange('B1').setValue('existing draft');
     panel.input(); await app.flush(); await app.save();
     assert.equal(calls.length,0); assert.equal(app.native().version,version);
-    assert.throws(()=>view.handle.save(),/Done or Cancel/);
-    await assert.rejects(view.handle.commit(),/Done or Cancel/);
+    assert.throws(()=>view.handle.save(),/Submit or Cancel/);
+    await assert.rejects(view.handle.commit(),/Submit or Cancel/);
     panel.close(); assert.equal(view.handle.isEditing(),false);
     await app.save(); assert.equal(calls.length,1);
     assert.equal(calls[0].book.sheets.sheet1.cellData[0][1].v,'existing draft');

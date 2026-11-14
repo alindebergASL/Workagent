@@ -77,7 +77,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     };
     const conditionalReady = () => {
       if (conditionalEditing())
-        throw new Error('Finish the conditional-formatting rule with Done or Cancel before saving or leaving this sheet. Your open rule is kept.');
+        throw new Error('Finish the conditional-formatting rule with Submit or Cancel before saving or leaving this sheet. Your open rule is kept.');
     };
     const validation = installValidationSettlement(univer, book.id, () => { edits++; notifyEdit(); });
     // The native dropdown clears rich text/formulas but omits the value type.

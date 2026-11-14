@@ -1,7 +1,7 @@
 // Installed Univer 1.4 ConditionalFormattingService resource, not computed styles.
 import { Fault, id } from './index.mjs';
 export const CONDITIONAL_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN';
-export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Finish the native rule with Done before saving. Color scales, formula rules, icons, bars and other advanced rules are not supported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
+export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Finish the native rule with Submit before saving. Color scales, formula rules, icons, bars and other advanced rules are not supported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
 const bad = () => { throw new Fault('unsupported_conditional_formatting', 400); };
 const color = value => {
   if (typeof value !== 'string' || value.length > 32) return false;
