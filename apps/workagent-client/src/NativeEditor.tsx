@@ -337,7 +337,17 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
       pending = null;
       edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save()));
     });
-    const listener = univerAPI.addEvent(univerAPI.Event.CommandExecuted, command => {
+    chartController.captureStructureEditor(() => {
+      const savedFormatted = structuredClone(formatted), savedInherited = structuredClone(inherited), savedRules = structuredClone(priorRules);
+      return () => {
+        formatted.clear(); for (const [sid, cells] of savedFormatted) formatted.set(sid, cells);
+        inherited.clear(); for (const [sid, cells] of savedInherited) inherited.set(sid, cells);
+        priorRules = savedRules;
+      };
+    });
+    let chartStructureVersion = chartController.structureVersion;
+    const listener = univer.__getInjector().get(ICommandService).onCommandExecuted((info, options) => {
+      const command = { ...info, options };
       if (command.id === 'sheet.operation.set-worksheet-active' || command.id === 'sheet.operation.set-selections') selectionChanged();
       if (command.id.startsWith('data-validation.mutation.') || /^sheet\.mutation\.(add|set|delete|move)-conditional-rule$/.test(command.id)) {
         const next = ruleRanges();
@@ -366,7 +376,9 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
           formatted.get(prior.sid)!.add(cell);
         }
       }
-      if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
+      const structureComplete = chartStructureVersion !== chartController.structureVersion;
+      chartStructureVersion = chartController.structureVersion;
+      if (!chartController.structurePending && (structureComplete || isHumanSheetMutation(command, workbook.isCellEditing()))) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
     });
     return () => { disposed = true; chartController.dispose(); panelRegistration.dispose(); conditionalGuard.dispose(); conditionalStructure.dispose(); inheritedStyles.dispose(); literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }

@@ -176,12 +176,14 @@ class NativeConditionalViewModel extends ConditionalFormattingViewModel {
 
 // Inspect the SDK's complete planned affiliated mutations, including split/moved
 // ranges, before its command executes any mutation or adds a history entry.
-class ConditionalSheetInterceptors extends SheetInterceptorService {
+export class ConditionalSheetInterceptors extends SheetInterceptorService {
   preflight?: (command: ICommandInfo, result: ReturnType<SheetInterceptorService['onCommandExecute']>) => void;
+  chartPreflight?: (command: ICommandInfo, result: ReturnType<SheetInterceptorService['onCommandExecute']>) => void;
   readonly approved = new WeakSet<object>();
   override onCommandExecute(command: ICommandInfo) {
     const result = super.onCommandExecute(command);
     this.preflight?.(command, result);
+    this.chartPreflight?.(command, result);
     return result;
   }
 }
