@@ -187,6 +187,32 @@ export class Workspace {
       });
     });
   }
+  async renameDocument(principal, workId, input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(k => !['commandId', 'title', 'expected'].includes(k))) throw new Fault('invalid_command', 400);
+    id(input.commandId);
+    try { text(input.title, 200); } catch { throw new Fault('invalid_document_title', 400); }
+    const keys = ['contentRevision', 'intentRevision', 'permissionRevision', 'cancellationEpoch'];
+    if (!input.expected || typeof input.expected !== 'object' || Array.isArray(input.expected) || Object.keys(input.expected).some(k => !keys.includes(k))) throw new Fault('invalid_revision', 400);
+    for (const key of keys) revision(input.expected[key]);
+    return this.store.transaction(s => {
+      authorize(s, principal); const w = work(s, workId);
+      if (workKind(w) !== 'document' || w.document?.id !== w.id) throw new Fault('document_identity', 400);
+      // Identity covers only the fixed command, never the reconstructed snapshot.
+      // Replays return their original result even after newer edits/decisions.
+      return dedup(s, input.commandId, { operation: 'rename-document', workId, ...input }, () => {
+        const current = preconditions(s, w), document = structuredClone(w.document);
+        document.title = input.title;
+        validateDocument(document);
+        if (w.humanDocument || !same(input.expected, current) || ['stopped', 'cancellation_requested'].includes(w.status)) {
+          const proposal = { id: randomUUID(), kind: 'document', patch: { document }, originalExpected: input.expected, expected: current, reason: w.humanDocument ? 'human_edit' : 'revision_changed', status: 'pending' };
+          w.proposals.push(proposal); event(s, w, 'change_proposed');
+          return { status: 'proposed', proposalId: proposal.id };
+        }
+        w.document = document; w.contentRevision++; event(s, w, 'agent_changed');
+        return { status: 'applied', expected: preconditions(s, w) };
+      });
+    });
+  }
   async decide(principal, workId, proposalId, input) {
     if (!['accept', 'reject'].includes(input.decision)) throw new Fault('invalid_decision', 400);
     return this.store.transaction(s => {

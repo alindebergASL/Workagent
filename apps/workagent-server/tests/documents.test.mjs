@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { Workspace } from '../src/workspace.mjs';
 import { initialState } from '../src/store.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
+import { titleDocument } from './support/title-document.mjs';
 class MemoryStore { constructor(state) { this.state = state; } async read(fn) { return structuredClone(await fn(structuredClone(this.state))); } async transaction(fn) { const next = structuredClone(this.state); const out = await fn(next); this.state = next; return structuredClone(out); } }
 test('document create, first draft, human save, stale proposal and revision-bound accept', async () => {
   const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
@@ -172,4 +173,128 @@ test('unknown objects, hidden fields, malformed paragraphs/runs and invalid UTF-
     const d = blankDocument('doc', 'Title', 'Text'); change(d); assert.throws(() => validateDocument(d), /unsupported_document|invalid_document/);
   }
   await assert.rejects(exchange.preview('owner', { filename: 'bad.md', base64: Buffer.from([0xc0,0x80]).toString('base64'), synthetic: true }), /document_utf8_required/);
+});
+
+async function titleFixture(human = false, older = false) {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  const { workId } = await ws.createBlank('owner', { commandId: 'new', title: 'Doc', kind: 'document' });
+  const document = older ? blankDocument(workId, 'Old', 'Cafe\u0301 Café 🌍 漢\r\r') : titleDocument(workId);
+  if (older) { delete document.body.textRuns; delete document.body.sectionBreaks; }
+  const w = await ws.get('owner', workId);
+  if (human) await ws.save('owner', workId, { commandId: 'seed', document, contentRevision: w.contentRevision, permissionRevision: 1 });
+  else await ws.mutateDocument('owner', workId, { commandId: 'seed', document, expected: w.expected });
+  return { ws, store, workId, original: await ws.get('owner', workId) };
+}
+for (const older of [false, true]) test(`title-only apply preserves exact native fields and Unicode (older snapshot: ${older})`, async () => {
+  const { ws, store, workId, original } = await titleFixture(false, older);
+  const title = '  Renamed Cafe\u0301 Café 🌍 漢字  ';
+  const result = await ws.renameDocument('owner', workId, { commandId: 'rename', title, expected: original.expected });
+  assert.equal(result.status, 'applied');
+  const current = await ws.get('owner', workId);
+  assert.equal(JSON.stringify(current.document), JSON.stringify({ ...original.document, title }));
+  assert.equal(current.contentRevision, original.contentRevision + 1);
+  assert.equal(current.humanDocument, false); assert.equal(current.proposals.length, 0);
+  assert.deepEqual(validateDocument(current.document), current.document);
+  assert.equal(store.state.events.at(-1).kind, 'agent_changed');
+  assert.equal(original.document.title, older ? 'Old' : 'Original Cafe\u0301');
+});
+test('normalized full-JSON title edit still refuses invalid CR offsets without repair', async () => {
+  const { ws, store, workId, original } = await titleFixture();
+  const document = structuredClone(original.document); document.title = 'Renamed';
+  document.body.dataStream = document.body.dataStream.normalize('NFC');
+  const before = structuredClone(store.state);
+  await assert.rejects(ws.mutateDocument('owner', workId, { commandId: 'lossy', expected: original.expected, document }), /invalid_document_paragraphs/);
+  assert.deepEqual(store.state, before);
+});
+test('protected rename proposes exactly one title change and acceptance retains every other field', async () => {
+  const { ws, workId, original } = await titleFixture(true);
+  const result = await ws.renameDocument('owner', workId, { commandId: 'rename', title: 'New title', expected: original.expected });
+  assert.equal(result.status, 'proposed');
+  const current = await ws.get('owner', workId), p = current.proposals[0];
+  assert.deepEqual(current.document, original.document); assert.equal(current.contentRevision, original.contentRevision);
+  assert.equal(p.reason, 'human_edit'); assert.deepEqual(p.expected, current.expected);
+  assert.equal(JSON.stringify(p.patch.document), JSON.stringify({ ...original.document, title: 'New title' }));
+  await ws.decide('owner', workId, p.id, { commandId: 'accept', decision: 'accept', expected: current.expected });
+  assert.deepEqual((await ws.get('owner', workId)).document, p.patch.document);
+});
+test('stale rename snapshots the latest authoritative body, retaining stale preconditions as a proposal', async () => {
+  const { ws, workId, original } = await titleFixture();
+  const newer = titleDocument(workId); newer.body.textRuns[0].ts.it = 1; newer.body.dataStream = newer.body.dataStream.replace('End', 'NEW');
+  await ws.mutateDocument('owner', workId, { commandId: 'body-edit', expected: original.expected, document: newer });
+  const latest = await ws.get('owner', workId);
+  const result = await ws.renameDocument('owner', workId, { commandId: 'rename', title: 'Renamed', expected: original.expected });
+  assert.equal(result.status, 'proposed');
+  const current = await ws.get('owner', workId), p = current.proposals[0];
+  assert.deepEqual(current.document, newer); assert.equal(p.reason, 'revision_changed');
+  assert.deepEqual(p.originalExpected, original.expected); assert.deepEqual(p.expected, latest.expected);
+  assert.deepEqual(p.patch.document, { ...newer, title: 'Renamed' });
+  await ws.decide('owner', workId, p.id, { commandId: 'accept', decision: 'accept', expected: current.expected });
+  assert.deepEqual((await ws.get('owner', workId)).document, { ...newer, title: 'Renamed' });
+});
+test('serialized human write precedes rename snapshot; subsequent human write conflicts with acceptance', async () => {
+  const { ws } = await fixture();
+  const { workId } = await ws.createBlank('owner', { commandId: 'new', title: 'Doc', kind: 'document' });
+  const original = await ws.get('owner', workId), human = titleDocument(workId);
+  const [saved, result] = await Promise.all([
+    ws.save('owner', workId, { commandId: 'human', document: human, contentRevision: 1, permissionRevision: 1 }),
+    ws.renameDocument('owner', workId, { commandId: 'rename', title: 'Renamed', expected: original.expected }),
+  ]);
+  assert.equal(saved.contentRevision, 2); assert.equal(result.status, 'proposed');
+  const proposed = await ws.get('owner', workId);
+  assert.deepEqual(proposed.proposals[0].patch.document, { ...human, title: 'Renamed' });
+  const newer = { ...human, title: 'Human newer title' };
+  const [humanSave, acceptance] = await Promise.allSettled([
+    ws.save('owner', workId, { commandId: 'newer', document: newer, contentRevision: 2, permissionRevision: 1 }),
+    ws.decide('owner', workId, result.proposalId, { commandId: 'accept', decision: 'accept', expected: proposed.expected }),
+  ]);
+  assert.equal(humanSave.status, 'fulfilled'); assert.equal(acceptance.status, 'rejected'); assert.match(acceptance.reason.message, /proposal_conflict/);
+  const current = await ws.get('owner', workId);
+  await assert.rejects(ws.decide('owner', workId, result.proposalId, { commandId: 'accept-current', decision: 'accept', expected: current.expected }), /proposal_conflict/);
+  assert.deepEqual((await ws.get('owner', workId)).document, newer);
+});
+for (const human of [false, true]) test(`rename replay after newer state returns original ${human ? 'proposal' : 'apply'} result without rebasing`, async () => {
+  const { ws, store, workId, original } = await titleFixture(human);
+  const input = { commandId: 'rename', title: 'Cafe\u0301', expected: original.expected };
+  const result = await ws.renameDocument('owner', workId, input), after = await ws.get('owner', workId);
+  if (human) await ws.decide('owner', workId, result.proposalId, { commandId: 'accept', decision: 'accept', expected: after.expected });
+  const accepted = await ws.get('owner', workId);
+  await ws.save('owner', workId, { commandId: 'newer', document: blankDocument(workId, 'Human newer', 'New body'), contentRevision: accepted.contentRevision, permissionRevision: 1 });
+  const before = structuredClone(store.state);
+  assert.deepEqual(await ws.renameDocument('owner', workId, input), result);
+  for (const change of [{ title: 'Café' }, { expected: (await ws.get('owner', workId)).expected }]) await assert.rejects(ws.renameDocument('owner', workId, { ...input, ...change }), /command_conflict/);
+  await assert.rejects(ws.mutateDocument('owner', workId, { commandId: input.commandId, expected: input.expected, document: original.document }), /command_conflict/);
+  assert.deepEqual(store.state, before);
+});
+test('rename refuses invalid titles, extra authority/body fields, malformed revisions and wrong artifact identity', async () => {
+  const { ws, store, workId, original } = await titleFixture();
+  const input = { commandId: 'rename', title: 'Title', expected: original.expected }, before = structuredClone(store.state);
+  for (const title of [undefined, null, false, 5, {}, [], '', ' \t\n', 'a'.repeat(201)]) await assert.rejects(ws.renameDocument('owner', workId, { ...input, title }), /invalid_document_title/);
+  for (const key of ['document', 'principal', 'workId', 'id', 'humanProtected', 'operation']) await assert.rejects(ws.renameDocument('owner', workId, { ...input, [key]: original.document }), /invalid_command/);
+  for (const expected of [undefined, null, [], {}, { ...original.expected, permissionRevision: -1 }, { ...original.expected, humanProtected: false }]) await assert.rejects(ws.renameDocument('owner', workId, { ...input, expected }), /invalid_revision/);
+  await assert.rejects(ws.renameDocument('outsider', workId, input), /access_denied/);
+  assert.deepEqual(store.state, before);
+  const sheet = await ws.createBlank('owner', { commandId: 'sheet', title: 'Sheet' });
+  await assert.rejects(ws.renameDocument('owner', sheet.workId, input), /document_identity/);
+  store.state.works[workId].document.id = 'wrong';
+  await assert.rejects(ws.renameDocument('owner', workId, input), /document_identity/);
+});
+test('rename checks current authorization and keeps stale grants, intent and stopped work unapplied', async () => {
+  for (const change of ['permission', 'intent', 'stopped', 'cancellation_requested', 'revoked']) {
+    const { ws, store, workId, original } = await titleFixture();
+    if (change === 'permission') store.state.permissionRevision++;
+    else if (change === 'intent') store.state.works[workId].intentRevision++;
+    else if (change === 'revoked') store.state.enabled = false;
+    else { store.state.works[workId].status = change; store.state.works[workId].cancellationEpoch++; }
+    const input = { commandId: 'rename', title: 'Renamed', expected: original.expected };
+    if (change === 'revoked') { const before = structuredClone(store.state); await assert.rejects(ws.renameDocument('owner', workId, input), /access_denied/); assert.deepEqual(store.state, before); continue; }
+    const result = await ws.renameDocument('owner', workId, input), current = await ws.get('owner', workId);
+    assert.equal(result.status, 'proposed'); assert.deepEqual(current.document, original.document);
+    if (['stopped', 'cancellation_requested'].includes(change)) {
+      await assert.rejects(ws.decide('owner', workId, result.proposalId, { commandId: 'accept', decision: 'accept', expected: current.expected }), /work_cancelled/);
+      assert.equal((await ws.renameDocument('owner', workId, { ...input, commandId: 'fresh-stopped', expected: current.expected })).status, 'proposed');
+    }
+    store.state.enabled = false;
+    await assert.rejects(ws.renameDocument('owner', workId, input), /access_denied/);
+    await assert.rejects(ws.decide('owner', workId, result.proposalId, { commandId: 'accept-revoked', decision: 'accept', expected: current.expected }), /access_denied/);
+  }
 });
