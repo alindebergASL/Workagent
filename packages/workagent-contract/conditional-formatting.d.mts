@@ -1,4 +1,6 @@
 import type { IWorkbookData } from '@univerjs/core';
+export type ConditionalScaleThreshold = { type: 'min' | 'max'; value?: number } | { type: 'num' | 'percent' | 'percentile'; value: number };
+export type ConditionalScale = { type: 'colorScale'; config: { index: number; color: string; value: ConditionalScaleThreshold }[] };
 export const CONDITIONAL_RESOURCE: string;
 export const CONDITIONAL_SCOPE: string;
 export function conditionalRules(book: IWorkbookData): Record<string, { cfId: string; ranges: { startRow: number; endRow: number; startColumn: number; endColumn: number }[]; stopIfTrue: boolean; rule: unknown }[]>;

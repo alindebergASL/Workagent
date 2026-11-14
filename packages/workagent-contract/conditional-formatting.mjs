@@ -1,7 +1,7 @@
 // Installed Univer 1.4 ConditionalFormattingService resource, not computed styles.
 import { Fault, id } from './index.mjs';
 export const CONDITIONAL_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN';
-export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Finish the native rule with Submit before saving. Color scales, formula rules, icons, bars and other advanced rules are not supported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
+export const CONDITIONAL_SCOPE = 'Conditional formatting supports numeric comparisons and literal text matches in bounded ranges, with fill, font color, bold, italic, underline and strike-through. Two/three-color scales support minimum/maximum, finite numeric thresholds within ±9,007,199,254,740,991 and percent/percentile thresholds from 0 to 100. Resolved thresholds keep their colors when they cross; coincident thresholds use the first authored point. Empty cells have no scale, and constant minimum/maximum ranges use the minimum color. Finish the native rule with Submit before saving. Formula/custom thresholds, icons, bars and charts remain unsupported. Conditional rules cannot yet be exported to XLSX or CSV; your native sheet is kept.';
 const bad = () => { throw new Fault('unsupported_conditional_formatting', 400); };
 const color = value => {
   if (typeof value !== 'string' || value.length > 32) return false;
@@ -13,6 +13,29 @@ const object = (v, keys) => {
   if (!v || typeof v !== 'object' || Array.isArray(v) || ![Object.prototype, null].includes(Object.getPrototypeOf(v))
     || Object.keys(v).some(k => ['__proto__', 'prototype', 'constructor'].includes(k) || keys && !keys.includes(k))) bad();
 };
+// Native 1.4.0 panel emits contiguous indices and retains an unused numeric
+// value on min/max. Presets omit that value. Both are safe SDK representations.
+function validateScale(rule) {
+  object(rule, ['type', 'config']);
+  if (!Array.isArray(rule.config) || ![2, 3].includes(rule.config.length)) bad();
+  const previous = new Map();
+  for (const [index, point] of rule.config.entries()) {
+    object(point, ['index', 'color', 'value']);
+    if (point.index !== index || !color(point.color)) bad();
+    object(point.value, ['type', 'value']);
+    const { type, value } = point.value;
+    if (!['min', 'max', 'num', 'percent', 'percentile'].includes(type)) bad();
+    if (type === 'min' && index !== 0 || type === 'max' && index !== rule.config.length - 1) bad();
+    if (value !== undefined || !['min', 'max'].includes(type)) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER) bad();
+      if (['percent', 'percentile'].includes(type) && (value < 0 || value > 100)) bad();
+    }
+    // Compare like thresholds, including nonadjacent endpoints. Mixed types
+    // depend on live cell values; native integration sorts point/color pairs together.
+    if (previous.has(type) && value < previous.get(type)) bad();
+    previous.set(type, value);
+  }
+}
 export function conditionalRules(book) {
   const raw = book.resources?.find(r => r.name === CONDITIONAL_RESOURCE)?.data;
   try { return raw ? JSON.parse(raw) : {}; } catch { bad(); }
@@ -31,24 +54,28 @@ export function validateConditionalRules(book, data = conditionalRules(book)) {
       id(entry.cfId); if (ids.has(entry.cfId)) bad(); ids.add(entry.cfId);
       if (typeof entry.stopIfTrue !== 'boolean') bad();
       const rule = entry.rule;
-      object(rule, ['type', 'subType', 'operator', 'value', 'style']);
-      if (rule.type !== 'highlightCell') bad();
-      if (rule.subType === 'number') {
-        if (['between', 'notBetween'].includes(rule.operator)) {
-          if (!Array.isArray(rule.value) || rule.value.length !== 2 || rule.value.some(v => typeof v !== 'number' || !Number.isFinite(v)) || rule.value[0] > rule.value[1]) bad();
-        } else if (!['equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'].includes(rule.operator) || typeof rule.value !== 'number' || !Number.isFinite(rule.value)) bad();
-      } else if (rule.subType === 'text') {
-        if (!['beginsWith', 'endsWith', 'containsText', 'notContainsText', 'equal', 'notEqual', 'containsBlanks', 'notContainsBlanks', 'containsErrors', 'notContainsErrors'].includes(rule.operator)) bad();
-        if (rule.value !== undefined && (typeof rule.value !== 'string' || rule.value.length > 200)) bad();
-        if (['beginsWith', 'endsWith', 'containsText', 'notContainsText', 'equal', 'notEqual'].includes(rule.operator) && typeof rule.value !== 'string') bad();
-      } else bad();
-      object(rule.style, ['bg', 'cl', 'bl', 'it', 'ul', 'st']);
-      for (const k of ['bg', 'cl']) if (rule.style[k] !== undefined) {
-        object(rule.style[k], ['rgb']);
-        if (!color(rule.style[k].rgb)) bad();
+      object(rule);
+      if (rule.type === 'colorScale') validateScale(rule);
+      else {
+        object(rule, ['type', 'subType', 'operator', 'value', 'style']);
+        if (rule.type !== 'highlightCell') bad();
+        if (rule.subType === 'number') {
+          if (['between', 'notBetween'].includes(rule.operator)) {
+            if (!Array.isArray(rule.value) || rule.value.length !== 2 || rule.value.some(v => typeof v !== 'number' || !Number.isFinite(v)) || rule.value[0] > rule.value[1]) bad();
+          } else if (!['equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'].includes(rule.operator) || typeof rule.value !== 'number' || !Number.isFinite(rule.value)) bad();
+        } else if (rule.subType === 'text') {
+          if (!['beginsWith', 'endsWith', 'containsText', 'notContainsText', 'equal', 'notEqual', 'containsBlanks', 'notContainsBlanks', 'containsErrors', 'notContainsErrors'].includes(rule.operator)) bad();
+          if (rule.value !== undefined && (typeof rule.value !== 'string' || rule.value.length > 200)) bad();
+          if (['beginsWith', 'endsWith', 'containsText', 'notContainsText', 'equal', 'notEqual'].includes(rule.operator) && typeof rule.value !== 'string') bad();
+        } else bad();
+        object(rule.style, ['bg', 'cl', 'bl', 'it', 'ul', 'st']);
+        for (const k of ['bg', 'cl']) if (rule.style[k] !== undefined) {
+          object(rule.style[k], ['rgb']);
+          if (!color(rule.style[k].rgb)) bad();
+        }
+        for (const k of ['bl', 'it']) if (rule.style[k] !== undefined && ![0, 1].includes(rule.style[k])) bad();
+        for (const k of ['ul', 'st']) if (rule.style[k] !== undefined) { object(rule.style[k], ['s']); if (![0, 1].includes(rule.style[k].s)) bad(); }
       }
-      for (const k of ['bl', 'it']) if (rule.style[k] !== undefined && ![0, 1].includes(rule.style[k])) bad();
-      for (const k of ['ul', 'st']) if (rule.style[k] !== undefined) { object(rule.style[k], ['s']); if (![0, 1].includes(rule.style[k].s)) bad(); }
       if (!Array.isArray(entry.ranges) || !entry.ranges.length || (ranges += entry.ranges.length) > 1000) bad();
       for (const r of entry.ranges) {
         object(r, ['startRow', 'endRow', 'startColumn', 'endColumn', 'rangeType', 'startAbsoluteRefType', 'endAbsoluteRefType', 'unitId', 'sheetId']);

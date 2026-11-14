@@ -1,6 +1,7 @@
 import { CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset } from '@univerjs/preset-sheets-conditional-formatting';
 import UniverSheetsConditionalFormattingEnUS from '@univerjs/preset-sheets-conditional-formatting/locales/en-US';
 import '@univerjs/preset-sheets-conditional-formatting/lib/index.css';
+import { conditionalCorePreset, NativeConditionalPlugin, installConditionalStructure } from './native-conditional';
 import { CONDITIONAL_SCOPE, conditionalRules, validateConditionalRules } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { createElement, useEffect, useRef, type ComponentType } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
@@ -25,23 +26,24 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     const notifyEdit = edit.current, notifyReady = ready.current;
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
-    const { univer, univerAPI } = createUniver({ locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS, UniverSheetsConditionalFormattingEnUS) }, presets: [UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } }), UniverSheetsDataValidationPreset(), UniverSheetsConditionalFormattingPreset()] });
+    const { univer, univerAPI } = createUniver({ plugins: [NativeConditionalPlugin], locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS, UniverSheetsConditionalFormattingEnUS) }, presets: [conditionalCorePreset(UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })), UniverSheetsDataValidationPreset(), UniverSheetsConditionalFormattingPreset()] });
     let releaseFocus = () => {};
     try {
     releaseFocus = installEditorFocus(univer, container.current!);
     validateConditionalRules(book);
     const workbook = univerAPI.createWorkbook(structuredClone(book));
+    const conditionalStructure = installConditionalStructure(univer.__getInjector(), book.id, () => structuredClone(workbook.save()));
     // Validate actual mutations before the SDK can install/evaluate a rule. No
     // formula rule or opaque plugin payload reaches the conditional engine.
     const conditionalGuard = univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, command => {
       if (!['sheet.mutation.add-conditional-rule', 'sheet.mutation.set-conditional-rule'].includes(command.id)) return;
       const p = command.params as { unitId: string; subUnitId: string; cfId?: string; rule: ReturnType<typeof conditionalRules>[string][number] };
-      if (p.unitId !== book.id) return;
-      const current = workbook.save(), data = conditionalRules(current), rules = data[p.subUnitId] ?? [];
-      const cfId = p.cfId || p.rule.cfId;
-      const next = command.id === 'sheet.mutation.add-conditional-rule' ? [p.rule, ...rules]
-        : rules.map(rule => rule.cfId === cfId ? p.rule : rule);
+      if (p.unitId !== book.id || conditionalStructure.approved(p)) return;
       try {
+        const current = workbook.save(), data = conditionalRules(current), rules = data[p.subUnitId] ?? [];
+        const cfId = p.cfId || p.rule.cfId;
+        const next = command.id === 'sheet.mutation.add-conditional-rule' ? [p.rule, ...rules]
+          : rules.map(rule => rule.cfId === cfId ? p.rule : rule);
         // The SDK changes sheet dimensions before updating rules one by one.
         // Other, already validated rules can still have their old coordinates.
         // Validate the incoming rule against the current sheet, and enforce the
@@ -58,11 +60,27 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
         if (count > 256 || ranges > 1000 || area > 100000) throw new Error('conditional rule limit');
       }
       catch {
-        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Only bounded numeric comparisons and literal text highlights are supported. Existing sheet edits are kept.' });
+        univer.__getInjector().get(IMessageService).show({ content: 'Conditional rule was not applied. Use bounded numeric/text highlights or two/three-color scales with minimum/maximum, numeric, percent or percentile thresholds. Formula/custom thresholds, bars and icons are unsupported. Existing sheet edits are kept.' });
         throw new CanceledError();
       }
     });
-    // The SDK panel submits its local form on Done. Saving an open form would
+    // copyRangeStyles reads display interceptors, including every kind of CF.
+    // Replace only its inherited insertion payload before native history is built.
+    const inheritedStyles = univerAPI.addEvent(univerAPI.Event.BeforeCommandExecute, command => {
+      if (!['sheet.command.insert-row-by-range', 'sheet.command.insert-col-by-range'].includes(command.id)) return;
+      const p = command.params as { unitId: string; subUnitId: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number }; cellValue?: Record<number, Record<number, ICellData>> };
+      if (p.unitId !== book.id || !p.cellValue) return;
+      const sheet = workbook.getSheetBySheetId(p.subUnitId)?.getSheet();
+      if (!sheet) return;
+      const rowAxis = command.id.includes('insert-row'), r = p.range;
+      const cells: Record<number, Record<number, ICellData>> = {};
+      for (let row = r.startRow; row <= r.endRow; row++) for (let col = r.startColumn; col <= r.endColumn; col++) {
+        const source = sheet.getCellRaw(rowAxis ? r.startRow - 1 : row, rowAxis ? col : r.startColumn - 1);
+        if (source?.s != null) (cells[row] ??= {})[col] = { s: structuredClone(source.s) };
+      }
+      p.cellValue = cells;
+    });
+    // The SDK panel submits its local form on Submit. Saving an open form would
     // otherwise acknowledge only the previous rule and lose the typed draft.
     let conditionalPanel: HTMLDivElement | null = null;
     const components = univer.__getInjector().get(ComponentManager);
@@ -342,7 +360,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
       }
       if (isHumanSheetMutation(command, workbook.isCellEditing())) { edits++; notifyEdit(validation.gate.pending ? undefined : structuredClone(workbook.save())); }
     });
-    return () => { disposed = true; panelRegistration.dispose(); conditionalGuard.dispose(); literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
+    return () => { disposed = true; panelRegistration.dispose(); conditionalGuard.dispose(); conditionalStructure.dispose(); inheritedStyles.dispose(); literalSelection.dispose(); validation.dispose(); releaseFocus(); selected.dispose(); before.dispose(); listener.dispose(); historyStart.dispose(); historyEnd.dispose(); restoreProvenance.dispose(); changing.dispose(); ended.dispose(); notifyReady(null); univer.dispose(); };
     } catch (error) { releaseFocus(); univer.dispose(); throw error; }
   }, [version]);
   return <><p className="exchange-policy">{CONDITIONAL_SCOPE}</p><div className="native-editor" ref={container} aria-label="Editable spreadsheet" /></>;
