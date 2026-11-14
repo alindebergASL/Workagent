@@ -42,9 +42,13 @@ new Function('require', 'module', 'exports', compile('../src/native-conditional.
 }, conditionalModule, conditionalModule.exports);
 const iconEditorModule = { exports: {} };
 new Function('require', 'module', 'exports', compile('../src/conditional-icon-editor.tsx'))(name => name === '@univerjs/preset-sheets-core' ? loadPreset(name) : localRequire(name), iconEditorModule, iconEditorModule.exports);
+const chartsModule = { exports: {} }, chartPanelModule = { exports: {} };
+new Function('require', 'module', 'exports', compile('../src/native-charts.ts'))(name => name === './drafts' ? drafts : localRequire(name), chartsModule, chartsModule.exports);
+new Function('require', 'module', 'exports', compile('../src/SheetCharts.tsx'))(localRequire, chartPanelModule, chartPanelModule.exports);
+export const { SheetCharts, ChartGraphic } = chartPanelModule.exports;
 const editorCode = compile('../src/NativeEditor.tsx'), appCode = compile('../src/main.tsx');
 export const versions = Object.fromEntries(['core', 'sheets', 'engine-formula', 'sheets-formula'].map(name => [name, JSON.parse(readFileSync(new URL('../../package.json', pathToFileURL(require.resolve(`@univerjs/${name}`))), 'utf8')).version]));
-export function mountNative(props, plugins = [], editing) {
+export function mountNative(props, plugins = [], editing, lifecycle) {
   globalThis.window ??= new EventTarget();
   globalThis.document ??= {activeElement:null};
   let cleanup, handle, api, editorApi, univer, edits = 0;
@@ -63,9 +67,11 @@ export function mountNative(props, plugins = [], editing) {
     if (name === '@univerjs/preset-sheets-data-validation') return { ...validationSdk, DataValidationPanelService, DATA_VALIDATION_PANEL: 'panel' };
     return localRequire(name);
   }, validationModule, validationModule.exports);
-  const react = { createElement: localRequire('react').createElement, useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
+  const react = { useState: initial => [initial, () => {}], createElement: localRequire('react').createElement, useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './native-charts') return chartsModule.exports;
+    if (name === './SheetCharts') return chartPanelModule.exports;
     if (name === './conditional-icon-editor') return iconEditorModule.exports;
     if (name === './native-conditional') return conditionalModule.exports;
     if (name === './validation-settlement') return { installValidationSettlement: (univer, id, changed) => {
@@ -81,13 +87,13 @@ export function mountNative(props, plugins = [], editing) {
       return validation;
     } };
     if (name === './editor-focus') return { installEditorFocus: () => () => {} }; // No DOM in this harness.
-    if (name === 'react') return react;
+    if (name === 'react') return lifecycle ? localRequire('react') : react;
     if (name === './drafts') return drafts;
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
     if (['@univerjs/preset-sheets-conditional-formatting', '@univerjs/preset-sheets-data-validation', '@univerjs/preset-sheets-core'].includes(name)) return loadPreset(name);
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
-      for (const dependency of [[ui.IDialogService,{useClass:ui.DesktopDialogService}], [ui.IMessageService,{useValue:{show(message){messages.push(message.content);}}}], [ui.ILayoutService,{useClass:ui.DesktopLayoutService}], [ui.IPlatformService,{useClass:ui.PlatformService}], [ui.IUIPartsService,{useClass:ui.UIPartsService}], [ui.IUIRuntimeScopeService,{useClass:ui.UIRuntimeScopeService}], [ui.IRibbonService,{useClass:ui.DesktopRibbonService}], [ui.IContextMenuService,{useClass:ui.ContextMenuService}], [ui.FormatPainterSessionService], [ui.IShortcutService, {useValue:{registerShortcut(){return {dispose(){}};}}}], [ui.ComponentManager], [ui.IconManager], [ui.IMenuManagerService, {useClass:ui.MenuManagerService}], [ui.ISidebarService, {useClass:ui.DesktopSidebarService}]]) univer.__getInjector().add(dependency);
+      for (const dependency of [[ui.IClipboardInterfaceService,{useValue:{}}], [ui.INotificationService,{useValue:{show(){}}}], [ui.IDialogService,{useClass:ui.DesktopDialogService}], [ui.IMessageService,{useValue:{show(message){messages.push(message.content);}}}], [ui.ILayoutService,{useClass:ui.DesktopLayoutService}], [ui.IPlatformService,{useClass:ui.PlatformService}], [ui.IUIPartsService,{useClass:ui.UIPartsService}], [ui.IUIRuntimeScopeService,{useClass:ui.UIRuntimeScopeService}], [ui.IRibbonService,{useClass:ui.DesktopRibbonService}], [ui.IContextMenuService,{useClass:ui.ContextMenuService}], [ui.FormatPainterSessionService], [ui.IShortcutService, {useValue:{registerShortcut(){return {dispose(){}};}}}], [ui.ComponentManager], [ui.IconManager], [ui.IMenuManagerService, {useClass:ui.MenuManagerService}], [ui.ISidebarService, {useClass:ui.DesktopSidebarService}]]) univer.__getInjector().add(dependency);
       univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
       // Run the actual preset factories and consume their actual model configs.
       // DOM/layout plugins remain outside this explicitly headless harness.
@@ -131,8 +137,10 @@ export function mountNative(props, plugins = [], editing) {
     } };
     return localRequire(name);
   }, module, module.exports);
-  module.exports.NativeEditor({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
-  return { api, editorApi, events, messages, conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
+  const wrap = props => ({ ...props, onReady(value) { handle = value; props.onReady?.(value); }, onEdit(book) { edits++; props.onEdit?.(book); } });
+  const panel = lifecycle ? mountConditionalEditor(module.exports.NativeEditor, wrap(props), undefined, lifecycle) : null;
+  if (!panel) module.exports.NativeEditor(wrap(props));
+  return { panel, update(next) { panel.update(wrap(next)); }, api, editorApi, events, messages, clipboard: univer.__getInjector().get(loadPreset('@univerjs/preset-sheets-core').ISheetClipboardService), conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
     formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
     openConditionalEditor(rule, onEditorExit) { const injector=univer.__getInjector(); return mountConditionalEditor(injector.get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY), {rule,onEditorExit}, injector); },
     openIconMenu(range, onEditorExit) {
@@ -200,7 +208,7 @@ export function mountNative(props, plugins = [], editing) {
       assert.ok(starts.length > 0, 'SDK watchdog/no-start is not calculation proof');
       assert.equal(ends.at(-1), FormulaExecutedStateType.SUCCESS, 'calculation must complete successfully');
       return { starts, ends, successState: FormulaExecutedStateType.SUCCESS };
-    }, dispose: () => cleanup(),
+    }, dispose: () => panel ? panel.dispose() : cleanup(),
   };
 }
 

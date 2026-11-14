@@ -5,7 +5,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { mountApp, memoryStorage } from './sheet-scale-harness.mjs';
+import { mountApp, memoryStorage, SheetCharts } from './sheet-scale-harness.mjs';
+import { mountConditionalEditor } from './conditional-editor-harness.mjs';
 const require = createRequire(import.meta.resolve('vite'));
 const css = require('postcss').parse(readFileSync(new URL('../src/style.css', import.meta.url), 'utf8'));
 
@@ -66,6 +67,41 @@ test('exact input-type selector distinguishes file inputs from text and header n
   assert.equal(matches({ tag: 'input', classes: [], inputType: 'text', parent }, selector), false);
   assert.equal(matches({ tag: 'header', classes: [], parent }, selector), false);
   assert.throws(() => matches({ tag: 'input', classes: [], parent }, 'input[unknown]'));
+});
+
+// Check the actual panel's CSS contract, not computed geometry. Parent verifies
+// the bounded scrollers and native grid with a real desktop/mobile browser.
+for (const width of [1440, 390]) test(`chart controls have bounded nonshrinking scroll and contained widths at ${width}px`, () => {
+  const controller={view:()=>({charts:[],data:{},status:''}),subscribe:()=>()=>{},tabs:()=>[{id:'sheet1',name:'Long sheet name '.repeat(20)}],stage(){}};
+  const panel=mountConditionalEditor(SheetCharts,{controller});
+  try {
+    panel.find(n=>n.type==='button'&&n.props.children==='Add chart').props.onClick();panel.flush();
+    const nodes=elements(panel.tree),section=nodes.find(n=>n.classes.includes('sheet-charts'));
+    const style=applied(section,width);
+    assert.equal(style['flex-shrink'],'0');assert.equal(style['min-height'],'8rem');
+    assert.equal(style['max-height'],'var(--chart-pane-height)');
+    assert.equal(style['--chart-pane-height'],width===390?'clamp(8rem, 22dvh, 12rem)':'clamp(8rem, 24dvh, 14rem)');
+    const svg=applied({tag:'svg',classes:[],parent:section},width);
+    assert.equal(svg.width,'100%');assert.equal(svg.height,'auto');
+    assert.equal(svg['max-height'],'calc(var(--chart-pane-height) - 22px)');
+    assert.equal(style.overflow,'auto');assert.equal(style['max-width'],'100%');assert.equal(style['overflow-wrap'],'anywhere');
+    const fieldset=nodes.find(n=>n.tag==='fieldset');assert.ok(fieldset);
+    assert.equal(applied(fieldset,width)['min-width'],'0');assert.equal(applied(fieldset,width)['flex-wrap'],'wrap');
+    for(const node of nodes.filter(n=>['input','select'].includes(n.tag))){const s=applied(node,width);assert.equal(s.width,'100%');assert.equal(s['min-width'],'0');assert.equal(s['max-width'],'100%');if(width===390)assert.equal(s['font-size'],'16px');}
+    const values={tag:'div',classes:['sheet-chart-values'],parent:section};
+    assert.equal(applied(values,width).overflow,'auto');assert.equal(applied(values,width)['max-width'],'100%');
+    const workspace={tag:'div',classes:['native-sheet-workspace'],parent:null};
+    assert.equal(applied(workspace,width).overflow,'auto');assert.equal(applied(workspace,width)['min-height'],'0');
+    const grid={tag:'div',classes:['native-editor'],parent:workspace};
+    assert.equal(applied(grid,width).flex,'1 0 280px');assert.equal(applied(grid,width)['min-height'],'280px');
+    for(const name of ['csv-exchange','document-exchange','native-editor']){
+      const unrelated={tag:'div',classes:[name],parent:null};
+      const select={tag:'select',classes:[],parent:unrelated};
+      assert.equal(applied(select,width)['max-width'],undefined);
+      assert.equal(applied({tag:'svg',classes:[],parent:unrelated},width)['max-height'],undefined);
+      assert.notEqual(applied(unrelated,width).flex,'1 0 280px');
+    }
+  } finally {panel.dispose();}
 });
 for (const width of [1200, 760, 390]) test(`app header owns desktop/responsive styles at ${width}px; nested sheet/document headers stay isolated`, async () => {
   const app = mountApp(memoryStorage(), async url => ({ ok: true, status: 200, json: async () => url === '/api/work' ? [] : { kind: 'reset', cursor: 0, events: [], works: [], snapshots: [] } }));

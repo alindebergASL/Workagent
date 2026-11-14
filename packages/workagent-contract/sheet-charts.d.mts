@@ -1,0 +1,13 @@
+import type { IWorkbookData, ICellData, IRange } from '@univerjs/core';
+export type SheetChart = { id: string; title: string; type: 'bar' | 'line'; sheetId: string; range: Pick<IRange, 'startRow'|'endRow'|'startColumn'|'endColumn'> };
+export type ChartData = { labels: string[]; series: { name: string; values: (number|null)[]; missing: (string|null)[] }[] };
+export const CHART_RESOURCE: 'SHEET_WORKAGENT_CHARTS_PLUGIN';
+export const CHART_SCOPE: string;
+export const CHART_LIMITS: { charts: number; points: number; series: number };
+export function sheetCharts(book: IWorkbookData): SheetChart[];
+export function validateCharts(book: IWorkbookData, charts?: SheetChart[]): SheetChart[];
+export function withCharts(book: IWorkbookData, charts: SheetChart[]): IWorkbookData;
+export function chartRangeLabel(range: SheetChart['range']): string;
+export function parseChartRange(text: string): SheetChart['range'];
+export function chartData(chart: SheetChart, cellAt: (row: number, col: number) => ICellData | null | undefined): ChartData;
+export function chartScale(data: ChartData): { min: number; max: number; y: (v: number) => number };

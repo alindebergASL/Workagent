@@ -1,3 +1,4 @@
+import { CHART_RESOURCE, validateCharts } from './sheet-charts.mjs';
 import { CONDITIONAL_RESOURCE, validateConditionalRules } from './conditional-formatting.mjs';
 // Univer 1.4 DataValidationResourceController: sheet ID -> ISheetDataValidationRule[].
 import { Fault, id } from './index.mjs';
@@ -17,6 +18,7 @@ export function validateSheetResources(book) {
     object(resource, ['name','data']);
     if (names.has(resource.name) || typeof resource.data !== 'string' || resource.data.length > 500000) bad();
     names.add(resource.name);
+    if (resource.name === CHART_RESOURCE) { validateCharts(book); continue; }
     if (resource.name === CONDITIONAL_RESOURCE) {
       const counts = validateConditionalRules(book);
       rules += counts.rules; ranges += counts.ranges; area += counts.area;

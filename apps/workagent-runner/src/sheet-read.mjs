@@ -1,3 +1,4 @@
+import { sheetCharts } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { randomUUID } from 'node:crypto';
 import { id, withoutFormulaResults } from '../../../packages/workagent-contract/index.mjs';
 import { cellAddress } from '../../workagent-server/src/selection.mjs';
@@ -81,7 +82,7 @@ export function createSheetReader(workId, selection) {
       storedCells: tabs.reduce((n, t) => n + t.info.storedCells, 0),
       populatedCells: tabs.reduce((n, t) => n + t.info.populatedCells, 0),
       formulaCells: tabs.reduce((n, t) => n + t.info.formulaCells, 0), protectedCellCount: w.humanCells.length };
-    const base = { expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
+    const base = { charts: sheetCharts(w.book), chartEditing: 'Chart definitions are human-editable in the Workagent panel; model chart mutation is not supported.', expected: w.expected, overview, formulaResults: 'unknown; persisted formula caches omitted',
       limits: { escapedContentBytes: SHEET_READ_BYTES, storedCellsPerPage: SHEET_READ_CELLS } };
     // Preserve the old shape only when the entire response, including native
     // metadata and the protection map, fits the same byte budget.

@@ -118,6 +118,9 @@ def export_validations(book):
         need(isinstance(resource, dict) and set(resource) == {'name', 'data'}, 'Unsupported native resource')
         name, data = resource['name'], resource['data']
         need(name not in names and isinstance(data, str) and len(data) <= 500000, 'Invalid native resource'); names.add(name)
+        if name == 'SHEET_WORKAGENT_CHARTS_PLUGIN':
+            need(data == '[]', 'Workagent charts cannot be exported')
+            continue
         if name == 'SHEET_CONDITIONAL_FORMATTING_PLUGIN':
             conditional = json.loads(data) if data else {}
             need(isinstance(conditional, dict) and all(
