@@ -50,7 +50,7 @@ function ChartPanel({ controller }: { controller: ChartController }) {
   return <section className="sheet-charts" aria-label="Sheet charts" tabIndex={0}>
     <div className="sheet-chart-actions"><strong>Workagent charts · Bar / Line</strong><button type="button" disabled={!!form || view.charts.length >= CHART_LIMITS.charts} onClick={() => start()}>Add chart</button>
     {view.charts.length > 0 && <button type="button" onClick={() => { controller.invalidate(); }}>Refresh charts</button>}</div>
-    <p>Cell paste and fill work within sheet bounds. Whole-row/column insert/delete adjusts chart sources with Undo/Redo; headers, labels and size limits are protected. Other structural edits, sorting, merges and cut are refused. XLSX export is refused; CSV loses charts.</p>
+    <p>Cell paste and fill work within sheet bounds. Whole-row/column insert/delete adjusts chart sources with Undo/Redo; headers, labels and size limits are protected. Other structural edits, sorting, merges and cut are refused. XLSX preserves supported column/line chart sources and titles; position and styling differ. CSV loses charts.</p>
     <details><summary>Chart scope and restrictions</summary><p>{CHART_SCOPE}</p></details>
     {form && <fieldset><legend>{view.charts.some(c=>c.id===form.id) ? 'Edit chart' : 'Create chart'}</legend>
       <p>Apply to keep this chart edit in the recoverable sheet draft. Apply or Cancel before Save or switching work.</p>

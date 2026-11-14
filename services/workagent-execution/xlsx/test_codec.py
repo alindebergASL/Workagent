@@ -34,6 +34,26 @@ def fixture():
     other = wb.create_sheet('Summary'); other['A1'] = "='Inputs'!A2*2"; other['A2'] = '=SUM(Inputs!D1:E1)'
     out = io.BytesIO(); wb.save(out); return out.getvalue()
 
+def chart_fixture():
+    # Independently authored Excel-style source: no native codec export involved.
+    from openpyxl.chart import BarChart, LineChart, Reference
+    wb=openpyxl.Workbook();ws=wb.active;ws.title="O'Brien & 雪"
+    for row,values in enumerate([['Label','Units','Double'],['Zero',0,'=C3*2'],['Negative',-2,'=C4*2'],['Missing',None,None]],2):
+        for col,value in enumerate(values,2): ws.cell(row,col,value)
+    other=wb.create_sheet('Other');other.append(['Label','Number']);other.append(['One',1])
+    for cls,sheet,end,col,anchor in [(BarChart,ws,5,4,'G2'),(LineChart,ws,5,4,'G20'),(BarChart,other,2,2,'D1')]:
+        c=cls();c.title='<Budget & "雪">';c.visible_cells_only=False
+        c.add_data(Reference(sheet,min_col=3 if sheet is ws else 2,max_col=col,min_row=2 if sheet is ws else 1,max_row=end),titles_from_data=True)
+        c.set_categories(Reference(sheet,min_col=2 if sheet is ws else 1,min_row=3 if sheet is ws else 2,max_row=end));sheet.add_chart(c,anchor)
+    out=io.BytesIO();wb.save(out);return out.getvalue()
+
+def chart_rewrite(data, change):
+    def edit(name,raw):
+        if name=='xl/charts/chart1.xml':
+            root=ET.fromstring(raw);change(root);return ET.tostring(root)
+        return raw
+    return rewrite(data,edit)
+
 def rewrite(data, change):
     output = io.BytesIO()
     with zipfile.ZipFile(io.BytesIO(data)) as src, zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as dst:
@@ -588,6 +608,208 @@ class CodecTests(unittest.TestCase):
             with self.assertRaises(Exception): codec.export_book(b)
         b=codec.import_book(fixture())['book']; b['sheets']['sheet1']['cellData']['2']['1']={'v':'keep me','t':1}
         with self.assertRaisesRegex(ValueError,'discard'): codec.export_book(b)
+
+    def test_chart_roundtrip_real_objects_and_xml(self):
+        source=chart_fixture(); imported=codec.import_book(source); book=imported['book']
+        charts=codec.native_charts(book)
+        self.assertEqual([c['type'] for c in charts], ['bar','line','bar'])
+        self.assertEqual(charts[0]['range'], {'startRow':1,'endRow':4,'startColumn':1,'endColumn':3})
+        self.assertEqual(charts[0]['title'], '<Budget & "雪">')
+        self.assertFalse(any('Not retained: drawing' in w for w in imported['warnings']))
+        data=base64.b64decode(codec.export_book(book)['base64'])
+        for attempt in range(2):
+            wb=openpyxl.load_workbook(io.BytesIO(data)); self.assertEqual([len(w._charts) for w in wb], [2,1])
+            c=wb.worksheets[0]._charts[0]
+            self.assertEqual((c.type,c.grouping,c.visible_cells_only,c.display_blanks), ('col','clustered',False,'gap'))
+            self.assertEqual(c.ser[0].tx.strRef.f, "'O''Brien & 雪'!C2")
+            self.assertEqual(c.ser[0].cat.numRef.f, "'O''Brien & 雪'!$B$3:$B$5")
+            self.assertEqual(c.ser[1].val.numRef.f, "'O''Brien & 雪'!$D$3:$D$5")
+            self.assertIsNone(openpyxl.load_workbook(io.BytesIO(data),data_only=True).worksheets[0]['D3'].value)
+            self.assertEqual([wb.worksheets[0][k].value for k in ['C3','C4','C5','D3']], [0,-2,None,'=C3*2'])
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                root=ET.fromstring(z.read('xl/charts/chart1.xml')); ns={'c':codec.CHART}
+                self.assertEqual(len(root.findall('.//c:numCache',ns)),0)
+                self.assertEqual(len(root.findall('.//c:strCache',ns)),0)
+                self.assertEqual(root.find('.//c:barDir',ns).get('val'),'col')
+                self.assertEqual(root.find('.//c:grouping',ns).get('val'),'clustered')
+                self.assertIsNotNone(ET.fromstring(z.read('xl/workbook.xml')).find('{'+NS+'}calcPr'))
+            self.assertEqual(codec.native_charts(codec.import_book(data)['book']), charts)
+            out=io.BytesIO();wb.save(out);data=out.getvalue()
+
+    def test_chart_excel_style_relative_relationships_and_caches(self):
+        def change(name,raw):
+            if name.endswith('.rels') and '/drawings/' in name:
+                root=ET.fromstring(raw)
+                for r in root: r.set('Target', '../charts/'+r.get('Target').rsplit('/',1)[-1])
+                return ET.tostring(root)
+            if name=='xl/drawings/drawing1.xml':
+                root=ET.fromstring(raw);q=lambda n:'{'+codec.DRAW+'}'+n
+                anchor=root[0];anchor.tag=q('twoCellAnchor');anchor.remove(anchor.find(q('ext')))
+                to=ET.Element(q('to'))
+                for key,value in [('col','14'),('colOff','0'),('row','18'),('rowOff','0')]:ET.SubElement(to,q(key)).text=value
+                anchor.insert(1,to)
+                ET.SubElement(anchor.find('.//'+q('cNvGraphicFramePr')),'{'+codec.ART+'}graphicFrameLocks',noGrp='1')
+                return ET.tostring(root)
+            if name=='xl/charts/chart1.xml':
+                root=ET.fromstring(raw); q=lambda n:'{'+codec.CHART+'}'+n
+                ET.SubElement(root,q('date1904'),val='0')
+                ref=root.find('.//'+q('val')+'/'+q('numRef'))
+                cache=ET.SubElement(ref,q('numCache'));ET.SubElement(cache,q('formatCode')).text='General';ET.SubElement(cache,q('ptCount'),val='3')
+                ET.SubElement(ET.SubElement(cache,q('pt'),idx='0'),q('v')).text='999'
+                return ET.tostring(root)
+            return raw
+        b=codec.import_book(rewrite(chart_fixture(),change))['book']
+        self.assertEqual(b['sheets']['sheet1']['cellData']['2']['2']['v'],0)
+        self.assertEqual(codec.native_charts(b)[0]['range']['startColumn'],1)
+
+    def test_chart_unsupported_semantics_refused(self):
+        q=lambda n:'{'+codec.CHART+'}'+n
+        changes=[
+            lambda r:r.find('.//'+q('barDir')).set('val','bar'),
+            lambda r:r.find('.//'+q('grouping')).set('val','stacked'),
+            lambda r:r.find('.//'+q('grouping')).set('val','percentStacked'),
+            lambda r:r.find('.//'+q('barChart')).append(ET.Element(q('smooth'),val='1')),
+            lambda r:r.find('.//'+q('plotArea')).append(ET.Element(q('lineChart'))),
+            lambda r:r.find('.//'+q('plotArea')).append(ET.Element(q('bar3DChart'))),
+            lambda r:r.find('.//'+q('plotArea')).append(ET.Element(q('scatterChart'))),
+            lambda r:r.find('.//'+q('plotArea')).append(ET.Element(q('valAx'))),
+            lambda r:r.find('.//'+q('dispBlanksAs')).set('val','zero'),
+            lambda r:r.find('.//'+q('scaling')).append(ET.Element(q('logBase'),val='10')),
+            lambda r:r.find('.//'+q('catAx')).append(ET.Element(q('axId'),val='999')),
+            lambda r:r.find('.//'+q('barChart')+'/'+q('axId')).set('val','010'),
+            lambda r:r.find('.//'+q('ser')+'/'+q('idx')).set('val','00'),
+            lambda r:r.find('.//'+q('plotVisOnly')).set('val','yes'),
+            lambda r:r.find('.//'+q('title')+'/'+q('tx')).append(ET.Element(q('strRef'))),
+            lambda r:r.find('.//{'+codec.ART+'}p').append(ET.Element('{'+codec.ART+'}r')),
+            lambda r:r.find('.//'+q('cat')).append(ET.Element(q('multiLvlStrRef'))),
+        ]
+        for change in changes:
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                codec.import_book(chart_rewrite(chart_fixture(),change))
+        for ref in ["'Other'!$B$3:$B$5",'Name',"'[evil.xlsx]Sheet1'!B3:B5", "'O''Brien & 雪'!B3:B5,B7", "'O''Brien & 雪'!B3:C5", "'O''Brien & 雪'!B3:B104"]:
+            def change(r): r.find('.//'+q('cat')+'/'+q('numRef')+'/'+q('f')).text=ref
+            with self.subTest(ref=ref),self.assertRaises(ValueError):codec.import_book(chart_rewrite(chart_fixture(),change))
+
+    def test_chart_namespace_relationship_and_drawing_attacks(self):
+        q=lambda n:'{'+codec.CHART+'}'+n
+        changes=[lambda r:r.find('.//'+q('barDir')).__setattr__('tag','{urn:evil}barDir'),
+                 lambda r:r.find('.//'+q('barChart')).append(ET.Element('{urn:evil}grouping',val='stacked')),
+                 lambda r:r.find('.//'+q('val')+'/'+q('numRef')+'/'+q('f')).set('{urn:evil}f','Name')]
+        for change in changes:
+            with self.assertRaises(ValueError):codec.import_book(chart_rewrite(chart_fixture(),change))
+        for target in ['https://example.invalid/chart.xml','../../../../etc/passwd','/xl/charts/%63hart1.xml','/xl/worksheets/sheet1.xml']:
+            def change(n,raw):
+                if n=='xl/drawings/_rels/drawing1.xml.rels':
+                    root=ET.fromstring(raw);root[0].set('Target',target);return ET.tostring(root)
+                return raw
+            with self.subTest(target=target),self.assertRaises(ValueError):codec.import_book(rewrite(chart_fixture(),change))
+        for attr,value in [('TargetMode','External'),('{urn:evil}Target','/xl/charts/chart1.xml')]:
+            def change(n,raw):
+                if n=='xl/drawings/_rels/drawing1.xml.rels':
+                    r=ET.fromstring(raw);r[0].set(attr,value);return ET.tostring(r)
+                return raw
+            with self.assertRaises(ValueError):codec.import_book(rewrite(chart_fixture(),change))
+        for bad in ['pic','sp','grpSp']:
+            def change(n,raw):
+                if n=='xl/drawings/drawing1.xml':
+                    r=ET.fromstring(raw);r[0].append(ET.Element('{'+codec.DRAW+'}'+bad));return ET.tostring(r)
+                return raw
+            with self.assertRaises(ValueError):codec.import_book(rewrite(chart_fixture(),change))
+        original_read=codec.ExcelReader.read
+        def disagree(reader):
+            original_read(reader);reader.wb.worksheets[0]._charts[0].ser[0].val.numRef.f="'Other'!B2:B4"
+        with patch.object(codec.ExcelReader,'read',disagree):
+            with self.assertRaisesRegex(ValueError,'Loaded chart semantics mismatch'):codec.import_book(chart_fixture())
+
+    def test_chart_boundary_eight_hundred_four_and_unstacked_line(self):
+        b=codec.import_book(chart_fixture())['book'];c=codec.native_charts(b)[0]
+        c['range']={'startRow':1,'endRow':101,'startColumn':1,'endColumn':5}
+        b['resources'][0]['data']=json.dumps([dict(c,id=f'chart-{i}',type='line' if i%2 else 'bar') for i in range(8)])
+        data=base64.b64decode(codec.export_book(b)['base64']);rt=codec.import_book(data)['book']
+        self.assertEqual(len(codec.native_charts(rt)),8)
+        self.assertTrue(all(c['range']['endRow']==101 and c['range']['endColumn']==5 for c in codec.native_charts(rt)))
+        wb=openpyxl.load_workbook(io.BytesIO(data));self.assertEqual(wb.worksheets[0]._charts[1].grouping,'standard')
+        def change(n,raw):
+            if n=='xl/charts/chart2.xml':
+                r=ET.fromstring(raw);ET.SubElement(r.find('.//{'+codec.CHART+'}lineChart'),'{'+codec.CHART+'}smooth',val='1');return ET.tostring(r)
+            return raw
+        with self.assertRaises(ValueError):codec.import_book(rewrite(chart_fixture(),change))
+
+    def test_chart_native_resource_caps_and_controls_coexist(self):
+        b=codec.import_book(chart_fixture())['book'];spec=codec.native_charts(b)[0]
+        controls={'sheet1':[{'uid':'check','type':'checkbox','ranges':[{'startRow':8,'endRow':9,'startColumn':0,'endColumn':0}]},
+                   {'uid':'list','type':'list','formula1':'["Yes","No"]','ranges':[{'startRow':8,'endRow':9,'startColumn':1,'endColumn':1}]}]}
+        b['resources'].append({'name':codec.CONTROL_RESOURCE,'data':json.dumps(controls)})
+        b['sheets']['sheet1']['cellData']['8']={'0':{'v':True,'t':3},'1':{'v':'Yes','t':1}}
+        rt=codec.import_book(base64.b64decode(codec.export_book(b)['base64']))['book']
+        self.assertEqual(len(codec.native_charts(rt)),3)
+        self.assertEqual(len(json.loads(next(r['data'] for r in rt['resources'] if r['name']==codec.CONTROL_RESOURCE))['sheet1']),2)
+        for edit in [lambda c:c.update(extra={}),lambda c:c.update(id='__proto__'),lambda c:c.update(type='pie'),lambda c:c['range'].update(endRow=102),lambda c:c['range'].update(endColumn=6),lambda c:c['range'].update(startRow=True),lambda c:c.update(title='😀'*81),lambda c:c.update(sheetId='missing')]:
+            c=deepcopy(spec);edit(c);bad=deepcopy(b);bad['resources'][0]['data']=json.dumps([c])
+            with self.assertRaises(ValueError):codec.export_book(bad)
+        for charts in [[spec,spec],[dict(spec,id=f'chart-{i}') for i in range(9)]]:
+            bad=deepcopy(b);bad['resources'][0]['data']=json.dumps(charts)
+            with self.assertRaises(ValueError):codec.export_book(bad)
+        bad=deepcopy(b);bad['resources'].append({'name':'FOREIGN_PLUGIN','data':'{}'})
+        with self.assertRaisesRegex(ValueError,'Unsupported native resource'):codec.export_book(bad)
+
+
+    def test_chart_plain_multiline_title_native_export_reimport(self):
+        titles=['Budget'+chr(10)+'2026', '\nBudget\n', 'Budget\n\n2026', 'None\n\nNone', '\n\n', '', '\n雪 & <Q> "quoted" 😀\n']
+        self.assertIn(chr(10),titles[0]);self.assertNotIn('\\n',titles[0])
+        for title in titles:
+            with self.subTest(title=repr(title)):
+                b=codec.import_book(chart_fixture())['book'];charts=codec.native_charts(b);charts[0]['title']=title
+                b['resources'][0]['data']=json.dumps(charts)
+                self.assertEqual(codec.native_charts(b)[0]['title'],title)
+                # RED is export's own raw preflight: no artifact returned yet.
+                data=base64.b64decode(codec.export_book(b)['base64'])
+                with zipfile.ZipFile(io.BytesIO(data)) as z:
+                    root=ET.fromstring(z.read('xl/charts/chart1.xml'))
+                    ps=root.findall('.//{'+codec.CHART+'}title/{'+codec.CHART+'}tx/{'+codec.CHART+'}rich/{'+codec.ART+'}p')
+                    if title:
+                        self.assertEqual([''.join(p.itertext()) for p in ps],title.split('\n'))
+                    else:self.assertEqual(ps,[])
+                parsed=openpyxl.load_workbook(io.BytesIO(data)).worksheets[0]._charts[0]
+                text='\n'.join(p.r[0].t or '' for p in parsed.title.tx.rich.p) if parsed.title else ''
+                self.assertEqual(text,title)
+                self.assertEqual(codec.native_charts(codec.import_book(data)['book'])[0]['title'],title)
+
+    def test_chart_plain_multiline_title_independent_import(self):
+        titles=['Budget'+chr(10)+'2026', '\nBudget\n', 'Budget\n\n2026', 'None\n\nNone', '\n\n', '', '\n雪 & <Q> "quoted" 😀\n']
+        for title in titles:
+            with self.subTest(title=repr(title)):
+                # Authored directly with installed openpyxl, not codec export.
+                wb=openpyxl.load_workbook(io.BytesIO(chart_fixture()));wb.worksheets[0]._charts[0].title=title
+                out=io.BytesIO();wb.save(out);data=out.getvalue()
+                b=codec.import_book(data)['book']
+                self.assertEqual(codec.native_charts(b)[0]['title'],title)
+                exported=base64.b64decode(codec.export_book(b)['base64'])
+                self.assertEqual(codec.native_charts(codec.import_book(exported)['book'])[0]['title'],title)
+        # A plain empty paragraph without an explicit empty run is also empty.
+        def empty_paragraph(root):
+            rich=root.find('.//{'+codec.CHART+'}title/{'+codec.CHART+'}tx/{'+codec.CHART+'}rich')
+            rich.insert(1,ET.Element('{'+codec.ART+'}p'));ET.SubElement(rich,'{'+codec.ART+'}p')
+        b=codec.import_book(chart_rewrite(chart_fixture(),empty_paragraph))['book']
+        self.assertEqual(codec.native_charts(b)[0]['title'],'\n<Budget & "雪">\n')
+
+    def test_chart_multiline_title_keeps_rich_linked_and_shadow_refusals(self):
+        wb=openpyxl.load_workbook(io.BytesIO(chart_fixture()));wb.worksheets[0]._charts[0].title='Budget'+chr(10)+'2026'
+        out=io.BytesIO();wb.save(out);data=out.getvalue();a=lambda n:'{'+codec.ART+'}'+n;c=lambda n:'{'+codec.CHART+'}'+n
+        def rich(root):return root.find('.//'+c('title')+'/'+c('tx')+'/'+c('rich'))
+        def extra_run(root):ET.SubElement(ET.SubElement(rich(root).findall(a('p'))[1],a('r')),a('t')).text='extra'
+        def linked(root):
+            tx=root.find('.//'+c('title')+'/'+c('tx'));tx.clear();ET.SubElement(ET.SubElement(tx,c('strRef')),c('f')).text="'O''Brien & 雪'!B2"
+        def shadow(root):rich(root).findall(a('p'))[1].find(a('r')+'/'+a('t')).tag='{urn:evil}t'
+        def field(root):ET.SubElement(rich(root).findall(a('p'))[1],a('fld'))
+        def break_run(root):ET.SubElement(rich(root).findall(a('p'))[1],a('br'))
+        def linked_run(root):ET.SubElement(ET.SubElement(rich(root).findall(a('p'))[1].find(a('r')),a('rPr')),a('hlinkClick'))
+        for edit in (extra_run,linked,shadow,field,break_run,linked_run):
+            with self.subTest(edit=edit.__name__),self.assertRaises(ValueError):codec.import_book(chart_rewrite(data,edit))
+        def excessive(root):
+            for _ in range(161):ET.SubElement(rich(root),a('p'))
+        with self.assertRaises(ValueError):codec.import_book(chart_rewrite(data,excessive))
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

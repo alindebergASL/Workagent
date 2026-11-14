@@ -102,7 +102,7 @@ test('production chart panel create/edit/selected source/delete and unsaved form
     assert.ok(!scope.props.open,'full disclosure starts collapsed');
     assert.ok(treeNodes(scope).some(n=>n.type==='p'&&n.props.children===CHART_SCOPE),'entire chart disclosure retained');
     assert.equal(panel.find(n=>n.type==='section').props.tabIndex,0,'chart scroller is keyboard reachable');
-    assert.ok(treeNodes(panel.tree).some(n=>n.type==='p'&&typeof n.props.children==='string'&&/structural edits.*XLSX export is refused/.test(n.props.children)&&!treeNodes(scope).includes(n)),'material warning remains outside collapsed details');
+    assert.ok(treeNodes(panel.tree).some(n=>n.type==='p'&&typeof n.props.children==='string'&&/structural edits.*XLSX preserves supported/.test(n.props.children)&&!treeNodes(scope).includes(n)),'material warning remains outside collapsed details');
     await click(panel,'Add chart');assert.equal(view.handle.isEditing(),true);
     await assert.rejects(view.handle.commit,/Apply or cancel/);assert.throws(view.handle.save,/Apply or cancel/);
     panel.change(field('Chart title'),{target:{value:'<b>Human</b>'}});panel.change(field('Chart source range'),{target:{value:'A1:C5'}});
@@ -151,19 +151,22 @@ test('App durable chart draft, lost ACK exact retry, stale save/model protection
     const cold=mountNative({book:saved.book,version:'cold-app'});try{await cold.settle();await readyCharts(cold);assert.deepEqual(sheetCharts(cold.handle.save()),sheetCharts(saved.book));}finally{await close(cold);}
   }finally{if(view)await close(view);app.unmount();}
 });
-test('bounded model context includes charts, XLSX refuses before worker and CSV explicitly discloses visual loss',async()=>{
+test('bounded model context includes charts, XLSX exports through worker and CSV explicitly discloses visual loss',async()=>{
   const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'start',title:'Exchange'});state.works[workId].book=withCharts(fixture(workId),[chart()]);
   const w=await ws.get('owner',workId),reader=createSheetReader(workId),result=JSON.parse(reader(w,JSON.stringify({overview:true})));
   assert.deepEqual(result.charts.map(({source,...raw})=>raw),[chart()]);assert.equal(result.charts[0].source.rangeA1,'A1:C5');assert.equal(result.charts[0].source.seriesCount,2);assert.ok(escapedBytes(result)<=SHEET_READ_BYTES);assert.equal(result.cells.length,0);
-  const exchange=new XlsxExchange({workspace:ws,worker:{run(){assert.fail('chart-bearing export reached worker');}}});
-  await assert.rejects(()=>exchange.export('owner',{workId,book:w.book}),/xlsx_charts_not_supported/);
+  const exchange=new XlsxExchange({workspace:ws,worker:{run:async input=>trustedCodec(input)}});
+  const exported=await exchange.export('owner',{workId,book:w.book});
+  assert.equal(sheetCharts(trustedCodec({op:'import',base64:exported.base64}).book).length,1);
   assert.deepEqual((await ws.get('owner',workId)).book,w.book);assert.match(CSV_LOSSES,/charts/);assert.match(CHART_SCOPE,/CSV loses charts/);
 });
 
-test('actual XLSX codec refuses populated chart resources and accepts empty chart resources after deletion',()=>{
+test('actual XLSX codec preserves populated chart resources and accepts empty chart resources after deletion',()=>{
   const populated=withCharts(fixture(),[chart()]);
-  assert.throws(()=>trustedCodec({op:'export',book:populated}),/Workagent charts cannot be exported/);
+  const full=trustedCodec({op:'export',book:populated});
+  const imported=sheetCharts(trustedCodec({op:'import',base64:full.base64}).book);
+  assert.deepEqual(imported.map(({id,...c})=>c),[chart()].map(({id,...c})=>c));
   const empty=withCharts(fixture(),[]), exported=trustedCodec({op:'export',book:empty});
   const reopened=trustedCodec({op:'import',base64:exported.base64}).book;
   assert.equal(reopened.sheets[reopened.sheetOrder[0]].cellData[2][1].v,-4);

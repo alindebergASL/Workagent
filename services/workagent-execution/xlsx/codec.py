@@ -38,7 +38,7 @@ POLICY = ['Original bytes remain available. Native exchange preserves a bounded 
           'Bounded literal dropdowns and modern in-cell boolean/blank checkboxes are preserved. Checkbox formulas, merges, custom values and inherited row/column controls are refused. Legacy drawing controls and conditional checkbox styles are unsupported.',
           'Reference/name/custom validation is not retained; no validation formulas are evaluated. Checkbox insertion defaults do not replace saved values.',
           'Dropdown colors/chips and render-mode presentation are not retained. Error/prompt settings are carried; Excel and native warning dialogs may differ.',
-          'Charts, images, comments, hyperlinks, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
+          'Images, comments, hyperlinks, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
           'Date/time conversion uses the 1900 epoch with millisecond precision; the Excel fictitious leap day is refused. Empty grid padding can differ on reopen.']
 FUNCTIONS = set('SUM AVERAGE MIN MAX COUNT COUNTA COUNTBLANK IF IFERROR AND OR NOT ROUND ROUNDUP ROUNDDOWN ABS INT MOD POWER SQRT SUMIF SUMIFS COUNTIF COUNTIFS AVERAGEIF AVERAGEIFS CONCAT CONCATENATE LEFT RIGHT MID LEN TRIM UPPER LOWER DATE YEAR MONTH DAY TODAY'.split())
 class FormulaTokenizer(Tokenizer):
@@ -123,7 +123,7 @@ def export_validations(book):
         name, data = resource['name'], resource['data']
         need(name not in names and isinstance(data, str) and len(data) <= 500000, 'Invalid native resource'); names.add(name)
         if name == 'SHEET_WORKAGENT_CHARTS_PLUGIN':
-            need(data == '[]', 'Workagent charts cannot be exported')
+            native_charts(book)
             continue
         if name == 'SHEET_CONDITIONAL_FORMATTING_PLUGIN':
             conditional = json.loads(data) if data else {}
@@ -258,6 +258,209 @@ FP = 'http://schemas.microsoft.com/office/spreadsheetml/2022/featurepropertybag'
 FP_REL = 'http://schemas.microsoft.com/office/2022/11/relationships/FeaturePropertyBag'
 FP_TYPE = 'application/vnd.ms-excel.featurepropertybag+xml'
 FP_URI = '{C7286773-470A-42A8-94C5-96B5CB345126}'
+
+# The Python worker repeats the shared sheet-charts.mjs contract at its trust
+# boundary. JS validates again on adoption; neither accepts opaque chart payloads.
+CHART_RESOURCE = 'SHEET_WORKAGENT_CHARTS_PLUGIN'
+CHART = 'http://schemas.openxmlformats.org/drawingml/2006/chart'
+DRAW = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing'
+ART = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+CHART_TYPE = 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
+DRAW_TYPE = 'application/vnd.openxmlformats-officedocument.drawing+xml'
+CHART_POLICY = 'Bounded clustered vertical column and standard line charts preserve plain titles and same-sheet rectangular header/label/series references (8 charts, 100 data rows, 4 series). Unsupported charts/drawing objects are refused. Chart caches are discarded; cells remain the source. Position, size, colors, legends and other presentation are not preserved; exports use deterministic anchors. Hidden source rows are included.'
+
+def native_charts(book):
+    resources = [r for r in book.get('resources', []) if r.get('name') == CHART_RESOURCE]
+    need(len(resources) <= 1, 'Duplicate chart resource')
+    charts = json.loads(resources[0]['data']) if resources else []
+    need(isinstance(charts, list) and len(charts) <= 8, 'Chart count limit (8)')
+    ids = set()
+    for c in charts:
+        need(isinstance(c, dict) and set(c) == {'id','title','type','sheetId','range'}, 'Invalid native chart')
+        for key in ('id','sheetId'):
+            v = c[key]
+            need(isinstance(v,str) and re.fullmatch(r'[a-zA-Z0-9_-]{1,100}',v) and v not in ('__proto__','constructor','prototype'), 'Invalid chart ID')
+        need(c['id'] not in ids, 'Duplicate chart ID'); ids.add(c['id'])
+        field(c['title'],160); need(len(c['title'].encode('utf-16-le'))//2 <= 160, 'Chart title limit')
+        need(c['type'] in ('bar','line') and c['sheetId'] in book['sheetOrder'], 'Unsupported chart type/sheet')
+        r=c['range']; keys={'startRow','endRow','startColumn','endColumn'}
+        need(isinstance(r,dict) and set(r)==keys and all(type(r[k]) is int and 0<=r[k]<=9007199254740991 for k in keys), 'Invalid chart range')
+        need(1<=r['endRow']-r['startRow']<=100 and 1<=r['endColumn']-r['startColumn']<=4, 'Chart range limit (100 rows / 4 series)')
+        s=book['sheets'][c['sheetId']]
+        need(r['endRow']<s['rowCount'] and r['endColumn']<s['columnCount'], 'Chart outside sheet')
+        need(not any(m['startRow']<=r['endRow'] and m['endRow']>=r['startRow'] and m['startColumn']<=r['endColumn'] and m['endColumn']>=r['startColumn'] for m in s.get('mergeData',[])), 'Merged chart source unsupported')
+    return charts
+
+def chart_reference(value, sheet_name):
+    # No names, unions, dynamic formulas, external books or 3D references.
+    m=re.fullmatch(r"(?:'((?:[^']|'')+)'|([A-Za-z_][A-Za-z_0-9.]*))!(\$?[A-Z]{1,3}\$?[1-9][0-9]*(?::\$?[A-Z]{1,3}\$?[1-9][0-9]*)?)", value or '')
+    need(m and (m[1].replace("''", "'") if m[1] else m[2]) == sheet_name, 'Chart requires contiguous same-sheet cell references')
+    return bounds(m[3])
+
+def chart_xml(raw, sheet_name):
+    root=fromstring(raw); q=lambda n:'{'+CHART+'}'+n
+    need(root.tag==q('chartSpace'), 'Invalid chart namespace/root')
+    # Exact namespace AND placement checks precede openpyxl's local-name reader.
+    schema={
+      'chartSpace':'chart style roundedCorners spPr txPr date1904 lang',
+      'chart':'title autoTitleDeleted plotArea legend plotVisOnly dispBlanksAs showDLblsOverMax',
+      'title':'tx overlay layout spPr txPr', 'tx':'rich strRef',
+      'plotArea':'layout barChart lineChart catAx valAx spPr',
+      'barChart':'barDir grouping varyColors ser gapWidth overlap axId',
+      'lineChart':'grouping varyColors ser marker smooth axId',
+      'ser':'idx order tx spPr marker cat val smooth',
+      'cat':'numRef strRef', 'val':'numRef', 'numRef':'f numCache', 'strRef':'f strCache',
+      'numCache':'formatCode ptCount pt', 'strCache':'ptCount pt', 'pt':'v',
+      'catAx':'axId scaling delete axPos majorGridlines minorGridlines numFmt majorTickMark minorTickMark tickLblPos spPr txPr crossAx crosses crossesAt auto lblAlgn lblOffset noMultiLvlLbl',
+      'valAx':'axId scaling delete axPos majorGridlines minorGridlines numFmt majorTickMark minorTickMark tickLblPos spPr txPr crossAx crosses crossesAt crossBetween majorUnit minorUnit',
+      'scaling':'orientation', 'legend':'legendPos layout overlay spPr txPr',
+      'layout':'manualLayout', 'manualLayout':'layoutTarget xMode yMode wMode hMode x y w h',
+      'marker':'symbol size spPr', 'majorGridlines':'spPr', 'minorGridlines':'spPr',
+    }
+    def walk(el):
+        local=el.tag.removeprefix('{'+CHART+'}')
+        need(el.tag==q(local) and all('}' not in k for k in el.attrib), 'Shadowed chart namespace/attribute')
+        if local in ('spPr','txPr','rich'):
+            for a in el.iter():
+                if a is el: continue
+                need(a.tag.startswith('{'+ART+'}') and a.tag.rsplit('}',1)[-1] not in ('hlinkClick','hlinkMouseOver','fld') and all('}' not in k or k=='{http://www.w3.org/XML/1998/namespace}space' for k in a.attrib), 'Unsupported chart presentation semantics')
+            return
+        attrs={'pt':{'idx'},'numFmt':{'formatCode','sourceLinked'},'f':set(),'v':set(),'formatCode':set()}.get(local, set() if local in schema else {'val'})
+        need(set(el.attrib)<=attrs, 'Unsupported chart attributes')
+        if local in ('numCache','strCache'): need(len(el.findall(q('pt')))<=100, 'Chart cache point limit')
+        allowed=schema.get(local,'').split(); seen=set()
+        for child in el:
+            name=child.tag.removeprefix('{'+CHART+'}')
+            need(name in allowed and (name not in seen or local in ('barChart','lineChart') and name in ('ser','axId') or local in ('numCache','strCache') and name=='pt'), 'Unsupported or duplicate chart element')
+            seen.add(name); walk(child)
+    walk(root)
+    one=lambda el,path: el.find('/'.join(q(p) for p in path.split('/')))
+    def val(el,path,default=None):
+        x=one(el,path); return x.get('val') if x is not None else default
+    need(val(root,'date1904','0') in ('0','false'), '1904 chart dates unsupported')
+    chart=one(root,'chart'); need(chart is not None, 'Missing chart')
+    plot=one(chart,'plotArea'); need(plot is not None, 'Missing plot area')
+    kinds=[e for e in plot if e.tag in (q('barChart'),q('lineChart'))]
+    need(len(kinds)==1, 'Combo/unsupported charts refused'); kind=kinds[0]; bar=kind.tag==q('barChart')
+    need(val(kind,'grouping','clustered' if bar else 'standard')==('clustered' if bar else 'standard') and (not bar or val(kind,'barDir')=='col'), 'Only clustered vertical column / standard line charts supported')
+    need(val(kind,'smooth','0') in ('0','false') and val(chart,'dispBlanksAs','gap')=='gap', 'Smooth/zero-filled/connected-gap charts unsupported')
+    need(val(chart,'plotVisOnly','1') in ('0','1','true','false'), 'Invalid chart visibility boolean')
+    canonical_id=lambda value: isinstance(value,str) and re.fullmatch(r'0|[1-9][0-9]{0,9}',value) and int(value)<=4294967295
+    axes=[e for e in plot if e.tag in (q('catAx'),q('valAx'))]
+    axids=[e.get('val') for e in kind.findall(q('axId'))]
+    need(len(axes)==2 and {e.tag for e in axes}=={q('catAx'),q('valAx')} and len(axids)==2 and all(canonical_id(v) for v in axids) and len(set(axids))==2 and set(axids)=={val(e,'axId') for e in axes}, 'Secondary/ambiguous chart axes unsupported')
+    for ax in axes:
+        need(val(ax,'crossAx') in set(axids)-{val(ax,'axId')} and val(ax,'scaling/orientation','minMax')=='minMax' and val(ax,'delete','0') in ('0','false'), 'Unsupported chart axes')
+    title=''; parsed_title=''; t=one(chart,'title')
+    if t is not None:
+        rich=one(t,'tx/rich'); need(rich is not None and len(one(t,'tx'))==1, 'Formula-linked chart titles unsupported')
+        need(all(e.tag in ('{'+ART+'}bodyPr','{'+ART+'}lstStyle','{'+ART+'}p') for e in rich) and len(rich.findall('{'+ART+'}bodyPr'))==1 and len(rich.findall('{'+ART+'}lstStyle'))<=1, 'Rich chart titles unsupported')
+        paragraphs=rich.findall('{'+ART+'}p')
+        # openpyxl serializes plain newlines as separate DrawingML paragraphs.
+        # Keep empty paragraphs (including leading/trailing lines), but retain
+        # the single plain run restriction within each paragraph.
+        need(1<=len(paragraphs)<=161, 'Chart title paragraph limit')
+        lines=[]; parsed_lines=[]
+        for p in paragraphs:
+            runs=p.findall('{'+ART+'}r')
+            need(len(runs)<=1 and all(e.tag in ('{'+ART+'}pPr','{'+ART+'}r','{'+ART+'}endParaRPr') for e in p), 'Rich chart titles unsupported')
+            if not runs:
+                lines.append(''); parsed_lines.append(''); continue
+            texts=runs[0].findall('{'+ART+'}t')
+            need(len(texts)==1 and all(e.tag in ('{'+ART+'}rPr','{'+ART+'}t') for e in runs[0]) and not len(texts[0]), 'Rich chart titles unsupported')
+            lines.append(texts[0].text or '')
+            # Installed openpyxl converts an empty <a:t/> to the string 'None'.
+            # Check that exact parser result against raw XML; never globally
+            # normalize literal 'None' text, nor adopt it for an empty line.
+            parsed_lines.append('None' if texts[0].text is None else texts[0].text)
+        parsed_title='\n'.join(parsed_lines)
+        title=field('\n'.join(lines),160); need(len(title.encode('utf-16-le'))//2<=160, 'Chart title limit')
+        need(val(chart,'autoTitleDeleted','0') in ('0','false'), 'Deleted chart title unsupported')
+    series=kind.findall(q('ser')); need(1<=len(series)<=4, 'Chart series limit (4)')
+    refs=[]; geometry=None; indexes=set()
+    for i,s in enumerate(series):
+        need(val(s,'order')==str(i) and val(s,'idx') not in indexes and canonical_id(val(s,'idx')), 'Ambiguous chart series order'); indexes.add(val(s,'idx'))
+        need(val(s,'smooth','0') in ('0','false'), 'Smooth charts unsupported')
+        tx=one(s,'tx/strRef/f'); cats=one(s,'cat'); nums=one(s,'val/numRef/f')
+        need(tx is not None and len(one(s,'tx'))==1 and cats is not None and len(cats)==1 and nums is not None, 'Chart requires header/label/numeric series references')
+        cat=one(cats[0],'f'); need(cat is not None, 'Chart labels require cell references')
+        refs.append((tx.text,cat.text,nums.text))
+        h=chart_reference(tx.text,sheet_name); l=chart_reference(cat.text,sheet_name); v=chart_reference(nums.text,sheet_name)
+        need(h[0]==h[2]==v[0]==v[2] and h[1]==h[3]==v[1]-1 and l[0]==l[2] and l[1]==v[1] and l[3]==v[3] and v[0]==l[0]+i+1, 'Incompatible chart header/label/series geometry')
+        g=(l[0],h[1],l[3]); need(geometry in (None,g), 'Incompatible chart series ranges'); geometry=g
+    a,b,d=geometry; need(1<=d-b<=100, 'Chart row limit (100)')
+    return {'title':title,'parsedTitle':parsed_title,'type':'bar' if bar else 'line','range':{'startRow':b-1,'endRow':d-1,'startColumn':a-1,'endColumn':a+len(series)-1},'refs':refs,'visibleOnly':val(chart,'plotVisOnly','1') not in ('0','false')}
+
+def chart_parts(parts, descriptors):
+    import posixpath
+    types=fromstring(parts['[Content_Types].xml'])
+    overrides={e.get('PartName','')[1:]:e.get('ContentType') for e in types if e.tag=='{'+CONTENT+'}Override'}
+    relationships={}
+    for name,raw in parts.items():
+        if not name.endswith('.rels'): continue
+        root=fromstring(raw); need(root.tag=='{'+PACKAGE_REL+'}Relationships','Invalid relationship namespace')
+        base=posixpath.dirname(posixpath.dirname(name))+'/' if name!='_rels/.rels' else ''
+        rels={}
+        for e in root:
+            need(e.tag=='{'+PACKAGE_REL+'}Relationship' and not len(e) and set(e.attrib)<= {'Id','Type','Target','TargetMode'}, 'Shadowed relationship')
+            rid=e.get('Id'); need(rid and rid not in rels,'Duplicate relationship ID')
+            target=e.get('Target',''); mode=e.get('TargetMode','Internal'); kind=e.get('Type')
+            if kind in (REL+'/chart',REL+'/drawing'):
+                need(mode=='Internal' and target and not re.search(r'[\\%?#:]',target),'Unsafe chart/drawing relationship')
+                target=posixpath.normpath(target.lstrip('/') if target.startswith('/') else base+target)
+                need(target.startswith('xl/') and target in parts and overrides.get(target)==(CHART_TYPE if kind==REL+'/chart' else DRAW_TYPE),'Invalid chart/drawing target/type')
+            rels[rid]=(kind,target)
+        relationships[name]=rels
+    def rels_for(path): return relationships.get(posixpath.dirname(path)+'/_rels/'+posixpath.basename(path)+'.rels',{})
+    used_draw=set(); used_chart=set(); result={}; count=0
+    for desc in descriptors:
+        sheet=fromstring(parts[desc['path']]); drawings=[]
+        for parent in sheet.iter():
+            for e in parent:
+                if e.tag.rsplit('}',1)[-1]=='drawing':
+                    need(parent is sheet and e.tag=='{'+MAIN+'}drawing' and set(e.attrib)=={'{'+REL+'}id'} and not len(e),'Shadowed worksheet drawing')
+                    drawings.append(e)
+        need(len(drawings)<=1,'Multiple worksheet drawings unsupported')
+        result[desc['path']]=[]
+        for e in drawings:
+            kind,path=rels_for(desc['path']).get(e.get('{'+REL+'}id'),(None,None))
+            need(kind==REL+'/drawing' and path not in used_draw,'Invalid/shared drawing'); used_draw.add(path)
+            drawing=fromstring(parts[path]); need(drawing.tag=='{'+DRAW+'}wsDr','Invalid drawing namespace')
+            # No images, shapes, groups, controls, AlternateContent or shadow nodes.
+            allowed={'wsDr':'absoluteAnchor oneCellAnchor twoCellAnchor','absoluteAnchor':'pos ext graphicFrame clientData','oneCellAnchor':'from ext graphicFrame clientData','twoCellAnchor':'from to graphicFrame clientData','from':'col colOff row rowOff','to':'col colOff row rowOff','graphicFrame':'nvGraphicFramePr xfrm graphic','nvGraphicFramePr':'cNvPr cNvGraphicFramePr','cNvGraphicFramePr':'graphicFrameLocks','xfrm':'off ext','graphic':'graphicData','graphicData':'chart'}
+            def check(node):
+                local=node.tag.rsplit('}',1)[-1]; ns=ART if local in ('graphic','graphicData','off','graphicFrameLocks') else CHART if local=='chart' else DRAW
+                # a:xfrm children use DrawingML; spreadsheet xfrm itself uses xdr.
+                need(node.tag=='{'+ns+'}'+local or local=='ext' and node.tag=='{'+ART+'}ext','Shadowed drawing namespace')
+                need(all('}' not in k or local=='chart' and k=='{'+REL+'}id' for k in node.attrib),'Shadowed drawing attribute')
+                if local=='chart': need(set(node.attrib)=={'{'+REL+'}id'}, 'Invalid chart relationship identity')
+                seen=set()
+                for child in node:
+                    tag=child.tag.rsplit('}',1)[-1]
+                    need(tag in allowed.get(local,'').split() and (tag not in seen or local=='wsDr'),'Unsupported drawing object/structure')
+                    seen.add(tag); check(child)
+            check(drawing)
+            # Match the installed parser's anchor order, not arbitrary XML order.
+            for anchor_type in ('absoluteAnchor','oneCellAnchor','twoCellAnchor'):
+                for anchor in drawing.findall('{'+DRAW+'}'+anchor_type):
+                    refs=anchor.findall('.//{'+CHART+'}chart'); need(len(refs)==1,'Unsupported drawing object')
+                    graphic=anchor.find('.//{'+ART+'}graphicData'); need(graphic is not None and graphic.get('uri')==CHART,'Invalid chart graphic URI')
+                    kind,target=rels_for(path).get(refs[0].get('{'+REL+'}id'),(None,None))
+                    need(kind==REL+'/chart' and target not in used_chart,'Invalid/shared chart relationship'); used_chart.add(target)
+                    count+=1; need(count<=8,'Chart count limit (8)')
+                    result[desc['path']].append(chart_xml(parts[target],desc['name']))
+    need(used_chart=={p for p,t in overrides.items() if t==CHART_TYPE} and used_draw=={p for p,t in overrides.items() if t==DRAW_TYPE},'Orphan/unsupported chart or drawing part')
+    need(used_chart=={target for rs in relationships.values() for kind,target in rs.values() if kind==REL+'/chart'} and used_draw=={target for rs in relationships.values() for kind,target in rs.values() if kind==REL+'/drawing'},'Unbound chart/drawing relationship')
+    need(sum(kind==REL+'/chart' for rs in relationships.values() for kind,_ in rs.values())==len(used_chart) and sum(kind==REL+'/drawing' for rs in relationships.values() for kind,_ in rs.values())==len(used_draw), 'Duplicate chart/drawing relationship target')
+    return result
+
+def loaded_chart_matches(chart, expected):
+    from openpyxl.chart import BarChart, LineChart
+    need(type(chart)==(BarChart if expected['type']=='bar' else LineChart) and len(chart._charts)==1, 'Loaded chart type mismatch')
+    title='\n'.join((p.r[0].t or '') if p.r else '' for p in chart.title.tx.rich.p) if chart.title else ''
+    need(len(chart._axes)==2 and chart.x_axis.axId!=chart.y_axis.axId and chart.x_axis.crossAx==chart.y_axis.axId and chart.y_axis.crossAx==chart.x_axis.axId and chart.visible_cells_only==expected['visibleOnly'] and chart.display_blanks=='gap', 'Loaded chart axes/visibility mismatch')
+    refs=[(s.tx.strRef.f, (s.cat.numRef or s.cat.strRef).f, s.val.numRef.f) for s in chart.ser]
+    need(title==expected['parsedTitle'] and refs==expected['refs'] and chart.grouping==('clustered' if expected['type']=='bar' else 'standard') and (expected['type']!='bar' or chart.type=='col'), 'Loaded chart semantics mismatch')
 
 def integer(value, limit, message='Invalid checkbox metadata index'):
     need(isinstance(value, str) and re.fullmatch(r'0|[1-9][0-9]*', value) and len(value) <= 10, message)
@@ -542,7 +745,7 @@ def worksheet_parts(parts):
 
 def preflight(data):
     need(len(data) <= BYTES and data[:4] == b'PK\x03\x04', 'Choose an unencrypted XLSX under 2 MB')
-    warnings = set(POLICY)
+    warnings = set(POLICY + [CHART_POLICY])
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         infos = z.infolist()
         need(1 <= len(infos) <= 256, 'Archive entry limit')
@@ -631,7 +834,7 @@ def preflight(data):
                         if tag in ('xf', 'font', 'fill', 'border', 'numFmt'):
                             styles += 1; need(styles <= 4000, 'Style complexity limit')
                         if worksheet and tag == 'f': need(el.get('t', 'normal') in ('normal', 'shared'), 'Array/data-table formulas unsupported')
-                        if tag in ('drawing', 'legacyDrawing', 'legacyDrawingHF', 'controls', 'control', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
+                        if tag in ('legacyDrawing', 'legacyDrawingHF', 'controls', 'control', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
                             warnings.add('Unsupported extension metadata is not retained; recognized in-cell checkbox controls are mapped.' if tag == 'extLst' else 'Not retained: ' + tag)
                     else:
                         if el.text: field(el.text, 20000)
@@ -643,7 +846,8 @@ def preflight(data):
                         x,y,_,_ = bounds(ref)
                         need(not any(a <= x <= c and b <= y <= d and (x,y) != (a,b) for a,b,c,d in merged), 'Merge would discard cell content')
         checkboxes = checkbox_metadata(parts, worksheets)
-    return warnings, [{**sheet, 'checkboxes':checkboxes.get(sheet['path'], [])} for sheet in descriptors]
+        charts = chart_parts(parts, descriptors)
+    return warnings, [{**sheet, 'checkboxes':checkboxes.get(sheet['path'], []), 'charts':charts[sheet['path']]} for sheet in descriptors]
 
 def rgb(color):
     return '#' + color.rgb[-6:] if color and color.type == 'rgb' else None
@@ -677,12 +881,22 @@ def import_book(data):
     checkboxes = [sheet['checkboxes'] for sheet in descriptors]
     need(wb.epoch == WINDOWS_EPOCH, '1904 date-epoch workbooks are refused; convert to the 1900 epoch before import. Original not adopted.')
     book = {'id': 'preview', 'name': 'Imported XLSX', 'appVersion': '1.4.0', 'locale': 'enUS', 'styles': {}, 'sheetOrder': [], 'sheets': {}}
-    total = 0; formulas = 0; budget = [0]; controls = {}
+    total = 0; formulas = 0; budget = [0]; controls = {}; charts = []
     for i, ws in enumerate(wb.worksheets):
         sid = 'sheet' + str(i+1); book['sheetOrder'].append(sid)
         need(ws.max_row <= 10000 and ws.max_column <= 200, 'Sheet bounds')
         sheet = {'id': sid, 'name': field(ws.title, 31), 'rowCount': max(200, ws.max_row), 'columnCount': max(26, ws.max_column), 'cellData': {}, 'mergeData': [], 'rowData': {}, 'columnData': {}, 'defaultColumnWidth': 110, 'defaultRowHeight': 24}
         book['sheets'][sid] = sheet
+        expected = descriptors[i]['charts']
+        need(len(ws._charts) == len(expected), 'Loaded chart count mismatch')
+        for parsed, spec in zip(ws._charts, expected):
+            loaded_chart_matches(parsed, spec)
+            r=spec['range']
+            if spec['visibleOnly']:
+                need(not any(dim.hidden and r['startRow']+1 <= row <= r['endRow']+1 for row,dim in ws.row_dimensions.items()) and not any(dim.hidden for dim in ws.column_dimensions.values()), 'Charts excluding hidden source rows/columns unsupported')
+            sheet['rowCount']=max(sheet['rowCount'], r['endRow']+1)
+            sheet['columnCount']=max(sheet['columnCount'], r['endColumn']+1)
+            charts.append({k:spec[k] for k in ('title','type','range')} | {'id':f'xlsx-chart-{len(charts)+1}', 'sheetId':sid})
         rules = import_validations(ws, sheet, sid, warnings)
         check_positions = {(row,col) for r in checkboxes[i] for row in range(r['startRow'],r['endRow']+1) for col in range(r['startColumn'],r['endColumn']+1)}
         if checkboxes[i]:
@@ -721,13 +935,16 @@ def import_book(data):
     if controls:
         book['resources'] = [{'name': CONTROL_RESOURCE, 'data': json.dumps(controls, ensure_ascii=True, separators=(',', ':'))}]
         export_validations(book) # Combined checkbox/dropdown rule/range/area caps.
+    if charts:
+        book.setdefault('resources', []).append({'name':CHART_RESOURCE,'data':json.dumps(charts,ensure_ascii=True,separators=(',', ':'))})
+        native_charts(book)
     warnings.add('Column widths use approximate Excel-to-pixel conversion. Rich text is imported as plain text; theme colors and advanced layout may differ.')
     return {'book': book, 'warnings': sorted(warnings), 'cells': total}
 
 def export_book(book):
     validations = export_validations(book)
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
-    warnings = set(POLICY); total = 0; formulas = 0; merge_area = 0; budget = [0]
+    warnings = set(POLICY + [CHART_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
     checkbox_cells = {}
     for index, sid in enumerate(book['sheetOrder'], 1):
@@ -809,6 +1026,23 @@ def export_book(book):
             d = ws.column_dimensions[get_column_letter(int(c)+1)]
             if dim.get('w'): d.width = max(0, (dim['w']-5)/7)
             d.hidden = bool(dim.get('hd'))
+    from openpyxl.chart import BarChart, LineChart, Reference
+    for index, spec in enumerate(native_charts(book)):
+        ws=wb[book['sheets'][spec['sheetId']]['name']]; r=spec['range']
+        chart=BarChart() if spec['type']=='bar' else LineChart()
+        if spec['title']:
+            chart.title=spec['title']
+            # A run-free paragraph round-trips as empty in openpyxl; <a:t/>
+            # would be coerced to literal 'None' on its next load/save.
+            for paragraph in chart.title.tx.rich.p:
+                if paragraph.r[0].t == '': paragraph.r=[]
+        if spec['type']=='bar': chart.type='col'; chart.grouping='clustered'; chart.overlap=0
+        else: chart.grouping='standard'; chart.smooth=False
+        chart.visible_cells_only=False; chart.display_blanks='gap'
+        chart.x_axis.axPos='b'; chart.y_axis.axPos='l'
+        chart.add_data(Reference(ws,min_col=r['startColumn']+2,max_col=r['endColumn']+1,min_row=r['startRow']+1,max_row=r['endRow']+1),titles_from_data=True)
+        chart.set_categories(Reference(ws,min_col=r['startColumn']+1,min_row=r['startRow']+2,max_row=r['endRow']+1))
+        ws.add_chart(chart, f'G{1+index*16}')
     output = io.BytesIO(); wb.save(output); data = output.getvalue()
     if checkbox_cells: data = add_checkbox_parts(data, checkbox_cells)
     need(len(data) <= BYTES, 'Export exceeds 2 MB; no file produced')

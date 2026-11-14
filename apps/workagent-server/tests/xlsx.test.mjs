@@ -14,7 +14,8 @@ import { createHandler } from '../src/http.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
 import { trustedWorker, trustedCodec, originalXlsx, xlsxInput } from './support/xlsx-fixture.mjs';
 import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
-import { validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
+import { sheetCharts, withCharts } from '../../../packages/workagent-contract/sheet-charts.mjs';
+import { blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 async function fixture(worker = trustedWorker) {
   const root = await mkdtemp(join(tmpdir(), 'workagent-xlsx-')), path = join(root, 'state.json');
   await writeFile(path, JSON.stringify(initialState('owner')));
@@ -201,4 +202,20 @@ test('real sandbox attempt fails closed on this controller or performs real conv
   await assert.rejects(()=>worker.run({op:'import',base64:xlsxInput().base64}),/busy/);
   try {const result=await pending; assert.equal(result.book.sheetOrder.length,2);} catch(e) {assert.match(e.code,/xlsx_sandbox/);}
   assert.equal(worker.active,false);
+});
+
+test('chart preview has no effects; acceptance retains original bytes and exact retries create one protected native work', async()=>{
+  const b=blankWorkbook('preview');b.sheets.sheet1.name="O'Brien & 雪";
+  b.sheets.sheet1.cellData={1:{1:{v:'Label',t:1},2:{v:'Units',t:1},3:{v:'Double',t:1}},2:{1:{v:'Zero',t:1},2:{v:0,t:2},3:{f:'=C3*2'}},3:{1:{v:'Negative',t:1},2:{v:-2,t:2},3:{f:'=C4*2'}},4:{1:{v:'Missing',t:1}}};
+  const book=withCharts(b,[{id:'chart',title:'Budget',type:'bar',sheetId:'sheet1',range:{startRow:1,endRow:4,startColumn:1,endColumn:3}}]);
+  const bytes=Buffer.from(trustedCodec({op:'export',book}).base64,'base64'),input={...xlsxInput('chart-import'),base64:bytes.toString('base64')};
+  const f=await fixture(),before=await f.state();
+  const preview=await f.xlsx.preview('owner',input);assert.match(preview.warnings.join(' '),/Position, size/);assert.deepEqual(await f.state(),before);
+  const result=await f.xlsx.import('owner',input),w=await f.workspace.get('owner',result.workId);
+  assert.equal(sheetCharts(w.book)[0].range.startColumn,1);assert.ok(w.humanCells.includes('sheet1:3:2'));
+  assert.deepEqual(await f.xlsx.import('owner',input),result);assert.deepEqual((await f.exchange.original('owner',w.id,result.original.id)).bytes,bytes);
+  const accepted=await f.state(),exported=await f.xlsx.export('owner',{workId:w.id,book:w.book});
+  assert.equal(sheetCharts(trustedCodec({op:'import',base64:exported.base64}).book).length,1);
+  assert.deepEqual(await f.state(),accepted);assert.equal(Object.keys(accepted.works).length,1);assert.equal(Object.keys(accepted.jobs).length,0);
+  await assert.rejects(()=>f.xlsx.export('stranger',{workId:w.id,book:w.book}));
 });
