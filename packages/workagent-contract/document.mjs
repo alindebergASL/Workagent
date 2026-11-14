@@ -67,15 +67,36 @@ const lists = v => {
 };
 // The installed 1.4.0 renderer merges these implicit presets with doc.lists.
 // startNumber is a zero-based offset: native 0 displays Word's start value 1.
-const standardListLevel = type => ({ bulletAlignment: 1, startNumber: 0, glyphFormat: type === 'ORDER_LIST' ? '%1.' : ' %1', ...(type === 'ORDER_LIST' ? { glyphType: 2 } : { glyphSymbol: '●' }) });
+// Mirrored from the installed 1.4 preset factories; verified against the SDK
+// in docx-native tests. Custom definitions replace (not merge) a preset.
+const standardListLevel = (type, depth) => {
+  if (!['BULLET_LIST','ORDER_LIST','ORDER_LIST_1','ORDER_LIST_2','ORDER_LIST_3','ORDER_LIST_4','ORDER_LIST_5'].includes(type) || (type === 'ORDER_LIST_2' && depth > 6)) return null;
+  const glyphType = type === 'ORDER_LIST_2' ? 2 : [['ORDER_LIST_3','ORDER_LIST_4'].includes(type) ? 4 : type === 'ORDER_LIST_5' ? 3 : 2, type === 'ORDER_LIST_4' ? 2 : 5, 7][depth % 3];
+  return { bulletAlignment: 1, startNumber: 0,
+    glyphFormat: type === 'BULLET_LIST' ? ` %${depth + 1}` : type === 'ORDER_LIST_2' ? Array.from({ length: depth + 1 }, (_, i) => `%${i + 1}.`).join('') : `%${depth + 1}${type === 'ORDER_LIST_1' ? ')' : '.'}`,
+    ...(type === 'BULLET_LIST' ? { glyphSymbol: ['●','○','■'][depth % 3] } : { glyphType }),
+    paragraphProperties: { hanging: { v: 21 }, indentStart: { v: 21 * (depth + 1) } } };
+};
 export function documentListDefinition(doc, item) {
-  const template = doc.lists?.[item.listType];
-  const level = template?.nestingLevel?.[0] ?? (['BULLET_LIST','ORDER_LIST'].includes(item.listType) && !template ? standardListLevel(item.listType) : null);
-  const kind = template?.listType ?? item.listType;
-  if (item.nestingLevel !== 0 || !level || !['BULLET_LIST','ORDER_LIST'].includes(kind)
-    || level.bulletAlignment !== 1 || level.isLegal === true
-    || (kind === 'ORDER_LIST' ? level.glyphType !== 2 || !!level.glyphSymbol || level.glyphFormat !== '%1.' : !['●','•','○','■','▪'].includes(level.glyphSymbol) || ![' %1','%1'].includes(level.glyphFormat))) throw new Fault('unsupported_document_list', 400);
-  return { kind, level };
+  const template = doc.lists?.[item.listType], depth = item.nestingLevel;
+  const get = n => template ? template.nestingLevel?.[n] : standardListLevel(item.listType, n);
+  const level = get(depth);
+  const fail = () => { throw new Fault('unsupported_document_list', 400); };
+  if (!Number.isInteger(depth) || depth < 0 || depth > 8 || !level || (template && !['BULLET_LIST','ORDER_LIST'].includes(template.listType))) fail();
+  const check = (l, n) => {
+    if (!l || l.bulletAlignment !== 1 || l.isLegal === true) fail();
+    if (l.glyphSymbol) {
+      if (l.glyphType !== undefined || !['●','•','○','■','▪'].includes(l.glyphSymbol) || ![` %${n + 1}`, `%${n + 1}`].includes(l.glyphFormat)) fail();
+    } else if (![2,3,4,5,6,7].includes(l.glyphType) || ![`%${n + 1}.`, `%${n + 1})`, Array.from({ length: n + 1 }, (_, i) => `%${i + 1}.`).join('')].includes(l.glyphFormat)) fail();
+  };
+  check(level, depth);
+  // Referenced ancestors affect visible markers even when no paragraph uses
+  // their level. Do not silently reinterpret unknown or bullet placeholders.
+  if (!level.glyphSymbol) for (const ref of level.glyphFormat.matchAll(/%([1-9])/g)) {
+    const n = Number(ref[1]) - 1, ancestor = get(n); check(ancestor, n);
+    if (ancestor.glyphSymbol) fail();
+  }
+  return { kind: level.glyphSymbol ? 'BULLET_LIST' : 'ORDER_LIST', level };
 }
 const pageFields = {
   pageSize: v => shape(v, { width: number(0.1), height: number(0.1) }, ['width', 'height']),

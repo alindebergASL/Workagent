@@ -14,7 +14,7 @@ import { Workspace } from '../src/workspace.mjs';
 import { initialState } from '../src/store.mjs';
 import { createHandler } from '../src/http.mjs';
 import { FileFixtureStore } from './support/file-fixture.mjs';
-import { trustedWorker, trustedCodec, originalDocx, docxInput, defaultDocx, numberedDocx } from './support/docx-fixture.mjs';
+import { trustedWorker, trustedCodec, originalDocx, docxInput, defaultDocx, numberedDocx, nestedDocx } from './support/docx-fixture.mjs';
 import { importedSaved } from './support/pdf-imported-fixture.mjs';
 test('trusted PDF marker option cannot be activated by DOCX JSON request or document fields', () => {
   const document = importedSaved(), before = structuredClone(document);
@@ -116,4 +116,17 @@ test('export rechecks revocation and document kind; missing sandbox configuratio
   await assert.rejects(f.docx.export('owner',{workId:sheet.workId,document:w.document}),/document_required/);
   const worker=new DocxWorker();await assert.rejects(worker.run({op:'import',base64:docxInput().base64}),/docx_sandbox_unavailable/);assert.equal(worker.active,false);
   const args=sandboxArgs('/dedicated-venv');for(const flag of ['--unshare-all','--clearenv','--die-with-parent','--new-session'])assert.ok(args.includes(flag));assert.ok(!args.includes('--share-net'));
+});
+
+test('nested DOCX import/save/reopen protects human document and exact original without accepting a proposal',async()=>{
+ const f=await fixture(),input={...docxInput('nested'),base64:nestedDocx()};
+ const result=await f.docx.import('owner',input),w=await f.workspace.get('owner',result.workId);
+ const edited=structuredClone(w.document);edited.body.paragraphs[1].bullet.nestingLevel=2;
+ await f.workspace.save('owner',w.id,{commandId:'nested-save',document:edited,contentRevision:1,permissionRevision:1});
+ const stored=await new Workspace(new FileFixtureStore(f.path)).get('owner',w.id);assert.deepEqual(stored.document,edited);assert.equal(stored.humanDocument,true);
+ const before=await f.state(),bad=structuredClone(edited);bad.body.paragraphs[1].bullet.nestingLevel=9;
+ await assert.rejects(f.workspace.save('owner',w.id,{commandId:'bad-nested-save',document:bad,contentRevision:2,permissionRevision:1}));assert.deepEqual(await f.state(),before);
+ const proposed=await f.workspace.mutateDocument('owner',w.id,{commandId:'nested-proposal',expected:stored.expected,document:w.document});assert.equal(proposed.status,'proposed');
+ assert.deepEqual((await f.workspace.get('owner',w.id)).document,edited);
+ assert.deepEqual((await f.exchange.original('owner',w.id,w.original.id)).bytes,Buffer.from(input.base64,'base64'));
 });

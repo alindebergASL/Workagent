@@ -65,7 +65,77 @@ def markers(native):
   counts[b['listId']]=b['startNumber']+1 if 'startNumber' in b else counts.get(b['listId'],level['startNumber'])+1
   result.append(level.get('glyphSymbol') or str(counts[b['listId']])+'.')
  return result
+
+def nested_fixture():
+ d=Document(); numbering=d.part.numbering_part.element
+ abstract=OxmlElement('w:abstractNum');abstract.set(c.q('abstractNumId'),'90')
+ for depth,fmt,pattern,start in [(0,'decimal','%1.',3),(1,'lowerLetter','%2.',2),(2,'lowerRoman','%1.%2.%3.',1)]:
+  lvl=OxmlElement('w:lvl');lvl.set(c.q('ilvl'),str(depth))
+  for tag,value in [('start',str(start)),('numFmt',fmt),('lvlText',pattern),('lvlJc','left')]:
+   e=OxmlElement('w:'+tag);e.set(c.q('val'),value);lvl.append(e)
+  pp=OxmlElement('w:pPr');ind=OxmlElement('w:ind');ind.set(c.q('left'),str(315*(depth+1)));ind.set(c.q('hanging'),'315');pp.append(ind);lvl.append(pp);abstract.append(lvl)
+ numbering.insert(0,abstract)
+ for identity,override in [(90,None),(91,5)]:
+  num=OxmlElement('w:num');num.set(c.q('numId'),str(identity));ref=OxmlElement('w:abstractNumId');ref.set(c.q('val'),'90');num.append(ref)
+  if override:
+   over=OxmlElement('w:lvlOverride');over.set(c.q('ilvl'),'1');start=OxmlElement('w:startOverride');start.set(c.q('val'),str(override));over.append(start);num.append(over)
+  numbering.append(num)
+ for text,identity,depth in [('Parent 雪 🌍',90,0),('Child',90,1),('Leaf',90,2),('Plain',None,0),('Child next',90,1),('Other parent',91,0),('Override',91,1),('Parent next',90,0),('Reset child',90,1),('Reset leaf',90,2)]:
+  p=d.add_paragraph();p.add_run(text).italic=True
+  if identity:
+   np=p._p.get_or_add_pPr().get_or_add_numPr();np.get_or_add_numId().val=identity;np.get_or_add_ilvl().val=depth
+ out=io.BytesIO();d.save(out);return out.getvalue()
+
+def shared_fixture(items, overrides=None, independent=False, leaf_pattern=None):
+ # Owned generated variants; nested_fixture and the retained source bytes stay intact.
+ d=Document(io.BytesIO(nested_fixture())); numbering=d.part.numbering_part.element
+ for p in list(d.paragraphs): p._p.getparent().remove(p._p)
+ num=next(n for n in numbering.findall(c.q('num')) if n.get(c.q('numId'))=='91')
+ if overrides is not None:
+  for o in list(num.findall(c.q('lvlOverride'))): num.remove(o)
+  for depth,value in overrides.items():
+   over=OxmlElement('w:lvlOverride');over.set(c.q('ilvl'),str(depth));start=OxmlElement('w:startOverride');start.set(c.q('val'),str(value));over.append(start);num.append(over)
+ if independent:
+  import copy
+  abstract=copy.deepcopy(next(a for a in numbering.findall(c.q('abstractNum')) if a.get(c.q('abstractNumId'))=='90'))
+  abstract.set(c.q('abstractNumId'),'92');numbering.insert(0,abstract);num.find(c.q('abstractNumId')).set(c.q('val'),'92')
+ if leaf_pattern is not None:
+  for abstract in numbering.findall(c.q('abstractNum')):
+   if abstract.get(c.q('abstractNumId')) in ('90','92'):
+    abstract.findall(c.q('lvl'))[2].find(c.q('lvlText')).set(c.q('val'),leaf_pattern)
+ for i,(identity,depth) in enumerate(items):
+  p=d.add_paragraph();p.add_run('Item'+str(i)).italic=True
+  np=p._p.get_or_add_pPr().get_or_add_numPr();np.get_or_add_numId().val=identity;np.get_or_add_ilvl().val=depth
+ out=io.BytesIO();d.save(out);return out.getvalue()
+
 class CodecTests(unittest.TestCase):
+ def test_nested_ooxml_levels_starts_overrides_and_roundtrip(self):
+  native=c.import_document(nested_fixture())['document'];before=json.dumps(native)
+  self.assertEqual([p.get('bullet',{}).get('nestingLevel') for p in native['body']['paragraphs']],[0,1,2,None,1,0,1,0,1,2])
+  self.assertEqual(native['lists']['word-num-90']['nestingLevel'][1]['startNumber'],1)
+  self.assertEqual(list(native['lists']),['word-num-90'])
+  self.assertEqual(native['body']['paragraphs'][6]['bullet']['startNumber'],4)
+  out=__import__('base64').b64decode(c.export_document(native)['base64'])
+  with zipfile.ZipFile(io.BytesIO(out)) as z:
+   root=c.xml(z.read('word/document.xml'))
+   self.assertEqual([c.val(e) for e in root.iter(c.q('ilvl'))],['0','1','2','1','0','1','0','1','2'])
+   root=c.xml(z.read('word/numbering.xml'));last=root.findall(c.q('abstractNum'))[-1]
+   self.assertEqual([c.val(e.find(c.q('numFmt'))) for e in last.findall(c.q('lvl'))],['decimal','lowerLetter','lowerRoman'])
+  again=c.import_document(out)['document']
+  self.assertEqual(again['body']['dataStream'],native['body']['dataStream'])
+  self.assertEqual(again['body']['textRuns'],native['body']['textRuns'])
+  self.assertEqual(json.dumps(native),before)
+ def test_nested_malformed_active_definitions_refuse(self):
+  source=nested_fixture()
+  cases=[('word/document.xml',b'<w:ilvl w:val="2"/>',b'<w:ilvl w:val="9"/>'),
+   ('word/numbering.xml',b'<w:lvlText w:val="%1.%2.%3."/>',b'<w:lvlText w:val="%4.%3."/>'),
+   ('word/numbering.xml',b'<w:lvlText w:val="%2."/>',b'<w:lvlText w:val="%2."/><w:lvlRestart w:val="0"/>'),
+   ('word/numbering.xml',b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="0"/>'),
+   ('word/numbering.xml',b'<w:numFmt w:val="lowerRoman"/>',b'<w:numFmt w:val="chicago"/>'),
+   ('word/numbering.xml',b'<w:abstractNumId w:val="90"/>',b'<w:abstractNumId w:val="999"/>')]
+  for part,old,new in cases:
+   with self.subTest(new=new),self.assertRaises(ValueError):c.import_document(rewrite(source,lambda n,b:(n,b.replace(old,new) if n==part else b)))
+
  def test_missing_start_effective_override_and_invalid_values(self):
   data=numbered_fixture()
   def change(start,override=None,only_override=False):
@@ -124,7 +194,7 @@ class CodecTests(unittest.TestCase):
   self.assertEqual(markers(c.import_document(changed)['document']),['1.','2.',None,'5.','6.','3.'])
   # Direct paragraph level overrides the style and is refused before adoption.
   changed=replace_main(data,b'<w:numId w:val="7"/>',b'<w:ilvl w:val="1"/><w:numId w:val="7"/>')
-  with self.assertRaisesRegex(ValueError,'Nested'): c.import_document(changed)
+  with self.assertRaisesRegex(ValueError,'Missing active numbering level'): c.import_document(changed)
   # Unsupported unused level definitions do not make a flat active list fail.
   changed=rewrite(data,lambda n,b:(n,b.replace(b'</w:abstractNum>',b'<w:lvl w:ilvl="8"><w:numFmt w:val="upperRoman"/><w:lvlText w:val="%9)"/></w:lvl></w:abstractNum>') if n=='word/numbering.xml' else b))
   self.assertEqual(markers(c.import_document(changed)['document']),['1.','2.',None,'5.','6.','3.'])
@@ -136,8 +206,8 @@ class CodecTests(unittest.TestCase):
    (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="1000001"/>'),
    (b'<w:startOverride w:val="5"/>',b'<w:startOverride w:val="5"/><w:startOverride w:val="6"/>'),
    (b'<w:startOverride w:val="5"/>',b'<w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/></w:lvl>'),
-   (b'<w:numFmt w:val="decimal"/>',b'<w:numFmt w:val="lowerRoman"/>'),
-   (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1)"/>'),
+   (b'<w:numFmt w:val="decimal"/>',b'<w:numFmt w:val="ordinalText"/>'),
+   (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="Article %1"/>'),
    (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1."/><w:lvlRestart w:val="1"/>'),
    (b'<w:lvlText w:val="%1."/>',b'<w:lvlText w:val="%1."/><w:isLgl/>'),
    (b'<w:num w:numId="7">',b'<w:num w:numId="true">'),

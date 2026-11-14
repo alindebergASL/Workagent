@@ -75,7 +75,7 @@ for (const atEnd of [false, true]) test(`genuine imported Word → native Enter/
     const counts = new Map(), markers = [];
     for (const p of reopened.body.paragraphs) if (p.bullet) {
       const b = p.bullet, level = reopened.lists[b.listType].nestingLevel[0];
-      const count = (counts.get(b.listId) ?? level.startNumber) + 1; counts.set(b.listId, count);
+      const count = (b.startNumber ?? counts.get(b.listId) ?? level.startNumber) + 1; counts.set(b.listId, count);
       markers.push(level.glyphSymbol ?? `${count}.`);
     }
     assert.deepEqual(markers, ['•', '•', '1.', '2.', '5.', '6.', '7.', '3.']);

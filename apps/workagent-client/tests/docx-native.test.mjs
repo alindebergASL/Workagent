@@ -21,6 +21,7 @@ function native(data) {
   return { univer, api, doc: api.createDocument(data) };
 }
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import ts from 'typescript';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 // Actual DocumentEditor consumer with hook/container fixtures and installed native
@@ -77,7 +78,7 @@ function editorFixture(props, clipboardRead = async () => []) {
 }
 const held = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 
-import { trustedCodec, docxInput, defaultDocx } from '../../workagent-server/tests/support/docx-fixture.mjs';
+import { trustedCodec, docxInput, defaultDocx, nestedDocx } from '../../workagent-server/tests/support/docx-fixture.mjs';
 test('actual built-in toolbar commands → shared validation → DOCX → native reopen; unsupported mutation is atomic', async () => {
  const editor=editorFixture({ document: blankDocument('doc','Lists','First 雪 🌍\nSecond\nPlain\nRestart\nBullet') });
  for(const c of [ui.ListOperationCommand,ui.ChangeListTypeCommand,ui.OrderListCommand,ui.BulletListCommand]) editor.commands.registerCommand(c);
@@ -88,7 +89,7 @@ test('actual built-in toolbar commands → shared validation → DOCX → native
   assert.equal(editor.commands.syncExecuteCommand(ui.BulletListCommand.id,range(32,38)),true);
   const saved=await editor.handle.commit(); validateDocument(saved);
   const before=JSON.stringify(saved);
-  assert.throws(()=>editor.commands.syncExecuteCommand(ui.OrderListCommand.id,{...range(0,17),value:'ORDER_LIST_3'}),/unsupported_document_list/);
+  assert.throws(()=>editor.commands.syncExecuteCommand(ui.OrderListCommand.id,{...range(0,17),value:'CHECK_LIST'}),/unsupported_document_list/);
   assert.equal(JSON.stringify(await editor.handle.commit()),before); assert.equal(editor.handle.isEditing(),false);
   const output=trustedCodec({op:'export',document:saved}), imported=trustedCodec({op:'import',base64:output.base64}).document;
   validateDocument(imported); assert.equal(imported.body.dataStream,saved.body.dataStream);
@@ -201,4 +202,174 @@ test('native marker paragraph, empty-mark, bullet and template precedence roundt
   const after=trustedCodec({op:'import',base64:trustedCodec({op:'export',document:before}).base64}).document;
   assert.deepEqual(renderedMarkers(after,e.instance),expected);
  }finally{e.dispose();}
+});
+
+for (const type of ['BULLET_LIST','ORDER_LIST','ORDER_LIST_1','ORDER_LIST_2','ORDER_LIST_3','ORDER_LIST_4','ORDER_LIST_5']) test(`installed ${type} levels match descriptor and survive actual indent/outdent/undo and Word`,async()=>{
+ const initial=blankDocument('nested','Nested','Alpha 雪 🌍\nBravo\nCharlie\nDelta\nEcho\nFoxtrot\nGolf\nHotel\nIndia\nJuliet\nKilo');
+ initial.body.paragraphs.forEach((p,i)=>p.paragraphId='paragraph-'+i);
+ const e=editorFixture({document:initial});
+ for(const cmd of [ui.ListOperationCommand,ui.ChangeListTypeCommand,ui.OrderListCommand,ui.BulletListCommand,ui.ChangeListNestingLevelCommand]) e.commands.registerCommand(cmd);
+ const inj=e.instance.__getInjector(), selection=inj.get(docs.DocSelectionManagerService);
+ inj.get(core.IUniverInstanceService).focusUnit('nested');
+ const depth=[0,1,2,1,0,1,2,3,4,5,type==='ORDER_LIST_2'?6:8];
+ const select=i=>{
+  const saved=e.nativeDoc.save(),start=i?saved.body.paragraphs[i-1].startIndex+1:0;
+  selection.replaceSelectionInfoWithoutRefresh({...selection.getSelectionInfo(),textRanges:[{startOffset:start+2,endOffset:start+2,collapsed:true,isActive:true,segmentId:''}]});
+ };
+ const flush=()=>inj.get(docs.DocStateChangeManagerService).flushPendingChanges('nested');
+ try {
+  assert.equal(e.commands.syncExecuteCommand(ui.ChangeListTypeCommand.id,{listType:type,docRange:[{startOffset:0,endOffset:e.nativeDoc.save().body.dataStream.length-2,collapsed:false,segmentId:''}]}),true);
+  e.nativeDoc.getTextRange(0,5).setTextStyle({bl:1,it:1,cl:{rgb:'#224466'}});
+  e.nativeDoc.getParagraphs()[1].setStyle({horizontalAlign:2,textStyle:{fs:18}});
+  for(let i=0;i<depth.length;i++) for(let n=0;n<depth[i];n++) {select(i);assert.equal(e.commands.syncExecuteCommand(ui.ChangeListNestingLevelCommand.id,{type:1}),true);}
+  const before=await e.handle.commit(); validateDocument(before);
+  assert.deepEqual(before.body.paragraphs.map(p=>p.bullet.nestingLevel),depth);
+  for(const p of before.body.paragraphs) assert.deepEqual(documentContract.documentListDefinition(before,p.bullet).level,core.PRESET_LIST_TYPE[type].nestingLevel[p.bullet.nestingLevel]);
+  flush();select(2);assert.equal(e.commands.syncExecuteCommand(ui.ChangeListNestingLevelCommand.id,{type:-1}),true);flush();
+  assert.equal((await e.handle.commit()).body.paragraphs[2].bullet.nestingLevel,1);
+  assert.equal(await e.commands.executeCommand(core.UndoCommand.id),true);
+  assert.deepEqual((await e.handle.commit()).body,before.body);
+  // Clearing one selected list paragraph preserves its style and neighbors.
+  flush();const a=before.body.paragraphs[0].startIndex+2;
+  assert.equal(e.commands.syncExecuteCommand(ui.ListOperationCommand.id,{listType:type,docRange:[{startOffset:a,endOffset:a,collapsed:true,segmentId:''}]}),true);flush();
+  const cleared=await e.handle.commit();assert.equal(cleared.body.paragraphs[1].bullet,undefined);assert.deepEqual(cleared.body.paragraphs[1].paragraphStyle,before.body.paragraphs[1].paragraphStyle);
+  assert.deepEqual(cleared.body.paragraphs[2],before.body.paragraphs[2]);
+  assert.equal(await e.commands.executeCommand(core.UndoCommand.id),true);assert.deepEqual((await e.handle.commit()).body,before.body);
+  const after=trustedCodec({op:'import',base64:trustedCodec({op:'export',document:before}).base64}).document;validateDocument(after);
+  assert.deepEqual(after.body.paragraphs.map(p=>p.bullet.nestingLevel),depth);
+  assert.equal(after.body.dataStream,before.body.dataStream);assert.deepEqual(renderedMarkers(after,e.instance),renderedMarkers(before,e.instance));
+  assert.deepEqual(after.body.paragraphs.map(p=>p.startIndex),before.body.paragraphs.map(p=>p.startIndex));
+  assert.equal(new Set(after.body.paragraphs.map(p=>p.bullet.listId)).size,1);
+  const reopened=native(after);try {
+   const saved=reopened.doc.save();validateDocument(saved);
+   assert.deepEqual(saved.body.paragraphs,after.body.paragraphs);assert.deepEqual(saved.body.textRuns,after.body.textRuns);assert.equal(saved.body.dataStream,after.body.dataStream);assert.deepEqual(saved.lists,after.lists);
+   assert.deepEqual(saved.body.sectionBreaks.map(s=>s.startIndex),after.body.sectionBreaks.map(s=>s.startIndex));
+   // Native opening assigns a section identity. It persists on subsequent opens.
+   const cold=native(structuredClone(saved));try{assert.deepEqual(cold.doc.save(),saved);}finally{cold.univer.dispose();}
+  }finally{reopened.univer.dispose();}
+ }finally{e.dispose();}
+});
+
+test('nested native mixed families, nonconsecutive IDs, ancestor reset and subtree restarts retain rendered counters',async()=>{
+ const data=blankDocument('branches','Branches','Parent\nChild\nLeaf\nChild restart\nLeaf reset\nChild next\nPlain\nOther\nParent next\nChild default\nOther next');
+ data.lists={mixed:structuredClone(core.PRESET_LIST_TYPE.ORDER_LIST)};
+ data.lists.mixed.nestingLevel[2]=structuredClone(core.PRESET_LIST_TYPE.BULLET_LIST.nestingLevel[2]);
+ const levels=[0,1,2,1,2,1,null,0,0,1,0];
+ data.body.paragraphs.forEach((p,i)=>{if(levels[i]!==null)p.bullet={listId:[7,10].includes(i)?'other':'main',listType:'mixed',nestingLevel:levels[i]};});
+ data.body.paragraphs[0].bullet.startNumber=4;data.body.paragraphs[3].bullet.startNumber=3;
+ data.body.paragraphs[7].bullet.startNumber=8;
+ const e=editorFixture({document:data});
+ try {
+  const before=await e.handle.commit(),expected=renderedMarkers(before,e.instance);
+  assert.deepEqual(expected.map(m=>m.content),['5.','a.','■','d.','■','e.','9.','6.','a.','10.']);
+  const after=trustedCodec({op:'import',base64:trustedCodec({op:'export',document:before}).base64}).document;validateDocument(after);
+  assert.deepEqual(renderedMarkers(after,e.instance),expected);
+  assert.equal(after.body.paragraphs[0].bullet.listId,after.body.paragraphs[8].bullet.listId);
+  assert.equal(after.body.paragraphs[7].bullet.listId,after.body.paragraphs[10].bullet.listId);
+  assert.equal(after.body.paragraphs[3].bullet.listId,after.body.paragraphs[0].bullet.listId);
+  assert.equal(after.body.paragraphs[3].bullet.startNumber,3);
+  assert.notEqual(after.body.paragraphs[7].bullet.listId,after.body.paragraphs[0].bullet.listId);
+  assert.equal(after.body.paragraphs[6].bullet,undefined);
+  assert.deepEqual(renderedMarkers(trustedCodec({op:'import',base64:trustedCodec({op:'export',document:after}).base64}).document,e.instance),expected);
+ }finally{e.dispose();}
+});
+
+// Inspect the emitted package independently of the codec's import/counter logic.
+function numberingXml(base64) {
+ const result=spawnSync(new URL('../../../.local/docx-python/bin/python',import.meta.url).pathname,['-I','-B','-c',`
+import base64,io,json,sys,zipfile,xml.etree.ElementTree as ET
+q=lambda name:'{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'+name
+with zipfile.ZipFile(io.BytesIO(base64.b64decode(sys.argv[1]))) as z:
+ document=ET.fromstring(z.read('word/document.xml')); numbering=ET.fromstring(z.read('word/numbering.xml'))
+ tags=[e.tag for e in numbering]; assert max(i for i,t in enumerate(tags) if t==q('abstractNum')) < min(i for i,t in enumerate(tags) if t==q('num')), 'abstract definitions must precede concrete instances'
+ ids=[int(e.get(q('val'))) for e in document.iter(q('numId'))]
+ nums={int(e.get(q('numId'))):{int(o.get(q('ilvl'))):int(o.find(q('startOverride')).get(q('val'))) for o in e.findall(q('lvlOverride'))} for e in numbering.findall(q('num'))}
+ abstracts={int(n.get(q('numId'))):int(n.find(q('abstractNumId')).get(q('val'))) for n in numbering.findall(q('num'))}
+ print(json.dumps({'ids':ids,'abstracts':[abstracts[n] for n in ids],'overrides':[nums[n] for n in dict.fromkeys(ids)]}))
+`,base64],{stdio:['ignore','pipe','pipe'],encoding:'utf8',timeout:12000,maxBuffer:100000});
+ if(result.error)throw result.error;assert.equal(result.status,0,result.stderr);return JSON.parse(result.stdout);
+}
+for(const scenario of [
+ {name:'partial outdent after explicit leaf restart',depths:[2,1,0,1],restart:5,
+  markers:['1.1.6.','1.2.','2.','2.1.'],ids:[0,1,2,2],overrides:[{2:6},{0:1,1:2},{0:2}]},
+ {name:'partial outdent without initial restart',depths:[2,1,0,1],
+  markers:['1.1.1.','1.2.','2.','2.1.'],ids:[0,1,2,2],overrides:[{},{0:1,1:2},{0:2}]},
+ {name:'skipped ancestor within an existing branch',depths:[0,2,1,0,1],
+  markers:['1.','1.1.1.','1.2.','2.','2.1.'],ids:[0,0,1,0,0],overrides:[{},{0:1,1:2}]},
+ {name:'multiple skipped ancestors and interleaved independent identities',depths:[0,3,2,2,1,1,2,0,0,1,1],other:[2,4,7,9],restartIndex:2,restart:4,
+  markers:['1.','1.1.1.1.','1.1.5.','1.1.2.','1.2.','1.2.','1.2.1.','2.','2.','2.1.','2.1.'],
+  ids:[0,0,1,2,3,4,4,5,0,5,0],overrides:[{},{2:5},{0:1,1:1,2:2},{0:1,1:2},{0:1,1:2},{0:2}]},
+]) test(`nested continuation XML and actual SDK markers: ${scenario.name}`,async()=>{
+ const data=blankDocument('partial-outdent','Partial outdent',scenario.depths.map((_,i)=>`Item ${i} 雪`).join('\n'));
+ data.body.paragraphs.forEach((p,i)=>{p.bullet={listId:scenario.other?.includes(i)?'other':'main',listType:'ORDER_LIST_2',nestingLevel:scenario.depths[i]};});
+ if(scenario.restart!==undefined)data.body.paragraphs[scenario.restartIndex??0].bullet.startNumber=scenario.restart;
+ const e=editorFixture({document:data});
+ try {
+  const before=await e.handle.commit(),unchanged=structuredClone(before);validateDocument(before);
+  const markers=renderedMarkers(before,e.instance);assert.deepEqual(markers.map(m=>m.content),scenario.markers);
+  const output=trustedCodec({op:'export',document:before});assert.deepEqual(before,unchanged);
+  const xml=numberingXml(output.base64),unique=[...new Set(xml.ids)];
+  assert.deepEqual(xml.ids.map(id=>unique.indexOf(id)),scenario.ids);
+  assert.deepEqual(xml.overrides,scenario.overrides);
+  const after=trustedCodec({op:'import',base64:output.base64}).document;validateDocument(after);
+  assert.deepEqual(renderedMarkers(after,e.instance),markers);
+  assert.equal(after.body.dataStream,before.body.dataStream);
+  assert.deepEqual(after.body.paragraphs.map(p=>p.bullet.nestingLevel),scenario.depths);
+  assert.deepEqual(after.body.paragraphs.map(p=>p.startIndex),before.body.paragraphs.map(p=>p.startIndex));
+  const twice=trustedCodec({op:'import',base64:trustedCodec({op:'export',document:after}).base64}).document;
+  assert.deepEqual(renderedMarkers(twice,e.instance),markers);
+ }finally{e.dispose();}
+});
+
+test('nested malformed native mutations refuse before changing editor or human recovery',async()=>{
+ const data=blankDocument('atomic','Atomic','First\nSecond');data.body.paragraphs.forEach(p=>p.bullet={listId:'one',listType:'ORDER_LIST',nestingLevel:1});
+ const e=editorFixture({document:data});
+ try{
+  const before=await e.handle.commit(),edits=e.edits.length;
+  for(const change of [p=>p.bullet.nestingLevel=9,p=>p.bullet.nestingLevel=-1,p=>p.bullet.startNumber=-1,p=>p.bullet.listType='absent',p=>p.bullet.listId='__proto__']){
+   const paragraph=structuredClone(before.body.paragraphs[0]);change(paragraph);paragraph.startIndex=0;
+   const actions=core.JSONX.getInstance().editOp([{t:core.TextXActionType.RETAIN,len:before.body.paragraphs[0].startIndex},{t:core.TextXActionType.RETAIN,len:1,body:{dataStream:'',paragraphs:[paragraph]},coverType:core.UpdateDocsAttributeType.REPLACE}],['body']);
+   assert.throws(()=>e.commands.syncExecuteCommand('doc.mutation.rich-text-editing',{unitId:'atomic',actions}));
+   assert.deepEqual(await e.handle.commit(),before);assert.equal(e.edits.length,edits);
+  }
+ }finally{e.dispose();}
+});
+
+test('shared-abstract OOXML matches incoming LibreOffice markers before and after Word roundtrip',()=>{
+ const imported=trustedCodec({op:'import',base64:nestedDocx()}).document,e=native(imported);
+ try {
+  const saved=e.doc.save();validateDocument(saved);
+  const expected=['3.','b.','3.b.i.','c.','4.','e.','5.','b.','5.b.i.'];
+  assert.deepEqual(renderedMarkers(saved,e.univer).map(m=>m.content),expected);
+  assert.deepEqual(Object.keys(saved.lists),['word-num-90']);
+  assert.ok(saved.body.paragraphs.filter(p=>p.bullet).every(p=>p.bullet.listId==='word-num-90'&&p.bullet.listType==='word-num-90'));
+  const output=trustedCodec({op:'export',document:saved}).base64, xml=numberingXml(output);
+  assert.equal(new Set(xml.abstracts).size,1);
+  assert.deepEqual(xml.overrides,[{}, {0:4,1:5}]);
+  const after=trustedCodec({op:'import',base64:output}).document;
+  assert.deepEqual(renderedMarkers(after,e.univer),renderedMarkers(saved,e.univer));
+ }finally{e.univer.dispose();}
+});
+
+for(const scenario of [
+ {name:'first-item restart then original instance and repeated visits',items:[[90,0],[90,0],[91,0],[90,0],[91,0],[90,0]],overrides:{0:5},expected:['3.','4.','5.','6.','7.','8.'],xmlStarts:[{},{0:5}]},
+ // Source marker oracles: Parent's actual LibreOffice PDFs in
+ // .local/shared-counter-render-parent; independent uses the ordered source.
+ {name:'nested override continuation and ancestor resets',items:[[90,0],[90,1],[91,1],[90,1],[91,1],[91,0],[91,1],[90,1],[90,0],[91,1],[90,1]],expected:['3.','b.','e.','f.','g.','4.','b.','c.','5.','b.','c.'],xmlStarts:[{},{0:3,1:5}]},
+ {name:'incoming composite markers visit skipped ancestors before outdent',items:[[90,2],[90,1],[90,0],[90,1]],overrides:{},expected:['3.b.i.','c.','4.','b.'],xmlStarts:[{},{0:3,1:3},{0:4}]},
+ {name:'independent abstracts with equal level definitions stay independent',items:[[90,0],[90,1],[91,0],[91,1],[90,0],[90,1],[91,0],[91,1]],independent:true,expected:['3.','b.','3.','e.','4.','b.','4.','b.'],xmlStarts:[{},{},{0:3,1:5}]},
+]) test(`incoming shared numbering semantics: ${scenario.name}`,()=>{
+ const {name,expected,xmlStarts,...input}=scenario,source=nestedDocx(input), imported=trustedCodec({op:'import',base64:source}).document,e=native(imported);
+ try{
+  numberingXml(source); // Independently check generated fixture order too.
+  const saved=e.doc.save();validateDocument(saved);
+  assert.deepEqual(renderedMarkers(saved,e.univer).map(m=>m.content),expected);
+  const output=trustedCodec({op:'export',document:saved}).base64,xml=numberingXml(output);
+  assert.equal(new Set(xml.abstracts).size,scenario.independent?2:1);
+  assert.deepEqual(xml.overrides,xmlStarts);
+  const after=trustedCodec({op:'import',base64:output}).document;validateDocument(after);
+  assert.deepEqual(renderedMarkers(after,e.univer),renderedMarkers(saved,e.univer));
+  assert.equal(after.body.dataStream,saved.body.dataStream);assert.deepEqual(after.body.textRuns,saved.body.textRuns);
+  assert.deepEqual(after.body.paragraphs.map(p=>p.startIndex),saved.body.paragraphs.map(p=>p.startIndex));
+ }finally{e.univer.dispose();}
 });

@@ -13,8 +13,8 @@ from docx.shared import Pt, RGBColor
 from docx.oxml import OxmlElement
 BYTES, INFLATED, ENTRY = 2_000_000, 20_000_000, 5_000_000
 POLICY = [
- 'Bounded Word exchange: paragraphs, literal Unicode text, bold/italic/single underline, font size, RGB colour, simple alignment, flat bullets and decimal lists, and one page geometry. Original bytes remain downloadable.',
- 'Active nested lists, nondecimal numbering, custom marker patterns and level overrides are refused. Separate list identities and start-value overrides are preserved. Standard Symbol bullet glyphs map to Unicode bullets. Tables, images, links, fields, tracked changes, headers/footers, notes, embedded objects, macros and multiple sections are refused. No full Word or layout fidelity.',
+ 'Bounded Word exchange: paragraphs, literal Unicode text, bold/italic/single underline, font size, RGB colour, simple alignment, nine-level bullets and conventional decimal, letter and Roman lists, and one page geometry. Original bytes remain downloadable.',
+ 'Custom marker patterns, nondefault restart rules and full level overrides are refused. Separate numbering instances, per-level starts and restarts are preserved; explicit native restarts become separate Word numbering instances. PDF remains flat bullets/decimal only. Standard Symbol bullet glyphs map to Unicode bullets. Tables, images, links, fields, tracked changes, headers/footers, notes, embedded objects, macros and multiple sections are refused. No full Word or layout fidelity.',
  'Metadata, themes, font substitution, style names and unsupported passive formatting/layout are not preserved. Inherited supported formatting is resolved explicitly. Page measurements round to Word twips; font sizes must be half-point values.',
  'Limits: 2 MB compressed, 20 MB inflated, 5 MB per part, 256 parts, 200 KB text, 10,000 paragraphs/runs, 512 relationships; no external references.'
 ]
@@ -312,7 +312,7 @@ def import_document(data):
    if e is not None:
     v=val(e,'single'); need(v in ('single','none'),'Only single underline supported'); result['ul']={'s':int(v=='single')}
   return result
- lists={}
+ lists={}; list_keys={}; word_counts={}; native_counts={}; applied_overrides=set(); parsed_levels={}
  def resolve_list(layers, pc, direct):
   # Style ilvl is ignored by OOXML: the level's pStyle binding selects it.
   # Direct paragraph numPr has field-by-field precedence over style numPr.
@@ -343,40 +343,76 @@ def import_document(data):
     need(len(matches)<=1,'Ambiguous numbering style level')
     if matches: level=word_int(matches[0].get(q('ilvl')),8); break
   level=0 if level is None else level
-  need(level==0,'Nested active lists are not mapped; use level-zero bullets or decimal numbering')
-  levels=[e for e in abstract.findall(q('lvl')) if word_int(e.get(q('ilvl')),8)==0]
-  need(len(levels)==1,'Missing active numbering level')
-  lvl=levels[0]; need(set(lvl.attrib)=={q('ilvl')},'Unsupported active level attributes')
-  properties(lvl,{'start','numFmt','lvlText','lvlJc','suff','pPr','rPr','pStyle'})
-  for e in lvl:
-   if e.tag not in (q('pPr'),q('rPr')): need(set(e.attrib)=={q('val')} and not len(e),'Unsupported active numbering property')
-  fmt=val(lvl.find(q('numFmt'))); marker=val(lvl.find(q('lvlText')))
-  need(fmt in ('bullet','decimal'),'Only flat bullet and decimal lists are mapped')
-  need(val(lvl.find(q('lvlJc')),'left') in ('left','start') and val(lvl.find(q('suff')),'tab')=='tab','Unsupported list alignment/suffix; use left-aligned markers followed by a tab')
-  # OOXML omitted start means zero; an explicit positive instance override
-  # can make it supported. Empty/malformed present elements remain invalid.
-  start=word_int(val(lvl.find(q('start')),'0'),1000000)
-  for override in num.findall(q('lvlOverride')):
-   if word_int(override.get(q('ilvl')),8)!=0: continue
-   need(set(override.attrib)=={q('ilvl')},'Unsupported active override attributes')
-   properties(override,{'startOverride'})
-   e=override.find(q('startOverride')); need(e is not None and set(e.attrib)=={q('val')} and not len(e),'Only start-value overrides are mapped')
-   start=word_int(val(e),1000000)
-  need(start>=1,'List starts must be positive; effective zero is not mapped')
-  rp=lvl.find(q('rPr'))
-  properties(rp,{'rFonts','b','i','sz','color','u','vanish','webHidden','specVanish'})
-  ts=runstyle([(rp,False)],sparse=True)
-  fonts=rp.find(q('rFonts')) if rp is not None else None
-  font=fonts.get(q('ascii'),'') if fonts is not None else ''
-  if marker=='\uf0b7' and font.lower()=='symbol': marker='•'
-  if fmt=='bullet': need(marker in ('●','•','○','■','▪'),'Unsupported bullet glyph; use a standard Unicode bullet')
-  else: need(marker=='%1.','Only decimal markers such as 1. are mapped')
-  props=list_indent(lvl.find(q('pPr')))
-  key='word-num-'+str(num_id); kind='ORDER_LIST' if fmt=='decimal' else 'BULLET_LIST'
-  definition={'listType':kind,'nestingLevel':[{'bulletAlignment':1,'startNumber':start-1,'glyphFormat':'%1.' if fmt=='decimal' else ' %1','textStyle':ts,'paragraphProperties':props,**({'glyphType':2} if fmt=='decimal' else {'glyphSymbol':marker})}]}
-  if key in lists: need(lists[key]==definition,'Inconsistent active numbering')
-  lists[key]=definition
-  return {'listId':key,'listType':key,'nestingLevel':0}
+  # numId selects starts/formatting; abstractNumId owns the running counter.
+  # Keep one native identity and template, named for its first active instance.
+  key=list_keys.setdefault(aid,'word-num-'+str(num_id))
+  definition=lists.setdefault(key,{'listType':'ORDER_LIST','nestingLevel':[]})
+  def parse_level(depth):
+   if (num_id,depth) in parsed_levels: return parsed_levels[num_id,depth]
+   levels=[e for e in abstract.findall(q('lvl')) if word_int(e.get(q('ilvl')),8)==depth]
+   need(len(levels)==1,'Missing active numbering level')
+   lvl=levels[0]; need(set(lvl.attrib)=={q('ilvl')},'Unsupported active level attributes')
+   properties(lvl,{'start','numFmt','lvlText','lvlJc','suff','pPr','rPr','pStyle','lvlRestart'})
+   for e in lvl:
+    if e.tag not in (q('pPr'),q('rPr')): need(set(e.attrib)=={q('val')} and not len(e),'Unsupported active numbering property')
+   restart=lvl.find(q('lvlRestart'))
+   if restart is not None: need(depth>0 and word_int(val(restart),8)==depth,'Nondefault list restart rule is not mapped')
+   fmt=val(lvl.find(q('numFmt'))); marker=val(lvl.find(q('lvlText')))
+   need(fmt=='bullet' or fmt in WORD_GLYPHS,'Unsupported numbering format')
+   need(val(lvl.find(q('lvlJc')),'left') in ('left','start') and val(lvl.find(q('suff')),'tab')=='tab','Unsupported list alignment/suffix; use left-aligned markers followed by a tab')
+   base_start=word_int(val(lvl.find(q('start')),'0'),1000000)
+   start=base_start; overridden=False
+   for override in num.findall(q('lvlOverride')):
+    if word_int(override.get(q('ilvl')),8)!=depth: continue
+    need(set(override.attrib)=={q('ilvl')},'Unsupported active override attributes')
+    properties(override,{'startOverride'})
+    e=override.find(q('startOverride')); need(e is not None and set(e.attrib)=={q('val')} and not len(e),'Only start-value overrides are mapped')
+    start=word_int(val(e),1000000)
+    overridden=True
+   need(start>=1,'List starts must be positive; effective zero is not mapped')
+   rp=lvl.find(q('rPr')); properties(rp,{'rFonts','b','i','sz','color','u','vanish','webHidden','specVanish'})
+   ts=runstyle([(rp,False)],sparse=True)
+   fonts=rp.find(q('rFonts')) if rp is not None else None
+   font=fonts.get(q('ascii'),'') if fonts is not None else ''
+   if marker=='\uf0b7' and font.lower()=='symbol': marker='•'
+   if fmt=='bullet': need(marker in BULLETS,'Unsupported bullet glyph; use a standard Unicode bullet')
+   else: need(marker in conventional_patterns(depth),'Unsupported numbering marker pattern/reference')
+   result=({'bulletAlignment':1,'startNumber':(base_start or start)-1,'glyphFormat':f' %{depth+1}' if fmt=='bullet' else marker,'textStyle':ts,'paragraphProperties':list_indent(lvl.find(q('pPr'))),**({'glyphSymbol':marker} if fmt=='bullet' else {'glyphType':WORD_GLYPHS[fmt]})},start,overridden)
+   parsed_levels[num_id,depth]=result
+   return result
+  # The native counter cache seeds skipped ancestors from their definitions.
+  # Resolve this prefix only; unused deeper Word definitions stay inactive.
+  effective=[parse_level(depth) for depth in range(level+1)]
+  for depth in range(len(definition['nestingLevel']),level+1): definition['nestingLevel'].append(effective[depth][0])
+  active=definition['nestingLevel'][level]
+  if not active.get('glyphSymbol'):
+   for ref in re.findall(r'%([1-9])',active['glyphFormat']): need(not definition['nestingLevel'][int(ref)-1].get('glyphSymbol'),'Bullet parent references are not mapped')
+  if definition['nestingLevel'][0].get('glyphSymbol'): definition['listType']='BULLET_LIST'
+  else: definition['listType']='ORDER_LIST'
+  item={'listId':key,'listType':key,'nestingLevel':level}
+  counts=word_counts.setdefault(aid,{}); native=native_counts.setdefault(aid,{})
+  _,start,overridden=effective[level]
+  first_override=overridden and (num_id,level) not in applied_overrides
+  # Parent's LibreOffice source renders apply an instance override once, then
+  # use the abstract start on ancestor reset. This differs from the repeated
+  # restart wording in ISO 29500's startOverride description; it is observed
+  # reader behavior, not a claim that Microsoft Word was executed.
+  value=start if first_override else counts.get(level,active['startNumber'])+1
+  if first_override or value!=native.get(level,active['startNumber'])+1: item['startNumber']=value-1
+  if overridden: applied_overrides.add((num_id,level))
+  counts[level]=value; native[level]=value
+  # LibreOffice's hierarchical number tree counts skipped ("phantom") parents
+  # with counted descendants, independently of the marker's references:
+  # sw/source/core/SwNumberTree/{SwNumberTree,SwNodeNum}.cxx. Composite source
+  # markers expose these seeds directly; later outdents increment them.
+  for depth in range(level):
+   seed=definition['nestingLevel'][depth]['startNumber']+1
+   native.setdefault(depth,seed)
+   counts.setdefault(depth,seed)
+  for cache in (counts,native):
+   for depth in list(cache):
+    if depth>level: del cache[depth]
+  return item
  paragraphs=[]; runs=[]; stream=''; offset=0
  for p in list(body)[:-1]:
   need(all(e.tag in (q('pPr'),q('r')) for e in p) and len(p.findall(q('pPr')))<=1,'Unsupported paragraph content')
@@ -435,6 +471,31 @@ def import_document(data):
  if lists: document['lists']=lists
  return {'document':document,'warnings':POLICY,'paragraphs':len(paragraphs),'runs':len(runs)}
 
+WORD_GLYPHS={'decimal':2,'decimalZero':3,'upperLetter':4,'lowerLetter':5,'upperRoman':6,'lowerRoman':7}
+BULLETS=('●','•','○','■','▪')
+def conventional_patterns(depth):
+ return (f'%{depth+1}.',f'%{depth+1})',''.join(f'%{i+1}.' for i in range(depth+1)))
+def native_list_level(native,item,depth=None):
+ depth=item['nestingLevel'] if depth is None else depth
+ need(type(depth) is int and 0<=depth<=8,'Invalid native nesting level')
+ template=native.get('lists',{}).get(item['listType'])
+ if template is None:
+  kind=item['listType']; need(kind in ('BULLET_LIST','ORDER_LIST','ORDER_LIST_1','ORDER_LIST_2','ORDER_LIST_3','ORDER_LIST_4','ORDER_LIST_5'),'Missing native list definition')
+  need(kind!='ORDER_LIST_2' or depth<=6,'Missing native list level')
+  glyph=2 if kind=='ORDER_LIST_2' else [4 if kind in ('ORDER_LIST_3','ORDER_LIST_4') else 3 if kind=='ORDER_LIST_5' else 2,2 if kind=='ORDER_LIST_4' else 5,7][depth%3]
+  pattern=''.join(f'%{i+1}.' for i in range(depth+1)) if kind=='ORDER_LIST_2' else f'%{depth+1}'+(')' if kind=='ORDER_LIST_1' else '.')
+  level={'bulletAlignment':1,'startNumber':0,'glyphFormat':f' %{depth+1}' if kind=='BULLET_LIST' else pattern,**({'glyphSymbol':BULLETS[(0,2,3)[depth%3]]} if kind=='BULLET_LIST' else {'glyphType':glyph}),'paragraphProperties':{'indentStart':{'v':21*(depth+1)},'hanging':{'v':21}}}
+ else:
+  need(isinstance(template,dict) and set(template)=={'listType','nestingLevel'} and template['listType'] in ('ORDER_LIST','BULLET_LIST') and isinstance(template['nestingLevel'],list) and depth<len(template['nestingLevel'])<=9,'Invalid native list definition')
+  level=template['nestingLevel'][depth]
+ need(isinstance(level,dict) and level.get('bulletAlignment')==1 and level.get('isLegal',False) is False,'Unsupported native list type/alignment')
+ need(set(level)<=set(['bulletAlignment','startNumber','glyphFormat','glyphType','glyphSymbol','textStyle','paragraphProperties','isLegal']),'Unsupported native list properties')
+ if level.get('glyphSymbol'):
+  need('glyphType' not in level and level['glyphSymbol'] in BULLETS and level.get('glyphFormat') in (f' %{depth+1}',f'%{depth+1}'),'Unsupported native list marker')
+ else: need(type(level.get('glyphType')) is int and level['glyphType'] in WORD_GLYPHS.values() and level.get('glyphFormat') in conventional_patterns(depth),'Unsupported native list marker')
+ need(type(level.get('startNumber')) is int and 0<=level['startNumber']<=999999,'Invalid native list start')
+ return level
+
 def export_document(native, *, _pdf_visible_markers=False):
  # The server validates the full native shape before this isolated conversion.
  # Trusted PDF intermediate only: visible markers may replace conflicting
@@ -474,7 +535,7 @@ def export_document(native, *, _pdf_visible_markers=False):
   while run_cursor<len(native_runs) and native_runs[run_cursor]['ed']<=cursor: run_cursor+=1
   if item:
    ps={**style.get('defaultParagraphStyle',{}),**para.get('paragraphStyle',{})}
-   level=native.get('lists',{}).get(item['listType'],{}).get('nestingLevel',[{}])[0]
+   level=native_list_level(native,item)
    ts={**style.get('textStyle',{}),**named.get(ps.get('namedStyleType'),{}),**ps.get('textStyle',{})}
    if run_cursor<len(native_runs) and native_runs[run_cursor]['st']<=cursor<native_runs[run_cursor]['ed']: ts.update(native_runs[run_cursor]['ts'])
    if cursor==end: ts.update(ps.get('paragraphMarkTextStyle',{}))
@@ -487,7 +548,7 @@ def export_document(native, *, _pdf_visible_markers=False):
    if 'ul' in ts: need(set(ts['ul'])=={'s'},'Unsupported marker underline')
    ts={'bl':0,'it':0,'ul':{'s':0},'fs':11,'cl':{'rgb':'#000000'},**ts}
    marker_styles[end]=ts
-   key=item['listId']
+   key=(item['listId'],item['nestingLevel'])
    common_styles[key]={k:v for k,v in common_styles[key].items() if k in ts and ts[k]==v} if key in common_styles else dict(ts)
   cursor=end+1
  numbering=doc.part.numbering_part.element
@@ -500,51 +561,72 @@ def export_document(native, *, _pdf_visible_markers=False):
   e=OxmlElement('w:'+tag)
   if value is not None: e.set(q('val'),str(value))
   for key,value in (attrs or {}).items(): e.set(q(key),str(value))
-  parent.append(e); return e
+  if parent is numbering and tag=='abstractNum':
+   # CT_Numbering requires all abstracts before concrete instances.
+   first_num=parent.find(q('num'))
+   parent.insert(list(parent).index(first_num) if first_num is not None else len(parent),e)
+  else: parent.append(e)
+  return e
  def positive_offset(value):
   need(type(value) is int and 0<=value<=999999,'Invalid native list start'); return value
+ depths={}
+ for para in body['paragraphs']:
+  if para.get('bullet'):
+   item=para['bullet']; depths[item['listId']]=max(depths.get(item['listId'],0),item['nestingLevel'])
  def emit_list(p,item,ps):
   nonlocal next_num,next_abstract
-  need(set(item)<=set(['listId','listType','nestingLevel','startNumber','textStyle']) and type(item.get('nestingLevel')) is int and item['nestingLevel']==0,'Only flat native lists export')
+  need(set(item)<=set(['listId','listType','nestingLevel','startNumber','textStyle']),'Unsupported native list item')
   for key in ('listId','listType'):
    need(isinstance(item.get(key),str) and bool(re.fullmatch(r'[A-Za-z0-9_-]{1,100}',item[key])) and item[key] not in ('__proto__','constructor','prototype'),'Invalid native list identifier')
-  template=native.get('lists',{}).get(item['listType'])
-  if template is None:
-   need(item['listType'] in ('ORDER_LIST','BULLET_LIST'),'Missing native list definition')
-   template={'listType':item['listType'],'nestingLevel':[{'bulletAlignment':1,'startNumber':0,'glyphFormat':'%1.' if item['listType']=='ORDER_LIST' else ' %1',**({'glyphType':2} if item['listType']=='ORDER_LIST' else {'glyphSymbol':'●'}),'paragraphProperties':{'indentStart':{'v':21},'hanging':{'v':21}}}]}
-  need(isinstance(template,dict) and set(template)=={'listType','nestingLevel'} and isinstance(template['nestingLevel'],list) and 1<=len(template['nestingLevel'])<=9,'Invalid native list definition')
-  level=template['nestingLevel'][0]; kind=template['listType']; ordered=kind=='ORDER_LIST'
-  need(kind in ('ORDER_LIST','BULLET_LIST') and level.get('bulletAlignment')==1 and level.get('isLegal',False) is False,'Unsupported native list type/alignment')
-  need(set(level)<=set(['bulletAlignment','startNumber','glyphFormat','glyphType','glyphSymbol','textStyle','paragraphProperties','isLegal']),'Unsupported native list properties')
-  need((level.get('glyphType')==2 and not level.get('glyphSymbol') and level.get('glyphFormat')=='%1.') if ordered else (level.get('glyphSymbol') in ('●','•','○','■','▪') and level.get('glyphFormat') in (' %1','%1')),'Unsupported native list marker')
-  offset=positive_offset(level['startNumber']); props=level.get('paragraphProperties',{})
-  need(set(props)<=set(['indentStart','hanging']),'Unsupported list layout; use simple hanging indentation')
-  marker_style=common_styles[item['listId']]
-  need(set(marker_style)<=set(['bl','it','ul','fs','cl','ff','eastAsiaFontFamily','lang','altLang']),'Unsupported marker formatting')
-  if 'ul' in marker_style: need(set(marker_style['ul'])=={'s'},'Unsupported marker underline')
-  signature=json.dumps([item['listType'],level],sort_keys=True)
+  depth=item['nestingLevel']; level=native_list_level(native,item)
   previous=sequences.get(item['listId'])
-  if previous: need(previous['signature']==signature,'Changing a list definition within a sequence is not mapped')
+  if previous: need(previous['type']==item['listType'],'Changing a list definition within a sequence is not mapped')
   if previous is None:
    abstract_id=next_abstract; next_abstract+=1
-   abstract=element(numbering,'abstractNum',attrs={'abstractNumId':abstract_id}); element(abstract,'multiLevelType','singleLevel')
-   lvl=element(abstract,'lvl',attrs={'ilvl':0}); element(lvl,'start',offset+1); element(lvl,'numFmt','decimal' if ordered else 'bullet'); element(lvl,'lvlText','%1.' if ordered else level['glyphSymbol']); element(lvl,'lvlJc','left'); element(lvl,'suff','tab')
-   if props:
-    pp=element(lvl,'pPr'); attrs={}
-    for key,tag in [('indentStart','left'),('hanging','hanging')]:
-     if key in props:
-      unit=props[key]; need(isinstance(unit,dict) and set(unit)<=set(['v','u']) and unit.get('u',0)==0 and type(unit.get('v')) in (int,float) and math.isfinite(unit['v']) and 0<=unit['v']<=100000,'Unsupported list indentation unit')
-      attrs[tag]=round(unit['v']*15)
-    element(pp,'ind',attrs=attrs)
-   temp=p.add_run(); apply(temp,marker_style,sparse=True); rpr=temp._r.rPr
-   if rpr is not None: lvl.append(rpr)
-   p._p.remove(temp._r)
-   previous={'signature':signature,'abstract':abstract_id}; sequences[item['listId']]=previous
-  if 'num' not in previous or 'startNumber' in item:
-   next_num+=1; num=element(numbering,'num',attrs={'numId':next_num}); element(num,'abstractNumId',previous['abstract']); previous['num']=next_num
+   abstract=element(numbering,'abstractNum',attrs={'abstractNumId':abstract_id}); element(abstract,'multiLevelType','multilevel' if depths[item['listId']] else 'singleLevel')
+   for n in range(depths[item['listId']]+1):
+    definition=native_list_level(native,item,n); ordered=not definition.get('glyphSymbol'); props=definition.get('paragraphProperties',{})
+    need(set(props)<=set(['indentStart','hanging']),'Unsupported list layout; use simple hanging indentation')
+    if ordered:
+     for ref in re.findall(r'%([1-9])',definition['glyphFormat']): need(not native_list_level(native,item,int(ref)-1).get('glyphSymbol'),'Bullet parent references are not mapped')
+    lvl=element(abstract,'lvl',attrs={'ilvl':n}); element(lvl,'start',definition['startNumber']+1)
+    element(lvl,'numFmt',next(k for k,v in WORD_GLYPHS.items() if v==definition['glyphType']) if ordered else 'bullet')
+    element(lvl,'lvlText',definition['glyphFormat'] if ordered else definition['glyphSymbol']); element(lvl,'lvlJc','left'); element(lvl,'suff','tab')
+    if props:
+     pp=element(lvl,'pPr'); attrs={}
+     for key,tag in [('indentStart','left'),('hanging','hanging')]:
+      if key in props:
+       unit=props[key]; need(isinstance(unit,dict) and set(unit)<=set(['v','u']) and unit.get('u',0)==0 and type(unit.get('v')) in (int,float) and math.isfinite(unit['v']) and 0<=unit['v']<=100000,'Unsupported list indentation unit')
+       attrs[tag]=round(unit['v']*15)
+     element(pp,'ind',attrs=attrs)
+    marker_style=common_styles.get((item['listId'],n),definition.get('textStyle',{}))
+    temp=p.add_run(); apply(temp,marker_style,sparse=True); rpr=temp._r.rPr
+    if rpr is not None: lvl.append(rpr)
+    p._p.remove(temp._r)
+   previous={'type':item['listType'],'abstract':abstract_id,'branches':[],'counts':{}}; sequences[item['listId']]=previous
+  branches=previous['branches']; counts=previous['counts']
+  # Restarts and synthesized continuations last only through their subtree.
+  # Native seeds every skipped ancestor; readers can also visit ancestors in
+  # composite markers. Explicit continuation instances pin the outdent value
+  # in either case. Track actual paragraphs per branch, returning to the
+  # enclosing instance so ancestor resets use the original abstract starts.
+  while branches and depth<branches[-1][0]: branches.pop()
+  if not branches or 'startNumber' in item or (depth in counts and depth not in branches[-1][2]):
    if 'startNumber' in item:
-    override=element(num,'lvlOverride',attrs={'ilvl':0}); element(override,'startOverride',positive_offset(item['startNumber'])+1)
-  np=element(p._p.get_or_add_pPr(),'numPr'); element(np,'ilvl',0); element(np,'numId',previous['num'])
+    while branches and depth<=branches[-1][0]: branches.pop()
+   next_num+=1; num=element(numbering,'num',attrs={'numId':next_num}); element(num,'abstractNumId',previous['abstract'])
+   for n in range(depth+1):
+    value=positive_offset(item['startNumber'])+1 if n==depth and 'startNumber' in item else counts.get(n) if n<depth else counts[n]+1 if n in counts else None
+    if value is not None:
+     override=element(num,'lvlOverride',attrs={'ilvl':n}); element(override,'startOverride',value)
+   branches.append((depth,next_num,set()))
+  for n in range(depth): counts.setdefault(n,native_list_level(native,item,n)['startNumber']+1)
+  counts[depth]=positive_offset(item['startNumber'])+1 if 'startNumber' in item else counts.get(depth,level['startNumber'])+1
+  for n in list(counts):
+   if n>depth: del counts[n]
+  branches[-1][2].difference_update(n for n in tuple(branches[-1][2]) if n>depth)
+  branches[-1][2].add(depth)
+  np=element(p._p.get_or_add_pPr(),'numPr'); element(np,'ilvl',depth); element(np,'numId',branches[-1][1])
  start=0; raw=stream.encode('utf-16-le'); runs=body.get('textRuns',[]); run_index=0
  for para in body['paragraphs']:
   end=para['startIndex']; need(raw[end*2:end*2+2]==b'\r\x00','Invalid paragraph boundary')
@@ -569,7 +651,7 @@ def export_document(native, *, _pdf_visible_markers=False):
   for run in relevant:
    if run['st']<=end<run['ed']: mark.update(run['ts'])
   if para.get('bullet'):
-   common=common_styles[para['bullet']['listId']]
+   common=common_styles[(para['bullet']['listId'],para['bullet']['nestingLevel'])]
    explicit_mark=dict(ps.get('paragraphMarkTextStyle',{}))
    for run in relevant:
     if run['st']<=end<run['ed']: explicit_mark.update(run['ts'])

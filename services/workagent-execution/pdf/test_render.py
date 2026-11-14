@@ -48,13 +48,14 @@ for inheritance in ['document','default','paragraph','run']:
     for p in reopened['body']['paragraphs']:
         if 'bullet' not in p:continue
         b=p['bullet'];level=reopened['lists'][b['listType']]['nestingLevel'][0];ids.append(b['listId'])
-        count=counts.get(b['listId'],level['startNumber'])+1;counts[b['listId']]=count;labels.append(count)
+        count=b['startNumber']+1 if 'startNumber' in b else counts.get(b['listId'],level['startNumber'])+1
+        counts[b['listId']]=count;labels.append(count)
         actual={**defaults,**b['textStyle'],**level['textStyle']}
         expected=({'bl':1,'it':1,'ul':{'s':1},'fs':20,'cl':{'rgb':'#FF0000'}} if len(labels) in (1,2,4)
                   else {'bl':0,'it':0,'ul':{'s':0},'fs':14,'cl':{'rgb':'#008000'}})
         assert {k:actual[k] for k in defaults}==expected,(inheritance,labels,actual)
-    assert labels==[5,6,7,2,3] and len(set(ids))==2 # one explicit restart, no style splits
-    assert ids[0]==ids[1]==ids[2] and ids[3]==ids[4]
+    assert labels==[5,6,7,2,3] and len(set(ids))==1 # shared abstract, explicit paragraph restart
+    assert reopened['body']['paragraphs'][4]['bullet']['startNumber']==1
     assert d==before
     # Every other PDF boundary still precedes the trusted codec option.
     class Uncalled:

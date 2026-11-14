@@ -37,3 +37,10 @@ export function numberedDocx(invalid = false) {
   if (generated.status) throw new Error(generated.stderr);
   return generated.stdout.trim();
 }
+
+export function nestedDocx(scenario) {
+ const generated = spawnSync(python, ['-I', '-B', '-c', `import importlib.util,base64,json\ns=importlib.util.spec_from_file_location('fixtures',${JSON.stringify(root + 'services/workagent-execution/docx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nargs=json.loads(${JSON.stringify(JSON.stringify(scenario??null))})\nprint(base64.b64encode(m.nested_fixture() if args is None else m.shared_fixture(**args)).decode())`], {stdio:['ignore','pipe','pipe'],encoding:'utf8',maxBuffer:3_000_000,timeout:12000});
+ if (generated.error) throw generated.error;
+ if (generated.status) throw new Error(generated.stderr);
+ return generated.stdout.trim();
+}

@@ -9,7 +9,7 @@ export const PDF_WARNINGS = [
   'PDF rendering uses DejaVu Serif for Latin, WenQuanYi Zen Hei for BMP Han and Noto Color Emoji for standalone emoji. Other scripts, combining/emoji sequences and missing glyphs are refused; this is not full Unicode coverage. Native documents, original files and Word exports retain their existing mapping.',
   'Flat Unicode bullets and decimal lists retain markers, effective marker styles, identities and starts/restarts. PDF supports effective item numbers 1–32,767, including continuations; larger numbers are refused. Native documents and Word retain their existing 1–1,000,000 start bounds. PDF reserves room for markers and body-font overhang; wrapping and pagination may change, and layouts that cannot fit are refused. Nested lists, other numbering formats and unmapped list layout are refused. PDF import, OCR, roundtrip editing, spreadsheet/deck PDF and advanced document features are not supported. Current native edits are exported without a server save.',
 ];
-// The shared validator rejects foreign/nested objects. This narrower policy also
+// The shared validator rejects foreign objects. This narrower policy also
 // refuses native features the DOCX bridge cannot represent, before rendering.
 export function validatePdfDocument(input) {
   const document = validateDocument(input);
@@ -45,7 +45,8 @@ export function validatePdfDocument(input) {
   for (const p of document.body.paragraphs) {
     while (runCursor < runs.length && runs[runCursor].ed <= cursor) runCursor++;
     if (!p.bullet) { cursor = p.startIndex + 1; continue; }
-    const { level } = documentListDefinition(document, p.bullet);
+    const { level, kind: listKind } = documentListDefinition(document, p.bullet);
+    if ((!document.lists?.[p.bullet.listType] && !['ORDER_LIST','BULLET_LIST'].includes(p.bullet.listType)) || p.bullet.nestingLevel !== 0 || (listKind === 'ORDER_LIST' && (level.glyphType !== 2 || level.glyphFormat !== '%1.'))) throw new Fault('unsupported_pdf_list', 400);
     text(p.bullet.textStyle); text(level.textStyle);
     const props = level.paragraphProperties ?? {};
     only(props, ['indentStart', 'hanging']);

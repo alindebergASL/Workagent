@@ -37,14 +37,19 @@ import { Fault } from '../../../packages/workagent-contract/index.mjs';
 const malformedNative = [
   ...[
     ['missing reference', { listType: 'absent', listId: 'a', nestingLevel: 0 }],
-    ['nested', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 1 }],
-    ['alternate numbering', { listType: 'ORDER_LIST_3', listId: 'a', nestingLevel: 0 }],
+    ['depth out of range', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 9 }],
+    ['alternate numbering', { listType: 'CHECK_LIST', listId: 'a', nestingLevel: 0 }],
     ['boolean level', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: false }],
     ['boolean start', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, startNumber: true }],
     ['nonfinite start', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, startNumber: Infinity }],
     ['unknown bag', { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0, extra: {} }],
     ['unsafe id', { listType: 'ORDER_LIST', listId: '__proto__', nestingLevel: 0 }],
   ].map(([name, bullet]) => ['list '+name, d => d.body.paragraphs[0].bullet = bullet]),
+  ...['%3.','chapter %2.','%1.%3.'].map(pattern=>['nested bad marker/reference '+pattern,d=>{
+    d.lists={custom:{listType:'ORDER_LIST',nestingLevel:[0,1].map(n=>({bulletAlignment:1,startNumber:0,glyphType:2,glyphFormat:n?pattern:'%1.'}))}};
+    d.body.paragraphs[0].bullet={listId:'one',listType:'custom',nestingLevel:1};
+  }]),
+  ['prototype list definition',d=>{d.lists=JSON.parse('{"__proto__":{"listType":"ORDER_LIST","nestingLevel":[]}}');}],
   ['list template null', d => d.lists = { custom: null }],
   ['list template missing level', d => d.lists = { custom: { listType: 'ORDER_LIST', nestingLevel: [] } }],
   ['list wrong paragraph boundary', d => { d.body.paragraphs[0].startIndex = 0; d.body.paragraphs[0].bullet = { listType: 'ORDER_LIST', listId: 'a', nestingLevel: 0 }; }],

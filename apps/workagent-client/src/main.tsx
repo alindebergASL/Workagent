@@ -54,7 +54,8 @@ friendly.xlsx_conditional_formatting_not_supported = 'XLSX export cannot yet pre
 friendly.unsupported_sheet_controls = 'Only inline dropdown lists and standard boolean checkboxes in bounded cell ranges can be saved. Other validation rules or resources are unsupported. Your draft is kept.';
 friendly.xlsx_controls_not_supported = 'XLSX export cannot preserve native checkboxes. Your native sheet and original file are kept. Remove checkboxes in a separate copy to export; supported inline dropdowns can remain.';
 friendly.unsupported_document_resources = 'This document contains unsupported style, note or permission resources. Your local draft is kept.';
-friendly.unsupported_document_list = 'Only flat bullets and decimal lists are currently mapped. Nested lists, other numbering styles or inconsistent list references were refused; your existing content is kept. Use a level-zero bullet or decimal list.';
+friendly.unsupported_document_list = 'This list definition, marker pattern or reference is unsupported. Your existing content is kept. Use standard bullets or conventional decimal, letter or Roman numbering at levels 0–8.';
+friendly.unsupported_pdf_list = 'PDF currently supports flat bullets and decimal lists only. Nested or other numbered lists were refused before rendering; your document is kept. Use Word export for supported hierarchy.';
 friendly.unsupported_pdf_list_layout = 'This list layout cannot be exported as PDF. No download was made; your edits are kept. Use simple hanging indentation with room for the marker.';
 
 friendly.selection_conflict = 'The saved work changed. Attach the intended selection again before sending; your message is kept.';

@@ -217,3 +217,12 @@ for (const mode of ['timeout', 'disconnect', 'oversize']) test(`real process gro
   let status = ''; for (let attempt = 0; attempt < 50; attempt++) { try { status = await readFile(`/proc/${pid}/status`, 'utf8'); } catch (e) { assert.ok(['ENOENT', 'ESRCH'].includes(e.code)); status = ''; } if (!status || /State:\s+Z/.test(status)) break; await new Promise(r => setTimeout(r, 10)); }
   if (status) assert.match(status, /State:\s+Z/);
 });
+
+test('newly supported native hierarchy and nondecimal lists refuse before PDF worker dispatch',async()=>{
+ for(const [listType,nestingLevel] of [['ORDER_LIST',1],['BULLET_LIST',8],['ORDER_LIST_3',0]]){
+  const f=fixture();f.input.document.body.paragraphs[0].bullet={listId:'one',listType,nestingLevel};
+  const before=structuredClone(f.state);
+  await assert.rejects(f.pdf.export('owner',f.input),e=>e.code==='unsupported_pdf_list');
+  assert.equal(f.calls.length,0);assert.deepEqual(f.state,before);
+ }
+});
