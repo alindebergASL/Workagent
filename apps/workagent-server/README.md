@@ -345,20 +345,31 @@ stderr, timeout and HTTP disconnect terminate descendants; namespace teardown
 also kills children that create their own sessions. No retained files are cleaned.
 
 ```sh
+# Included once by npm test; use this for a focused PDF/OCR rerun:
 npm run test:pdf
 npm run test:docx
 npm run test:documents
 npm run typecheck
 npm run build -- --configLoader native
-# Parent/CI on a namespace-capable executor, with test-only poppler-utils:
-WORKAGENT_DOCX_VENV=/home/ubuntu/workagent-b04-docx-20261113/.local/docx-python npm run test:pdf-isolation
+# Required Parent qualification on a namespace-capable executor:
+WORKAGENT_DOCX_VENV="$PWD/.local/docx-python" npm run test:pdf-isolation
 ```
 
-`test:pdf` uses deterministic route/consumer fixtures, the installed native SDK,
-real bounded subprocesses and the existing codec; it is not browser/model/rendering
-acceptance. `test:pdf-isolation` fails rather than skips when namespaces/renderer
-are unavailable, and opens actual empty/rich Unicode/multipage exports with
-`pdftotext`/`pdfinfo` inside isolation. Poppler is not a product dependency.
+`npm test` reaches `test:pdf` exactly once, including mode binding, stale UI,
+OCR refusals, sandbox argument/limit checks and bounded child cleanup. This suite
+uses trusted synthetic fixtures, the native SDK, the existing DOCX codec and actual
+Poppler/Tesseract subprocesses; it does not establish namespace isolation or live
+browser/model acceptance. CI provisions system Python Pillow/ReportLab/pypdf,
+Poppler, Tesseract 5 with English data, fontconfig and the fonts listed above, plus
+`.local/docx-python` from the existing hash-pinned requirements. The existing
+canonical native-controls checks also need the hash-pinned `.local/xlsx-python`.
+
+`test:pdf-isolation` is a separate **required Parent-owned** qualification for PDF
+export, text import and OCR. It additionally needs rootless bubblewrap and the
+LibreOffice prerequisites above on a namespace-capable executor. It fails rather
+than skips when namespaces or dependencies are unavailable. A green `npm test`
+or CI run does not satisfy this requirement; Parent must run the exact command
+above and report any failure without weakening the sandbox or skipping assertions.
 The implementation worker's namespace attempt was denied at NETLINK_ROUTE socket
 creation (`Operation not permitted`); no isolation weakening or unsandboxed render
 was attempted. Parent must rerun that suite, read-only PG/authenticated HTTP,

@@ -16,10 +16,12 @@ spec.loader.exec_module(render)
 class RendererTests(unittest.TestCase):
     def test_pdf_marker_seam_preserves_body_inheritance_empty_items_and_word_strictness(self):
         root = Path(__file__).resolve().parents[3]
-        script = r'''
-import runpy,copy,base64,io,zipfile
+        setup = r'''
+import runpy,copy,base64,io,zipfile,sys
 codec=runpy.run_path(ROOT+'/services/workagent-execution/docx/codec.py')
 render=runpy.run_path(ROOT+'/services/workagent-execution/pdf/render.py')
+'''.replace('ROOT', repr(str(root)))
+        inheritance_script = r'''
 fixture=runpy.run_path(ROOT+'/services/workagent-execution/pdf/fixtures/imported_lists.py')['contrast_native']
 defaults={'bl':0,'it':0,'ul':{'s':0},'fs':11,'cl':{'rgb':'#000000'}}
 def body_styles(d):
@@ -34,7 +36,7 @@ def body_styles(d):
             result.append((raw[pos*2:pos*2+2],{k:ts[k] for k in defaults}))
         start=p['startIndex']+1
     return result
-for inheritance in ['document','default','paragraph','run']:
+for inheritance in [sys.argv[1]]:
     d=fixture(inheritance);before=copy.deepcopy(d)
     try:codec['export_document'](d)
     except ValueError as e:assert 'Conflicting paragraph-mark' in str(e)
@@ -67,10 +69,12 @@ for inheritance in ['document','default','paragraph','run']:
         try:render['export_intermediate'](invalid,Uncalled())
         except render['Refused'] as e:assert str(e)==code,(str(e),code)
         else:raise AssertionError('invalid PDF accepted')
+'''.replace('ROOT', repr(str(root)))
+        strict_script = r'''
 # Conflict-free Word packages are identical with and without the trusted option.
 source=runpy.run_path(ROOT+'/services/workagent-execution/pdf/fixtures/imported_lists.py')['source_docx']()
 d=codec['import_document'](source)['document']
-for lists in [True,False]:
+for lists in [sys.argv[1]=='lists']:
     if not lists:
         for p in d['body']['paragraphs']:p.pop('bullet',None)
     strict=base64.b64decode(codec['export_document'](d)['base64'])
@@ -81,8 +85,15 @@ for lists in [True,False]:
     assert parts(render['export_intermediate'](d,codec))==parts(render['map_generated_fonts'](strict,codec))
 print('PDF marker/body distinction and unchanged Word semantics verified')
 '''.replace('ROOT', repr(str(root)))
-        result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', script], capture_output=True, timeout=12)
-        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        # The codec's production CPU/memory limits apply per fresh process.
+        # Independent scenarios must not share that per-request CPU budget.
+        cases = [('inheritance-'+name, inheritance_script, name)
+                 for name in ['document', 'default', 'paragraph', 'run']]
+        cases += [('word-'+name, strict_script, name) for name in ['lists', 'plain']]
+        for case, script, argument in cases:
+            with self.subTest(case=case):
+                result = subprocess.run([str(root/'.local/docx-python/bin/python'), '-I', '-B', '-c', setup+script, argument], capture_output=True, timeout=12)
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
 
     def test_imported_word_sequence_and_saved_conflict_have_visible_pdf_mapping(self):
         root = Path(__file__).resolve().parents[3]

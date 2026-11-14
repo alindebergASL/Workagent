@@ -249,11 +249,40 @@ test('nested counter and layout policies agree, including referenced ancestors a
   }
 });
 
-for (const abort of [false, true]) test(`OCR outer watchdog and caller abort terminate child: ${abort}`, async () => {
- const c=child("import time;print('ready',flush=True);time.sleep(20)"), controller=new AbortController();
- const result=collectChild(c,'',{operation:'import',mode:'ocr-eng',timeoutMs:100,signal:controller.signal});
- if(abort)c.stdout.once('data',()=>controller.abort());
- await assert.rejects(result,abort?/pdf_import_cancelled/:/pdf_worker_timeout/);
+for (const [name, abort, startupDelayMs] of [
+  ['watchdog', false, 0],
+  ['caller abort', true, 0],
+  ['caller abort after delayed readiness', true, 200],
+]) test(`OCR ${name} terminates child`, async () => {
+  const c = child(`import time;time.sleep(${startupDelayMs / 1000});print('ready',flush=True);time.sleep(20)`);
+  const controller = new AbortController(), closed = new Promise(resolve => c.once('close', resolve));
+  const killGroup = () => { try { process.kill(-c.pid, 'SIGKILL'); } catch { c.kill('SIGKILL'); } };
+  let output = '', ready = false, safetyFired = false;
+  // Independent cleanup also bounds failures in the worker's termination path.
+  const safety = setTimeout(() => { safetyFired = true; killGroup(); }, 10000);
+  c.stdout.on('data', data => {
+    output += data.toString();
+    if (!ready && output.includes('ready\n')) {
+      ready = true;
+      if (abort) controller.abort();
+    }
+  });
+  try {
+    // Startup belongs inside a generous safety deadline for caller cancellation;
+    // only the watchdog case deliberately races a short timer against the child.
+    await assert.rejects(collectChild(c, '', {
+      operation: 'import', mode: 'ocr-eng', timeoutMs: abort ? 5000 : 100, signal: controller.signal,
+    }), { code: abort ? 'pdf_import_cancelled' : 'pdf_worker_timeout', status: 503 });
+    if (abort) assert.equal(ready, true);
+    assert.equal(controller.signal.aborted, abort);
+    assert.equal(safetyFired, false, 'independent cleanup must not make the test pass');
+    assert.equal(c.signalCode, 'SIGKILL');
+    assert.throws(() => process.kill(c.pid, 0), { code: 'ESRCH' });
+  } finally {
+    clearTimeout(safety);
+    killGroup();
+    await closed;
+  }
 });
 test('OCR wrapper refuses stderr even with successful valid output',async()=>{
  await assert.rejects(collectChild(child(`import sys;print('{"pages":1,"text":"Recognized"}');print('unexpected warning',file=sys.stderr)`),'',{operation:'import',mode:'ocr-eng'}),/pdf_ocr_diagnostics/);

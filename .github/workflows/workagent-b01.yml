@@ -1,13 +1,13 @@
 name: Workagent B01
 on:
   pull_request:
-    paths: ['apps/workagent-*/**', 'packages/workagent-contract/**', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'backend/workagent/workspace_accounting*.py', 'backend/tests/test_workspace_accounting*.py', '.github/workflows/workagent-b01.yml']
+    paths: ['apps/workagent-*/**', 'packages/workagent-contract/**', 'services/workagent-execution/pdf/**', 'services/workagent-execution/docx/**', 'services/workagent-execution/xlsx/**', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'backend/workagent/workspace_accounting*.py', 'backend/tests/test_workspace_accounting*.py', '.github/workflows/workagent-b01.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   focused:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       NODE_OPTIONS: --max-old-space-size=3072
@@ -19,8 +19,24 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '11.28.5'
+      - name: Provision deterministic PDF/OCR test prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            python3-venv python3-pil python3-reportlab python3-pypdf \
+            poppler-utils tesseract-ocr tesseract-ocr-eng fontconfig \
+            fonts-dejavu-core fonts-wqy-zenhei fonts-noto-color-emoji
+      - name: Provision locked codec fixtures
+        run: |
+          /usr/bin/python3 -m venv .local/docx-python
+          .local/docx-python/bin/python -m pip install --require-hashes --only-binary=:all: -r services/workagent-execution/docx/requirements.lock
+          # Existing canonical native-controls tests also invoke the XLSX codec.
+          /usr/bin/python3 -m venv .local/xlsx-python
+          .local/xlsx-python/bin/python -m pip install --require-hashes --only-binary=:all: -r services/workagent-execution/xlsx/requirements.lock
       - run: pnpm install --frozen-lockfile
       - run: npm test
+      # Required actual namespace qualification remains Parent-owned:
+      # WORKAGENT_DOCX_VENV="$PWD/.local/docx-python" npm run test:pdf-isolation
       - run: npm run typecheck
       - run: npm run build
       - run: PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_workspace_accounting*.py' -v
