@@ -10,7 +10,9 @@ import struct
 import subprocess
 import zlib
 import json
+from xml.etree import ElementTree as ET
 from copy import deepcopy
+from unittest.mock import patch
 import importlib.util
 from pathlib import Path
 spec = importlib.util.spec_from_file_location('codec', Path(__file__).with_name('codec.py'))
@@ -62,6 +64,58 @@ def package(sheet, second='other.xml', definitions='', extra=None, compression=z
 def merged_sheet(child=''):
     return f'<worksheet xmlns="{NS}"><dimension ref="A1:C1"/><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Heading</t></is></c>{child}</row></sheetData><mergeCells count="1"><mergeCell ref="A1:C1"/></mergeCells></worksheet>'
 
+FP = 'http://schemas.microsoft.com/office/spreadsheetml/2022/featurepropertybag'
+FP_REL = 'http://schemas.microsoft.com/office/2022/11/relationships/FeaturePropertyBag'
+FP_TYPE = 'application/vnd.ms-excel.featurepropertybag+xml'
+FP_URI = '{C7286773-470A-42A8-94C5-96B5CB345126}'
+FP_PATH = 'xl/featurePropertyBag/featurePropertyBag.xml'
+
+def checkbox_fixture(default=1):
+    # Schema-generated package, deliberately reordered bags and non-origin cells.
+    wb = openpyxl.Workbook(); ws = wb.active
+    for ref, value in [('E9', False), ('E10', True), ('E11', None), ('F9', False)]:
+        ws[ref] = value; ws[ref].font = Font(name='Arial', bold=True)
+    ws['A1'] = '=1+2'
+    second = wb.create_sheet('Second'); second['C4'] = True; second['C4'].font = Font(italic=True)
+    dv = DataValidation(type='list', formula1='"One,Two"'); dv.add('B15:B16'); ws.add_data_validation(dv)
+    out = io.BytesIO(); wb.save(out)
+    with zipfile.ZipFile(io.BytesIO(out.getvalue())) as z: parts = {n: z.read(n) for n in z.namelist()}
+    styles = ET.fromstring(parts['xl/styles.xml']); xfs = styles.find('{'+NS+'}cellXfs'); clones = {}
+    for name, refs in [('xl/worksheets/sheet1.xml', {'E9','E10','E11'}), ('xl/worksheets/sheet2.xml', {'C4'})]:
+        sheet = ET.fromstring(parts[name])
+        for cell in sheet.iter('{'+NS+'}c'):
+            if cell.get('r') not in refs: continue
+            original = int(cell.get('s', '0'))
+            if original not in clones:
+                clone = deepcopy(xfs[original]); clones[original] = len(xfs); xfs.append(clone)
+                ext = ET.SubElement(ET.SubElement(clone, '{'+NS+'}extLst'), '{'+NS+'}ext', uri=FP_URI)
+                ET.SubElement(ext, '{'+FP+'}xfComplement', i='0')
+            cell.set('s', str(clones[original]))
+        parts[name] = ET.tostring(sheet)
+    xfs.set('count', str(len(xfs))); parts['xl/styles.xml'] = ET.tostring(styles)
+    parts[FP_PATH] = (f'<FeaturePropertyBags xmlns="{FP}"><bag type="XFComplement"><bagId k="XFControls">3</bagId></bag>'
+        '<bag type="XFComplements" extRef="XFComplementsMapperExtRef"><a k="MappedFeaturePropertyBags"><bagId>0</bagId></a></bag>'
+        f'<bag type="Checkbox"><i k="default">{default}</i></bag><bag type="XFControls"><bagId k="CellControl">2</bagId></bag></FeaturePropertyBags>').encode()
+    rels = ET.fromstring(parts['xl/_rels/workbook.xml.rels'])
+    ET.SubElement(rels, '{'+codec.PACKAGE_REL+'}Relationship', Id='checkbox', Type=FP_REL, Target='featurePropertyBag/featurePropertyBag.xml')
+    parts['xl/_rels/workbook.xml.rels'] = ET.tostring(rels)
+    types = ET.fromstring(parts['[Content_Types].xml'])
+    ET.SubElement(types, '{'+codec.CONTENT+'}Override', PartName='/'+FP_PATH, ContentType=FP_TYPE)
+    parts['[Content_Types].xml'] = ET.tostring(types)
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+        for name, body in parts.items(): z.writestr(name, body)
+    return out.getvalue()
+
+def request_codec(request):
+    result = subprocess.run([sys.executable, '-I', '-B', str(Path(__file__).with_name('codec.py'))],
+        input=json.dumps(request)+'\n', capture_output=True, text=True, timeout=12)
+    response = json.loads(result.stdout)
+    if result.returncode: raise ValueError(response.get('error', result.stderr))
+    return response
+
+def import_checkbox(raw): return request_codec({'op':'import', 'base64':base64.b64encode(raw).decode()})
+
 def zip_headers(data, name, *, size=None, crc=None, compressed_delta=0, local_method=None):
     raw = bytearray(data)
     with zipfile.ZipFile(io.BytesIO(data)) as z:
@@ -77,6 +131,201 @@ def zip_headers(data, name, *, size=None, crc=None, compressed_delta=0, local_me
     return bytes(raw)
 
 class CodecTests(unittest.TestCase):
+    def test_checkbox_namespace_identity(self):
+        # Two tabs, same address: checkbox false and ordinary boolean true.
+        source = checkbox_fixture()
+        def ordinary(name, raw):
+            if name != 'xl/worksheets/sheet2.xml': return raw
+            return f'<worksheet xmlns="{NS}"><sheetData><row r="9"><c r="E9" t="b"><v>1</v></c></row></sheetData></worksheet>'.encode()
+        source = rewrite(source, ordinary)
+        book = import_checkbox(source)['book']
+        self.assertEqual([book['sheets'][s]['name'] for s in book['sheetOrder']], ['Sheet','Second'])
+        self.assertEqual(book['sheets']['sheet1']['cellData']['8']['4']['v'], 0)
+        self.assertIs(book['sheets']['sheet2']['cellData']['8']['4']['v'], True)
+        self.assertNotIn('sheet2', json.loads(book['resources'][0]['data']))
+        for scenario in ('foreign-sheets','duplicate-sheets','foreign-sheet','nested-workbook',
+                         'sheet-name','sheet-id','sheet-name-attribute','sheet-id-attribute',
+                         'foreign-xfs','duplicate-xfs','foreign-xf','foreign-ext',
+                         'foreign-rel','rel-id','foreign-cell','row-child','nested-row','duplicate-data'):
+            def mutate(name, raw):
+                root = ET.fromstring(raw) if name.endswith(('.xml','.rels')) else None
+                if name == 'xl/workbook.xml':
+                    sheets = root.find('{'+NS+'}sheets'); sheet = sheets[0]
+                    if scenario in ('foreign-sheets','duplicate-sheets'):
+                        extra = deepcopy(sheets); extra[:] = list(reversed(extra))
+                        if scenario == 'foreign-sheets': extra.tag = '{urn:foreign}sheets'
+                        root.append(extra)
+                    if scenario == 'foreign-sheet': sheet.tag = '{urn:foreign}sheet'
+                    if scenario == 'nested-workbook': root.append(deepcopy(root))
+                    if scenario == 'sheet-name': ET.SubElement(sheet, '{urn:foreign}name').text = 'Renamed'
+                    if scenario == 'sheet-id': ET.SubElement(sheet, '{urn:foreign}id').text = 'rId2'
+                    if scenario == 'sheet-name-attribute': sheet.set('{urn:foreign}name','Renamed')
+                    if scenario == 'sheet-id-attribute': sheet.set('id','rId2')
+                elif name == 'xl/styles.xml':
+                    xfs = root.find('{'+NS+'}cellXfs')
+                    if scenario in ('foreign-xfs','duplicate-xfs'):
+                        extra = deepcopy(xfs); extra[:] = list(reversed(extra))
+                        # No extra xfComplement: the old reference-count check
+                        # alone cannot detect a replacement ordinary XF array.
+                        for xf in extra:
+                            for ext in list(xf):
+                                if ext.tag == '{'+NS+'}extLst': xf.remove(ext)
+                        if scenario == 'foreign-xfs': extra.tag = '{urn:foreign}cellXfs'
+                        root.append(extra)
+                    if scenario == 'foreign-xf': xfs[0].tag = '{urn:foreign}xf'
+                    if scenario == 'foreign-ext': next(root.iter('{'+NS+'}extLst')).tag = '{urn:foreign}extLst'
+                elif name == 'xl/_rels/workbook.xml.rels':
+                    if scenario == 'foreign-rel': root[0].tag = '{urn:foreign}Relationship'
+                    if scenario == 'rel-id': ET.SubElement(root[0], '{urn:foreign}Id').text = 'rId2'
+                elif name == 'xl/worksheets/sheet1.xml':
+                    data = root.find('{'+NS+'}sheetData'); row = next(r for r in data if r.get('r')=='9')
+                    if scenario == 'foreign-cell': row[0].tag = '{urn:foreign}c'
+                    if scenario == 'row-child': row[0].tag = '{urn:foreign}anything'
+                    if scenario == 'nested-row': data.remove(row); ET.SubElement(root, '{urn:foreign}wrapper').append(row)
+                    if scenario == 'duplicate-data': root.append(ET.Element('{'+NS+'}sheetData'))
+                return ET.tostring(root) if root is not None else raw
+            with self.subTest(scenario=scenario), self.assertRaises(ValueError):
+                import_checkbox(rewrite(source, mutate))
+
+    def test_loaded_checkbox_sheet_identity_mismatch_refused(self):
+        source = checkbox_fixture()
+        for scenario in ('order','name','relationship','path'):
+            class DisagreeingReader(codec.ExcelReader):
+                def read(self):
+                    super().read()
+                    if scenario == 'order': self.wb._sheets.reverse()
+                    if scenario == 'name': self.parser.sheets[0].name = 'Changed'
+                    if scenario == 'relationship': self.parser.sheets[0].id = self.parser.sheets[1].id
+                    if scenario == 'path': self.parser.rels[self.parser.sheets[0].id].Target = 'xl/worksheets/wrong.xml'
+            with self.subTest(scenario=scenario), patch.object(codec, 'ExcelReader', DisagreeingReader):
+                with self.assertRaisesRegex(ValueError, 'identity/order mismatch'):
+                    codec.import_book(source)
+
+    def test_modern_checkbox_import_defaults_styles_and_roundtrip(self):
+        for default in (0, 1, 2):
+            imported = import_checkbox(checkbox_fixture(default)); book = imported['book']
+            rules = json.loads(book['resources'][0]['data']); check = [r for r in rules['sheet1'] if r['type']=='checkbox']
+            self.assertEqual(len(check), 1)
+            self.assertEqual(check[0]['ranges'], [{'startRow':8,'endRow':10,'startColumn':4,'endColumn':4}])
+            cells = book['sheets']['sheet1']['cellData']
+            self.assertEqual((cells['8']['4']['v'],cells['8']['4']['t']), (0,3)); self.assertEqual((cells['9']['4']['v'],cells['9']['4']['t']), (1,3))
+            self.assertNotIn('v', cells['10']['4']); self.assertIs(cells['8']['5']['v'], False)
+            self.assertEqual(cells['8']['4']['s']['bl'], 1)
+            result = request_codec({'op':'export','book':book}); raw = base64.b64decode(result['base64'])
+            with zipfile.ZipFile(io.BytesIO(raw)) as z:
+                rels = ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))
+                rel, = [r for r in rels if r.get('Type') == FP_REL]
+                part = rel.get('Target').lstrip('/') if rel.get('Target').startswith('/') else 'xl/'+rel.get('Target')
+                bags = ET.fromstring(z.read(part)); self.assertEqual(bags.tag, '{'+FP+'}FeaturePropertyBags')
+                types = ET.fromstring(z.read('[Content_Types].xml'))
+                self.assertTrue(any(e.get('PartName')=='/'+part and e.get('ContentType')==FP_TYPE for e in types))
+                xfs = ET.fromstring(z.read('xl/styles.xml')).find('{'+NS+'}cellXfs')
+                sheet = ET.fromstring(z.read('xl/worksheets/sheet1.xml'))
+                rawcells = {c.get('r'):c for c in sheet.iter('{'+NS+'}c')}
+                style = lambda ref: xfs[int(rawcells[ref].get('s','0'))]
+                self.assertIsNotNone(style('E9').find('.//{'+FP+'}xfComplement'))
+                self.assertIsNone(style('F9').find('.//{'+FP+'}xfComplement'))
+                mapping = int(style('E9').find('.//{'+FP+'}xfComplement').get('i'))
+                mapper, = [bag for bag in bags if bag.get('type')=='XFComplements' and bag.get('extRef')=='XFComplementsMapperExtRef']
+                complement = bags[int(mapper.find('{'+FP+'}a')[mapping].text)]
+                self.assertEqual(complement.get('type'),'XFComplement')
+                controls = bags[int(complement.find('{'+FP+'}bagId').text)]
+                self.assertEqual(controls.get('type'),'XFControls')
+                self.assertEqual(controls[0].get('k'),'CellControl')
+                self.assertEqual(bags[int(controls[0].text)].get('type'),'Checkbox')
+                cloned=deepcopy(style('E9')); cloned.remove(cloned.find('{'+NS+'}extLst'))
+                self.assertEqual(ET.tostring(cloned),ET.tostring(style('F9')))
+                self.assertEqual(rawcells['E9'].get('s'), rawcells['E11'].get('s'))
+                self.assertEqual(rawcells['E9'].get('t'), 'b'); self.assertEqual(rawcells['E9'].find('{'+NS+'}v').text,'0')
+                self.assertIsNone(rawcells['E11'].find('{'+NS+'}v'))
+                self.assertEqual(len(list(sheet.iter('{'+NS+'}dataValidation'))), 1)
+                self.assertFalse(rawcells['A1'].find('{'+NS+'}v').text)
+            reopened = import_checkbox(raw)['book']
+            self.assertEqual(json.loads(reopened['resources'][0]['data']), rules)
+            self.assertEqual(reopened['sheets']['sheet2']['cellData']['3']['2']['s']['it'], 1)
+
+    def test_modern_checkbox_bad_metadata_and_semantics_refused(self):
+        source = checkbox_fixture()
+        changes = [
+            (FP_PATH, b'>3</', b'>0</'), # cycle / wrong referenced type
+            (FP_PATH, b'>2</', b'>99</'),
+            (FP_PATH, b'<i k="default">1', b'<i k="default">9'),
+            (FP_PATH, b'<bagId>0</bagId>', b'<bagId>0</bagId>'*4001),
+            (FP_PATH, b'<FeaturePropertyBags ', b'<!DOCTYPE x [<!ENTITY a SYSTEM "file:///etc/passwd">]><FeaturePropertyBags '),
+            ('xl/styles.xml', b'i="0"', b'i="3"'),
+            ('xl/styles.xml', FP.encode(), b'urn:foreign'),
+            ('xl/_rels/workbook.xml.rels', b'Target="featurePropertyBag/featurePropertyBag.xml"', b'Target="../outside.xml"'),
+            ('xl/_rels/workbook.xml.rels', b'Target="featurePropertyBag/featurePropertyBag.xml"', b'Target="https://example.invalid/a" TargetMode="External"'),
+            ('xl/worksheets/sheet1.xml', b'r="E9" s="3" t="b"', b'r="E9" s="999" t="b"'),
+        ]
+        for part, before, after in changes:
+            with self.subTest(part=part, after=after[:70]), self.assertRaises(ValueError):
+                import_checkbox(rewrite(source, lambda n,b: b.replace(before,after) if n==part else b))
+
+    def test_modern_checkbox_export_semantics_overlap_merges_and_caps(self):
+        book = import_checkbox(checkbox_fixture())['book']
+        for cell in [{'v':'TRUE','t':1}, {'f':'=1=1','v':True,'t':3}, {'si':'shared','v':False}, {'p':{'body':{'dataStream':'rich\r\n'}}}]:
+            bad=deepcopy(book); bad['sheets']['sheet1']['cellData']['8']['4']=cell
+            with self.subTest(cell=cell), self.assertRaises(ValueError): request_codec({'op':'export','book':bad})
+        for change in ['overlap','merge','custom','prompt','cap']:
+            bad=deepcopy(book); rules=json.loads(bad['resources'][0]['data']); check=rules['sheet1'][-1]
+            if change=='overlap': check['ranges']=[rules['sheet1'][0]['ranges'][0]]
+            if change=='merge': bad['sheets']['sheet1']['mergeData']=[check['ranges'][0]]
+            if change=='custom': check['formula1']='Yes'
+            if change=='prompt': check['showInputMessage']=True
+            if change=='cap':
+                bad['sheets']['sheet1']['rowCount']=10000; bad['sheets']['sheet1']['columnCount']=200
+                check['ranges']=[{'startRow':0,'endRow':249,'startColumn':0,'endColumn':199},{'startRow':250,'endRow':250,'startColumn':0,'endColumn':0}]
+                rules['sheet1']= [check]
+            bad['resources'][0]['data']=json.dumps(rules)
+            with self.subTest(change=change), self.assertRaises(ValueError): request_codec({'op':'export','book':bad})
+
+    def test_modern_checkbox_import_inheritance_overlap_and_relationship_refusals(self):
+        source=checkbox_fixture()
+        for scenario in ['formula','string','merge','validation','row','column','base','default-style','duplicate-rel','missing-part','dxf','range-cap']:
+            def change(name, raw):
+                if name=='xl/worksheets/sheet1.xml':
+                    root=ET.fromstring(raw); cells={c.get('r'):c for c in root.iter('{'+NS+'}c')}; cell=cells['E9']; style=cell.get('s')
+                    if scenario=='formula': ET.SubElement(cell,'{'+NS+'}f').text='1=1'
+                    if scenario=='string': cell.set('t','str'); cell[0].text='TRUE'
+                    if scenario=='merge': ET.SubElement(ET.SubElement(root,'{'+NS+'}mergeCells'),'{'+NS+'}mergeCell',ref='E9:E10')
+                    if scenario=='validation': next(root.iter('{'+NS+'}dataValidation')).set('sqref','E9')
+                    if scenario=='row': next(r for r in root.iter('{'+NS+'}row') if r.get('r')=='9').set('s',style)
+                    if scenario=='column': ET.SubElement(ET.SubElement(root,'{'+NS+'}cols'),'{'+NS+'}col',min='5',max='16384',style=style)
+                    if scenario=='range-cap':
+                        data=root.find('{'+NS+'}sheetData'); data.clear()
+                        for row in range(1,22):
+                            r=ET.SubElement(data,'{'+NS+'}row',r=str(row))
+                            for col in range(1,101,2): ET.SubElement(r,'{'+NS+'}c',r=f'{codec.get_column_letter(col)}{row*2-1}',s=style)
+                            r.set('r',str(row*2-1))
+                    return ET.tostring(root)
+                if name=='xl/styles.xml' and scenario in ['base','dxf','default-style']:
+                    root=ET.fromstring(raw); xfs=root.find('{'+NS+'}cellXfs'); ext=deepcopy(xfs[-1][0])
+                    if scenario=='base': xfs[-1].set('xfId','99')
+                    if scenario=='default-style': xfs[0].append(ext)
+                    if scenario=='dxf': ET.SubElement(ET.SubElement(root,'{'+NS+'}dxfs'),'{'+NS+'}dxf').append(ext)
+                    return ET.tostring(root)
+                if name=='xl/_rels/workbook.xml.rels':
+                    root=ET.fromstring(raw); rel=next(e for e in root if e.get('Type')==FP_REL)
+                    if scenario=='duplicate-rel': duplicate=deepcopy(rel); duplicate.set('Id','another'); root.append(duplicate)
+                    if scenario=='missing-part': rel.set('Target','missing.xml')
+                    return ET.tostring(root)
+                return raw
+            with self.subTest(scenario=scenario), self.assertRaises(ValueError): import_checkbox(rewrite(source,change))
+
+    def test_modern_checkbox_blank_base_style_grouping_and_sparse_cells(self):
+        book=codec.import_book(fixture())['book']; sheet=book['sheets']['sheet2']
+        # A rectangle of previously absent, unstyled cells needs actual <c>
+        # records and one cloned default XF, without changing ordinary booleans.
+        book['resources']=[{'name':codec.CONTROL_RESOURCE,'data':json.dumps({'sheet2':[{'uid':'blank','type':'checkbox','ranges':[{'startRow':3,'endRow':19,'startColumn':2,'endColumn':9}]}]})}]
+        exported=request_codec({'op':'export','book':book}); imported=import_checkbox(base64.b64decode(exported['base64']))['book']
+        check=json.loads(imported['resources'][0]['data'])['sheet2'][0]
+        self.assertEqual(check['ranges'],[{'startRow':3,'endRow':19,'startColumn':2,'endColumn':9}])
+        self.assertEqual(imported['sheets']['sheet1']['cellData']['0']['1']['v'],True)
+        self.assertNotIn('sheet1',json.loads(imported['resources'][0]['data']))
+        for row in range(3,20):
+            for col in range(2,10): self.assertIsNone(imported['sheets']['sheet2']['cellData'].get(str(row),{}).get(str(col),{}).get('v'))
+
     def test_empty_conditional_resource_exports_but_rules_are_refused(self):
         book = codec.import_book(fixture())['book']
         for data in ['', '{}', json.dumps({'sheet1': []}), json.dumps({'deleted_sheet': [], 'sheet1': []})]:

@@ -38,6 +38,40 @@ function engine(formula = {}) {
 
 
 import { trustedCodec, originalXlsx } from '../../workagent-server/tests/support/xlsx-fixture.mjs';
+import { mountNative } from './sheet-scale-harness.mjs';
+import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
+test('modern XLSX checkbox controls load, toggle, undo, save and cold reopen with the installed SDK', async()=>{
+  const validationRequire=createRequire(import.meta.resolve('@univerjs/preset-sheets-data-validation'));
+  validationRequire('@univerjs/sheets-data-validation/facade');
+  const plugins=[validationRequire('@univerjs/data-validation').UniverDataValidationPlugin,validationRequire('@univerjs/sheets-data-validation').UniverSheetsDataValidationPlugin];
+  const book=blankWorkbook('checkbox-sdk');
+  book.sheets.sheet1.cellData={0:{0:{f:'=1+2'}},8:{4:{v:false,t:3},5:{v:false,t:3}},9:{4:{v:true,t:3}}};
+  book.resources=[{name:CONTROL_RESOURCE,data:JSON.stringify({sheet1:[{uid:'check',type:'checkbox',ranges:[{startRow:8,endRow:10,startColumn:4,endColumn:4}]}]})}];
+  const imported=trustedCodec({op:'import',base64:trustedCodec({op:'export',book}).base64}).book;
+  let view=mountNative({book:imported,version:'checkbox'},plugins), saved;
+  try {
+    await view.settle(); const wb=view.api.getActiveWorkbook(), sheet=wb.getActiveSheet();
+    assert.equal(sheet.getRange('E9').getDataValidation().getCriteriaType(),'checkbox');
+    const validator=view.api._injector.get(validationRequire('@univerjs/sheets-data-validation').SheetDataValidationModel).getValidator('checkbox');
+    for (const row of [8,9,10]) assert.equal(validator.skipDefaultFontRender(sheetControls(imported).sheet1[0],imported.sheets.sheet1.cellData[row]?.[4]?.v,{unitId:imported.id,subUnitId:'sheet1'}),true);
+    assert.deepEqual(await sheet.getRange('E9:E10').getValidatorStatus(),[['valid','valid']]);
+    assert.equal(sheet.getRange('F9').getDataValidation(),undefined);
+    assert.equal(view.handle.save().sheets.sheet1.cellData[10]?.[4]?.v ?? null,null);
+    await view.api.executeCommand(require('@univerjs/sheets').SetRangeValuesCommand.id,{unitId:imported.id,subUnitId:'sheet1',range:{startRow:8,endRow:8,startColumn:4,endColumn:4},value:{v:1,p:null}});
+    assert.equal(view.handle.save().sheets.sheet1.cellData[8][4].v,1);
+    await wb.undo(); assert.ok(!view.handle.save().sheets.sheet1.cellData[8][4].v);
+    await wb.redo(); saved=view.handle.save();
+    assert.equal(sheetControls(saved).sheet1[0].type,'checkbox');
+  } finally {await delay(1100);view.dispose();}
+  const cold=trustedCodec({op:'import',base64:trustedCodec({op:'export',book:saved}).base64}).book;
+  view=mountNative({book:cold,version:'checkbox-cold'},plugins);
+  try {await view.settle(); const state=view.handle.save();
+    assert.equal(state.sheets.sheet1.cellData[8][4].v,1);
+    assert.equal(state.sheets.sheet1.cellData[8][5].v,false);
+    assert.equal(state.sheets.sheet1.cellData[10]?.[4]?.v ?? null,null);
+    assert.equal(sheetControls(state).sheet1[0].type,'checkbox');
+  } finally {await delay(1100);view.dispose();}
+});
 test('XLSX Unicode sheet references and literal strings calculate with the installed native engine', async()=>{
   const seed=trustedCodec({op:'import',base64:originalXlsx.toString('base64')}).book;
   seed.sheets.sheet1.name='入力 雪';

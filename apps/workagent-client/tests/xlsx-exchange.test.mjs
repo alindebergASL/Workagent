@@ -64,7 +64,7 @@ test('actual import UI previews before mutation, retains exact bytes/identity ac
   const props = { api, editor: () => null, work: null, onImported: async () => { lists++; }, onOpen: async id => { assert.equal(id, 'new'); open++; } };
   let view = mount(disk, props); await view.choose(); assert.equal(calls.length, 1); assert.match(view.text(), /Typed text/); assert.match(view.text(), /0012/);
   assert.match(view.text(), /Bounded literal inline-list dropdowns preserve choices/);
-  assert.match(view.text(), /Native checkboxes and native conditional-formatting rules prevent XLSX export/);
+  assert.match(view.text(), /Modern in-cell checkboxes preserve true, false and blank values/);
   assert.match(view.text(), /Reference\/name\/custom validation is not retained or evaluated/);
   await view.click('Import XLSX as new work'); const original = new MaintenanceActions(disk, 'xlsx-import').read();
   assert.equal(original.input.base64, Buffer.from('identifier,text\r\n0012,=1+1\r\n').toString('base64')); assert.equal(open, 0); view.unmount();
@@ -103,7 +103,7 @@ test('XLSX local quota includes other drafts and refusal creates no import effec
   await view.choose();await view.click('Import XLSX as new work');assert.equal(imports,0);assert.match(view.text(),/storage is full/);assert.equal(new MaintenanceActions(disk,'xlsx-import').read(),null);view.unmount();
 });
 for (const [code, message] of [
-  ['xlsx_controls_not_supported', /cannot preserve native checkboxes/],
+  ['xlsx_controls_not_supported', /cannot preserve these checkbox settings/],
   ['xlsx_conditional_formatting_not_supported', /cannot yet preserve conditional formatting/],
 ]) test(`XLSX UI explains ${code} and creates no download`, async () => {
   const native = {commit:async()=>({id:'current'})};

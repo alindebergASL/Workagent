@@ -12,6 +12,8 @@ import struct
 import sys
 import zipfile
 import zlib
+from copy import deepcopy
+from xml.etree.ElementTree import Element, SubElement, tostring
 from pathlib import PurePosixPath
 
 resource.setrlimit(resource.RLIMIT_CPU, (8, 8))
@@ -20,6 +22,7 @@ resource.setrlimit(resource.RLIMIT_FSIZE, (24 * 1024 * 1024, 24 * 1024 * 1024))
 resource.setrlimit(resource.RLIMIT_NOFILE, (32, 32))
 import openpyxl
 from defusedxml.ElementTree import iterparse, fromstring
+from openpyxl.reader.excel import ExcelReader
 from openpyxl.formula.tokenizer import Tokenizer, TokenizerError
 from openpyxl.formula.translate import Translator
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -32,7 +35,8 @@ assert openpyxl.DEFUSEDXML
 BYTES, INFLATED, ENTRY, CELLS = 2_000_000, 20_000_000, 5_000_000, 50_000
 POLICY = ['Original bytes remain available. Native exchange preserves a bounded subset, not full Excel fidelity.',
           'Formula caches are discarded; supported formulas recalculate in the editor and on Excel open. Shared formulas expand to equivalent individual formulas.',
-          'Bounded literal inline-list validation is preserved. Reference/name/custom validation is not retained; no validation formulas are evaluated. Native checkboxes prevent export.',
+          'Bounded literal dropdowns and modern in-cell boolean/blank checkboxes are preserved. Checkbox formulas, merges, custom values and inherited row/column controls are refused. Legacy drawing controls and conditional checkbox styles are unsupported.',
+          'Reference/name/custom validation is not retained; no validation formulas are evaluated. Checkbox insertion defaults do not replace saved values.',
           'Dropdown colors/chips and render-mode presentation are not retained. Error/prompt settings are carried; Excel and native warning dialogs may differ.',
           'Charts, images, comments, hyperlinks, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
           'Date/time conversion uses the 1900 epoch with millisecond precision; the Excel fictitious leap day is refused. Empty grid padding can differ on reopen.']
@@ -140,8 +144,16 @@ def export_validations(book):
                 need(isinstance(rule, dict) and not set(rule) - {'uid','type','ranges','formula1','formula2','allowBlank','showDropDown','showErrorMessage','error','errorTitle','errorStyle','showInputMessage','prompt','promptTitle','renderMode'}, 'Unsupported native validation')
                 uid = rule.get('uid')
                 need(isinstance(uid, str) and re.fullmatch(r'[a-zA-Z0-9_-]{1,100}', uid) and uid not in ids and uid not in ('__proto__', 'constructor', 'prototype'), 'Invalid/duplicate validation ID'); ids.add(uid)
-                need(rule.get('type') == 'list', 'Native checkboxes or other controls cannot be exported as Excel controls')
-                source = inline_list(json.loads(rule['formula1']))
+                checkbox = rule.get('type') == 'checkbox'
+                need(checkbox or rule.get('type') == 'list', 'Unsupported native controls')
+                if checkbox:
+                    need(rule.get('formula1') in (None,'','TRUE','true','1') and rule.get('formula2') in (None,'','FALSE','false','0'), 'Custom checkbox values cannot be exported')
+                    need(rule.get('allowBlank', True) and rule.get('showDropDown', True)
+                         and not rule.get('showErrorMessage', False) and not rule.get('showInputMessage', False)
+                         and not any(rule.get(k) for k in MESSAGE_LIMITS) and 'renderMode' not in rule
+                         and rule.get('errorStyle', 2) == 2, 'Unsupported checkbox validation flags')
+                    source = None
+                else: source = inline_list(json.loads(rule['formula1']))
                 for key in ('allowBlank', 'showDropDown', 'showErrorMessage', 'showInputMessage'):
                     need(key not in rule or isinstance(rule[key], bool), 'Invalid validation boolean')
                 need(rule.get('errorStyle', 2) in ERROR_STYLES, 'Invalid error style')
@@ -157,7 +169,7 @@ def export_validations(book):
                     need(r['endRow'] < sheet['rowCount'] and r['endColumn'] < sheet['columnCount'] and r.get('unitId', book['id']) == book['id'] and r.get('sheetId', sid) == sid and r.get('rangeType', 0) == 0, 'Validation outside sheet')
                     ref = f"{get_column_letter(r['startColumn']+1)}{r['startRow']+1}:{get_column_letter(r['endColumn']+1)}{r['endRow']+1}"
                     validation_ranges(ref, occupied, budget); dv.add(ref)
-                result[sid].append(dv)
+                result[sid].append(rule if checkbox else dv)
     return result
 
 def formula(value, budget=None):
@@ -242,6 +254,230 @@ REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
 PACKAGE_REL = 'http://schemas.openxmlformats.org/package/2006/relationships'
 CONTENT = 'http://schemas.openxmlformats.org/package/2006/content-types'
 WORKSHEET_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
+FP = 'http://schemas.microsoft.com/office/spreadsheetml/2022/featurepropertybag'
+FP_REL = 'http://schemas.microsoft.com/office/2022/11/relationships/FeaturePropertyBag'
+FP_TYPE = 'application/vnd.ms-excel.featurepropertybag+xml'
+FP_URI = '{C7286773-470A-42A8-94C5-96B5CB345126}'
+
+def integer(value, limit, message='Invalid checkbox metadata index'):
+    need(isinstance(value, str) and re.fullmatch(r'0|[1-9][0-9]*', value) and len(value) <= 10, message)
+    result = int(value); need(result < limit, message); return result
+
+def checkbox_ranges(cells):
+    # Compress horizontal runs, then identical runs on consecutive rows. Never
+    # expand sheet dimensions or row/column styles into implicit cells.
+    rows = {}
+    for row, col in sorted(cells): rows.setdefault(row, []).append(col)
+    result = []; active = {}
+    for row, cols in rows.items():
+        runs = []
+        for col in cols:
+            if runs and col == runs[-1][1]+1: runs[-1][1] = col
+            else: runs.append([col, col])
+        following = {}
+        for start, end in runs:
+            previous = active.get((start, end))
+            if previous is not None and previous['endRow'] == row-1: previous['endRow'] = row
+            else:
+                previous = {'startRow':row,'endRow':row,'startColumn':start,'endColumn':end}
+                result.append(previous); need(len(result) <= 1000, 'Checkbox range limit')
+            following[start, end] = previous
+        active = following
+    return result
+
+def checkbox_metadata(parts, worksheets):
+    """Read only schema-validated explicit cell controls, before openpyxl loses XFs.
+
+    MS-XLSX XFComplements maps xfComplement.i through an array of bag IDs;
+    Checkbox/default is an insertion setting, never a persisted cell value.
+    """
+    rels = fromstring(parts['xl/_rels/workbook.xml.rels'])
+    def target(kind):
+        matches = [el for el in rels if el.get('Type') == kind]
+        need(len(matches) <= 1, 'Duplicate checkbox/style relationship')
+        if not matches: return None
+        el = matches[0]; value = el.get('Target', '')
+        need(el.get('TargetMode', 'Internal') == 'Internal' and value and not re.search(r'[\\%?#:]', value), 'Invalid checkbox/style relationship')
+        value = value[1:] if value.startswith('/') else 'xl/'+value
+        need(value in parts and str(PurePosixPath(value)) == value and '..' not in PurePosixPath(value).parts, 'Missing or unsafe checkbox/style part')
+        return value
+    feature, style = target(FP_REL), target(REL+'/styles')
+    feature_relationships = []
+    for name, raw in parts.items():
+        if name.endswith('.rels'):
+            feature_relationships.extend(name for e in fromstring(raw) if e.get('Type') == FP_REL)
+    need(feature_relationships == (['xl/_rels/workbook.xml.rels'] if feature else []), 'Conflicting checkbox relationships')
+    types = fromstring(parts['[Content_Types].xml'])
+    feature_parts = [e.get('PartName','')[1:] for e in types if e.get('ContentType') == FP_TYPE]
+    need(feature_parts == ([feature] if feature else []), 'Ambiguous feature property bag content type')
+    if not style:
+        need(not feature and 'xl/styles.xml' not in parts, 'Missing checkbox/style relationship'); return {}
+    # openpyxl reads this canonical styles part, so reject aliases rather than
+    # resolve control metadata against different styles than the cell reader.
+    need(style == 'xl/styles.xml' and any(e.get('PartName') == '/'+style and e.get('ContentType') == 'application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml' for e in types), 'Unsupported styles part mapping')
+    root = fromstring(parts[style]); need(root.tag == '{'+MAIN+'}styleSheet', 'Invalid styles root')
+    # openpyxl's style deserializers use local names, including collection
+    # replacement. A foreign or misplaced collection can reorder XF indices.
+    collections = {'cellXfs','cellStyleXfs','fonts','fills','borders','numFmts','cellStyles','dxfs','tableStyles','colors'}
+    seen = set()
+    for parent in root.iter():
+        for child in parent:
+            local = child.tag.rsplit('}',1)[-1]
+            if local in collections:
+                need(parent is root and child.tag == '{'+MAIN+'}'+local and local not in seen,
+                     'Shadowed style collection')
+                seen.add(local)
+            if local in ('xf','extLst','ext'):
+                need(child.tag == '{'+MAIN+'}'+local, 'Shadowed style metadata')
+            if parent.tag in ('{'+MAIN+'}cellXfs','{'+MAIN+'}cellStyleXfs'):
+                need(child.tag == '{'+MAIN+'}xf', 'Invalid style collection child')
+            if local == 'xf':
+                identity_attributes(child, {k:k for k in ('xfId','fontId','fillId','borderId','numFmtId')})
+                need(not any(e.tag.rsplit('}',1)[-1] in ('xfId','fontId','fillId','borderId','numFmtId') for e in child),
+                     'Nested style identity')
+    groups = root.findall('{'+MAIN+'}cellXfs'); need(len(groups) == 1, 'Ambiguous cell styles')
+    xfs = groups[0]; need(0 < len(xfs) <= 4000 and all(x.tag == '{'+MAIN+'}xf' for x in xfs), 'Invalid cell styles')
+    need('count' not in xfs.attrib or integer(xfs.get('count'), 4001) == len(xfs), 'Invalid style count')
+    bases = root.findall('{'+MAIN+'}cellStyleXfs'); need(len(bases) <= 1, 'Ambiguous base styles')
+    for xf in xfs:
+        if 'xfId' in xf.attrib: integer(xf.get('xfId'), len(bases[0]) if bases else 0, 'Invalid base style index')
+    recognized = []
+    for index, xf in enumerate(xfs):
+        extensions = xf.findall('{'+MAIN+'}extLst/{'+MAIN+'}ext')
+        matches = [ext for ext in extensions if ext.get('uri') == FP_URI or any(e.tag.rsplit('}',1)[-1] == 'xfComplement' for e in ext.iter())]
+        if matches:
+            need(len(matches) == 1 and len(matches[0]) == 1 and matches[0].get('uri') == FP_URI, 'Ambiguous checkbox style extension')
+            ref = matches[0][0]
+            need(ref.tag == '{'+FP+'}xfComplement' and set(ref.attrib) == {'i'} and not len(ref), 'Invalid checkbox style namespace/schema')
+            recognized.append((index, ref.get('i')))
+    # Conditional and named/base-style controls require inheritance/evaluation
+    # semantics outside this slice. Do not claim to have carried them.
+    all_refs = [e for e in root.iter() if e.tag.rsplit('}',1)[-1] == 'xfComplement']
+    need(len(all_refs) == len(recognized), 'Conditional or inherited checkbox styles unsupported')
+    need(not recognized or feature, 'Missing checkbox feature property bag')
+    if not feature: return {}
+    bags_root = fromstring(parts[feature])
+    need(bags_root.tag == '{'+FP+'}FeaturePropertyBags' and not bags_root.attrib, 'Invalid feature property bag root')
+    bags = list(bags_root); need(1 <= len(bags) <= 4000, 'Feature property bag limit')
+    need(sum(1 for _ in bags_root.iter()) <= 16000, 'Feature property element limit')
+    need(all(not (el.text or '').strip() for el in bags_root.iter() if el.tag in ('{'+FP+'}FeaturePropertyBags','{'+FP+'}bag','{'+FP+'}a'))
+         and all(not (el.tail or '').strip() for el in bags_root.iter()), 'Invalid feature property text')
+    mapper = []; links = {}
+    for index, bag in enumerate(bags):
+        kind = bag.get('type')
+        need(bag.tag == '{'+FP+'}bag' and kind in ('Checkbox','XFControls','XFComplement','XFComplements'), 'Unsupported feature property bag')
+        need(set(bag.attrib) == ({'type','extRef'} if kind == 'XFComplements' else {'type'}), 'Unsupported feature property attributes')
+        if kind == 'Checkbox':
+            need(len(bag) <= 1, 'Unsupported checkbox properties')
+            if len(bag):
+                prop = bag[0]
+                need(prop.tag == '{'+FP+'}i' and prop.attrib == {'k':'default'} and not len(prop), 'Invalid checkbox default')
+                integer(prop.text, 3, 'Invalid checkbox default')
+        elif kind == 'XFComplements':
+            need(not mapper and bag.get('extRef') == 'XFComplementsMapperExtRef' and len(bag) == 1, 'Ambiguous checkbox mapper')
+            array = bag[0]
+            need(array.tag == '{'+FP+'}a' and array.attrib == {'k':'MappedFeaturePropertyBags'} and 1 <= len(array) <= 4000, 'Invalid checkbox mapper array')
+            for ref in array:
+                need(ref.tag == '{'+FP+'}bagId' and not ref.attrib and not len(ref), 'Invalid checkbox mapper reference')
+                mapper.append(integer(ref.text, len(bags)))
+        else:
+            key = 'CellControl' if kind == 'XFControls' else 'XFControls'
+            need(len(bag) == 1, 'Unsupported checkbox feature combination')
+            ref = bag[0]
+            need(ref.tag == '{'+FP+'}bagId' and ref.attrib == {'k':key} and not len(ref), 'Invalid checkbox bag reference')
+            links[index] = integer(ref.text, len(bags))
+    need(mapper, 'Missing checkbox mapper')
+    # Validate every edge, including unused bags. Fixed type progression rules
+    # out cycles without recursive traversal of attacker-controlled graphs.
+    for index, dest in links.items():
+        expected = 'Checkbox' if bags[index].get('type') == 'XFControls' else 'XFControls'
+        need(bags[dest].get('type') == expected, 'Invalid/cyclic checkbox bag reference')
+    need(all(bags[i].get('type') == 'XFComplement' for i in mapper), 'Invalid checkbox mapper target')
+    checkbox_styles = set()
+    for index, mapping in recognized:
+        integer(mapping, len(mapper)); checkbox_styles.add(index)
+    need(0 not in checkbox_styles, 'Default/inherited checkbox style unsupported')
+    result = {}
+    for name in worksheets:
+        sheet = fromstring(parts[name]); cells = set(); ranges = []
+        parents = {child:parent for parent in sheet.iter() for child in parent}
+        for el in sheet.iter():
+            if el.tag in ('{'+MAIN+'}row','{'+MAIN+'}col'):
+                value = el.get('s') if el.tag.endswith('}row') else el.get('style')
+                if value is not None: need(integer(value, len(xfs)) not in checkbox_styles, 'Inherited row/column checkbox styles unsupported')
+            elif el.tag == '{'+MAIN+'}c':
+                index = integer(el.get('s','0'), len(xfs))
+                if index not in checkbox_styles: continue
+                a,b,_,_ = bounds(el.get('r',''))
+                parent = parents.get(el)
+                need(parent is not None and parent.tag == '{'+MAIN+'}row' and parent.get('r') == str(b)
+                     and parents.get(parent) is sheet.find('{'+MAIN+'}sheetData'), 'Invalid checkbox cell placement')
+                need(el.get('t') in (None,'n','b') and all(e.tag == '{'+MAIN+'}v' for e in el) and len(el) <= 1, 'Checkbox formula/rich/nonboolean cell unsupported')
+                if len(el): need(el.get('t') == 'b' and el[0].text in ('0','1') and not el[0].attrib and not len(el[0]), 'Checkbox requires boolean or blank value')
+                cells.add((b-1,a-1))
+            elif el.tag == '{'+MAIN+'}mergeCell': ranges.append(('merge', bounds(el.get('ref',''))))
+            elif el.tag == '{'+MAIN+'}dataValidation':
+                ranges.extend(('validation', bounds(ref)) for ref in el.get('sqref','').split())
+        for row,col in cells:
+            need(not any(a <= col+1 <= c and b <= row+1 <= d for _,(a,b,c,d) in ranges), 'Checkbox overlap with validation/merge unsupported')
+        if cells: result[name] = checkbox_ranges(cells)
+    return result
+
+def add_checkbox_parts(data, controls):
+    # Only the fresh openpyxl output is transformed; no original ZIP members
+    # are passed through. Clone each base XF once, preserving ordinary cells.
+    with zipfile.ZipFile(io.BytesIO(data)) as z: parts = {n:z.read(n) for n in z.namelist()}
+    styles = fromstring(parts['xl/styles.xml']); xfs = styles.find('{'+MAIN+'}cellXfs'); clones = {}
+    for index, cells in controls.items():
+        name = f'xl/worksheets/sheet{index}.xml'; sheet = fromstring(parts[name])
+        sheet_data = sheet.find('{'+MAIN+'}sheetData')
+        rows = {int(row.get('r')):row for row in sheet_data}
+        existing = {cell.get('r') for cell in sheet_data.iter('{'+MAIN+'}c')}
+        for ref in sorted(cells - existing, key=lambda ref: (bounds(ref)[1],bounds(ref)[0])):
+            col,row,_,_ = bounds(ref)
+            if row not in rows:
+                rows[row] = Element('{'+MAIN+'}row', r=str(row)); sheet_data.append(rows[row])
+            SubElement(rows[row], '{'+MAIN+'}c', r=ref)
+        sheet_data[:] = sorted(sheet_data, key=lambda row:int(row.get('r')))
+        for row in sheet_data: row[:] = sorted(row, key=lambda cell:bounds(cell.get('r'))[0])
+        found = set()
+        for cell in sheet.iter('{'+MAIN+'}c'):
+            ref = cell.get('r')
+            if ref not in cells: continue
+            found.add(ref); base = int(cell.get('s','0'))
+            if base not in clones:
+                clone = deepcopy(xfs[base]); clones[base] = len(xfs); xfs.append(clone)
+                ext = SubElement(SubElement(clone, '{'+MAIN+'}extLst'), '{'+MAIN+'}ext', uri=FP_URI)
+                SubElement(ext, '{'+FP+'}xfComplement', i='0')
+            cell.set('s', str(clones[base]))
+        need(found == cells, 'Missing exported checkbox cell')
+        parts[name] = tostring(sheet)
+    xfs.set('count',str(len(xfs))); parts['xl/styles.xml'] = tostring(styles)
+    root = Element('{'+FP+'}FeaturePropertyBags')
+    SubElement(root, '{'+FP+'}bag', type='Checkbox')
+    SubElement(SubElement(root, '{'+FP+'}bag', type='XFControls'), '{'+FP+'}bagId', k='CellControl').text = '0'
+    SubElement(SubElement(root, '{'+FP+'}bag', type='XFComplement'), '{'+FP+'}bagId', k='XFControls').text = '1'
+    mapper = SubElement(root, '{'+FP+'}bag', type='XFComplements', extRef='XFComplementsMapperExtRef')
+    SubElement(SubElement(mapper, '{'+FP+'}a', k='MappedFeaturePropertyBags'), '{'+FP+'}bagId').text = '2'
+    part = 'xl/featurePropertyBag/featurePropertyBag.xml'; parts[part] = tostring(root)
+    rels = fromstring(parts['xl/_rels/workbook.xml.rels'])
+    SubElement(rels, '{'+PACKAGE_REL+'}Relationship', Id='workagentCheckbox', Type=FP_REL, Target='featurePropertyBag/featurePropertyBag.xml')
+    parts['xl/_rels/workbook.xml.rels'] = tostring(rels)
+    types = fromstring(parts['[Content_Types].xml'])
+    SubElement(types, '{'+CONTENT+'}Override', PartName='/'+part, ContentType=FP_TYPE)
+    parts['[Content_Types].xml'] = tostring(types)
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+        for name, raw in parts.items(): z.writestr(name, raw)
+    return out.getvalue()
+
+def identity_attributes(el, expected):
+    # Serialisable.from_tree strips namespaces and also consumes child local
+    # names. Refuse alternate spellings of identities we validate separately.
+    for key in el.attrib:
+        local = key.rsplit('}', 1)[-1]
+        if local in expected:
+            need(key == expected[local], 'Shadowed XLSX identity attribute')
 
 def worksheet_parts(parts):
     def xml(name, root):
@@ -251,6 +487,8 @@ def worksheet_parts(parts):
     types = xml('[Content_Types].xml', '{'+CONTENT+'}Types')
     overrides = {}; defaults = {}
     for el in types:
+        need(not len(el), 'Nested content type identity')
+        identity_attributes(el, {k:k for k in ('PartName','ContentType','Extension')})
         if el.tag == '{'+CONTENT+'}Override':
             name = el.get('PartName', '')
             need(name.startswith('/') and name[1:] in parts and name not in overrides, 'Ambiguous XLSX content type')
@@ -264,6 +502,8 @@ def worksheet_parts(parts):
     def relationships(name, directory):
         result = {}
         for el in xml(name, '{'+PACKAGE_REL+'}Relationships'):
+            need(not len(el), 'Nested relationship identity')
+            identity_attributes(el, {k:k for k in ('Id','Type','Target','TargetMode')})
             rid, target = el.get('Id'), el.get('Target', '')
             need(el.tag == '{'+PACKAGE_REL+'}Relationship' and rid and rid not in result, 'Ambiguous XLSX relationship')
             if el.get('Type') in (REL+'/worksheet', REL+'/officeDocument'):
@@ -276,18 +516,29 @@ def worksheet_parts(parts):
     need([target for kind,target in package_rels.values() if kind == REL+'/officeDocument'] == ['xl/workbook.xml'], 'Ambiguous workbook relationship')
     rels = relationships('xl/_rels/workbook.xml.rels', 'xl/')
     wb = xml('xl/workbook.xml', '{'+MAIN+'}workbook')
+    for parent in wb.iter():
+        for child in parent:
+            local = child.tag.rsplit('}',1)[-1]
+            if local in ('workbook','sheets','sheet'):
+                need(child.tag == '{'+MAIN+'}'+local and
+                     ((local == 'sheets' and parent is wb) or
+                      (local == 'sheet' and parent.tag == '{'+MAIN+'}sheets' and parent in list(wb))),
+                     'Shadowed workbook sheet structure')
     groups = wb.findall('{'+MAIN+'}sheets'); need(len(groups) == 1, 'Ambiguous workbook sheets')
-    result = set(); ids = set(); names = set(); refs = set()
+    result = []; descriptors = []; ids = set(); names = set(); refs = set()
     for el in groups[0]:
+        need(not len(el), 'Nested worksheet identity')
+        identity_attributes(el, {'name':'name','sheetId':'sheetId','id':'{'+REL+'}id','state':'state'})
         rid, sid, name = el.get('{'+REL+'}id'), el.get('sheetId'), el.get('name', '').lower()
         need(el.tag == '{'+MAIN+'}sheet' and rid in rels and rid not in refs and sid and sid not in ids and name and name not in names, 'Ambiguous worksheet identity')
         kind,target = rels[rid]
         need(kind == REL+'/worksheet' and part_type(target) == WORKSHEET_TYPE and target not in result, 'Invalid worksheet part type/relationship')
-        result.add(target); ids.add(sid); names.add(name); refs.add(rid)
+        descriptors.append({'path':target, 'name':el.get('name'), 'id':rid, 'sheetId':int(sid)})
+        result.append(target); ids.add(sid); names.add(name); refs.add(rid)
     need(1 <= len(result) <= 20, 'Worksheet count limit')
-    need(result == {name for name in parts if part_type(name) == WORKSHEET_TYPE}
+    need(set(result) == {name for name in parts if part_type(name) == WORKSHEET_TYPE}
          and refs == {rid for rid,(kind,_) in rels.items() if kind == REL+'/worksheet'}, 'Ambiguous worksheet parts')
-    return result
+    return descriptors
 
 def preflight(data):
     need(len(data) <= BYTES and data[:4] == b'PK\x03\x04', 'Choose an unencrypted XLSX under 2 MB')
@@ -304,14 +555,19 @@ def preflight(data):
             lower = name.lower()
             need(not any(x in lower for x in ('vbaproject', 'activex', 'externallinks/', 'embeddings/', 'connections.xml', 'querytables/', 'customui/')), 'Macros, external data or active content unsupported')
             parts[name] = read_member(z, entry, data, total)
-        worksheets = worksheet_parts(parts)
+        descriptors = worksheet_parts(parts)
+        worksheets = [sheet['path'] for sheet in descriptors]
         cells = 0; styles = 0; merges = 0; merge_cells = 0; strings = 0
         validation_count = 0; validation_budget = [0, 0]
+        placements = {'worksheet':None, 'sheetData':'worksheet', 'row':'sheetData', 'c':'row',
+                      'v':'c', 'f':'c', 'is':'c', 'cols':'worksheet', 'col':'cols',
+                      'mergeCells':'worksheet', 'mergeCell':'mergeCells',
+                      'dataValidations':'worksheet', 'dataValidation':'dataValidations'}
         for name, raw in parts.items():
             if name.lower().endswith(('.xml', '.rels')) or name in worksheets:
                 worksheet = name in worksheets; seen_cells = set(); root = None
                 occupied = set(); merged = []; current_cell = None
-                stack = []; validation_occupied = []; validation_groups = 0; validation_children = set()
+                identity_counts = {}; stack = []; validation_occupied = []; validation_groups = 0; validation_children = set()
                 for event, el in iterparse(io.BytesIO(raw), events=('start', 'end')):
                     tag = el.tag.rsplit('}', 1)[-1]
                     if event == 'start':
@@ -320,6 +576,18 @@ def preflight(data):
                             root = el.tag
                             need((root == '{'+MAIN+'}worksheet') == worksheet and (tag != 'worksheet' or worksheet), 'Worksheet root/type mismatch')
                         need(len(el.attrib) <= 40 and all(len(v) <= 20000 for v in el.attrib.values()), 'XML attribute limit')
+                        if worksheet:
+                            if tag in placements:
+                                expected = placements[tag]
+                                need(el.tag == '{'+MAIN+'}'+tag and
+                                     parent == ('{'+MAIN+'}'+expected if expected else None),
+                                     'Shadowed worksheet cell structure')
+                                identity_attributes(el, {k:k for k in ('r','s','t','style','ref','sqref')})
+                            if parent == '{'+MAIN+'}row':
+                                need(el.tag == '{'+MAIN+'}c', 'Invalid worksheet row child')
+                            if tag in ('sheetData','cols','mergeCells'):
+                                identity_counts[tag] = identity_counts.get(tag, 0)+1
+                                need(identity_counts[tag] == 1, 'Duplicate worksheet structure')
                         if el.tag == '{'+MAIN+'}dataValidations':
                             validation_groups += 1
                             need(worksheet and parent == '{'+MAIN+'}worksheet' and validation_groups == 1, 'Invalid validation container')
@@ -363,8 +631,8 @@ def preflight(data):
                         if tag in ('xf', 'font', 'fill', 'border', 'numFmt'):
                             styles += 1; need(styles <= 4000, 'Style complexity limit')
                         if worksheet and tag == 'f': need(el.get('t', 'normal') in ('normal', 'shared'), 'Array/data-table formulas unsupported')
-                        if tag in ('drawing', 'legacyDrawing', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
-                            warnings.add('Not retained: ' + tag)
+                        if tag in ('drawing', 'legacyDrawing', 'legacyDrawingHF', 'controls', 'control', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
+                            warnings.add('Unsupported extension metadata is not retained; recognized in-cell checkbox controls are mapped.' if tag == 'extLst' else 'Not retained: ' + tag)
                     else:
                         if el.text: field(el.text, 20000)
                         if worksheet and tag == 'c': current_cell = None
@@ -374,7 +642,8 @@ def preflight(data):
                     for ref in occupied:
                         x,y,_,_ = bounds(ref)
                         need(not any(a <= x <= c and b <= y <= d and (x,y) != (a,b) for a,b,c,d in merged), 'Merge would discard cell content')
-    return warnings
+        checkboxes = checkbox_metadata(parts, worksheets)
+    return warnings, [{**sheet, 'checkboxes':checkboxes.get(sheet['path'], [])} for sheet in descriptors]
 
 def rgb(color):
     return '#' + color.rgb[-6:] if color and color.type == 'rgb' else None
@@ -397,8 +666,15 @@ def native_style(cell, warnings):
     return s
 
 def import_book(data):
-    warnings = preflight(data)
-    wb = openpyxl.load_workbook(io.BytesIO(data), data_only=False, keep_links=False, rich_text=False)
+    warnings, descriptors = preflight(data)
+    reader = ExcelReader(io.BytesIO(data), data_only=False, keep_links=False, rich_text=False)
+    reader.read(); wb = reader.wb
+    loaded = [{'name':sheet.name, 'id':sheet.id, 'sheetId':sheet.sheetId, 'path':rel.target}
+              for sheet, rel in reader.parser.find_sheets()]
+    need(loaded == [{k:sheet[k] for k in ('name','id','sheetId','path')} for sheet in descriptors]
+         and [ws.title for ws in wb.worksheets] == [sheet['name'] for sheet in descriptors],
+         'Loaded worksheet identity/order mismatch')
+    checkboxes = [sheet['checkboxes'] for sheet in descriptors]
     need(wb.epoch == WINDOWS_EPOCH, '1904 date-epoch workbooks are refused; convert to the 1900 epoch before import. Original not adopted.')
     book = {'id': 'preview', 'name': 'Imported XLSX', 'appVersion': '1.4.0', 'locale': 'enUS', 'styles': {}, 'sheetOrder': [], 'sheets': {}}
     total = 0; formulas = 0; budget = [0]; controls = {}
@@ -408,6 +684,9 @@ def import_book(data):
         sheet = {'id': sid, 'name': field(ws.title, 31), 'rowCount': max(200, ws.max_row), 'columnCount': max(26, ws.max_column), 'cellData': {}, 'mergeData': [], 'rowData': {}, 'columnData': {}, 'defaultColumnWidth': 110, 'defaultRowHeight': 24}
         book['sheets'][sid] = sheet
         rules = import_validations(ws, sheet, sid, warnings)
+        check_positions = {(row,col) for r in checkboxes[i] for row in range(r['startRow'],r['endRow']+1) for col in range(r['startColumn'],r['endColumn']+1)}
+        if checkboxes[i]:
+            rules.append({'uid':f'xlsx-{sid}-checkbox','type':'checkbox','formula1':'1','formula2':'0','ranges':checkboxes[i]})
         if rules: controls[sid] = rules
         if ws.sheet_state != 'visible': warnings.add('Hidden sheets are imported as visible.')
         for cell in ws._cells.values(): # Sparse: never expand a dimension-only rectangle.
@@ -416,7 +695,10 @@ def import_book(data):
             v = cell.value; out = {}
             if cell.data_type == 'f':
                 formulas += 1; need(formulas <= 2000, '2,000-formula limit'); out['f'] = formula(v, budget)
-            elif isinstance(v, bool): out.update(v=v, t=3)
+            elif isinstance(v, bool):
+                # Univer's checkbox renderer compares 0/1; t=3 retains boolean
+                # semantics, and export writes actual Excel boolean cells.
+                out.update(v=int(v) if (cell.row-1,cell.column-1) in check_positions else v, t=3)
             elif isinstance(v, (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)):
                 need(not isinstance(v, (datetime.datetime, datetime.date)) or (v.year, v.month, v.day) != (1900, 2, 28), 'Ambiguous Excel 1900 leap-day date refused')
                 out.update(v=to_excel(v, wb.epoch) if not isinstance(v, datetime.timedelta) else v.total_seconds()/86400, t=2)
@@ -436,7 +718,9 @@ def import_book(data):
             a, b = dim.min or column_index_from_string(key), dim.max or column_index_from_string(key)
             need(1 <= a <= b <= 200, 'Column dimension limit')
             for c in range(a, b+1): sheet['columnData'][str(c-1)] = {**({'w': dim.width * 7 + 5} if dim.width else {}), **({'hd': 1} if dim.hidden else {})}
-    if controls: book['resources'] = [{'name': CONTROL_RESOURCE, 'data': json.dumps(controls, ensure_ascii=True, separators=(',', ':'))}]
+    if controls:
+        book['resources'] = [{'name': CONTROL_RESOURCE, 'data': json.dumps(controls, ensure_ascii=True, separators=(',', ':'))}]
+        export_validations(book) # Combined checkbox/dropdown rule/range/area caps.
     warnings.add('Column widths use approximate Excel-to-pixel conversion. Rich text is imported as plain text; theme colors and advanced layout may differ.')
     return {'book': book, 'warnings': sorted(warnings), 'cells': total}
 
@@ -445,12 +729,23 @@ def export_book(book):
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
     warnings = set(POLICY); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
-    for sid in book['sheetOrder']:
+    checkbox_cells = {}
+    for index, sid in enumerate(book['sheetOrder'], 1):
         sheet = book['sheets'][sid]; name = field(sheet['name'], 31)
         need(not re.search(r'[\\/*?:\[\]]', name) and name.lower() not in [s.lower() for s in wb.sheetnames], 'Unsupported/duplicate Excel tab name')
         need(1 <= sheet['rowCount'] <= 10000 and 1 <= sheet['columnCount'] <= 200, 'Sheet bounds')
         ws = wb.create_sheet(name); masters = {}
-        for dv in validations.get(sid, []): ws.add_data_validation(dv)
+        checks = []
+        for dv in validations.get(sid, []):
+            if isinstance(dv, dict): checks.extend(dv['ranges'])
+            else: ws.add_data_validation(dv)
+        selected = set()
+        for check in checks:
+            for row in range(check['startRow'],check['endRow']+1):
+                for col in range(check['startColumn'],check['endColumn']+1):
+                    selected.add((row,col)); need(len(selected) <= CELLS, '50,000 checkbox cell limit')
+        stored = {(int(r),int(c)) for r,values in sheet.get('cellData',{}).items() for c,cell in values.items() if cell is not None}
+        total += len(selected - stored); need(total <= CELLS, '50,000 stored-cell limit')
         for r, row in sheet.get('cellData', {}).items():
             for c, cell in row.items():
                 if cell and cell.get('si') and cell.get('f'):
@@ -463,6 +758,10 @@ def export_book(book):
                 rr, cc = int(r)+1, int(c)+1
                 need(1 <= rr <= sheet['rowCount'] and 1 <= cc <= sheet['columnCount'], 'Cell bounds')
                 dest = ws.cell(rr, cc); v = cell.get('v'); f = cell.get('f')
+                if (rr-1,cc-1) in selected:
+                    need(not any(cell.get(k) is not None for k in ('f','si','p')) and (v is None or type(v) is bool or type(v) in (int,float) and v in (0,1) and cell.get('t') in (2,3)), 'Checkbox requires literal boolean/blank; formula/rich/custom values unsupported')
+                    need(v is None or cell.get('t') in (None,2,3), 'Checkbox value type unsupported')
+                    if v is not None: v = bool(v)
                 if cell.get('si') and not f:
                     need(cell['si'] in masters, 'Missing shared-formula anchor')
                     master, origin = masters[cell['si']]; f = Translator(master, origin=origin).translate_formula(dest.coordinate)
@@ -492,9 +791,15 @@ def export_book(book):
             ref = f"{get_column_letter(m['startColumn']+1)}{m['startRow']+1}:{get_column_letter(m['endColumn']+1)}{m['endRow']+1}"; a,b,c,d = bounds(ref)
             merge_area += (c-a+1)*(d-b+1); need(merge_area <= CELLS, 'Merge expansion limit')
             need(c <= sheet['columnCount'] and d <= sheet['rowCount'], 'Merge outside sheet')
+            need(not any(a <= col+1 <= c and b <= row+1 <= d for row,col in selected), 'Checkbox merge unsupported')
             for row in ws.iter_rows(min_row=b,max_row=d,min_col=a,max_col=c):
                 for cell in row: need(cell.coordinate == f'{get_column_letter(a)}{b}' or cell.value is None, 'Merge would discard cell content')
             ws.merge_cells(ref)
+        if selected:
+            checkbox_cells[index] = set()
+            for row,col in selected:
+                dest = ws.cell(row+1,col+1)
+                checkbox_cells[index].add(dest.coordinate)
         for r, dim in sheet.get('rowData', {}).items():
             need(0 <= int(r) < 10000, 'Row dimension limit')
             if dim.get('h'): ws.row_dimensions[int(r)+1].height = dim['h'] * 3/4
@@ -505,6 +810,7 @@ def export_book(book):
             if dim.get('w'): d.width = max(0, (dim['w']-5)/7)
             d.hidden = bool(dim.get('hd'))
     output = io.BytesIO(); wb.save(output); data = output.getvalue()
+    if checkbox_cells: data = add_checkbox_parts(data, checkbox_cells)
     need(len(data) <= BYTES, 'Export exceeds 2 MB; no file produced')
     preflight(data)
     return {'base64': base64.b64encode(data).decode(), 'warnings': sorted(warnings)}

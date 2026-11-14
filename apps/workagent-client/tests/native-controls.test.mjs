@@ -132,13 +132,13 @@ for (const imported of [false, true]) test(`${imported ? 'imported' : 'new nativ
     for (const [row, choice] of choices.entries()) { assert.equal(cold.sheets.sheet1.cellData[row][0].v, choice); assert.equal(cold.sheets.sheet1.cellData[row][0].t, 1); }
     assert.equal(cold.sheets.sheet1.cellData[1][1].v, 1); assert.equal(cold.sheets.sheet1.cellData[1][1].t, 2);
     assert.deepEqual(sheetControls(cold), sheetControls(saved));
-    // Checkbox file mapping remains explicitly unsupported; remove that rule by
-    // its actual command before exercising the supported XLSX list round trip.
-    view.api.getActiveWorkbook().getActiveSheet().getRange('B2').setDataValidation(null);
+    // Mixed native checkbox/list controls survive actual XLSX export and reimport.
     const xlsx = trustedCodec({ op: 'export', book: view.handle.save() });
     const reimported = trustedCodec({ op: 'import', base64: xlsx.base64 }).book;
     for (const [row, choice] of choices.entries()) { assert.equal(reimported.sheets.sheet1.cellData[row][0].v, choice); assert.equal(reimported.sheets.sheet1.cellData[row][0].t, 1); }
     assert.equal(reimported.sheets.sheet1.cellData[0][2].f, '=1+2');
+    assert.equal(reimported.sheets.sheet1.cellData[1][1].v, 1);
+    assert.ok(sheetControls(reimported).sheet1.some(rule => rule.type === 'checkbox'));
     assert.equal(reimported.sheets.sheet1.cellData[10][0].t, 2); assert.equal(reimported.sheets.sheet1.cellData[11][0].t, 3);
   } finally { await delay(1100); view.dispose(); }
 });
@@ -272,8 +272,10 @@ test('native controls create/edit/delete blank cells, preserve values/styles/for
       await ws.save('owner',workId,{commandId:'cold-move',book:next,formatEdits:reopened.handle.formatEdits(),contentRevision:saved.contentRevision,permissionRevision:1});
       const current=await ws.get('owner',workId);
       assert.equal((await ws.mutate('owner',workId,{commandId:'moved-agent',expected:current.expected,patch:{cells:[{sheetId:'sheet1',row:6,column:1,value:'No'}]}})).status,'proposed');
-      const xlsx=new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must refuse before worker');}}});
-      await assert.rejects(()=>xlsx.export('owner',{workId,book:next}),/xlsx_controls_not_supported/);
+      const xlsx=new XlsxExchange({workspace:ws,worker:{run:async input=>trustedCodec(input)}});
+      const exported=await xlsx.export('owner',{workId,book:next});
+      const reimported=trustedCodec({op:'import',base64:exported.base64}).book;
+      assert.ok(sheetControls(reimported).sheet1.some(rule=>rule.type==='checkbox'));
       assert.deepEqual((await ws.get('owner',workId)).book,next);
 } finally {await delay(1100);reopened.dispose();}
     assert.equal(await ws.claim('owner'),null);

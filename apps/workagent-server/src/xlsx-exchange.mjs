@@ -101,7 +101,11 @@ export class XlsxExchange {
     if (book.id !== input.workId) throw new Fault('invalid_workbook', 400);
     if (sheetCharts(book).length) throw new Fault('xlsx_charts_not_supported', 400);
     if (hasConditionalRules(book)) throw new Fault('xlsx_conditional_formatting_not_supported', 400);
-    if (Object.values(sheetControls(book)).some(rules => rules.some(rule => rule.type !== 'list'))) throw new Fault('xlsx_controls_not_supported', 400);
+    if (Object.values(sheetControls(book)).some(rules => rules.some(rule => rule.type === 'checkbox' && (
+      rule.allowBlank === false || rule.showDropDown === false || rule.showErrorMessage === true || rule.showInputMessage === true
+      || ['error', 'errorTitle', 'prompt', 'promptTitle'].some(key => rule[key]) || rule.renderMode !== undefined
+      || rule.errorStyle !== undefined && rule.errorStyle !== 2
+    )))) throw new Fault('xlsx_controls_not_supported', 400);
     const result = await this.worker.run({ op: 'export', book });
     await this.grant(principal, grant, input.workId);
     decode({ filename: 'export.xlsx', base64: result.base64, synthetic: true }, false);

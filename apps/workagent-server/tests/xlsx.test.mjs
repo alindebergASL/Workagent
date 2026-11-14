@@ -64,7 +64,7 @@ test('dropdown XLSX import protects blank cells, rebinds IDs, exact-retries and 
   assert.deepEqual(trustedCodec({op:'import',base64:exported.base64}).book.sheets.sheet2.cellData[5][2],{v:'=1+1',t:1});
   assert.equal(Object.keys((await f.state()).jobs).length,0);
 });
-test('dropdown export refuses mixed checkboxes, ambiguous lists, overlapping rules and invalid resource identities', async () => {
+test('dropdown export refuses unsupported checkbox flags, ambiguous lists, overlapping rules and invalid resource identities', async () => {
   const f = await fixture(); const created = await f.workspace.createBlank('owner',{commandId:'new',title:'Export'});
   for (const [label, change, pattern] of [
     ['checkbox', rules=>rules.push({...rules[0],uid:'check',type:'checkbox',formula1:'TRUE',formula2:'FALSE'}), /xlsx_controls_not_supported/],
@@ -80,6 +80,32 @@ test('dropdown export refuses mixed checkboxes, ambiguous lists, overlapping rul
     change(data.sheet1); book.resources[0].data=JSON.stringify(data);
     await assert.rejects(()=>f.xlsx.export('owner',{workId:book.id,book}),pattern,label);
   }
+});
+test('modern checkbox exchange protects blank controls, retains exact original and permits mixed dropdown export', async () => {
+  const book = dropdownBook(), controls = sheetControls(book);
+  for (const sid of book.sheetOrder) {
+    controls[sid].push({uid:'checks',type:'checkbox',ranges:[{startRow:8,endRow:10,startColumn:4,endColumn:4}]});
+    book.sheets[sid].cellData[8] = {4:{v:false,t:3,s:{bl:1}},5:{v:false,t:3,s:{bl:1}}};
+    book.sheets[sid].cellData[9] = {4:{v:true,t:3,s:{bl:1}}};
+  }
+  book.resources[0].data=JSON.stringify(controls);
+  const bytes=Buffer.from(trustedCodec({op:'export',book}).base64,'base64');
+  const f=await fixture(), input={...xlsxInput('checkbox-import'),base64:bytes.toString('base64')};
+  const imported=await f.xlsx.import('owner',input), w=await f.workspace.get('owner',imported.workId);
+  assert.deepEqual((await f.exchange.original('owner',w.id,imported.original.id)).bytes,bytes);
+  assert.deepEqual(await f.xlsx.import('owner',input),imported);
+  for(const sid of w.book.sheetOrder) {
+    assert.ok(w.humanCells.includes(`${sid}:10:4`));
+    assert.equal(sheetControls(w.book)[sid].filter(r=>r.type==='checkbox').length,1);
+    assert.equal(w.book.sheets[sid].cellData[8][5].v,false);
+  }
+  const before=await f.state(), exported=await f.xlsx.export('owner',{workId:w.id,book:w.book});
+  const reopened=trustedCodec({op:'import',base64:exported.base64}).book;
+  assert.equal(reopened.sheets.sheet1.cellData[8][4].v,0);
+  assert.equal(reopened.sheets.sheet1.cellData[9][4].v,1);
+  assert.equal(reopened.sheets.sheet1.cellData[10]?.[4]?.v,undefined);
+  assert.deepEqual(await f.state(),before);
+  assert.equal((await f.workspace.mutate('owner',w.id,{commandId:'blank-checkbox-change',expected:w.expected,patch:{cells:[{sheetId:'sheet1',row:10,column:4,value:true}]}})).status,'proposed');
 });
 test('real XLSX preview/import/exact original, restart retry, human ownership, explicit-only model admission', async () => {
   const f = await fixture(), before = await f.state();
