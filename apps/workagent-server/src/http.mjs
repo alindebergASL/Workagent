@@ -19,10 +19,10 @@ export function identity({ token, origin, owner }) {
     origin(req) { if (req.method !== 'GET' && req.headers.origin !== origin) throw new Fault('origin_denied', 403); },
   };
 }
-async function body(req) {
+async function body(req, limit = 4_500_000) {
   if (!req.headers['content-type']?.startsWith('application/json')) throw new Fault('json_required', 415);
   let size = 0; const chunks = [];
-  for await (const c of req) { size += c.length; if (size > 4_500_000) throw new Fault('request_too_large', 413); chunks.push(c); }
+  for await (const c of req) { size += c.length; if (size > limit) throw new Fault('request_too_large', 413); chunks.push(c); }
   try { return JSON.parse(Buffer.concat(chunks).toString()); } catch { throw new Fault('invalid_json', 400); }
 }
 function responseHeaders(res) {
@@ -80,13 +80,14 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
       if (path === '/api/work/blank' && req.method === 'POST') return send(200, await workspace.createBlank(principal, await body(req)));
-      if (pdf && path === '/api/exchange/pdf/export' && req.method === 'POST') {
+      if (pdf && /^\/api\/exchange\/pdf\/(export|preview|import)$/.test(path) && req.method === 'POST') {
         const abort = new AbortController(), disconnected = () => { if (!res.writableEnded) abort.abort(); };
         req.once('aborted', disconnected); res.once('close', disconnected);
         try {
-          const input = await body(req);
+          const operation = path.split('/').at(-1);
+          const input = await body(req, operation === 'export' ? 4_500_000 : 21_335_000);
           if (req.aborted || res.destroyed) abort.abort();
-          const result = await pdf.export(principal, input, { signal: abort.signal });
+          const result = await pdf[operation](principal, input, { signal: abort.signal });
           if (!res.destroyed) return send(200, result);
           return;
         } finally { req.off('aborted', disconnected); res.off('close', disconnected); }
@@ -104,7 +105,7 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       const original = /^\/api\/work\/([a-zA-Z0-9_-]+)\/original\/([a-zA-Z0-9_-]+)$/.exec(path);
       if (exchange && original && req.method === 'GET') {
         const result = await exchange.original(principal, original[1], original[2]);
-        res.writeHead(200, { 'Content-Type': result.original.format === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/octet-stream', 'Content-Disposition': `attachment; filename="original.${result.original.format === 'docx' ? 'docx' : result.original.format === 'xlsx' ? 'xlsx' : result.original.format === 'text' ? 'txt' : 'csv'}"; filename*=UTF-8''${encodeURIComponent(result.original.filename).replace(/'/g, '%27')}`, 'Content-Length': result.bytes.length });
+        res.writeHead(200, { 'Content-Type': result.original.format === 'pdf' ? 'application/pdf' : result.original.format === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/octet-stream', 'Content-Disposition': `attachment; filename="original.${result.original.format === 'pdf' ? 'pdf' : result.original.format === 'docx' ? 'docx' : result.original.format === 'xlsx' ? 'xlsx' : result.original.format === 'text' ? 'txt' : 'csv'}"; filename*=UTF-8''${encodeURIComponent(result.original.filename).replace(/'/g, '%27')}`, 'Content-Length': result.bytes.length });
         res.end(result.bytes); return;
       }
       if (path === '/api/sources' && req.method === 'POST') return send(200, await workspace.source(principal, await body(req)));

@@ -164,7 +164,7 @@ test('Postgres read seam issues only SELECT and never persists callback mutation
   assert.equal(await store.read(s => { s.enabled = false; return s.owner; }), 'owner'); assert.equal(row.enabled, true);
   assert.equal(calls.length, 1); assert.match(calls[0][0], /^SELECT /); assert.doesNotMatch(calls[0][0], /FOR UPDATE/);
 });
-test('HTTP auth/origin/body fences, export-only route and disconnect abort', async () => {
+test('HTTP auth/origin/body fences, export snapshot rejected as import, and disconnect abort', async () => {
   const f = fixture(), origin = 'https://private.test', token = 'synthetic-test-token-at-least-32-characters';
   const handler = createHandler({ ...f, owner: 'owner', origin, token, clientRoot: '/tmp', onCommand: () => assert.fail('no model') });
   async function req({ path = '/api/exchange/pdf/export', auth = true, from = origin, type = 'application/json', payload = JSON.stringify(f.input), disconnect = false } = {}) {
@@ -177,7 +177,7 @@ test('HTTP auth/origin/body fences, export-only route and disconnect abort', asy
   assert.equal((await req({ auth: false })).status, 401); assert.equal((await req({ from: 'https://evil.test' })).status, 403);
   assert.equal((await req({ type: 'text/plain' })).status, 415); assert.equal((await req({ payload: '{' })).status, 400);
   assert.equal((await req({ payload: ' '.repeat(4_500_001) })).status, 413);
-  assert.equal((await req({ path: '/api/exchange/pdf/import' })).status, 404);
+  assert.equal((await req({ path: '/api/exchange/pdf/import' })).status, 400);
   assert.equal((await req()).status, 200); assert.equal(f.calls.length, 1);
   let signal;
   f.worker.run = async (input, options) => { signal = options.signal; await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true })); return result; };
@@ -194,7 +194,7 @@ test('namespace mount/environment allowlist and identity use actual actor; unava
   }
 });
 function child(script) { return spawn('/usr/bin/python3', ['-c', script], { detached: true, env: {}, stdio: ['pipe', 'pipe', 'pipe'] }); }
-for (const [code,status] of [['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400],['unsupported_pdf_marker_formatting',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
+for (const [code,status] of [['pdf_page_without_text',400],['pdf_fonts_unavailable',503],['pdf_unsupported_text',400],['pdf_missing_glyph',400],['unsupported_pdf_list_number',400],['unsupported_pdf_list_layout',400],['unsupported_pdf_marker_formatting',400]]) test(`renderer ${code} remains a typed visible refusal`, async()=>{
   await assert.rejects(collectChild(child(`print('{"error":"${code}"}');raise SystemExit(1)`),''), error=>error.code===code && error.status===status);
 });
 for (const [name, script, error] of [

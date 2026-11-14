@@ -46,7 +46,7 @@ const exchange = new CsvExchange({ workspace, files: maintenance.files });
 const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new XlsxWorker({ venv: process.env.WORKAGENT_XLSX_VENV }) });
 const docx = new DocxExchange({ workspace, files: maintenance.files, worker: new DocxWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 const documents = new DocumentExchange({ workspace, files: maintenance.files });
-const pdf = new PdfExchange({ workspace, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
+const pdf = new PdfExchange({ workspace, files: maintenance.files, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();

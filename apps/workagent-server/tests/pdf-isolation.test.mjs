@@ -1,5 +1,5 @@
 // Parent/CI only: actual renderer and namespace, fail closed (never skipped).
-// poppler-utils is test-only; production does not invoke PDF text extraction.
+// Export rendering qualification; text import is in pdf-import-isolation.test.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';

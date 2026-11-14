@@ -21,7 +21,7 @@ const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevisi
 function mount(storage, fetcher) {
   const downloads = [], timers = new Map(); let timerId = 0;
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const PdfExchange = () => null, PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -34,6 +34,7 @@ function mount(storage, fetcher) {
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './DocxExchange') return { DocxExchange };
     if (name === './PdfExport') return { PdfExport };
+    if (name === './PdfExchange') return { PdfExchange };
     if (name === './DocumentExchange') return { DocumentExchange };
     if (name === './DocumentEditor') return { DocumentEditor };
     if (name === './NativeEditor') return { NativeEditor };
@@ -52,7 +53,7 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, pdf: () => nodes(tree).find(n => n.type === PdfExchange).props, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
@@ -108,7 +109,7 @@ for (const newerPending of [false, true]) test(`two live blank consumers keep on
   const reload = mount(storage, api.fetch); await reload.flush(); await reload.click('Open created work');
   assert.equal(reload.native().book.id, 'blank-1'); assert.equal(created.size, 2); reload.unmount();
 });
-for (const format of ['exchange', 'xlsx', 'docx']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
+for (const format of ['exchange', 'xlsx', 'docx', 'pdf']) test(`${format} opening preserves unsaved native draft and composer; a save in flight prevents switching`, async () => {
   const storage = disk(), pending = deferred(), api = server(() => pending.promise), view = mount(storage, api.fetch);
   await view.flush(); await view.open('old'); const native = attach(view); native.edit('unsaved human'); await view.message('unsent human message'); await view.flush();
   await view[format]().onOpen('imported'); await view.flush(); assert.equal(view.native().book.id, 'imported');
@@ -345,6 +346,29 @@ function attachDoc(view) {
   view.doc().onReady(handle);
   return { handle, edit(value) { data = blankDocument(data.id, data.title, value); view.doc().onEdit(structuredClone(data)); } };
 }
+test('PDF import refresh and explicit document navigation preserve dirty edits, composer and pending proposal', async () => {
+  const storage = disk(), api = server(() => assert.fail('import navigation must not write'));
+  api.works.old = docWork('old'); api.works.imported = docWork('imported');
+  const proposal = { id: 'pending-proposal', kind: 'document', status: 'pending', reason: 'human_edit', patch: { document: blankDocument('old', 'Proposed title', 'Pending proposal text') } };
+  api.works.old.proposals = [proposal];
+  const saved = structuredClone(api.works.old);
+  let view = mount(storage, api.fetch); await view.flush(); await view.open('old');
+  attachDoc(view).edit('Keep my dirty document'); await view.message('Keep my unsent draft');
+  await view.pdf().onImported(); await view.flush();
+  assert.equal(view.doc().document.id, 'old'); assert.match(view.text(), /Unsaved changes/); assert.match(view.text(), /Pending proposal text/);
+  assert.equal(view.pdf().editor().save().body.dataStream, 'Keep my dirty document\r\n');
+  await view.pdf().onOpen('imported'); await view.flush();
+  assert.equal(view.doc().document.id, 'imported');
+  assert.equal(JSON.parse(await draftRaw(storage, 'old')).book.body.dataStream, 'Keep my dirty document\r\n');
+  assert.equal(new resume.ComposerDrafts(storage).read('old').prompt, 'Keep my unsent draft');
+  assert.deepEqual(api.works.old, saved); assert.equal(api.calls.filter(c => c.input).length, 0);
+  await view.pdf().onOpen('old'); await view.flush();
+  assert.equal(view.doc().document.body.dataStream, 'Keep my dirty document\r\n'); assert.equal(view.messageValue(), 'Keep my unsent draft');
+  assert.deepEqual(view.pdf().work.proposals, [proposal]); assert.match(view.text(), /Unsaved changes/); view.unmount();
+  view = mount(storage, api.fetch); await view.flush(); await view.open('old');
+  assert.equal(view.doc().document.body.dataStream, 'Keep my dirty document\r\n'); assert.equal(view.messageValue(), 'Keep my unsent draft');
+  assert.deepEqual(view.pdf().work.proposals, [proposal]); assert.deepEqual(api.works.old, saved); view.unmount();
+});
 for (const firstAck of ['A', 'B']) test(`document App same-command ACK ${firstAck}-first preserves newer consumer recovery and composer`, async () => {
   const storage = disk(), aAck = deferred(), bAck = deferred(); let saves = 0;
   const api = server(() => ++saves === 1 ? aAck.promise : bAck.promise); api.works.old = docWork('old');

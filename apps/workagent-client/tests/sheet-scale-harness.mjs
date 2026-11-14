@@ -242,7 +242,7 @@ export function mountApp(storage, fetcher) {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './NativeEditor') return { NativeEditor };
-    if (/^\.\/(PdfExport|DocxExchange|DocumentExchange|DocumentEditor|XlsxExchange|CsvExchange|MaintenancePanel)$/.test(name)) return { [name.slice(2)]: () => null };
+    if (/^\.\/(PdfExchange|PdfExport|DocxExchange|DocumentExchange|DocumentEditor|XlsxExchange|CsvExchange|MaintenancePanel)$/.test(name)) return { [name.slice(2)]: () => null };
     if (name === './drafts') return drafts;
     if (name === './resume') return resume;
     if (name === './artifact-storage') return { ArtifactStorage: FixtureArtifactStorage };

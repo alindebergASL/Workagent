@@ -13,19 +13,20 @@ function elements(tree, parent = null) {
   if (Array.isArray(tree)) return tree.flatMap(child => elements(child, parent));
   if (!tree?.props) return [];
   if (typeof tree.type !== 'string') return elements(tree.props.children, parent);
-  const node = { tag: tree.type, classes: (tree.props.className ?? '').split(/\s+/), parent };
+  const node = { tag: tree.type, classes: (tree.props.className ?? '').split(/\s+/), inputType: tree.props.type, parent };
   return [node, ...elements(tree.props.children, node)];
 }
-// The app stylesheet uses type/class selectors, descendant/child combinators
+// The app stylesheet uses type/class and exact input-type selectors, descendant/child combinators
 // and max-width media queries for these properties. Fail on unhandled syntax
 // that could affect headers/selects instead of silently declaring isolation.
 function matches(node, selector) {
   const parts = selector.trim().split(/\s+/);
   const compound = (node, part) => {
     if (!node) return false;
-    assert.match(part, /^(?:[\w-]+|\*)?(?:\.[\w-]+)*$/);
-    const [tag, ...classes] = part.split('.');
-    return (!tag || tag === '*' || node.tag === tag) && classes.every(c => node.classes.includes(c));
+    assert.match(part, /^(?:[\w-]+|\*)?(?:\.[\w-]+)*(?:\[type="[\w-]+"\])?$/);
+    const inputType = /\[type="([\w-]+)"\]$/.exec(part);
+    const [tag, ...classes] = part.replace(/\[type="[\w-]+"\]$/, '').split('.');
+    return (!tag || tag === '*' || node.tag === tag) && classes.every(c => node.classes.includes(c)) && (!inputType || node.inputType === inputType[1]);
   };
   let i = parts.length - 1;
   if (!compound(node, parts[i--])) return false;
@@ -49,7 +50,7 @@ function applied(node, width) {
       // Fixture nodes are neither focused nor disabled, and aren't the root.
       if (selector.includes(':')) continue;
       if (!matches(node, selector)) continue;
-      const specificity = (selector.match(/\./g)?.length ?? 0) * 100 + (selector.match(/(?:^|[\s>])[a-z][\w-]*/g)?.length ?? 0);
+      const specificity = (selector.match(/\.|\[/g)?.length ?? 0) * 100 + (selector.match(/(?:^|[\s>])[a-z][\w-]*/g)?.length ?? 0);
       rule.walkDecls(decl => {
         const rank = specificity + (decl.important ? 10000 : 0);
         if (rank >= (priority[decl.prop] ?? -1)) { result[decl.prop] = decl.value; priority[decl.prop] = rank; }
@@ -58,6 +59,14 @@ function applied(node, width) {
   });
   return result;
 }
+test('exact input-type selector distinguishes file inputs from text and header nodes', () => {
+  const parent = { tag: 'section', classes: ['document-exchange'], parent: null };
+  const selector = '.document-exchange input[type="file"]';
+  assert.equal(matches({ tag: 'input', classes: [], inputType: 'file', parent }, selector), true);
+  assert.equal(matches({ tag: 'input', classes: [], inputType: 'text', parent }, selector), false);
+  assert.equal(matches({ tag: 'header', classes: [], parent }, selector), false);
+  assert.throws(() => matches({ tag: 'input', classes: [], parent }, 'input[unknown]'));
+});
 for (const width of [1200, 760, 390]) test(`app header owns desktop/responsive styles at ${width}px; nested sheet/document headers stay isolated`, async () => {
   const app = mountApp(memoryStorage(), async url => ({ ok: true, status: 200, json: async () => url === '/api/work' ? [] : { kind: 'reset', cursor: 0, events: [], works: [], snapshots: [] } }));
   try {
