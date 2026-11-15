@@ -105,7 +105,7 @@ export class XlsxExchange {
     if (Object.keys(input).some(k => !['workId', 'book'].includes(k))) throw new Fault('invalid_xlsx_input', 400);
     const book = withoutFormulaResults(validateWorkbook(input.book));
     if (book.id !== input.workId) throw new Fault('invalid_workbook', 400);
-    if (Object.values(conditionalRules(book)).some(rules => rules.some(entry => entry.rule.type !== 'highlightCell')))
+    if (Object.values(conditionalRules(book)).some(rules => rules.some(entry => !['highlightCell', 'colorScale'].includes(entry.rule.type))))
       throw new Fault('xlsx_conditional_formatting_not_supported', 400);
     if (Object.values(sheetControls(book)).some(rules => rules.some(rule => rule.type === 'checkbox' && (
       rule.allowBlank === false || rule.showDropDown === false || rule.showErrorMessage === true || rule.showInputMessage === true

@@ -84,6 +84,7 @@ for (const outcome of ['success', 'error']) test(`stale import ${outcome} after 
 
 test('actual XLSX export consumer commits pending edit, sends all tabs, downloads real bytes without autosave', async () => {
   const book={id:'current',sheetOrder:['one','two'],sheets:{one:{cellData:{}},two:{cellData:{0:{0:{v:'pending'}}}}}}; let commits=0; const calls=[];
+  book.resources=[{name:'SHEET_CONDITIONAL_FORMATTING_PLUGIN',data:JSON.stringify({one:[{cfId:'scale',stopIfTrue:false,ranges:[{startRow:0,endRow:8,startColumn:0,endColumn:0}],rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'min'}},{index:1,color:'#00FF00',value:{type:'max'}}]}}]})}];
   const native={commit:async()=>{commits++;return book;}};
   const view=mount(storage(),{api:async(path,input)=>{calls.push({path,input});assert.equal(path,'/exchange/xlsx/export');return {base64:btoa('PK fixture'),filename:'Current.xlsx',warnings:['Caches unknown']};},editor:()=>native,work:{id:'current'},onImported:async()=>{},onOpen:async()=>{}});
   await view.click('Export all tabs XLSX'); assert.equal(commits,1);assert.deepEqual(calls,[{path:'/exchange/xlsx/export',input:{workId:'current',book}}]);

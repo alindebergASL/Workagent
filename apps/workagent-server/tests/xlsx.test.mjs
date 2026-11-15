@@ -221,9 +221,10 @@ test('chart preview has no effects; acceptance retains original bytes and exact 
   await assert.rejects(()=>f.xlsx.export('stranger',{workId:w.id,book:w.book}));
 });
 
-test('conditional import protects blank ranges and originals, unsaved export stays separate and refusals are atomic', async()=>{
+test('mixed color scale/highlight import protects blanks and originals, dirty export stays separate and refusals are atomic', async()=>{
   const f=await fixture(); const book=blankWorkbook('cf-book');
   const data={sheet1:[{cfId:'highlight',stopIfTrue:true,ranges:[{startRow:0,endRow:7,startColumn:0,endColumn:0}],rule:{type:'highlightCell',subType:'number',operator:'lessThanOrEqual',value:0,style:{bg:{rgb:'#FFEEAA'},bl:0,ul:{s:0}}}}]};
+  data.sheet1.push({cfId:'scale',stopIfTrue:false,ranges:data.sheet1[0].ranges,rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'num',value:-10}},{index:1,color:'#00FF00',value:{type:'num',value:10}}]}});
   book.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify(data)}];book.sheets.sheet1.cellData={0:{0:{v:-2,t:2}},1:{0:{f:'=1/0'}}};
   const bytes=Buffer.from(trustedCodec({op:'export',book}).base64,'base64');
   const input={...xlsxInput('conditional-import'),filename:'Highlights.xlsx',base64:bytes.toString('base64')};
@@ -236,13 +237,14 @@ test('conditional import protects blank ranges and originals, unsaved export sta
   const unsaved=structuredClone(saved.book);unsaved.sheets.sheet1.cellData[0][0].v=8;
   const exported=await f.xlsx.export('owner',{workId:saved.id,book:unsaved});
   assert.equal(trustedCodec({op:'import',base64:exported.base64}).book.sheets.sheet1.cellData[0][0].v,8);
+  assert.deepEqual(conditionalRules(trustedCodec({op:'import',base64:exported.base64}).book).sheet1.map(r=>r.rule),data.sheet1.map(r=>r.rule));
   assert.deepEqual((await f.workspace.get('owner',saved.id)).book,saved.book,'export does not implicitly save');
   const adopt=await f.xlsx.import('owner',{...input,commandId:'conditional-separate',base64:exported.base64});assert.notEqual(adopt.workId,saved.id);
   assert.deepEqual((await f.exchange.original('owner',saved.id,imported.original.id)).bytes,bytes);
   const baseline=await f.state();
   const bad=structuredClone(saved.book), rules=conditionalRules(bad);rules.sheet1.push({...rules.sheet1[0],cfId:'unsupported',rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'min'}},{index:1,color:'#00FF00',value:{type:'max'}}]}});
   bad.resources[0].data=JSON.stringify(rules);
-  await assert.rejects(()=>f.xlsx.export('owner',{workId:saved.id,book:bad}),/conditional|Conditional/);
+  await assert.rejects(()=>f.xlsx.export('owner',{workId:saved.id,book:bad}),/Color scale stopIfTrue/);
   assert.deepEqual(await f.state(),baseline);
   const denied=new XlsxExchange({workspace:f.workspace,files:f.files,worker:{run:async()=>{throw new Error('Unsupported conditional expression');}}});
   await assert.rejects(()=>denied.import('owner',{...input,commandId:'mixed-refusal'}),/Unsupported conditional/);
@@ -251,10 +253,12 @@ test('conditional import protects blank ranges and originals, unsaved export sta
 
 test('conditional rules traverse the real credentialless worker when namespaces are available',async t=>{
   const book=blankWorkbook('worker-cf');book.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{cfId:'r',stopIfTrue:false,ranges:[{startRow:0,endRow:2,startColumn:0,endColumn:0}],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready*?',style:{bl:0,bg:{rgb:'#FFEEAA'}}}}]})}];
+  const rules=conditionalRules(book);rules.sheet1.push({cfId:'scale',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'num',value:-5}},{index:1,color:'#00FF00',value:{type:'num',value:5}}]}});book.resources[0].data=JSON.stringify(rules);
   const worker=new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'});
   let exported;
   try{exported=await worker.run({op:'export',book});}
   catch(e){if(/^xlsx_sandbox/.test(e.code)){t.skip(`Namespace/socket boundary unavailable here (${e.code}); Parent must qualify actual worker conversion`);return;}throw e;}
   const imported=await worker.run({op:'import',base64:exported.base64});
   assert.deepEqual(conditionalRules(imported.book).sheet1[0].rule,conditionalRules(book).sheet1[0].rule);
+  assert.deepEqual(conditionalRules(imported.book).sheet1[1].rule,conditionalRules(book).sheet1[1].rule);
 });

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mountNative, mountApp, memoryStorage } from './sheet-scale-harness.mjs';
+import { trustedWorker, trustedCodec } from '../../workagent-server/tests/support/xlsx-fixture.mjs';
 import { blankWorkbook, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { CONDITIONAL_RESOURCE, CONDITIONAL_ICON_FAMILIES, conditionalRules, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { CONTROL_RESOURCE, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
@@ -321,7 +322,8 @@ for (const three of [false,true]) test(`native ${three ? 'three' : 'two'}-color 
     assert.deepEqual((await ws.get('owner',workId)).book,before);
     const resourceOnly=structuredClone(state.works[workId]);resourceOnly.humanCells=[];
     assert.deepEqual(commitEditorPatch(state,resourceOnly,patch,saved.expected,'maintenance_changed'),{status:'protected',reason:'human_edit'},'rule range protects blanks independently of materialized human anchors');
-    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book:saved.book}),/xlsx_conditional_formatting_not_supported/);
+    const exchanged=await new XlsxExchange({workspace:ws,worker:trustedWorker}).export('owner',{workId,book:saved.book});
+    assert.equal(conditionalRules(trustedCodec({op:'import',base64:exchanged.base64}).book).sheet1[0].rule.config.length,three?3:2);
     assert.throws(()=>serializeCsv(saved.book,'sheet1'),/cannot preserve conditional/);
     sheet.deleteConditionalFormattingRule(r.cfId);assert.equal(bg(1),undefined);
     await view.conditionalSettled(()=>wb.undo());assert.equal(bg(1),display);

@@ -743,7 +743,10 @@ def worksheet_parts(parts):
 # expression language below is a closed set: import reconstructs the entire
 # template and compares it byte-for-byte; it never evaluates a supplied formula.
 CF_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN'
-CF_POLICY = 'Conditional highlights: six numeric comparisons (>, >=, <, <=, between, not-between) and six case-sensitive text comparisons with unambiguous literals are preserved. Numeric equality, blank/error text operators, ambiguous literals, scales, bars, icons and other expressions/differential styles are refused.'
+CF_POLICY = 'Conditional highlights: authored rules for six numeric comparisons (>, >=, <, <=, between, not-between) and six case-sensitive text comparisons with unambiguous literals are preserved. Numeric equality, blank/error text operators, ambiguous literals, bars, icons and other expressions/differential styles are refused.'
+CF_SCALE_POLICY = 'Two/three-color RGB scale rules retain strictly ordered numeric stops or one relative family (min/max with percent or percentile). Mixed families, tied/constant thresholds, overlapping ranges within one scale rule, scale stopIfTrue and relative scales covering formulas are refused. Fixed numeric scales may cover formulas.'
+CF_RENDER_POLICY = 'Authored conditional rules, values and priority/stop flags are retained; their application and display can differ between apps. Native scales exclude booleans. In tested LibreOffice files, TRUE received a scale color and changed percentile ranks, and a scale fill appeared instead of a higher-priority stopping highlight. Microsoft Excel behavior is unverified.'
+CF_RENDER_UNVERIFIED = 'Boolean-returning formulas, nonstopping highlight/scale overlaps and scale/scale overlaps remain unverified across renderers. These combinations remain supported within the stated exchange limits.'
 CF_INPUT_POLICY = 'Conditional exports refuse precision loss or CR/CRLF normalization in rule text and covered cell inputs. If a rule covers a formula, inputs across all tabs must serialize exactly; LF, tabs and ordinary Unicode remain supported.'
 CF_ERRORS = ('#DIV/0!', '#NAME?', '#VALUE!', '#NUM!', '#N/A', '#CYCLE!', '#REF!', '#SPILL!', '#CALC!', '#ERROR!', '#GETTING_DATA', '#NULL!')
 CF_NUM = {'greaterThan':'>','greaterThanOrEqual':'>=','lessThan':'<','lessThanOrEqual':'<=','between':None,'notBetween':None}
@@ -888,6 +891,91 @@ def read_cf_dxf(root):
     need(all(not (e.text or '').strip() and not (e.tail or '').strip() for e in root.iter()), 'Conditional style contains text')
     return style
 
+def cf_scale(rule):
+    """Serialize authored stops, never derived colors or reordered thresholds."""
+    cf_object(rule,('type','config'),('type','config'))
+    points=rule['config']; need(isinstance(points,list) and len(points) in (2,3), 'Color scales require two or three stops')
+    root=Element('{'+MAIN+'}colorScale'); kinds=[]; previous={}
+    for i,p in enumerate(points):
+        cf_object(p,('index','color','value'),('index','color','value'))
+        need(type(p['index']) is int and p['index']==i, 'Color scale stop order is not canonical')
+        v=p['value']; cf_object(v,('type','value'),('type',)); kind=v['type']; kinds.append(kind)
+        need(kind in ('min','max','num','percent','percentile') and (kind!='min' or i==0) and (kind!='max' or i==len(points)-1), 'Unsupported color scale threshold kind/order')
+        attrs={'type':kind}
+        if kind not in ('min','max') or 'value' in v:
+            attrs['val']=cf_number(v.get('value'))
+            if kind in ('percent','percentile'): need(0<=v['value']<=100, 'Color scale percentage outside 0–100')
+        if kind in previous: need(v['value']>previous[kind], 'Tied/crossed color scale thresholds cannot be exchanged')
+        if kind not in ('min','max'): previous[kind]=v['value']
+        SubElement(root,'{'+MAIN+'}cfvo',attrs)
+    families=set(kinds)-{'min','max'}
+    # Relative and fixed values can cross after edits. Percent and percentile
+    # have different ranks. Never repair that by sorting or rewriting values.
+    need(len(families)<=1 and (not families or 'num' not in families or set(kinds)=={'num'}), 'Mixed color scale threshold families cannot be exchanged')
+    if 'num' not in families:
+        ranks=[0 if p['value']['type']=='min' else 100 if p['value']['type']=='max' else p['value']['value'] for p in points]
+        need(all(a<b for a,b in zip(ranks,ranks[1:])), 'Tied/crossed color scale thresholds cannot be exchanged')
+    for p in points: SubElement(root,'{'+MAIN+'}color',{'rgb':cf_color(p['color'])})
+    return root
+
+def read_cf_scale(root):
+    need(root.tag=='{'+MAIN+'}colorScale' and not root.attrib and len(root) in (4,6), 'Unsupported color scale schema/count')
+    n=len(root)//2; points=[]
+    need(all(not (e.text or '').strip() and not (e.tail or '').strip() for e in root.iter()), 'Color scale contains text')
+    for i in range(n):
+        v,c=root[i],root[n+i]
+        need(v.tag=='{'+MAIN+'}cfvo' and not len(v) and not set(v.attrib)-{'type','val'} and 'type' in v.attrib, 'Unsupported color scale cfvo attributes (including gte), namespace or order')
+        need(c.tag=='{'+MAIN+'}color' and not len(c) and set(c.attrib)=={'rgb'} and re.fullmatch(r'(?:FF|00)[0-9A-Fa-f]{6}',c.get('rgb','')), 'Color scale needs opaque RGB stops')
+        value={'type':v.get('type')}
+        if 'val' in v.attrib:
+            raw=v.get('val'); need(re.fullmatch(r'-?(?:[0-9]+(?:\.[0-9]+)?)(?:[eE][+-]?[0-9]+)?',raw), 'Color scale threshold must be a finite numeric literal')
+            value['value']=float(raw)
+            # Reject decimal strings whose float conversion already loses digits.
+            from decimal import Decimal
+            need(Decimal(raw)==Decimal(cf_number(value['value'])), 'Color scale threshold precision loss')
+        points.append({'index':i,'value':value,'color':'#'+c.get('rgb')[-6:].upper()})
+    result={'type':'colorScale','config':points}; cf_scale(result); return result
+
+def cf_scale_inputs(rule, ranges, sheet):
+    # This is a qualification check on the data domain, not a formatting engine.
+    # Fixed numeric stops do not need formula caches or a population calculation.
+    relative=any(p['value']['type']!='num' for p in rule['config']); values=[]; occupied=set()
+    for r in ranges:
+        cells={(row,col) for row in range(r['startRow'],r['endRow']+1) for col in range(r['startColumn'],r['endColumn']+1)}
+        need(not occupied.intersection(cells), 'Overlapping ranges within a color scale cannot be exchanged'); occupied.update(cells)
+    for row,columns in sheet.get('cellData',{}).items():
+        for col,cell in columns.items():
+            if not cell or (int(row),int(col)) not in occupied: continue
+            if cell.get('f') or cell.get('si'):
+                need(not relative, 'Relative color scales covering formulas cannot be verified without evaluating formulas; use fixed numeric stops')
+                continue
+            v=cell.get('v')
+            if type(v) in (int,float) and cell.get('t')!=3:
+                need(cell.get('t')==2, 'Color scale input numeric type must survive serialization')
+                # openpyxl retains integer XML literals as arbitrary-precision
+                # Python ints. The JSON consumer and native calculator use
+                # binary64. Qualify that bridge even for fixed-stop scales;
+                # never adopt rounded values or qualify ranks using Python ints.
+                try: native_value=float(v)
+                except (OverflowError, ValueError): native_value=math.inf
+                need(math.isfinite(native_value) and native_value==v,
+                     'Color scale input is not exactly representable as a finite native number')
+                values.append(native_value) # qualification only; stored v is unchanged
+    if not relative or not values: return
+    values.sort(); lo,hi=values[0],values[-1]
+    def blend(a,b,t): return a if t==0 else b if t==1 else a+(b-a)*t if (a>=0)==(b>=0) else a*(1-t)+b*t
+    resolved=[]
+    for p in rule['config']:
+        v=p['value']; kind=v['type']
+        if kind=='min': value=lo
+        elif kind=='max': value=hi
+        elif kind=='percent': value=blend(lo,hi,v['value']/100)
+        else:
+            rank=(len(values)-1)*v['value']/100; a=math.floor(rank); b=math.ceil(rank)
+            value=blend(values[a],values[b],rank-a)
+        resolved.append(value)
+    need(all(math.isfinite(v) for v in resolved) and all(a<b for a,b in zip(resolved,resolved[1:])), 'Tied/crossed color scale thresholds (including constant ranges) cannot be exchanged')
+
 def native_conditionals(book):
     data={}; budget=[0,0]; count=0
     for resource in book.get('resources',[]):
@@ -907,26 +995,33 @@ def native_conditionals(book):
             cf_id(entry['cfId']); need(entry['cfId'] not in ids,'Duplicate conditional identity'); ids.add(entry['cfId'])
             need(type(entry['stopIfTrue']) is bool,'Invalid conditional stopIfTrue')
             rule=entry['rule']
-            need(isinstance(rule,dict) and rule.get('type')=='highlightCell','Conditional scales, data bars and icon sets are not supported in XLSX exchange')
-            cf_object(rule,('type','subType','operator','value','style'),('type','subType','operator','style'))
-            dxf=cf_dxf(rule['style']); ranges=entry['ranges']; need(isinstance(ranges,list) and ranges,'Conditional ranges required')
+            need(isinstance(rule,dict) and rule.get('type') in ('highlightCell','colorScale'),'Conditional data bars and icon sets are not supported in XLSX exchange')
+            scale=rule['type']=='colorScale'
+            if scale:
+                need(not entry['stopIfTrue'], 'Color scale stopIfTrue is not supported by Excel')
+                scale_xml=cf_scale(rule); dxf=None
+            else:
+                cf_object(rule,('type','subType','operator','value','style'),('type','subType','operator','style'))
+                dxf=cf_dxf(rule['style'])
+            ranges=entry['ranges']; need(isinstance(ranges,list) and ranges,'Conditional ranges required')
             for r in ranges:
                 cf_object(r,('startRow','endRow','startColumn','endColumn','rangeType','startAbsoluteRefType','endAbsoluteRefType','unitId','sheetId'))
                 need(all(type(r.get(k)) is int and r[k]>=0 for k in ('startRow','endRow','startColumn','endColumn')), 'Invalid conditional range')
                 need(r['endRow']<sheet['rowCount'] and r['endColumn']<sheet['columnCount'] and r.get('rangeType',0)==0 and r.get('unitId',book['id'])==book['id'] and r.get('sheetId',sid)==sid and all(r.get(k,0) in (0,1,2,3) for k in ('startAbsoluteRefType','endAbsoluteRefType')), 'Conditional range ownership/bounds mismatch')
             refs=sorted((cf_ref(r) for r in ranges),key=lambda x:bounds(x)); sqref=' '.join(refs)
-            canonical=cf_ranges(sqref,budget); expression=cf_formula(rule,refs[0].split(':')[0])
+            canonical=cf_ranges(sqref,budget); expression=None if scale else cf_formula(rule,refs[0].split(':')[0])
+            if scale: cf_scale_inputs(rule,canonical,sheet)
             for r in canonical:
                 for control in controls.get(sid,[]):
                     if control.get('type')=='checkbox':
                         need(not any(r['startRow']<=q['endRow'] and r['endRow']>=q['startRow'] and r['startColumn']<=q['endColumn'] and r['endColumn']>=q['startColumn'] for q in control['ranges']), 'Conditional checkbox styles unsupported')
-                if rule['subType']=='number':
+                if rule.get('subType')=='number':
                     for row,values in sheet.get('cellData',{}).items():
                         if not r['startRow']<=int(row)<=r['endRow']: continue
                         for col,cell in values.items():
                             if not r['startColumn']<=int(col)<=r['endColumn'] or not cell: continue
                             need(not (cell.get('t')==4 and cell.get('v') in CF_ERRORS) and not (cell.get('v')=='' and not cell.get('f')), 'Conditional numeric rules cannot exchange forced error text or literal empty text')
-            result[sid].append({'ranges':canonical,'sqref':sqref,'formula':expression,'priority':index,'stop':entry['stopIfTrue'],'dxf':dxf,'rule':rule})
+            result[sid].append({'ranges':canonical,'sqref':sqref,'formula':expression,'priority':index,'stop':entry['stopIfTrue'],'dxf':dxf,'rule':rule,**({'scale':scale_xml} if scale else {})})
     return result
 
 def conditional_parts(parts, descriptors):
@@ -936,6 +1031,12 @@ def conditional_parts(parts, descriptors):
         root=fromstring(raw); parents={c:p for p in root.iter() for c in p}
         for el in root.iter():
             local=el.tag.rsplit('}',1)[-1]
+            if local in ('colorScale','cfvo'):
+                parent=parents.get(el); grand=parents.get(parent)
+                need(name in paths and root.tag=='{'+MAIN+'}worksheet' and el.tag=='{'+MAIN+'}'+local and parent is not None and (
+                    local=='colorScale' and parent.tag=='{'+MAIN+'}cfRule' and grand is not None and grand.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(grand) is root
+                    or local=='cfvo' and parent.tag=='{'+MAIN+'}colorScale' and grand is not None and grand.tag=='{'+MAIN+'}cfRule'
+                    and parents.get(grand) is not None and parents[grand].tag=='{'+MAIN+'}conditionalFormatting' and parents.get(parents[grand]) is root), 'Shadowed/misplaced color scale')
             if local in ('dxfs','dxf'):
                 parent=parents.get(el)
                 need(name=='xl/styles.xml' and root.tag=='{'+MAIN+'}styleSheet' and el.tag=='{'+MAIN+'}'+local and parent is not None and (parent is root if local=='dxfs' else parent.tag=='{'+MAIN+'}dxfs' and parents.get(parent) is root), 'Shadowed/misplaced conditional differential styles')
@@ -944,15 +1045,23 @@ def conditional_parts(parts, descriptors):
                     dxfs=list(el)
             if local in ('conditionalFormatting','cfRule'):
                 parent=parents.get(el)
-                need(name in paths and el.tag=='{'+MAIN+'}'+local and parent is not None and (parent is root if local=='conditionalFormatting' else parent.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(parent) is root), 'Shadowed/misplaced conditional formatting')
+                need(name in paths and root.tag=='{'+MAIN+'}worksheet' and el.tag=='{'+MAIN+'}'+local and parent is not None and (parent is root if local=='conditionalFormatting' else parent.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(parent) is root), 'Shadowed/misplaced conditional formatting')
                 if local=='conditionalFormatting':
                     need(set(el.attrib)=={'sqref'} and len(el)>0 and all(c.tag=='{'+MAIN+'}cfRule' for c in el) and not (el.text or '').strip(), 'Unsupported conditional container')
                     for rule in el:
                         count+=1; need(count<=256, 'Conditional rule limit')
-                        need(not set(rule.attrib)-{'type','priority','dxfId','stopIfTrue'} and rule.get('type')=='expression', 'Unsupported conditional rule: Excel built-ins, scales, bars and icons require different semantics')
+                        scale=rule.get('type')=='colorScale'
+                        need(not set(rule.attrib)-({'type','priority','stopIfTrue'} if scale else {'type','priority','dxfId','stopIfTrue'}) and rule.get('type') in ('expression','colorScale'), 'Unsupported conditional rule: Excel built-ins, bars and icons require different semantics')
                         priority=integer(rule.get('priority'),2147483648,'Invalid conditional priority'); need(priority>0,'Invalid conditional priority')
-                        index=integer(rule.get('dxfId'),256,'Invalid conditional differential style index')
                         need(rule.get('stopIfTrue','0') in ('0','1','true','false') and not (rule.text or '').strip() and not (rule.tail or '').strip(), 'Invalid conditional rule flags/text')
+                        if scale:
+                            need(rule.get('stopIfTrue','0') in ('0','false'), 'Color scale stopIfTrue is not supported by Excel')
+                            need(len(rule)==1, 'Color scale requires exactly one payload')
+                            native=read_cf_scale(rule[0]); ranges=cf_ranges(el.get('sqref'),budget)
+                            from openpyxl.formatting.rule import ColorScale
+                            result[name].append({'ranges':ranges,'sqref':el.get('sqref'),'formula':None,'priority':priority,'stop':False,'rule':native,'parsedScale':ColorScale.from_tree(rule[0])})
+                            continue
+                        index=integer(rule.get('dxfId'),256,'Invalid conditional differential style index')
                         need(len(rule)==1 and rule[0].tag=='{'+MAIN+'}formula' and not rule[0].attrib and not len(rule[0]) and not (rule[0].tail or '').strip(), 'Unsupported conditional formula schema')
                         ranges=cf_ranges(el.get('sqref'),budget); expression=rule[0].text
                         native=parse_cf_formula(expression,el.get('sqref').split()[0].split(':')[0])
@@ -962,6 +1071,7 @@ def conditional_parts(parts, descriptors):
     for rules in result.values():
         need(len({r['priority'] for r in rules})==len(rules), 'Duplicate conditional priority')
         for r in rules:
+            if 'parsedScale' in r: continue
             need(r['dxfId']<len(styles),'Dangling conditional differential style index')
             r['rule']['style']=styles[r['dxfId']]; r['parsedDxf']=DifferentialStyle.from_tree(dxfs[r['dxfId']])
         rules.sort(key=lambda r:r['priority'])
@@ -974,7 +1084,11 @@ def import_conditionals(ws, expected, sheet):
     loaded.sort(key=lambda pair:pair[1].priority)
     need(len(loaded)==len(expected),'Loaded conditional rule count mismatch'); result=[]
     for (sqref,rule),spec in zip(loaded,expected):
-        need(sqref==spec['sqref'] and rule.type=='expression' and rule.formula==[spec['formula']] and rule.priority==spec['priority'] and bool(rule.stopIfTrue)==spec['stop'] and rule.dxfId==spec['dxfId'] and rule.dxf==spec['parsedDxf'], 'Loaded conditional rule/style interpretation mismatch')
+        need(sqref==spec['sqref'] and rule.priority==spec['priority'] and bool(rule.stopIfTrue)==spec['stop'], 'Loaded conditional rule/style interpretation mismatch')
+        if 'parsedScale' in spec:
+            need(rule.type=='colorScale' and rule.colorScale==spec['parsedScale'] and not rule.formula and rule.dxfId is None and rule.dxf is None and rule.dataBar is None and rule.iconSet is None, 'Loaded conditional color scale interpretation mismatch')
+        else:
+            need(rule.type=='expression' and rule.formula==[spec['formula']] and rule.dxfId==spec['dxfId'] and rule.dxf==spec['parsedDxf'] and rule.colorScale is None, 'Loaded conditional rule/style interpretation mismatch')
         result.append({'cfId':f'xlsx-cf-{rule.priority}','ranges':spec['ranges'],'stopIfTrue':spec['stop'],'rule':spec['rule']})
         for r in spec['ranges']:
             sheet['rowCount']=max(sheet['rowCount'],r['endRow']+1); sheet['columnCount']=max(sheet['columnCount'],r['endColumn']+1)
@@ -993,9 +1107,15 @@ def add_conditional_parts(data, rules):
         root=fromstring(parts[sheet['path']])
         position=next((i for i,e in enumerate(root) if e.tag.rsplit('}',1)[-1] in ('dataValidations','hyperlinks','printOptions','pageMargins','pageSetup','headerFooter','drawing','legacyDrawing','extLst')),len(root))
         for spec in ruleset:
-            dxfs.append(spec['dxf']); container=Element('{'+MAIN+'}conditionalFormatting',{'sqref':spec['sqref']})
-            rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'expression','priority':str(spec['priority']),'dxfId':str(index),'stopIfTrue':str(int(spec['stop']))})
-            SubElement(rule,'{'+MAIN+'}formula').text=spec['formula']; index+=1; root.insert(position,container); position+=1
+            container=Element('{'+MAIN+'}conditionalFormatting',{'sqref':spec['sqref']})
+            if 'scale' in spec:
+                rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'colorScale','priority':str(spec['priority'])})
+                rule.append(spec['scale'])
+            else:
+                dxfs.append(spec['dxf'])
+                rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'expression','priority':str(spec['priority']),'dxfId':str(index),'stopIfTrue':str(int(spec['stop']))})
+                SubElement(rule,'{'+MAIN+'}formula').text=spec['formula']; index+=1
+            root.insert(position,container); position+=1
         parts[sheet['path']]=tostring(root)
     dxfs.set('count',str(index)); parts['xl/styles.xml']=tostring(styles)
     out=io.BytesIO()
@@ -1005,7 +1125,7 @@ def add_conditional_parts(data, rules):
 
 def preflight(data):
     need(len(data) <= BYTES and data[:4] == b'PK\x03\x04', 'Choose an unencrypted XLSX under 2 MB')
-    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_INPUT_POLICY])
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY])
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         infos = z.infolist()
         need(1 <= len(infos) <= 256, 'Archive entry limit')
@@ -1247,13 +1367,13 @@ def conditional_export_fidelity(book, data, conditional):
     actual=native_conditionals(reopened)
     for sid,new_sid in zip(book['sheetOrder'],reopened['sheetOrder']):
         before=conditional.get(sid,[]); after=actual.get(new_sid,[])
-        need(len(before)==len(after) and all(a['formula']==b['formula'] for a,b in zip(before,after)),
+        need(len(before)==len(after) and all(a['formula']==b['formula'] and (('scale' not in a and 'scale' not in b) or 'scale' in a and 'scale' in b and tostring(a['scale'])==tostring(b['scale'])) for a,b in zip(before,after)),
              'Conditional export refused: rule text changes during XLSX serialization (CR/CRLF normalization). Use LF or tab text instead.')
 
 def export_book(book):
     validations = export_validations(book)
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
-    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_INPUT_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
     checkbox_cells = {}
     for index, sid in enumerate(book['sheetOrder'], 1):

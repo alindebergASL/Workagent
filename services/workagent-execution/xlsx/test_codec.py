@@ -177,7 +177,175 @@ def conditional_fixture():
         return ET.tostring(root)
     return rewrite(out.getvalue(),edit)
 
+def color_scale_fixture():
+    # Independent library construction, including nonconsecutive priorities and
+    # overlapping expression rules from the existing raw false-overlay fixture.
+    from openpyxl.formatting.rule import Rule, ColorScale, FormatObject
+    from openpyxl.styles import Color
+    def rule(kinds, values, colors, priority):
+        return Rule(type='colorScale',priority=priority,colorScale=ColorScale(
+            cfvo=[FormatObject(type=k, val=v) for k,v in zip(kinds,values)],color=[Color(rgb=c) for c in colors]))
+    specs=[('A1:A8',rule(['num','num'],[-10,10],['FFFF0000','FF00FF00'],20)),
+           ('B1:B8 D1:D8',rule(['min','percentile','max'],[None,50,None],['FFFF0000','FFFFFF00','FF00FF00'],21))]
+    def edit(name,raw):
+        if name not in ('xl/worksheets/sheet1.xml','xl/worksheets/sheet2.xml'): return raw
+        root=ET.fromstring(raw);q=lambda n:'{'+NS+'}'+n
+        if name.endswith('sheet1.xml'):
+            rows={int(r.get('r')):r for r in root.find(q('sheetData'))}
+            for row,col,value in [(1,'B',-10),(2,'B',0),(3,'B',10),(1,'D',100)]:
+                c=ET.SubElement(rows[row],q('c'),{'r':f'{col}{row}','t':'n'});ET.SubElement(c,q('v')).text=str(value)
+            entries=specs
+        else:
+            entries=[('A1:A8',rule(['num','num','num'],[-10,0,10],['FF112233','FF445566','FF778899'],8))]
+        for sqref,r in entries:
+            container=ET.SubElement(root,q('conditionalFormatting'),{'sqref':sqref})
+            xml=r.to_tree()
+            for el in xml.iter(): el.tag=q(el.tag.rsplit('}',1)[-1])
+            container.append(xml)
+        return ET.tostring(root)
+    return rewrite(conditional_fixture(),edit)
+
+def color_scale_numeric_fixture(values, fixed=False, formula=False):
+    # Literal OOXML digits must reach openpyxl without passing through its
+    # writer (or a JS Number) first: both can hide the Python/JSON precision gap.
+    rows=[]
+    for i,value in enumerate(values,1):
+        extra='<c r="C1"><f>1+2</f></c>' if i==1 else ''
+        rows.append(f'<row r="{i}"><c r="A{i}" t="n"><v>{value}</v></c>{extra}</row>')
+    rows.extend(['<row r="4"><c r="A4" t="b"><v>1</v></c></row>',
+                 '<row r="5"><c r="A5" t="inlineStr"><is><t>9007199254740993</t></is></c></row>',
+                 '<row r="6"><c r="A6" t="e"><v>#DIV/0!</v></c></row>',
+                 '<row r="7"><c r="A7"/></row>'])
+    if formula: rows.append('<row r="8"><c r="A8"><f>1+1</f><v>9007199254740993</v></c></row>')
+    stops='<cfvo type="num" val="-10"/><cfvo type="num" val="10"/>' if fixed else '<cfvo type="min"/><cfvo type="max"/>'
+    return package(f'<worksheet xmlns="{NS}"><sheetData>{"".join(rows)}</sheetData><conditionalFormatting sqref="A1:A8"><cfRule type="colorScale" priority="1"><colorScale>{stops}<color rgb="FFFF0000"/><color rgb="FF00FF00"/></colorScale></cfRule></conditionalFormatting></worksheet>',second=None)
+
 class CodecTests(unittest.TestCase):
+    def test_color_scale_js_number_domain_guard(self):
+        ranges=[{'startRow':0,'endRow':7,'startColumn':0,'endColumn':0}]
+        for fixed in (False,True):
+            rule={'type':'colorScale','config':[{'value':{'type':'num','value':v} if fixed else {'type':k}} for k,v in [('min',-10),('max',10)]]}
+            for value in [2**53+1,-(2**53+1),10**400,float('inf'),float('nan')]:
+                sheet={'cellData':{'0':{'0':{'v':value,'t':2}},'1':{'0':{'v':0,'t':2}}}}
+                with self.subTest(fixed=fixed,value=value),self.assertRaisesRegex(ValueError,'exactly representable'):
+                    codec.cf_scale_inputs(rule,ranges,sheet)
+            for values in [(2**53,2**53+2),(-2**53-2,-2**53),(2**60,2**60+256),(0,1.5)]:
+                sheet={'cellData':{str(i):{'0':{'v':v,'t':2}} for i,v in enumerate(values)}}
+                codec.cf_scale_inputs(rule,ranges,sheet)
+                self.assertEqual([sheet['cellData'][str(i)]['0']['v'] for i in range(2)],list(values),'qualification does not rewrite stored inputs')
+            # Irrelevant cells, typed booleans/text and discarded formula caches
+            # are not a numeric population, even when they contain these digits.
+            sheet={'cellData':{'0':{'0':{'v':True,'t':3},'1':{'v':2**53+1,'t':2}},'1':{'0':{'v':str(2**53+1),'t':1}}}}
+            codec.cf_scale_inputs(rule,ranges,sheet)
+        for middle in ('percent','percentile'):
+            rule={'type':'colorScale','config':[{'value':{'type':'min'}},{'value':{'type':middle,'value':50}},{'value':{'type':'max'}}]}
+            sheet={'cellData':{'0':{'0':{'v':2**53,'t':2}},'1':{'0':{'v':2**53+2,'t':2}}}}
+            with self.subTest(middle=middle),self.assertRaisesRegex(ValueError,'Tied/crossed'):codec.cf_scale_inputs(rule,ranges,sheet)
+
+    def test_color_scale_raw_integer_bridge(self):
+        for fixed in (False,True):
+            for values in [('9007199254740992','9007199254740993'),('-9007199254740993','-9007199254740992')]:
+                with self.subTest(fixed=fixed,values=values),self.assertRaisesRegex(ValueError,'exactly representable'):
+                    codec.import_book(color_scale_numeric_fixture(values,fixed))
+            for values in [('9007199254740992','9007199254740994'),('-9007199254740994','-9007199254740992')]:
+                b=codec.import_book(color_scale_numeric_fixture(values,fixed))['book']
+                self.assertEqual([b['sheets']['sheet1']['cellData'][str(i)]['0']['v'] for i in range(2)],list(map(int,values)))
+        b=codec.import_book(color_scale_numeric_fixture(['0','10'],True,True))['book']
+        self.assertEqual(b['sheets']['sheet1']['cellData']['7']['0'],{'f':'=1+1'})
+        with self.assertRaisesRegex(ValueError,'without evaluating formulas'):codec.import_book(color_scale_numeric_fixture(['0','10'],False,True))
+
+    def test_color_scale_independent_library_zip_roundtrip(self):
+        data=color_scale_fixture(); b=codec.import_book(data)['book']; rules=json.loads(b['resources'][0]['data'])
+        self.assertEqual([r['rule']['type'] for r in rules['sheet1']],['highlightCell','highlightCell','colorScale','colorScale'])
+        self.assertEqual(rules['sheet1'][0]['rule']['style']['bl'],0)
+        self.assertEqual(len(rules['sheet1'][3]['ranges']),2)
+        out=base64.b64decode(codec.export_book(b)['base64']); again=codec.import_book(out)['book']
+        meaning=lambda book:{sid:[{k:v for k,v in r.items() if k!='cfId'} for r in rs] for sid,rs in json.loads(book['resources'][0]['data']).items()}
+        self.assertEqual(meaning(b),meaning(again));self.assertNotIn('s',again['sheets']['sheet1']['cellData']['1']['1'])
+        self.assertEqual(again['sheets']['sheet1']['cellData']['5']['0'],{'f':'=1/0'})
+        with zipfile.ZipFile(io.BytesIO(out)) as z:
+            root=ET.fromstring(z.read('xl/worksheets/sheet1.xml'));q=lambda n:'{'+NS+'}'+n
+            scales=root.findall('.//'+q('colorScale'));self.assertEqual(len(scales),2)
+            self.assertEqual([v.attrib for v in scales[1][:3]],[{'type':'min'},{'type':'percentile','val':'50'},{'type':'max'}])
+            self.assertEqual([c.get('rgb') for c in scales[1][3:]],['FFFF0000','FFFFFF00','FF00FF00'])
+            self.assertEqual([r.get('priority') for r in root.findall('.//'+q('cfRule'))],['1','2','3','4'])
+
+    def test_color_scale_supported_and_refused_domains(self):
+        b=codec.import_book(color_scale_fixture())['book']; data=json.loads(b['resources'][0]['data']);entry=data['sheet1'][3]
+        for kinds,values in [(['min','max'],[None,None]),(['min','percent','max'],[0,50,100]),(['percent','percent'],[10,90]),(['percentile','percentile','percentile'],[0,50,100]),(['num','num','num'],[-20,0,200])]:
+            e=deepcopy(entry);e['rule']['config']=[{'index':i,'color':['#F00','#ffff00','rgb(0,255,0)'][i],'value':{'type':k,**({'value':v} if v is not None else {})}} for i,(k,v) in enumerate(zip(kinds,values))]
+            b['resources'][0]['data']=json.dumps({'sheet1':[e]})
+            with self.subTest(kinds=kinds):self.assertTrue(codec.export_book(b)['base64'])
+        cases=[]
+        for kinds,values in [(['min','num','max'],[None,5,None]),(['num','num'],[5,5]),(['percent','percentile'],[10,90]),(['min','percent','max'],[None,0,None]),(['num','num'],[0,1.0000000000000002])]:
+            e=deepcopy(entry);e['rule']['config']=[{'index':i,'color':'#123456','value':{'type':k,**({'value':v} if v is not None else {})}} for i,(k,v) in enumerate(zip(kinds,values))];cases.append(e)
+        e=deepcopy(entry);e['stopIfTrue']=True;cases.append(e)
+        e=deepcopy(entry);e['ranges']*=2;cases.append(e)
+        e=deepcopy(entry);e['ranges']=[{'startRow':0,'endRow':7,'startColumn':0,'endColumn':0}];cases.append(e) # formula caches cannot establish distribution
+        for e in cases:
+            b['resources'][0]['data']=json.dumps({'sheet1':[data['sheet1'][0],e]})
+            with self.subTest(entry=e),self.assertRaises(ValueError):codec.export_book(b)
+        b['resources'][0]['data']=json.dumps({'sheet1':[entry]})
+        for row in b['sheets']['sheet1']['cellData'].values():
+            for col in ('1','3'):
+                if col in row:row[col]={'v':5,'t':2}
+        with self.assertRaisesRegex(ValueError,'constant ranges'):codec.export_book(b)
+        # Empty populations have no rendered scale; fixed stops remain meaningful
+        # for constant cells. Neither case needs a cached formula result.
+        b['sheets']['sheet1']['cellData']={};self.assertTrue(codec.export_book(b)['base64'])
+        tied=deepcopy(entry);tied['rule']['config'][1]['value']={'type':'percentile','value':0}
+        b['resources'][0]['data']=json.dumps({'sheet1':[tied]})
+        with self.assertRaisesRegex(ValueError,'Tied/crossed'):codec.export_book(b)
+        b['resources'][0]['data']=json.dumps({'sheet1':[entry]})
+        b['sheets']['sheet1']['cellData']={'0':{'1':{'f':'=1+1','v':50,'t':2}}}
+        with self.assertRaisesRegex(ValueError,'without evaluating formulas'):codec.export_book(b)
+        fixed=deepcopy(entry);fixed['rule']['config']=[{'index':0,'color':'#FF0000','value':{'type':'num','value':0}},{'index':1,'color':'#00FF00','value':{'type':'num','value':10}}]
+        b['resources'][0]['data']=json.dumps({'sheet1':[fixed]});b['sheets']['sheet1']['cellData']={'0':{'1':{'v':5,'t':2}},'1':{'1':{'v':5,'t':2}}}
+        self.assertTrue(codec.export_book(b)['base64'])
+
+    def test_color_scale_raw_schema_namespace_and_sibling_refusals(self):
+        data=color_scale_fixture();q=lambda n:'{'+NS+'}'+n
+        def scale(root):return root.find('.//'+q('colorScale'))
+        def parent(root):return next(r for r in root.findall('.//'+q('cfRule')) if r.get('type')=='colorScale')
+        attacks=[lambda r:scale(r)[0].set('gte','1'),lambda r:scale(r)[0].set('gte','0'),
+            lambda r:scale(r)[0].set('type','formula'),lambda r:scale(r)[0].set('val','[other.xlsx]A1'),
+            lambda r:scale(r)[0].set('val','1.0000000000000002'),lambda r:scale(r)[0].set('val','nan'),
+            lambda r:scale(r)[0].set('{evil}val','0'),lambda r:scale(r)[0].set('type','autoMin'),
+            lambda r:scale(r)[2].set('theme','1'),lambda r:scale(r)[2].set('rgb','80112233'),
+            lambda r:scale(r).append(ET.Element(q('color'),{'rgb':'FF112233'})),lambda r:scale(r).remove(scale(r)[0]),
+            lambda r:setattr(scale(r)[0],'tag','{evil}cfvo'),lambda r:setattr(scale(r)[2],'tag','{evil}color'),
+            lambda r:setattr(scale(r),'tag','{evil}colorScale'),lambda r:scale(r).append(ET.Element(q('extLst'))),
+            lambda r:parent(r).set('dxfId','0'),lambda r:parent(r).set('stopIfTrue','1'),
+            lambda r:parent(r).append(ET.Element(q('formula'))),lambda r:parent(r).set('type','dataBar'),
+            lambda r:r.append(deepcopy(scale(r))),lambda r:r.find(q('sheetData')).append(deepcopy(parent(r))),
+            lambda r:scale(r).insert(0,scale(r)[-1]),lambda r:setattr(scale(r)[0],'text','shadow')]
+        for change in attacks:
+            def edit(name,raw):
+                if name!='xl/worksheets/sheet1.xml':return raw
+                root=ET.fromstring(raw);change(root);return ET.tostring(root)
+            with self.subTest(change=change),self.assertRaises(ValueError):codec.import_book(rewrite(data,edit))
+        for part in ('xl/workbook.xml','xl/styles.xml'):
+            def edit(name,raw):
+                if name!=part:return raw
+                root=ET.fromstring(raw);ET.SubElement(root,q('colorScale'));return ET.tostring(root)
+            with self.subTest(part=part),self.assertRaises(ValueError):codec.import_book(rewrite(data,edit))
+
+    def test_color_scale_loaded_disagreement_and_input_fidelity(self):
+        original=codec.ExcelReader
+        class ChangedReader(original):
+            def read(self):
+                super().read()
+                for c in self.wb.worksheets[0].conditional_formatting:
+                    for rule in self.wb.worksheets[0].conditional_formatting[c]:
+                        if rule.colorScale:rule.colorScale.cfvo[0].val=999
+        with patch.object(codec,'ExcelReader',ChangedReader),self.assertRaisesRegex(ValueError,'interpretation mismatch'):codec.import_book(color_scale_fixture())
+        b=codec.import_book(color_scale_fixture())['book'];rs=json.loads(b['resources'][0]['data'])
+        b['resources'][0]['data']=json.dumps({'sheet1':[rs['sheet1'][2]]}) # fixed scale over formulas
+        for sid,row,col,value in [('sheet1','0','0',1.0000000000000002),('sheet2','0','0',1.0000000000000002),('sheet2','0','0','A\rB')]:
+            bad=deepcopy(b);bad['sheets'][sid]['cellData'][row][col]={'v':value,'t':2 if isinstance(value,float) else 1}
+            with self.subTest(sid=sid,value=value),self.assertRaisesRegex(ValueError,'Conditional export refused'):codec.export_book(bad)
+        self.assertTrue(codec.export_book(b)['base64'])
+
     def test_checkbox_namespace_identity(self):
         # Two tabs, same address: checkbox false and ordinary boolean true.
         source = checkbox_fixture()
