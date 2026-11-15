@@ -14,10 +14,10 @@ function elements(tree, parent = null) {
   if (Array.isArray(tree)) return tree.flatMap(child => elements(child, parent));
   if (!tree?.props) return [];
   if (typeof tree.type !== 'string') return elements(tree.props.children, parent);
-  const node = { tag: tree.type, classes: (tree.props.className ?? '').split(/\s+/), inputType: tree.props.type, hidden: tree.props.hidden, pressed: tree.props['aria-pressed'], parent };
+  const node = { tag: tree.type, classes: (tree.props.className ?? '').split(/\s+/), attributes: tree.props, inputType: tree.props.type, hidden: tree.props.hidden, pressed: tree.props['aria-pressed'], parent };
   return [node, ...elements(tree.props.children, node)];
 }
-// The app stylesheet uses type/class and exact input-type selectors, descendant/child combinators
+// The app stylesheet uses type/class and exact attribute-equality selectors, descendant/child combinators
 // and max-width media queries for these properties. Fail on unhandled syntax
 // that could affect headers/selects instead of silently declaring isolation.
 function matches(node, selector) {
@@ -25,11 +25,12 @@ function matches(node, selector) {
   const compound = (node, part) => {
     if (!node) return false;
     if (part.endsWith('[hidden]')) { if (!node.hidden) return false; part = part.slice(0, -8); }
-    if (part.endsWith('[aria-pressed="true"]')) { if (node.pressed !== true) return false; part = part.slice(0, -21); }
-    assert.match(part, /^(?:[\w-]+|\*)?(?:\.[\w-]+)*(?:\[type="[\w-]+"\])?$/);
-    const inputType = /\[type="([\w-]+)"\]$/.exec(part);
-    const [tag, ...classes] = part.replace(/\[type="[\w-]+"\]$/, '').split('.');
-    return (!tag || tag === '*' || node.tag === tag) && classes.every(c => node.classes.includes(c)) && (!inputType || node.inputType === inputType[1]);
+    assert.match(part, /^(?:[\w-]+|\*)?(?:\.[\w-]+)*(?:\[[\w-]+="[\w-]+"\])*$/);
+    const attributes = [...part.matchAll(/\[([\w-]+)="([\w-]+)"\]/g)];
+    const [tag, ...classes] = part.replace(/\[[\w-]+="[\w-]+"\]/g, '').split('.');
+    const value = name => node.attributes?.[name] ?? (name === 'type' ? node.inputType : name === 'aria-pressed' ? node.pressed : undefined);
+    return (!tag || tag === '*' || node.tag === tag) && classes.every(c => node.classes.includes(c))
+      && attributes.every(([, name, expected]) => value(name) !== undefined && String(value(name)) === expected);
   };
   let i = parts.length - 1;
   if (!compound(node, parts[i--])) return false;
@@ -129,4 +130,18 @@ for (const width of [1200, 760, 360, 390, 430]) test(`app header owns desktop/re
       assert.equal(applied(nativeSelect, width)['max-width'], undefined, `${kind} select must receive no app-header width`);
     }
   } finally { app.unmount(); }
+});
+
+test('exact role/type attribute equality preserves values, absent attributes and child boundaries', () => {
+  const parent = {tag:'div',classes:['google-exchange'],parent:null};
+  const node = {tag:'p',classes:[],attributes:{role:'status',type:'file'},parent};
+  assert.equal(matches(node, '.google-exchange > [role="status"]'), true);
+  assert.equal(matches(node, '[role="alert"]'), false);
+  assert.equal(matches({...node,attributes:{}}, '[role="status"]'), false);
+  assert.equal(matches({...node,attributes:{role:'Status'}}, '[role="status"]'), false);
+  assert.equal(matches({...node,parent:{tag:'div',classes:[],parent}}, '.google-exchange > [role="status"]'), false);
+  assert.equal(matches(node, '[type="file"][role="status"]'), true);
+  assert.equal(matches(node, '[type="text"][role="status"]'), false);
+  assert.equal(matches({...node,attributes:{type:'file'}}, '[type="file"][role="status"]'), false);
+  for (const selector of ['[role~="status"]','[role]','[role="status"','[role="status"]garbage']) assert.throws(() => matches(node, selector));
 });

@@ -22,7 +22,7 @@ const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevisi
 function mount(storage, fetcher) {
   const downloads = [], timers = new Map(); let timerId = 0;
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const PdfExchange = () => null, PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const GoogleExchange = () => null, PdfExchange = () => null, PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -33,6 +33,7 @@ function mount(storage, fetcher) {
   new Function('require', 'module', 'exports', 'localStorage', 'document', 'window', 'fetch', 'crypto', 'setTimeout', 'clearTimeout', 'URL', code)(name => {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
+    if (name === './GoogleExchange') return { GoogleExchange };
     if (name === './DocxExchange') return { DocxExchange };
     if (name === './PdfExport') return { PdfExport };
     if (name === './PdfExchange') return { PdfExchange };
@@ -54,7 +55,7 @@ function mount(storage, fetcher) {
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
-  return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, pdf: () => nodes(tree).find(n => n.type === PdfExchange).props, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
+  return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, google: () => nodes(tree).find(n => n.type === GoogleExchange)?.props, pdf: () => nodes(tree).find(n => n.type === PdfExchange).props, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
     async click(label) { const button = nodes(tree).find(n => n.type === 'button' && text(n.props.children) === label); assert.ok(button, label); assert.ok(!button.props.disabled); button.props.onClick(); await flush(); },
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },

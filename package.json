@@ -38,7 +38,9 @@
     "test:collaboration": "node apps/workagent-server/tests/collaboration.test.mjs && node --test-name-pattern='B05' apps/workagent-client/tests/csv-app.test.mjs",
     "test:google": "node apps/workagent-server/tests/google-contract.test.mjs && node apps/workagent-server/tests/google-http.test.mjs",
     "test:google:contract": "node apps/workagent-server/tests/google-contract.test.mjs",
-    "google:simulator": "node apps/workagent-server/tests/support/google-simulator.mjs"
+    "test:google:integration": "node apps/workagent-server/tests/google-exchange.test.mjs && node apps/workagent-client/tests/google-exchange.test.mjs && node apps/workagent-client/tests/mobile-work-area.test.mjs",
+    "test:google:integration:http": "node apps/workagent-server/tests/google-exchange-http.test.mjs",
+    "google:simulator": "node apps/workagent-server/src/google-simulation.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",

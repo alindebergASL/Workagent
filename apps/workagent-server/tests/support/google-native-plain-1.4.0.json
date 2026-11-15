@@ -1,0 +1,77 @@
+{
+  "id": "synthetic_native_google",
+  "locale": "enUS",
+  "title": "Unsaved synthetic delivery title",
+  "tableSource": {},
+  "drawings": {},
+  "drawingsOrder": [],
+  "headers": {},
+  "footers": {},
+  "notes": {},
+  "noteSettings": {},
+  "body": {
+    "textRuns": [],
+    "dataStream": "Original saved paragraph.\rSynthetic Google-account simulation.\r\n",
+    "paragraphs": [
+      {
+        "startIndex": 25
+      },
+      {
+        "startIndex": 62
+      }
+    ],
+    "sectionBreaks": [
+      {
+        "startIndex": 63,
+        "sectionId": "section_synthetic123"
+      }
+    ]
+  },
+  "documentStyle": {
+    "pageSize": {
+      "width": 794,
+      "height": 1123
+    },
+    "documentFlavor": 2,
+    "marginTop": 72,
+    "marginBottom": 72,
+    "marginRight": 72,
+    "marginLeft": 72,
+    "autoHyphenation": 1,
+    "doNotHyphenateCaps": 0,
+    "consecutiveHyphenLimit": 2,
+    "defaultHeaderId": "",
+    "defaultFooterId": "",
+    "evenPageHeaderId": "",
+    "evenPageFooterId": "",
+    "firstPageHeaderId": "",
+    "firstPageFooterId": "",
+    "evenAndOddHeaders": 0,
+    "useFirstPageHeaderFooter": 0,
+    "marginHeader": 30,
+    "marginFooter": 30,
+    "renderConfig": {
+      "zeroWidthParagraphBreak": 0,
+      "vertexAngle": 0,
+      "centerAngle": 0,
+      "background": {
+        "rgb": "#ccc"
+      }
+    }
+  },
+  "settings": {},
+  "resources": [
+    {
+      "name": "DOC_OBJECT_PERMISSION_PLUGIN",
+      "data": "[]"
+    },
+    {
+      "name": "DOC_WORD_STYLES_PLUGIN",
+      "data": ""
+    },
+    {
+      "name": "DOC_NOTE_PLUGIN",
+      "data": ""
+    }
+  ]
+}

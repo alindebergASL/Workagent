@@ -66,7 +66,7 @@ export function createServer(options) {
   })();
   return server;
 }
-export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounts = [], clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, google, owner, token, origin, accounts = [], clientRoot, accounting, onCommand = () => {} }) {
   const auth = identity({ token, origin, owner, accounts }), root = resolve(clientRoot);
   return async (req, res) => {
     responseHeaders(res);
@@ -102,6 +102,16 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path === '/api/session' && req.method === 'DELETE') { res.setHeader('Set-Cookie', 'workagent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return send(200, {}); }
       if (path === '/api/work' && req.method === 'GET') return send(200, await workspace.list(principal));
       if (path === '/api/work/blank' && req.method === 'POST') return send(200, await workspace.createBlank(principal, await body(req)));
+      if (path.startsWith('/api/exchange/google/')) {
+        // Authenticate/authorize before parsing client account or source claims.
+        await workspace.ownerAccess(principal);
+        if (path === '/api/exchange/google/state' && req.method === 'GET') return send(200, google ? await google.state(principal, new URL(req.url, origin).searchParams.get('workId') || undefined) : { enabled: false, label: 'Simulated Google — local only', accounts: [], connection: { generation: 0, account: null }, receipts: [] });
+        if (!google) throw new Fault('google_simulation_disabled', 409);
+        const methods = { connection: 'connect', 'sheet-preview': 'previewSheet', 'sheet-adopt': 'adoptSheet', 'doc-preview': 'previewDoc', 'doc-deliver': 'deliverDoc' };
+        const operation = path.slice('/api/exchange/google/'.length);
+        if (req.method !== 'POST' || !Object.hasOwn(methods, operation)) throw new Fault('not_found', 404);
+        return send(200, await google[methods[operation]](principal, await body(req)));
+      }
       if (pdf && /^\/api\/exchange\/pdf\/(export|preview|import)$/.test(path) && req.method === 'POST') {
         const abort = new AbortController(), disconnected = () => { if (!res.writableEnded) abort.abort(); };
         req.once('aborted', disconnected); res.once('close', disconnected);

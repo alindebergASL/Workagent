@@ -1,4 +1,5 @@
 import { DocxExchange } from './docx-exchange.mjs';
+import { startGoogleSimulation } from './google-exchange.mjs';
 import { DocxWorker } from './docx-worker.mjs';
 import { PdfExchange } from './pdf-exchange.mjs';
 import { PdfWorker } from './pdf-worker.mjs';
@@ -50,13 +51,18 @@ const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new
 const docx = new DocxExchange({ workspace, files: maintenance.files, worker: new DocxWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 const documents = new DocumentExchange({ workspace, files: maintenance.files });
 const pdf = new PdfExchange({ workspace, files: maintenance.files, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
-const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounts, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+// Exact opt-in only; no credentials/environment account discovery or live fallback.
+const googleSimulation = await startGoogleSimulation({ workspace, simulation: process.env.WORKAGENT_GOOGLE_SIMULATION === 'local-only' });
+const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, google: googleSimulation.exchange, owner, token, origin, accounts, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });
 const timer = setInterval(() => dispatcher.wake(), 1500);
 server.listen(Number(process.env.WORKAGENT_PORT ?? 8310), hostname, () => console.log('Workagent private service listening'));
 dispatcher.wake();
-const close = createShutdown({ server, dispatcher, host, leadership, pool, timer });
+const shutdown = createShutdown({ server, dispatcher, host, leadership, pool, timer });
+let closing;
+// Drain all admitted requests before closing their simulation transport.
+const close = () => closing ??= shutdown().finally(() => googleSimulation.close());
 leadership.on('error', () => { console.error('workspace_leadership_lost'); void close().catch(() => { console.error('workspace_shutdown_failed'); }); });
 process.on('SIGTERM', () => void close()); process.on('SIGINT', () => void close());

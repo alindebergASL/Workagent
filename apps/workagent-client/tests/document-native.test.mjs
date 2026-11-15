@@ -1,5 +1,6 @@
 import { artifactFixture, artifactStore } from './artifact-storage-fixture.mjs';
 import * as documentContract from '../../../packages/workagent-contract/document.mjs';
+import { prepareGoogleDocDelivery } from '../../workagent-server/src/google-adapter.mjs';
 // Installed SDK native commands + file-fixture authority; no browser, PG or inference.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -144,9 +145,12 @@ function consumerFixture(file, names) {
 // This obtains the real unexported service class without rewriting SDK source or
 // shared prototypes; DocumentEditor still resolves its own service by public token.
 const ui = require('@univerjs/docs-ui'), core = require('@univerjs/core'), docs = require('@univerjs/docs');
-const dependencies = [], disposable = () => ({ dispose() {} });
-const registration = new ui.UniverDocsUIPlugin({}, { add: d => dependencies.push(d), get: () => ({ registerShortcut() {} }) }, {}, { registerCommand: disposable, registerMultipleCommand: disposable }, { setConfig() {} });
+const dependencies = [], renderModules = [], disposable = () => ({ dispose() {} });
+const registration = new ui.UniverDocsUIPlugin({}, { add: d => dependencies.push(d), has: () => false, get: () => ({ registerShortcut() {} }) }, { registerRenderModule: (_type, entry) => renderModules.push(entry) }, { registerCommand: disposable, registerMultipleCommand: disposable }, { setConfig() {} });
 const NativeClipboard = dependencies.find(([token]) => token === ui.IDocClipboardService)[1].useClass;
+registration.onRendered();
+const NativeInput = renderModules.find(([token]) => token.name === 'DocInputController')[0];
+const NativeMenuStyle = dependencies.find(([token]) => token.name === 'DocMenuStyleService')[0];
 registration.dispose();
 function installClipboard(instance, clipboardRead = async () => []) {
   const injector = instance.__getInjector(), command = injector.get(core.ICommandService), selection = injector.get(docs.DocSelectionManagerService);
@@ -179,6 +183,18 @@ function editorFixture(props, clipboardRead = async () => []) {
   tree = module.exports.DocumentEditor({ version: 'test', onError: e => errors.push(e), ...props, onReady: h => { handle = h; props.onReady?.(h); }, onEdit: d => { edits.push(d); props.onEdit?.(d); } });
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
   return { clipboard, edits, errors, listeners, doc: () => nativeDoc,
+    async type(content) {
+      const injector=instance.__getInjector(), units=injector.get(core.IUniverInstanceService), selection=injector.get(docs.DocSelectionManagerService);
+      const styles=new NativeMenuStyle(selection,units,{getRenderUnitById:()=>undefined},injector.get(core.ThemeService));
+      let input;
+      // Real pinned typing controller, default-style service and insert command;
+      // only the DOM event, selection geometry and skeleton availability are fixtures.
+      const controller=new NativeInput({unitId:nativeDoc.getId(),unit:units.getUnit(nativeDoc.getId())},
+        {onInput$:{subscribe(fn){input=fn;return {unsubscribe(){}};}},getAllRectRanges:()=>[]},
+        {getSkeleton:()=>({})},injector.get(core.ICommandService),styles);
+      try {await input({event:{data:content,defaultPrevented:false},content,activeRange:selection.getActiveTextRange(),rangeList:[]});}
+      finally {controller.dispose();styles.dispose();}
+    },
     select(ranges, segmentId = '', rectRanges = []) {
       const selection = instance.__getInjector().get(docs.DocSelectionManagerService);
       // Installed render-to-logical-selection entry point; geometry/pointer input
@@ -433,4 +449,55 @@ test('two document send consumers keep original command even after sibling settl
     assert.equal(f.storage.getItem('workagent-composer:old:send'), null);
     await f.view.send(); const calls = f.api.calls.filter(c => c.path === '/api/work/commands'); assert.equal(calls.length, 3); assert.deepEqual(calls[1], calls[0]); assert.deepEqual(calls[2], calls[0]);
   } finally { editor?.dispose(); sibling?.unmount(); f.close(); }
+});
+
+test('Google delivery: actual DocumentEditor title/commit and pinned native save/reopen preserve a plain baseline',async()=>{
+  const input=blankDocument('google_native_export','Original title','Original saved paragraph.\nSynthetic Google-account simulation.'), before=structuredClone(input);
+  const editor=editorFixture({document:input});
+  try {
+    editor.title('Unsaved synthetic delivery title');
+    const saved=await editor.handle.commit(), captured=JSON.parse(readFileSync(new URL('../../workagent-server/tests/support/google-native-plain-1.4.0.json',import.meta.url),'utf8'));
+    assert.deepEqual(saved.documentStyle,captured.documentStyle);assert.deepEqual(saved.body.textRuns,[]);assert.ok(saved.body.sectionBreaks[0].sectionId);
+    assert.deepEqual(editor.handle.save(),saved);assert.deepEqual(input,before);
+    const plan=prepareGoogleDocDelivery(saved);assert.equal(plan.title,'Unsaved synthetic delivery title');assert.equal(plan.text,documentText(input));
+    const reopened=native(structuredClone(saved));
+    try {assert.deepEqual(prepareGoogleDocDelivery(reopened.doc.save()),plan);}finally{reopened.univer.dispose();}
+    assert.equal(editor.doc().insertText(0,'Human plain edit: '),true);
+    assert.equal(prepareGoogleDocDelivery(await editor.handle.commit()).text,'Human plain edit: '+documentText(input));
+  }finally{editor.dispose();}
+});
+test('Google delivery: pinned native typing controller inserts default character runs accepted by commit and preview',async()=>{
+  const input=blankDocument('google_native_typed','Synthetic typed title'),before=structuredClone(input),editor=editorFixture({document:input});
+  try {
+    await editor.type('Receipt continuity evidence.');
+    const saved=await editor.handle.commit();
+    assert.equal(saved.body.dataStream,'Receipt continuity evidence.\r\n');
+    assert.deepEqual(saved.body.textRuns,[{st:0,ed:28,ts:{cl:{rgb:'#1B1C1F'}}}]);
+    assert.deepEqual(input,before);assert.deepEqual(editor.handle.save(),saved);
+    const plan=prepareGoogleDocDelivery(saved);assert.equal(plan.text,'Receipt continuity evidence.');assert.equal(plan.title,input.title);
+    const reopened=native(structuredClone(saved));
+    try {assert.deepEqual(prepareGoogleDocDelivery(reopened.doc.save()),plan);}finally{reopened.univer.dispose();}
+    editor.select([{startOffset:28,endOffset:28}]);await editor.type(' 雪 🦉 exact trailing space ');
+    assert.equal(prepareGoogleDocDelivery(await editor.handle.commit()).text,'Receipt continuity evidence. 雪 🦉 exact trailing space ');
+    assert.deepEqual(editor.errors,[]);
+  }finally{editor.dispose();}
+});
+for(const [format,style]of [['color',{cl:{rgb:'#123456'}}],['bold',{bl:1}],['italic',{it:1}],['underline',{ul:{s:1}}],['font',{ff:'Courier New'}]])test(`Google delivery: native typed text with authored ${format} remains refused`,async()=>{
+  const editor=editorFixture({document:blankDocument('google_typed_rich','Synthetic title')});
+  try {
+    await editor.type('Ordinary typed text');assert.equal(prepareGoogleDocDelivery(await editor.handle.commit()).text,'Ordinary typed text');
+    assert.equal(editor.doc().getTextRange(0,8).setTextStyle(style),true);
+    const saved=await editor.handle.commit();assert.throws(()=>prepareGoogleDocDelivery(saved),e=>e.code==='google_plain_text_required');
+  }finally{editor.dispose();}
+});
+for(const format of ['bold','italic','paragraph'])test(`Google delivery: actual pinned native ${format} command remains refused`,async()=>{
+  const input=blankDocument('google_native_rich','Title','Native plain text');
+  // The SDK paragraph-style command addresses a stable paragraph ID.
+  input.body.paragraphs[0].paragraphId=core.createParagraphId(new Set());
+  const editor=editorFixture({document:input});
+  try {
+    if(format==='paragraph')assert.equal(editor.doc().getParagraphs()[0].setStyle({horizontalAlign:2}),true);
+    else assert.equal(editor.doc().getTextRange(0,6).setTextStyle(format==='bold'?{bl:1}:{it:1}),true);
+    const saved=await editor.handle.commit();assert.throws(()=>prepareGoogleDocDelivery(saved),e=>e.code==='google_plain_text_required');
+  }finally{editor.dispose();}
 });

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { blankDocument, validateDocument } from '../../../packages/workagent-contract/document.mjs';
 import { validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { createGoogleAdapter, createSimulatedGoogleAdapter, prepareGoogleDocDelivery, validateGoogleSheetPreview } from '../src/google-adapter.mjs';
@@ -90,4 +91,66 @@ test('missing token and journal fail closed; tampered preparation cannot create'
   await assert.rejects(a.executeDocDelivery(plan), errorCode('google_effect_journal_required'));
   await assert.rejects(a.executeDocDelivery({ ...plan, text: 'changed' }), errorCode('invalid_google_delivery_plan'));
   await assert.rejects(a.executeDocDelivery(plan, { recordEffect: { async reserve() {}, async record() {} } }), e => e.code === 'google_token_missing' && e.outcome === 'not_started');
+});
+
+// Synthetic real-browser Univer 1.4.0 export captured by Parent, with only
+// document/section IDs and title normalized. Keep SDK defaults and resources.
+const capturedPlain = () => JSON.parse(readFileSync(new URL('./support/google-native-plain-1.4.0.json', import.meta.url), 'utf8'));
+// Synthetic browser typing capture; only IDs/title normalized, runs preserved.
+const capturedTyped = () => JSON.parse(readFileSync(new URL('./support/google-native-typed-1.4.0.json', import.meta.url), 'utf8'));
+test('captured native typed text accepts the exact default foreground run without mutation or text loss',()=>{
+  const input=capturedTyped(),before=structuredClone(input),plan=prepareGoogleDocDelivery(input);
+  assert.equal(plan.text,'Receipt continuity evidence.');assert.equal(plan.title,input.title);assert.deepEqual(input,before);
+  assert.equal(plan.digest,prepareGoogleDocDelivery(blankDocument(input.id,input.title,plan.text)).digest);
+  for(const character of ['\uE000','\ud800']) {
+    const unsupported=structuredClone(input);unsupported.body.dataStream=character+unsupported.body.dataStream.slice(1);
+    assert.throws(()=>prepareGoogleDocDelivery(unsupported),errorCode('google_unsupported_document_text'));
+  }
+});
+for(const [label,style] of [
+  ['changed foreground',{cl:{rgb:'#123456'}}],['black foreground',{cl:{rgb:'#000000'}}],
+  ['null foreground',{cl:null}],['theme foreground',{cl:{th:0}}],['extra color property',{cl:{rgb:'#1B1C1F',th:0}}],
+  ['font family',{ff:'Arial'}],['font size',{fs:11}],['bold',{bl:1}],['italic',{it:1}],
+  ['underline',{ul:{s:1}}],['strike',{st:{s:1}}],['highlight',{bg:{rgb:'#FFFF00'}}],
+  ['baseline shift',{va:1}],['language',{lang:'en-US'}],['link',{link:'https://synthetic.invalid/'}],
+])test(`captured native typing still refuses authored ${label}`,()=>{
+  const input=capturedTyped();Object.assign(input.body.textRuns[0].ts,style);
+  assert.throws(()=>prepareGoogleDocDelivery(input),e=>['google_plain_text_required','unsupported_document_structure'].includes(e.code));
+});
+test('captured native plain baseline prepares exact text/title without stripping or mutating the source', () => {
+  const input=capturedPlain(), before=structuredClone(input), plan=prepareGoogleDocDelivery(input);
+  assert.equal(plan.title,input.title);assert.equal(plan.text,'Original saved paragraph.\nSynthetic Google-account simulation.');
+  assert.equal(plan.digest,prepareGoogleDocDelivery(blankDocument(input.id,input.title,plan.text)).digest);
+  assert.deepEqual(input,before);assert.ok(Object.isFrozen(plan));
+  const reordered=structuredClone(input);reordered.documentStyle.renderConfig={background:{rgb:'#ccc'},centerAngle:0,vertexAngle:0,zeroWidthParagraphBreak:0};
+  assert.equal(prepareGoogleDocDelivery(reordered).digest,plan.digest);
+});
+for(const [key,value] of Object.entries(capturedPlain().documentStyle))test(`captured native baseline refuses changed style ${key}`,()=>{
+  const input=capturedPlain();
+  input.documentStyle[key]=key==='pageSize'?{...value,width:value.width+1}:key==='renderConfig'?{...value,vertexAngle:1}:typeof value==='number'?value===0?1:0:'authored-header';
+  assert.throws(()=>prepareGoogleDocDelivery(input),e=>['google_plain_text_required','unsupported_document_structure','invalid_document_structure'].includes(e.code));
+});
+for(const [label,mutate] of [
+  ['bold',d=>{d.body.textRuns=[{st:0,ed:5,ts:{bl:1}}];}],
+  ['italic',d=>{d.body.textRuns=[{st:0,ed:5,ts:{it:1}}];}],
+  ['list',d=>{d.body.paragraphs[0].bullet={listId:'list',listType:'BULLET_LIST',nestingLevel:0};}],
+  ['paragraph spacing',d=>{d.body.paragraphs[0].paragraphStyle={lineSpacing:1.5};}],
+  ['default paragraph styling',d=>{d.documentStyle.defaultParagraphStyle={lineSpacing:1};}],
+  ['default text styling',d=>{d.documentStyle.textStyle={bl:1};}],
+  ['section margin',d=>{d.body.sectionBreaks[0].marginTop=72;}],
+  ['section columns',d=>{d.body.sectionBreaks[0].columnProperties=[{width:300,paddingEnd:10}];}],
+  ['section direction',d=>{d.body.sectionBreaks[0].textDirection=1;}],
+  ['unknown section attribute',d=>{d.body.sectionBreaks[0].authoredRichProperty=true;}],
+  ['render background',d=>{d.documentStyle.renderConfig.background.rgb='#fff';}],
+  ['render break width',d=>{d.documentStyle.renderConfig.zeroWidthParagraphBreak=1;}],
+  ['render angle',d=>{d.documentStyle.renderConfig.centerAngle=10;}],
+  ['additional render property',d=>{d.documentStyle.renderConfig.isRenderStyle=1;}],
+  ['authored plugin resource',d=>{d.resources[1].data='{"authored":"style"}';}],
+  ['unknown plugin resource',d=>{d.resources.push({name:'UNSUPPORTED_PLUGIN',data:''});}],
+  ['header content',d=>{d.headers.authored={body:{dataStream:'header\r\n'}};}],
+  ['note content',d=>{d.notes.authored={body:{dataStream:'note\r\n'}};}],
+  ['drawing',d=>{d.drawings.authored={};}],
+  ['table',d=>{d.body.tables=[{}];}],
+])test(`captured native baseline still refuses ${label}`,()=>{
+  const input=capturedPlain();mutate(input);assert.throws(()=>prepareGoogleDocDelivery(input),e=>['google_plain_text_required','unsupported_document_structure','unsupported_document_resources'].includes(e.code));
 });

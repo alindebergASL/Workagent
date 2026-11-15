@@ -28,11 +28,13 @@ export function googleTransport({ credentials = {}, simulationOrigin, timeoutMs 
     if (tokens.expiresAt !== undefined && !Number.isFinite(tokens.expiresAt)) googleFail('invalid_token_expiry');
   }
   checkTokens();
-  async function wire(service, path, { method = 'GET', body, token, form, requestId = randomUUID(), documentId, effect = false } = {}) {
+  async function wire(service, path, { method = 'GET', body, token, form, requestId = randomUUID(), documentId, effect = false, beforeDispatch } = {}) {
     if (!Object.hasOwn(origins, service) || !path.startsWith('/') || path.startsWith('//') || path.includes('\\')) googleFail('invalid_google_path');
     const url = new URL(path, origins[service]);
     if (url.origin !== origins[service] || url.username || url.password || url.hash) googleFail('invalid_google_path');
     const details = { requestId, ...(documentId ? { documentId } : {}) };
+    // The caller's current grant is checked after any asynchronous token refresh.
+    if (effect && beforeDispatch) await beforeDispatch();
     let response, raw;
     try {
       response = await fetch(url, { method, redirect: 'manual', signal: AbortSignal.timeout(timeoutMs),
@@ -78,7 +80,7 @@ export function googleTransport({ credentials = {}, simulationOrigin, timeoutMs 
         };
         if (tokens.expiresAt !== undefined && tokens.expiresAt <= Date.now()) await once();
         try { return await wire(service, path, { ...options, token: tokens.accessToken }); }
-        catch (e) { if (e.status !== 401 || refreshed) throw e; await once(); return wire(service, path, { ...options, token: tokens.accessToken }); }
+        catch (e) { if (options.effect || e.status !== 401 || refreshed) throw e; await once(); return wire(service, path, { ...options, token: tokens.accessToken }); }
       };
     },
   });

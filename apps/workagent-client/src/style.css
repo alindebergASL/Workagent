@@ -23,6 +23,11 @@
 
 .document-exchange input[type="file"] { max-width:100%; }
 .document-exchange p { overflow-wrap:anywhere; }
+.google-exchange { min-width:0; overflow-wrap:anywhere; }
+.google-exchange label { display:block; margin:.5rem 0; }
+.google-exchange input, .google-exchange select { display:block; width:100%; min-width:0; max-width:100%; }
+.google-exchange button { max-width:100%; margin:.25rem .25rem .25rem 0; white-space:normal; }
+.google-exchange > [role="status"] { padding:0 1rem; font-size:.85rem; }
 
 .native-sheet-workspace { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:auto; }
 .native-sheet-workspace > .native-editor { flex:1 0 320px; min-height:320px; min-width:0; }

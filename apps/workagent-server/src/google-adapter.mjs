@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
+import { DocumentDataModel, ThemeService } from '@univerjs/core';
 import { id, validateWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { validateDocument, documentText, blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { googleTransport, googleFail, GoogleAdapterError } from './google-transport.mjs';
@@ -71,11 +73,29 @@ export function validateGoogleSheetPreview({ response, spreadsheetId, ranges, pr
   return sheetPreview(response, selections(ranges), spreadsheetId, previewId);
 }
 
+// Derive the opened plain baseline through the pinned SDK's own normalization.
+// This retains Workagent's page geometry while including SDK-added view and
+// hyphenation defaults. Never normalize the caller's authored styles away.
+const plainNativeStyle = (() => {
+  const model = new DocumentDataModel(blankDocument('google_plain_baseline'));
+  try { return structuredClone(model.getSnapshot().documentStyle); }
+  finally { model.dispose(); }
+})();
+// Pinned DocMenuStyleService supplies gray.900 to the normal typing controller.
+// Its default font/size are elided from inserted runs; only this exact foreground
+// (or an empty style) is plain. Authored font, decoration and other colors refuse.
+const plainNativeTextStyle = (() => {
+  const theme = new ThemeService();
+  try { return { cl: { rgb: theme.getColorFromTheme('gray.900') } }; }
+  finally { theme.dispose(); }
+})();
 export function prepareGoogleDocDelivery(input) {
-  const doc = validateDocument(input), defaults = blankDocument(doc.id, doc.title).documentStyle;
-  if (doc.body.textRuns?.length || doc.body.paragraphs.some(p => p.bullet || nonempty(p.paragraphStyle)) || nonempty(doc.lists)
-      || Object.entries(doc.documentStyle).some(([k, v]) => JSON.stringify(v) !== JSON.stringify(defaults[k]))
-      || doc.body.sectionBreaks?.some(s => Object.keys(s).some(k => k !== 'startIndex'))) googleFail('google_plain_text_required');
+  const doc = validateDocument(input);
+  // The validated terminal section may carry its generated ID, never authored layout.
+  if (doc.body.textRuns?.some(r => Object.entries(r.ts).some(([k, v]) => !Object.hasOwn(plainNativeTextStyle, k) || !isDeepStrictEqual(v, plainNativeTextStyle[k])))
+      || doc.body.paragraphs.some(p => p.bullet || nonempty(p.paragraphStyle)) || nonempty(doc.lists)
+      || Object.entries(doc.documentStyle).some(([k, v]) => !isDeepStrictEqual(v, plainNativeStyle[k]))
+      || doc.body.sectionBreaks?.some(s => Object.keys(s).some(k => !['startIndex', 'sectionId'].includes(k)))) googleFail('google_plain_text_required');
   const content = documentText(doc);
   // Docs insertText strips certain control/PUA characters. Refuse before any effect.
   if (!content.length || /[\uE000-\uF8FF\u0000-\u0008\u000B-\u001F]/u.test(content) || !content.isWellFormed()) googleFail('google_unsupported_document_text');
@@ -118,7 +138,7 @@ function adapter(options) {
         provenance: { ...provenance, spreadsheetId, ranges: selected.map(r => r.a1), observedAt: new Date().toISOString(), requestId, adopted: false, calculation: 'formulas-refused' } };
     },
     prepareDocDelivery: prepareGoogleDocDelivery,
-    async executeDocDelivery(plan, { operationId = randomUUID(), recordEffect } = {}) {
+    async executeDocDelivery(plan, { operationId = randomUUID(), recordEffect, checkAuthority = async () => {} } = {}) {
       const action = checkedPlan(plan); id(operationId);
       // Mandatory caller-owned durable journal: reserve prevents a repeated logical
       // operation; record must finish before the next external request. Not Google idempotency.
@@ -128,24 +148,28 @@ function adapter(options) {
       const receipt = { operationId, digest: action.digest, provenance, requestIds: [] };
       try {
         const createId = randomUUID(); receipt.requestIds.push(createId);
-        await recordEffect.record({ ...receipt, stage: 'create_dispatching' }); writeStarted = true;
+        await recordEffect.record({ ...receipt, stage: 'create_dispatching' });
+        await checkAuthority(); writeStarted = true;
         // create makes a BLANK doc. https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create
-        const created = await request('docs', '/v1/documents', { method: 'POST', body: { title: action.title }, effect: true, requestId: createId });
+        const created = await request('docs', '/v1/documents', { method: 'POST', body: { title: action.title }, effect: true, beforeDispatch: checkAuthority, requestId: createId });
         documentId = remoteId(created.data?.documentId); receipt.documentId = documentId;
         await recordEffect.record({ ...receipt, stage: 'created' }); stage = 'read_blank';
         // Current tab shape deliberately requested; never silently use legacy first-tab body.
         const getPath = `/v1/documents/${documentId}?includeTabsContent=true`;
+        await checkAuthority();
         const before = readDoc((await request('docs', getPath, { documentId })).data, documentId);
         if (before.text !== '\n' || before.title !== action.title) googleFail('google_new_document_not_blank');
         receipt.tabId = before.tabId; receipt.requiredRevisionId = before.revisionId; stage = 'batch_update';
         const updateId = randomUUID(); receipt.requestIds.push(updateId);
         await recordEffect.record({ ...receipt, stage: 'update_dispatching' });
+        await checkAuthority();
         // https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate
         // requiredRevisionId mismatch is 400. No targetRevisionId merge/retry fallback.
-        const updated = await request('docs', `/v1/documents/${documentId}:batchUpdate`, { method: 'POST', effect: true, requestId: updateId, documentId,
+        const updated = await request('docs', `/v1/documents/${documentId}:batchUpdate`, { method: 'POST', effect: true, beforeDispatch: checkAuthority, requestId: updateId, documentId,
           body: { requests: [{ insertText: { location: { index: 1, tabId: before.tabId }, text: action.text } }], writeControl: { requiredRevisionId: before.revisionId } } });
         if (updated.data?.documentId !== documentId || !Array.isArray(updated.data.replies) || updated.data.replies.length !== 1) googleFail('google_invalid_update_response', { outcome: 'unknown' });
         stage = 'readback';
+        await checkAuthority();
         const after = readDoc((await request('docs', getPath, { documentId })).data, documentId);
         if (after.tabId !== before.tabId || after.title !== action.title || after.text !== action.text + '\n') googleFail('google_readback_mismatch', { outcome: 'unknown' });
         const result = { ...receipt, stage: 'verified', outcome: 'verified', readbackRevisionId: after.revisionId, verifiedText: action.text, ...(provenance.synthetic ? {} : { url: `https://docs.google.com/document/d/${documentId}/edit` }) };

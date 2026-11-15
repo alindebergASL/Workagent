@@ -17,9 +17,9 @@ const require = createRequire(import.meta.url);
 const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
 const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a;reject=b; }); return {promise,resolve,reject}; };
-const exchangeNames = ['CsvExchange','XlsxExchange','DocumentExchange','DocxExchange','PdfExchange','PdfExport'];
+const exchangeNames = ['GoogleExchange','CsvExchange','XlsxExchange','DocumentExchange','DocxExchange','PdfExchange','PdfExport'];
 const compiled = new Map();
-function fixture(handler = () => { throw new Error('Unexpected mutation'); }) {
+function fixture(handler = () => { throw new Error('Unexpected mutation'); }, googleEnabled = false) {
   const disk = new Map(), storage = {getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,v),removeItem:k=>disk.delete(k)};
   const works = Object.fromEntries(['sheet','doc','other'].map(id=>[id,{id,title:id,kind:id==='doc'?'document':'sheet', ...(id==='doc'?{document:blankDocument(id,'Document')}:{book:blankWorkbook(id,id)}),status:'working',messages:[],proposals:[],contentRevision:1,intentRevision:0,eventSequence:1,expected:{contentRevision:1,permissionRevision:1,intentRevision:0,cancellationEpoch:0}}]));
   const calls=[], native = new Map(), lifetimes=[];
@@ -28,8 +28,8 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }) {
     const saved=React.useRef(null);
     React.useEffect(()=>{
       saved.current=structuredClone(kind==='document'?props.document:props.book);
-      const handle={save:()=>structuredClone(saved.current),commit:async()=>structuredClone(saved.current),isEditing:()=>false,contentEpoch:()=>0};
-      const entry={handle,edit(value){if(kind==='document')saved.current.body.dataStream=value+'\r\n';else saved.current.sheets.sheet1.cellData={0:{0:{v:value,t:1}}};latest.current.onEdit(structuredClone(saved.current));},title(value){saved.current.title=value;latest.current.onEdit(structuredClone(saved.current));}};
+      const handle={editorId:randomUUID(),save:()=>structuredClone(saved.current),commit:async()=>structuredClone(saved.current),isEditing:()=>false,contentEpoch:()=>0};
+      const entry={handle,edit(value){if(kind==='document')saved.current.body=blankDocument(saved.current.id,saved.current.title,value).body;else saved.current.sheets.sheet1.cellData={0:{0:{v:value,t:1}}};latest.current.onEdit(structuredClone(saved.current));},title(value){saved.current.title=value;latest.current.onEdit(structuredClone(saved.current));}};
       native.set(saved.current.id,entry);lifetimes.push(['mount',saved.current.id,props.version]);props.onReady(handle);
       return ()=>{lifetimes.push(['dispose',saved.current.id,props.version]);props.onReady(null);};
     },[props.version]);
@@ -40,7 +40,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }) {
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
-    const value=path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:input?await handler(path,input,works):works[path.split('/').at(-1)];
+    const value=path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:input?await handler(path,input,works):works[path.split('/').at(-1)];
     return {ok:true,status:200,json:async()=>structuredClone(value)};
   };
   const modules=new Map();
@@ -62,11 +62,12 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }) {
     modules.set(name,m.exports);return m.exports;
   }
   load('main');
-  const panel=mountConditionalEditor(App,{},undefined,undefined,[...exchangeNames,'NativeEditor','DocumentEditor']);
+  let panel=mountConditionalEditor(App,{},undefined,undefined,[...exchangeNames,'NativeEditor','DocumentEditor']);
   const flush=async()=>{for(let i=0;i<12;i++){await new Promise(setImmediate);panel.flush();}};
   const find=predicate=>panel.find(predicate);
   const button=label=>find(n=>n.type==='button'&&text(n)===label);
-  return {panel,storage,calls,native,lifetimes,works,flush,find,button,
+  return {get panel(){return panel;},storage,calls,native,lifetimes,works,flush,find,button,
+    async remount(){panel.dispose();panel=mountConditionalEditor(App,{},undefined,undefined,[...exchangeNames,'NativeEditor','DocumentEditor']);await flush();},
     async click(label){const b=button(label);assert.ok(!b.props.disabled,label);b.props.onClick();await flush();},
     async open(id){find(n=>n.props['aria-label']==='Saved work').props.onChange({target:{value:id}});await flush();},
     async message(value){find(n=>n.props.id==='prompt').props.onChange({target:{value}});await flush();},
@@ -150,4 +151,135 @@ test('pinned native engine observes hidden/visible and 360/390/430/desktop conta
     assert.equal(mounts,1);assert.equal(transforms.length,sizes.length);
     observer.notify();assert.equal(idle.size,1);engine.unmount();assert.equal(idle.size,0);assert.equal(observer.released,true);
   }finally{for(const [key,descriptor] of Object.entries(previous)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+});
+
+// Actual mounted App and GoogleExchange, actual service/adapter/simulator handlers;
+// native editor, PostgreSQL wire and sockets remain explicit fixtures.
+import { integrationFixture, handlerRequest, token as googleToken, accounts as googleAccounts, origin as googleOrigin } from '../../workagent-server/tests/support/google-integration-fixture.mjs';
+import { createHandler } from '../../workagent-server/src/http.mjs';
+async function googleFixture(t, intercept, afterResponse) {
+  const service = integrationFixture(t);
+  const route = createHandler({ workspace: service.workspace, google: service.exchange, owner: 'owner', token: googleToken, accounts: googleAccounts, origin: googleOrigin, clientRoot: '/tmp' });
+  const f = fixture(async (path, input, works) => {
+    await intercept?.(path, input);
+    const response = await handlerRequest(route, path, { input });
+    if (response.status !== 200) throw new Error(response.value.error);
+    await afterResponse?.(path, input, response.value);
+    if (path.endsWith('sheet-adopt')) { const w = await service.workspace.get('owner', response.value.workId); works[w.id] = { ...w, title: w.book.name }; }
+    return response.value;
+  }, true);
+  await service.store.transaction(s => { s.works = structuredClone(f.works); for (const w of Object.values(s.works)) { w.cancellationEpoch = 0; w.sourceIds = []; w.humanCells = []; } });
+  await f.flush();
+  return { ...f, get panel(){return f.panel;}, service, async connect(account = 'alice') { f.find(n => n.props['aria-label'] === 'Simulated Google account').props.onChange({ target: { value: account } }); await f.flush(); } };
+}
+test('Google App: two-step typed adoption keeps native draft/composer through collapse and navigation; explicit Open only', async t => {
+  const f = await googleFixture(t);
+  try {
+    await f.open('sheet'); await f.click(tools); const native = f.native.get('sheet'); native.edit('keep unsaved cell'); await f.message('keep unsent request');
+    await f.connect(); await f.click('Preview simulated Sheets');
+    assert.match(f.panel.text(), /0012/); assert.equal((await f.service.workspace.list('owner')).length, 3); assert.equal(f.service.writes().length, 0);
+    await f.click(tools); assert.match(text(f.find(n => n.props['aria-label'] === 'File action messages')), /Sheets preview only/);
+    await f.open('other'); await f.open('sheet'); await f.click(tools);
+    assert.match(f.panel.text(), /0012/); assert.equal(f.messageValue(), 'keep unsent request');
+    await f.click('Adopt preview as new native work');
+    assert.equal((await f.service.workspace.list('owner')).length, 4);
+    assert.equal(f.find(n => n.props['aria-label'] === 'Saved work').props.value, 'sheet');
+    assert.equal(f.native.get('sheet').handle.save().sheets.sheet1.cellData[0][0].v, 'keep unsaved cell');
+    assert.equal(f.calls.filter(c => c.path.endsWith('/save')).length, 0); assert.equal(f.service.writes().length, 0);
+    await f.click('Open adopted Google sheet');
+    const selected = f.find(n => n.props['aria-label'] === 'Saved work').props.value;
+    assert.notEqual(selected, 'sheet'); assert.equal(f.native.get(selected).handle.save().sheets.google_0.cellData[0][0].v, '0012');
+    await f.open('sheet'); assert.equal(f.messageValue(), 'keep unsent request'); assert.equal(f.native.get('sheet').handle.save().sheets.sheet1.cellData[0][0].v, 'keep unsaved cell');
+  } finally { f.dispose(); }
+});
+test('Google App: unsaved native document/title → exact preview → confirmed readback receipt; collapse/navigation never resend/save', async t => {
+  const f = await googleFixture(t);
+  try {
+    await f.open('doc'); await f.click(tools); const native = f.native.get('doc'); native.edit('Actual unsaved native text'); native.title('Unsaved delivery title'); await f.message('Unsent doc message'); await f.connect();
+    await f.click('Preview plain-text Google Doc'); assert.equal(f.service.writes().length, 0);
+    assert.match(f.panel.text(), /Actual unsaved native text/); assert.match(f.panel.text(), /Plain text in one Google Docs tab/);
+    await f.click(tools); await f.click(tools); assert.equal(f.service.writes().length, 0);
+    await f.click('Confirm simulated Google Doc delivery'); assert.equal(f.service.writes().length, 2); assert.match(f.panel.text(), /Readback verified/);
+    assert.equal((await f.service.workspace.get('owner', 'doc')).document.title, 'Document');
+    assert.equal(f.calls.filter(c => c.path.endsWith('/save')).length, 0);
+    const receipt = (await f.service.exchange.state('owner', 'doc')).receipts[0]; assert.equal(f.service.sim.files.get(receipt.documentId).text, 'Actual unsaved native text');
+    await f.click(tools); assert.match(text(f.find(n => n.props['aria-label'] === 'File action messages')), /Readback verified/);
+    await f.open('other'); await f.open('doc'); assert.match(f.panel.text(), /Readback verified/); assert.equal(f.service.writes().length, 2);
+    assert.equal(f.native.get('doc').handle.save().title, 'Unsaved delivery title'); assert.equal(f.messageValue(), 'Unsent doc message');
+  } finally { f.dispose(); }
+});
+test('Google App: disconnect after preview refuses confirmation and delayed result cannot retarget another work', async t => {
+  const gate = deferred(); let hold = false;
+  const f = await googleFixture(t, async path => { if (hold && path.endsWith('sheet-preview')) await gate.promise; });
+  try {
+    await f.open('sheet'); await f.click(tools); await f.connect(); await f.click('Preview simulated Sheets');
+    await f.click('Disconnect simulation'); assert.equal(f.service.writes().length, 0); assert.match(f.panel.text(), /Earlier previews cannot be confirmed/);
+    await f.connect(); hold = true; await f.click('Preview simulated Sheets'); await f.open('other'); gate.resolve(); await f.flush();
+    assert.ok(!f.panel.text().includes('0012')); assert.equal((await f.service.workspace.list('owner')).length, 3);
+    await f.open('sheet'); assert.match(f.panel.text(), /Work or connection changed/); assert.equal(f.service.writes().length, 0);
+  } finally { gate.resolve(); f.dispose(); }
+});
+
+test('Google App: lost request before admission cannot retry reviewed text after a native edit', async t => {
+  let lose = true;
+  const f = await googleFixture(t, async path => { if (path.endsWith('doc-deliver') && lose) { lose = false; throw new Error('request lost before admission'); } });
+  try {
+    await f.open('doc'); await f.click(tools); await f.connect();
+    const native = f.native.get('doc'); native.edit('Reviewed original text');
+    await f.click('Preview plain-text Google Doc'); await f.click('Confirm simulated Google Doc delivery');
+    assert.equal((await f.service.exchange.state('owner', 'doc')).receipts.length, 0); assert.equal(f.service.writes().length, 0);
+    native.edit('Human correction after lost request'); await f.flush();
+    await f.click('Check / retry exact Google action');
+    assert.equal(f.service.writes().length, 0); assert.equal(f.calls.filter(c => c.path.endsWith('doc-deliver')).length, 1);
+    assert.match(f.panel.text(), /changed|stale/); assert.match(native.handle.save().body.dataStream, /Human correction/);
+    await f.click('Preview plain-text Google Doc'); await f.click('Confirm simulated Google Doc delivery');
+    const receipt = (await f.service.exchange.state('owner', 'doc')).receipts[0];
+    assert.equal(f.service.sim.files.get(receipt.documentId).text, 'Human correction after lost request');
+    assert.equal(f.service.writes().length, 2); assert.equal(f.calls.filter(c => c.path.endsWith('/save')).length, 0);
+  } finally { f.dispose(); }
+});
+
+test('Google App: admitted receipt recovery preserves newer native draft and composer without another POST', async t => {
+  let lose=true;
+  const f=await googleFixture(t,undefined,async path=>{if(path.endsWith('doc-deliver')&&lose){lose=false;throw new Error('lost acknowledgement after admission');}});
+  try {
+    await f.open('doc');await f.click(tools);await f.connect();const native=f.native.get('doc');native.edit('Reviewed original text');
+    await f.click('Preview plain-text Google Doc');await f.click('Confirm simulated Google Doc delivery');assert.equal(f.service.writes().length,2);
+    native.edit('Newer unsaved human text');native.title('Newer local title');await f.message('Newer unsent request');const snapshot=native.handle.save();
+    const start=f.calls.length;await f.click('Check / retry exact Google action');
+    assert.ok(f.calls.slice(start).every(c=>c.input===undefined));assert.match(f.panel.text(),/Readback verified/);
+    assert.deepEqual(native.handle.save(),snapshot);assert.equal(f.messageValue(),'Newer unsent request');
+    await f.open('other');await f.open('doc');assert.deepEqual(f.native.get('doc').handle.save(),snapshot);assert.equal(f.messageValue(),'Newer unsent request');
+    assert.equal(f.service.writes().length,2);assert.equal(f.calls.filter(c=>c.path.endsWith('doc-deliver')).length,1);assert.equal(f.calls.filter(c=>c.path.endsWith('/save')).length,0);
+  } finally {f.dispose();}
+});
+
+test('Google App: newly returned unknown survives a different successful delivery without refresh, collapse and remount', async t => {
+  const f=await googleFixture(t);
+  try {
+    await f.open('doc');await f.click(tools);await f.connect();
+    assert.equal((await f.service.exchange.state('owner','doc')).receipts.length,0);
+    const reads=f.calls.filter(c=>c.path.includes('/exchange/google/state')).length;
+    const native=f.native.get('doc');native.edit('First explicit delivery');
+    f.service.sim.faults.push({path:'/v1/documents',disconnectAfter:true});
+    await f.click('Preview plain-text Google Doc');await f.click('Confirm simulated Google Doc delivery');
+    const unknown=(await f.service.exchange.state('owner','doc')).receipts[0];assert.equal(unknown.outcome,'unknown');
+    assert.equal(f.service.writes().length,1);
+    native.edit('Newer native draft delivered separately');native.title('Newer unsaved title');await f.message('Keep unsent composer');
+    const snapshot=native.handle.save();
+    await f.click('Preview plain-text Google Doc');await f.click('Confirm simulated Google Doc delivery');
+    assert.equal(f.calls.filter(c=>c.path.includes('/exchange/google/state')).length,reads,'no state refresh between the two deliveries');
+    assert.equal(f.service.writes().length,3,'one uncertain create and one explicit create/insert');
+    await f.click(tools);assert.equal(f.find(n=>n.props.id==='work-tools').props.hidden,true);
+    const notice=()=>text(f.find(n=>n.props['aria-label']==='File action messages'));
+    assert.match(notice(),new RegExp(unknown.operationId+'.*unknown outcome'));assert.match(notice(),/Readback verified/);
+    assert.deepEqual(native.handle.save(),snapshot);assert.equal(f.messageValue(),'Keep unsent composer');
+    const start=f.calls.length;await f.remount();await f.open('doc');
+    assert.equal(f.find(n=>n.props.id==='work-tools').props.hidden,true);
+    assert.match(notice(),new RegExp(unknown.operationId+'.*unknown outcome'));assert.match(notice(),/Readback verified/);
+    assert.deepEqual(f.native.get('doc').handle.save(),snapshot);assert.equal(f.messageValue(),'Keep unsent composer');
+    assert.ok(f.calls.slice(start).every(c=>c.input===undefined),'remount only reads');
+    assert.equal(f.calls.filter(c=>c.path.endsWith('doc-deliver')).length,2);assert.equal(f.service.writes().length,3);
+    assert.equal(f.calls.filter(c=>c.path.endsWith('/save')).length,0);
+  } finally {f.dispose();}
 });
