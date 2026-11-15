@@ -34,7 +34,10 @@
     "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs && node apps/workagent-client/tests/validation-settlement.test.mjs",
     "test:conditional": "node apps/workagent-client/tests/conditional-formatting.test.mjs && node apps/workagent-client/tests/conditional-editor.test.mjs && node apps/workagent-client/tests/xlsx-conditional.test.mjs",
     "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs",
-    "test:quarter-icons": "node apps/workagent-client/tests/native-quarter-icons.test.mjs && node apps/workagent-client/tests/xlsx-quarters.test.mjs"
+    "test:quarter-icons": "node apps/workagent-client/tests/native-quarter-icons.test.mjs && node apps/workagent-client/tests/xlsx-quarters.test.mjs",
+    "test:google": "node apps/workagent-server/tests/google-contract.test.mjs && node apps/workagent-server/tests/google-http.test.mjs",
+    "test:google:contract": "node apps/workagent-server/tests/google-contract.test.mjs",
+    "google:simulator": "node apps/workagent-server/tests/support/google-simulator.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",
