@@ -1,7 +1,6 @@
 // Independent XML/openpyxl fixtures -> actual codec -> installed SDK/adapter.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { createRequire, Module } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -35,16 +34,6 @@ test('installed icon registry and calculator preserve high/low ordering, compara
   const context={rule:entry,worksheet:{getMaxRows:()=>100,getMaxColumns:()=>20},getCellValue:r=>cells[r]??{}};
   unit.preComputing(0,0,context);
   assert.deepEqual(cells.map((_,r)=>unit.getCellResult(r,0,bands,context)?.iconId),['2','2','1','1','0',undefined,undefined,undefined,undefined]);
-});
-test('installed 5Quarters endpoint SVG bytes are identical; exchange refusal leaves native family intact',()=>{
-  const quarters=sdk.iconMap['5Quarters'];assert.equal(quarters.length,5);
-  const bytes=value=>Buffer.from(value.slice(value.indexOf(',')+1),'base64');
-  assert.deepEqual(bytes(quarters[0]),bytes(quarters[4]));
-  assert.equal(createHash('sha256').update(quarters[0]).digest('hex'),'17e095fae29aa127c3c343f2f4f3c7833904f56adc77242a3343dbcff7d8caad');
-  // Other installed standard families have distinct assets; the native registry
-  // is unchanged. This does not claim cross-app raster identity.
-  for(const family of ['3Arrows','3ArrowsGray','3Flags','3TrafficLights1','3TrafficLights2','3Signs','3Symbols','3Symbols2','4Arrows','4ArrowsGray','4RedToBlack','4TrafficLights','4Rating','5Arrows','5ArrowsGray','5Rating'])
-    assert.equal(new Set(sdk.iconMap[family]).size,sdk.iconMap[family].length,family);
 });
 test('installed renderer selects the exact family/id asset, suppresses small/hidden cells and leaves text hiding to composition',()=>{
   // Exercise actual renderer with loaded-image stand-ins; not browser pixel proof.

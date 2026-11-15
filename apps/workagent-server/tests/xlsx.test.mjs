@@ -313,35 +313,45 @@ for(const sandbox of [false,true]) test(`resolved worksheet CF names refuse atom
 });
 
 
-for(const sandbox of [false,true]) test(`5Quarters API import/export refuse without original writes or state changes through ${sandbox?'production namespace worker':'real codec'}`,async t=>{
+for(const sandbox of [false,true]) test(`5Quarters API roundtrip and malformed-rule transaction refusals through ${sandbox?'production namespace worker':'real codec'}`,async t=>{
   const worker=sandbox?new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'}):trustedWorker;
   if(sandbox){
     try{await worker.run({op:'export',book:blankWorkbook('quarter-probe')});}
-    catch(e){if(/^xlsx_sandbox/.test(e.code)){t.skip(`Production namespace/socket execution unverified here (${e.code}); quarter refusal assertions did not run`);return;}throw e;}
+    catch(e){if(/^xlsx_sandbox/.test(e.code)){t.skip(`Production namespace/socket execution unverified here (${e.code}); quarter transaction assertions did not run`);return;}throw e;}
   }
-  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64,json\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps([base64.b64encode(m.quarters_fixture(show)).decode() for show in (False,True)]))`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
-  assert.equal(generated.status,0,generated.stderr);
-  const f=await fixture(worker),{workId}=await f.workspace.createBlank('owner',{commandId:'quarter-native',title:'Native quarters'});
-  const b=(await f.workspace.get('owner',workId)).book;
-  b.sheets.sheet1.cellData={0:{0:{v:0,t:2}},1:{0:{v:40,t:2}},2:{2:{f:'=1+1'}}};
-  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{cfId:'quarters',stopIfTrue:false,ranges:[{startRow:0,endRow:5,startColumn:0,endColumn:0}],rule:{type:'iconSet',isShowValue:false,config:[40,30,20,10,0].map((value,i)=>({iconType:'5Quarters',iconId:String(i),operator:'greaterThanOrEqual',value:{type:'num',value}}))}}]})}];
-  validateWorkbook(b);await f.workspace.save('owner',workId,{commandId:'save-quarters',book:b,contentRevision:1,permissionRevision:1,formatEdits:{}});
-  const saved=await f.workspace.get('owner',workId);assert.equal((await f.workspace.mutate('owner',workId,{commandId:'quarter-proposal',expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:5,column:0,value:99}]}})).status,'proposed');
-  const before=await f.state(),snapshot=structuredClone(b);let writes=0;
-  f.files.writeOriginal=async()=>{writes++;throw Error('must refuse before retaining original');};
-  const token='synthetic-quarter-api-token-at-least-32-characters',origin='https://private.example.test';
+  const generated=spawnSync((process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python')+'/bin/python',['-I','-B','-c',`import importlib.util,base64,json
+s=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})
+m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+def bad(root): root.find('.//{'+m.NS+'}cfvo').set('gte','0')
+print(json.dumps({'good':[base64.b64encode(m.quarters_fixture(show,reverse,strict=True)).decode() for show in (False,True) for reverse in (False,True)],'bad':base64.b64encode(m.icon_rewrite(m.quarters_fixture(),bad)).decode()}))`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
+  assert.equal(generated.status,0,generated.stderr);const fixtures=JSON.parse(generated.stdout);
+  const f=await fixture(worker),token='synthetic-quarter-api-token-at-least-32-characters',origin='https://private.example.test';
   const handler=createHandler({...f,owner:'owner',token,origin,clientRoot:f.root,onCommand:()=>{throw Error('must not schedule work');}});
-  async function request(path,data){
+  async function request(path,data,status=200){
     const req=Readable.from([Buffer.from(JSON.stringify(data))]);Object.assign(req,{url:'/api/exchange/xlsx/'+path,method:'POST',headers:{'content-type':'application/json',origin,authorization:`Bearer ${token}`}});
     const result={};await handler(req,{setHeader(){},writeHead(status){result.status=status;},end(body){result.body=body;}});
-    assert.equal(result.status,400);assert.match(String(result.body),/installed quarter glyphs do not distinguish the bands/);assert.equal(JSON.parse(result.body).base64,undefined);
+    const body=JSON.parse(result.body);assert.equal(result.status,status,`${path}: ${body.error||body.code||'unexpected artifact/status'}`);return body;
   }
-  for(const [i,base64] of JSON.parse(generated.stdout).entries()){
-    const input={commandId:'quarter-import-'+i,filename:'Quarters.xlsx',synthetic:true,base64};
-    await request('preview',input);await request('import',input);
-    const rules=conditionalRules(b);rules.sheet1[0].rule.isShowValue=Boolean(i);b.resources[0].data=JSON.stringify(rules);
-    await request('export',{workId,book:b});
+  for(const [i,base64] of fixtures.good.entries()){
+    const input={commandId:'quarter-import-'+i,filename:'Quarters.xlsx',synthetic:true,base64},before=await f.state();
+    await request('preview',input);assert.deepEqual(await f.state(),before);
+    const adopted=await request('import',input);assert.deepEqual(await request('import',input),adopted);
+    const saved=await f.workspace.get('owner',adopted.workId),b=saved.book,rules=conditionalRules(b);
+    assert.deepEqual((await f.exchange.original('owner',b.id,adopted.original.id)).bytes,Buffer.from(base64,'base64'));
+    assert.equal((await f.workspace.mutate('owner',b.id,{commandId:'quarter-proposal-'+i,expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:5,column:0,value:99}]}})).status,'proposed');
+    const prior=await f.state(),output=await request('export',{workId:b.id,book:b});assert.deepEqual(await f.state(),prior);
+    const reimport=await request('import',{commandId:'quarter-reimport-'+i,filename:'Roundtrip.xlsx',synthetic:true,base64:output.base64});
+    assert.deepEqual(conditionalRules((await f.workspace.get('owner',reimport.workId)).book),rules);
+    const snapshot=await f.state();let writes=0;const write=f.files.writeOriginal;
+    f.files.writeOriginal=async()=>{writes++;throw Error('must refuse before original write');};
+    try{
+      const bad={...input,commandId:'quarter-bad-'+i,base64:fixtures.bad};
+      for(const route of ['preview','import']){const e=await request(route,bad,400);assert.equal(e.base64,undefined);}
+      for(const change of [r=>r.config[0].iconType='3Arrows',r=>r.config[0].iconType='EMPTY_ICON_TYPE',r=>r.config[0].iconId=r.config[1].iconId,r=>r.config[1].value.value=40,r=>r.config[0].value={type:'formula',value:'=1+1'}]){
+        const altered=structuredClone(b),data=conditionalRules(altered);change(data.sheet1[0].rule);altered.resources.find(r=>r.name===CONDITIONAL_RESOURCE).data=JSON.stringify(data);
+        const e=await request('export',{workId:b.id,book:altered},400);assert.equal(e.base64,undefined);
+      }
+      assert.equal(writes,0);assert.deepEqual(await f.state(),snapshot);
+    }finally{f.files.writeOriginal=write;}
   }
-  assert.equal(writes,0);assert.deepEqual(await f.state(),before);
-  b.resources[0].data=snapshot.resources[0].data;assert.deepEqual(b,snapshot);
 });

@@ -321,16 +321,16 @@ def icon_fixture():
         return ET.tostring(root)
     return rewrite(data_bar_fixture(),edit)
 
-def quarters_fixture(show=False):
+def quarters_fixture(show=False, reverse=False, kind="num", strict=False):
     # Independent openpyxl file; C1 only supplies the native harness calculation
-    # event and is outside the rule. Never derive this refused file via export.
+    # event and is outside the rule. Never derive this source file via export.
     from openpyxl.formatting.rule import Rule, IconSet, FormatObject
     wb=openpyxl.Workbook();ws=wb.active
     for v in (0,10,20,30,40):ws.append([v])
     ws['C1']='=1+1'
     ws.conditional_formatting.add('A1:A6',Rule(type='iconSet',iconSet=IconSet(
-        iconSet='5Quarters',showValue=show,percent=False,reverse=False,
-        cfvo=[FormatObject(type='num',val=v,gte=True) for v in (0,10,20,30,40)])))
+        iconSet='5Quarters',showValue=show,percent=kind=='percent',reverse=reverse,
+        cfvo=[FormatObject(type=kind,val=v,gte=not(strict and i==2)) for i,v in enumerate((0,10,20,30,40) if kind=='num' else (0,25,50,75,100))])))
     out=io.BytesIO();wb.save(out);return out.getvalue()
 
 def icon_rewrite(data,change):
@@ -340,19 +340,25 @@ def icon_rewrite(data,change):
     return rewrite(data,edit)
 
 class CodecTests(unittest.TestCase):
-    def test_icon_quarters_refused_before_reader_and_native_export(self):
-        for show in (False,True):
-            raw=quarters_fixture(show)
-            loaded=openpyxl.load_workbook(io.BytesIO(raw));container=next(iter(loaded.active.conditional_formatting))
-            self.assertEqual(loaded.active.conditional_formatting[container][0].iconSet.showValue,show)
-            with patch.object(codec,'ExcelReader',side_effect=AssertionError('refuse before reader')):
-                with self.assertRaisesRegex(ValueError,'installed quarter glyphs do not distinguish the bands'):codec.import_book(raw)
-            b=codec.import_book(icon_numeric_fixture())['book'];rules=json.loads(b['resources'][0]['data'])
-            rules['sheet1'][0]['rule']={'type':'iconSet','isShowValue':show,'config':[
-                {'iconType':'5Quarters','iconId':str(i),'operator':'greaterThanOrEqual','value':{'type':'num','value':40-10*i}} for i in range(5)]}
-            b['resources'][0]['data']=json.dumps(rules);before=deepcopy(b)
-            with self.assertRaisesRegex(ValueError,'installed quarter glyphs do not distinguish the bands'):codec.export_book(b)
-            self.assertEqual(b,before)
+    def test_icon_quarters_independent_roundtrip_all_flags_kinds_and_comparators(self):
+        for kind in ('num','percent','percentile'):
+            for show in (False,True):
+                for reverse in (False,True):
+                    raw=quarters_fixture(show,reverse,kind,strict=True)
+                    b=codec.import_book(raw)['book'];before=deepcopy(b)
+                    rules=json.loads(b['resources'][0]['data']);r=rules['sheet1'][0]['rule']
+                    self.assertEqual([p['iconId'] for p in r['config']],list(map(str,range(4,-1,-1) if reverse else range(5))))
+                    self.assertEqual([p['operator'] for p in r['config']],['greaterThanOrEqual','greaterThanOrEqual','greaterThan','greaterThanOrEqual','greaterThanOrEqual'])
+                    self.assertEqual(r['isShowValue'],show)
+                    output=base64.b64decode(codec.export_book(b)['base64']);self.assertEqual(b,before)
+                    self.assertEqual(json.loads(codec.import_book(output)['book']['resources'][0]['data']),rules)
+                    loaded=openpyxl.load_workbook(io.BytesIO(output));container=next(iter(loaded.active.conditional_formatting))
+                    icon=loaded.active.conditional_formatting[container][0].iconSet
+                    self.assertEqual((icon.iconSet,icon.showValue,icon.reverse,icon.percent),('5Quarters',show,reverse,kind=='percent'))
+                    self.assertEqual([v.gte for v in icon.cfvo],[True,True,False,True,True])
+                    self.assertEqual([v.type for v in icon.cfvo],[kind]*5)
+                    self.assertEqual([v.val for v in icon.cfvo],[0,10,20,30,40] if kind=='num' else [0,25,50,75,100])
+                    self.assertEqual(loaded.active['C1'].value,'=1+1')
 
     def test_icon_independent_families_flags_and_loaded_agreement(self):
         q=lambda n:'{'+NS+'}'+n
@@ -405,15 +411,16 @@ class CodecTests(unittest.TestCase):
             lambda r:icon(r).set('percent','1'),lambda r:icon(r).set('reverse','2'),
             lambda r:icon(r)[0].set('gte','0'),lambda r:icon(r)[1].set('gte','2'),
             lambda r:icon(r)[1].set('val','9007199254740993'),lambda r:icon(r)[1].set('val','NaN'),
-            lambda r:icon(r)[1].set('val','10'),lambda r:icon(r)[1].set('type','formula'),
+            lambda r:icon(r)[1].set('val',icon(r)[2].get('val')),lambda r:icon(r)[1].set('type','formula'),
             lambda r:icon(r)[1].set('{foreign}gte','1'),lambda r:setattr(icon(r)[1],'tag','{foreign}cfvo'),
             lambda r:icon(r).append(ET.Element(q('cfIcon'))),lambda r:icon(r).remove(icon(r)[0]),
             lambda r:r.find('.//'+q('cfRule')).set('stopIfTrue','1'),
             lambda r:r.find('.//'+q('cfRule')).set('dxfId','0'),
             lambda r:r.append(ET.Element(q('iconSet'))),lambda r:setattr(icon(r),'tag','{foreign}iconSet')]
-        for change in changes:
-            with self.subTest(change=change),patch.object(codec,'ExcelReader',side_effect=AssertionError('must reject raw first')):
-                with self.assertRaises(ValueError):codec.import_book(icon_rewrite(icon_numeric_fixture(),change))
+        for source in (icon_numeric_fixture(),quarters_fixture()):
+            for change in changes:
+                with self.subTest(change=change),patch.object(codec,'ExcelReader',side_effect=AssertionError('must reject raw first')):
+                    with self.assertRaises(ValueError):codec.import_book(icon_rewrite(source,change))
 
     def test_icon_renamed_second_tabs_and_x14_extensions(self):
         # Reuse descriptor-renaming fixture builder with icon sources. Both x14

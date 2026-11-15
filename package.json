@@ -21,7 +21,7 @@
     "test:native-context": "npm run test:sheet-read && node apps/workagent-server/tests/native-context.test.mjs && node apps/workagent-runner/tests/native-context.test.mjs",
     "test:xlsx": ".local/xlsx-python/bin/python -I services/workagent-execution/xlsx/test_codec.py && node apps/workagent-server/tests/xlsx.test.mjs && node apps/workagent-client/tests/xlsx-exchange.test.mjs && node apps/workagent-client/tests/xlsx-native.test.mjs && node apps/workagent-client/tests/xlsx-charts.test.mjs && node apps/workagent-client/tests/xlsx-conditional.test.mjs && node apps/workagent-client/tests/xlsx-color-scales.test.mjs && node apps/workagent-client/tests/xlsx-data-bars.test.mjs && npm run test:xlsx-icons",
     "test:xlsx-icon-native": "node --test-name-pattern=icon apps/workagent-client/tests/conditional-formatting.test.mjs",
-    "test:xlsx-icons": "node apps/workagent-client/tests/xlsx-icons.test.mjs",
+    "test:xlsx-icons": "node apps/workagent-client/tests/xlsx-icons.test.mjs && npm run test:quarter-icons",
     "test:xlsx-isolation": "node apps/workagent-server/tests/xlsx-isolation.test.mjs",
     "test:documents": "node apps/workagent-server/tests/documents.test.mjs && node apps/workagent-server/tests/document-selection.test.mjs && node apps/workagent-client/tests/document-native.test.mjs && node apps/workagent-client/tests/document-exchange.test.mjs && node apps/workagent-runner/tests/documents.test.mjs",
     "test:docx": ".local/docx-python/bin/python -I services/workagent-execution/docx/test_codec.py && node apps/workagent-server/tests/docx.test.mjs && node apps/workagent-client/tests/docx-exchange.test.mjs && node apps/workagent-client/tests/docx-native.test.mjs",
@@ -32,7 +32,8 @@
     "test:charts": "node apps/workagent-server/tests/model-charts.test.mjs && node apps/workagent-runner/tests/model-charts.test.mjs && node apps/workagent-client/tests/sheet-charts.test.mjs && node apps/workagent-client/tests/chart-cell-operations.test.mjs && node apps/workagent-client/tests/chart-structure.test.mjs",
     "test:controls": "node apps/workagent-client/tests/native-controls.test.mjs && node apps/workagent-client/tests/validation-settlement.test.mjs",
     "test:conditional": "node apps/workagent-client/tests/conditional-formatting.test.mjs && node apps/workagent-client/tests/conditional-editor.test.mjs && node apps/workagent-client/tests/xlsx-conditional.test.mjs",
-    "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs"
+    "test:formatting": "node apps/workagent-client/tests/header-style.test.mjs && node apps/workagent-client/tests/native-formatting.test.mjs",
+    "test:quarter-icons": "node apps/workagent-client/tests/native-quarter-icons.test.mjs && node apps/workagent-client/tests/xlsx-quarters.test.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",

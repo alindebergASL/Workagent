@@ -1,5 +1,6 @@
 import { installCharts, type ChartController } from './native-charts';
 import { SheetCharts } from './SheetCharts';
+import { installNativeQuarterIcons } from './native-quarter-icons';
 import { conditionalRuleEditor, type ConditionalPanelProps } from './conditional-icon-editor';
 import { CF_PANEL_KEY, UniverSheetsConditionalFormattingPreset } from '@univerjs/preset-sheets-conditional-formatting';
 import UniverSheetsConditionalFormattingEnUS from '@univerjs/preset-sheets-conditional-formatting/locales/en-US';
@@ -28,6 +29,7 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
   edit.current = onEdit; ready.current = onReady;
   useEffect(() => {
     const notifyEdit = edit.current, notifyReady = ready.current;
+    installNativeQuarterIcons();
     // Existing native snapshots can contain results cached before an external
     // patch. Univer's default WHEN_EMPTY trusts them; rebuild on every reopen.
     const { univer, univerAPI } = createUniver({ plugins: [NativeConditionalPlugin], locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(UniverSheetsCoreEnUS, UniverSheetsDataValidationEnUS, UniverSheetsConditionalFormattingEnUS) }, presets: [conditionalCorePreset(UniverSheetsCorePreset({ container: container.current!, formula: { initialFormulaComputing: CalculationMode.FORCED } })), UniverSheetsDataValidationPreset(), UniverSheetsConditionalFormattingPreset()] });

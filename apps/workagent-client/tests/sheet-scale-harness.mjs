@@ -36,6 +36,11 @@ const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 const compile = file => ts.transpileModule(readFileSync(new URL(file, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
 const conditionalModule = { exports: {} };
+const quarterModule = { exports: {} };
+new Function('require', 'module', 'exports', compile('../src/native-quarter-icons.ts'))(name => {
+  if (name === '@univerjs/preset-sheets-conditional-formatting') return conditionalSdk;
+  return localRequire(name);
+}, quarterModule, quarterModule.exports);
 new Function('require', 'module', 'exports', compile('../src/native-conditional.ts'))(name => {
   if (name === '@univerjs/preset-sheets-core') return { ...sheets, IMessageService: ui.IMessageService };
   if (name === '@univerjs/preset-sheets-conditional-formatting') return conditionalSdk;
@@ -63,7 +68,7 @@ function installedController(require, packageName, className) {
 export function mountNative(props, plugins = [], editing, lifecycle) {
   globalThis.window ??= new EventTarget();
   globalThis.document ??= {activeElement:null};
-  let cleanup, handle, api, editorApi, univer, edits = 0;
+  let cleanup, handle, api, editorApi, univer, initialQuarterSources, edits = 0;
   const events = new Map();
   const messages = [];
   let starts = [], ends = [], validation;
@@ -82,6 +87,7 @@ export function mountNative(props, plugins = [], editing, lifecycle) {
   const react = { useState: initial => [initial, () => {}], createElement: localRequire('react').createElement, useRef: current => ({ current }), useEffect: fn => { cleanup = fn(); } };
   const module = { exports: {} };
   new Function('require', 'module', 'exports', editorCode)(name => {
+    if (name === './native-quarter-icons') return quarterModule.exports;
     if (name === './native-charts') return chartsModule.exports;
     if (name === './SheetCharts') return chartPanelModule.exports;
     if (name === './conditional-icon-editor') return iconEditorModule.exports;
@@ -104,6 +110,7 @@ export function mountNative(props, plugins = [], editing, lifecycle) {
     if (name.endsWith('.css') || name.endsWith('/locales/en-US')) return {};
     if (['@univerjs/preset-sheets-conditional-formatting', '@univerjs/preset-sheets-data-validation', '@univerjs/preset-sheets-core'].includes(name)) return loadPreset(name);
     if (name === '@univerjs/presets') return { ...core, createUniver: options => {
+      initialQuarterSources = conditionalSdk.iconMap['5Quarters'].slice();
       univer = new core.Univer({ locale: core.LocaleType.EN_US, locales: { [core.LocaleType.EN_US]: {} } });
       for (const dependency of [[ui.IClipboardInterfaceService,{useValue:{}}], [ui.INotificationService,{useValue:{show(){}}}], [ui.IDialogService,{useClass:ui.DesktopDialogService}], [ui.IMessageService,{useValue:{show(message){messages.push(message.content);}}}], [ui.ILayoutService,{useClass:ui.DesktopLayoutService}], [ui.IPlatformService,{useClass:ui.PlatformService}], [ui.IUIPartsService,{useClass:ui.UIPartsService}], [ui.IUIRuntimeScopeService,{useClass:ui.UIRuntimeScopeService}], [ui.IRibbonService,{useClass:ui.DesktopRibbonService}], [ui.IContextMenuService,{useClass:ui.ContextMenuService}], [ui.FormatPainterSessionService], [ui.IShortcutService, {useValue:{registerShortcut(){return {dispose(){}};}}}], [ui.ComponentManager], [ui.IconManager], [ui.IMenuManagerService, {useClass:ui.MenuManagerService}], [ui.ISidebarService, {useClass:ui.DesktopSidebarService}]]) univer.__getInjector().add(dependency);
       univer.registerPlugin(require('@univerjs/engine-render').UniverRenderEnginePlugin);
@@ -161,9 +168,12 @@ export function mountNative(props, plugins = [], editing, lifecycle) {
         injector.createInstance(installedController(conditionalRequire, '@univerjs/sheets-conditional-formatting-ui', 'ConditionalFormattingCopyPasteController')),
         injector.createInstance(installedController(conditionalRequire, '@univerjs/sheets-conditional-formatting-ui', 'ConditionalFormattingAutoFillController'))];
       return { dispose() { controllers.reverse().forEach(c => c.dispose()); } };
-    }, panel, update(next) { panel.update(wrap(next)); }, api, editorApi, events, messages, clipboard: univer.__getInjector().get(loadPreset('@univerjs/preset-sheets-core').ISheetClipboardService), conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
+    }, initialQuarterSources, panel, update(next) { panel.update(wrap(next)); }, api, editorApi, events, messages, clipboard: univer.__getInjector().get(loadPreset('@univerjs/preset-sheets-core').ISheetClipboardService), conditional: univer.__getInjector().get(conditionalSdk.ConditionalFormattingService), commands: univer.__getInjector().get(core.ICommandService), get validation() { return validation; },
     formulaInput(props) { return validationComponents.get(validationSdk.LIST_FORMULA_INPUT_NAME)(props).props.children.props; },
     openConditionalEditor(rule, onEditorExit) { const injector=univer.__getInjector(); return mountConditionalEditor(injector.get(ui.ComponentManager).get(conditionalUI.CF_PANEL_KEY), {rule,onEditorExit}, injector); },
+    openIconFamilyPicker(onClick = () => {}) {
+      return mountConditionalEditor(installedController(conditionalRequire, '@univerjs/sheets-conditional-formatting-ui', 'IconGroupList'), {iconType:'5Quarters',onClick}, univer.__getInjector());
+    },
     openIconMenu(range, onEditorExit) {
       const injector=univer.__getInjector();
       injector.get(sheets.SheetsSelectionsService).setSelections([{range,primary:null,style:null}]);

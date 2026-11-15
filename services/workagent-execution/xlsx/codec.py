@@ -749,9 +749,9 @@ CF_BAR_RENDER_POLICY = 'Data-bar exchange preserves authored rules, not identica
 CF_SCALE_POLICY = 'Two/three-color RGB scale rules retain strictly ordered numeric stops or one relative family (min/max with percent or percentile). Mixed families, tied/constant thresholds, overlapping ranges within one scale rule, scale stopIfTrue and relative scales covering formulas are refused. Fixed numeric scales may cover formulas.'
 CF_RENDER_POLICY = 'Authored conditional rules, values and priority/stop flags are retained; their application and display can differ between apps. Native scales exclude booleans. In tested LibreOffice files, TRUE received a scale color and changed percentile ranks, and a scale fill appeared instead of a higher-priority stopping highlight. Microsoft Excel behavior is unverified.'
 CF_RENDER_UNVERIFIED = 'Boolean-returning formulas, nonstopping highlight/scale overlaps and scale/scale overlaps remain unverified across renderers. These combinations remain supported within the stated exchange limits.'
-CF_ICON_POLICY = 'Icon sets preserve 16 standard 3/4/5-icon families, normal/reversed order, show/hide values and strictly ordered numeric, percent or percentile bands with > or >=. Mixed/custom/no-icon/x14 families, mixed/tied bands, covered formulas, stopIfTrue and overlapping ranges are refused. Relative bottom thresholds must be zero; bottom gte=false is refused. Numeric/percentile rules require explicit percent=false; percent rules require true or omitted.'
-CF_ICON_QUARTERS_POLICY = '5Quarters XLSX import/export is refused because the installed quarter glyphs do not distinguish the bands. Native 5Quarters controls remain available; glyph repair and exchange requalification are deferred.'
-CF_ICON_RENDER_POLICY = 'Icon exchange retains authored rules, not identical pixels. Native icons exclude text, booleans, blanks and errors. The bottom band is fallback; its threshold is inert. Omitted family/showValue/reverse/gte use 3TrafficLights1/true/false/true. Constant relative populations are refused. Icon rendering, boolean populations and overlaps in LibreOffice and Microsoft Excel remain unverified.'
+CF_ICON_POLICY = 'Icon sets preserve 17 standard 3/4/5-icon families, normal/reversed order, show/hide values and strictly ordered numeric, percent or percentile bands with > or >=. Mixed/custom/no-icon/x14 families, mixed/tied bands, covered formulas, stopIfTrue and overlapping ranges are refused. Relative bottom thresholds must be zero; bottom gte=false is refused. Numeric/percentile rules require explicit percent=false; percent rules require true or omitted.'
+CF_ICON_QUARTERS_POLICY = '5Quarters uses app-owned full, three-quarter, half, quarter and empty glyphs with native controls and IDs preserved.'
+CF_ICON_RENDER_POLICY = 'Icon exchange retains authored rules, not identical pixels. Native icons exclude text, booleans, blanks and errors. The bottom band is fallback; its threshold is inert. Omitted family/showValue/reverse/gte use 3TrafficLights1/true/false/true. Constant relative populations are refused. In tested LibreOffice files, TRUE received an icon and strict gte=false boundaries were ignored. Source/export file parity is not native pixel parity. Microsoft Excel rendering remains unverified.'
 CF_INPUT_POLICY = 'Conditional exports refuse precision loss or CR/CRLF normalization in rule text and covered cell inputs. If a rule covers a formula, inputs across all tabs must serialize exactly; LF, tabs and ordinary Unicode remain supported.'
 CF_ERRORS = ('#DIV/0!', '#NAME?', '#VALUE!', '#NUM!', '#N/A', '#CYCLE!', '#REF!', '#SPILL!', '#CALC!', '#ERROR!', '#GETTING_DATA', '#NULL!')
 CF_NUM = {'greaterThan':'>','greaterThanOrEqual':'>=','lessThan':'<','lessThanOrEqual':'<=','between':None,'notBetween':None}
@@ -1033,7 +1033,7 @@ def cf_bar_inputs(rule, ranges, sheet):
 CF_ICONS = {name: tuple(range(int(name[0]))) for name in (
     '3Arrows','3ArrowsGray','3Flags','3TrafficLights1','3TrafficLights2',
     '3Signs','3Symbols','3Symbols2','4Arrows','4ArrowsGray','4RedToBlack',
-    '4TrafficLights','5Arrows','5ArrowsGray')}
+    '4TrafficLights','5Arrows','5ArrowsGray','5Quarters')}
 CF_ICONS.update({'4Rating':(3,2,1,0),'5Rating':(4,3,2,1,0)})
 
 def cf_icon(rule):
@@ -1043,7 +1043,6 @@ def cf_icon(rule):
     for p in points:
         cf_object(p,('operator','value','iconType','iconId'),('operator','value','iconType','iconId'))
         cf_object(p['value'],('type','value'),('type','value'))
-    need(all(p['iconType']!='5Quarters' for p in points), CF_ICON_QUARTERS_POLICY)
     family=points[0]['iconType']; order=CF_ICONS.get(family)
     need(order is not None and len(order)==len(points) and all(p['iconType']==family for p in points), 'Unsupported mixed/custom/no-icon family')
     ids=tuple(p['iconId'] for p in points)
@@ -1068,7 +1067,6 @@ def cf_icon(rule):
 def read_cf_icon(root):
     need(root.tag=='{'+MAIN+'}iconSet' and not set(root.attrib)-{'iconSet','showValue','reverse','percent'}, 'Unsupported icon schema/attributes')
     family=root.get('iconSet','3TrafficLights1')
-    need(family!='5Quarters', CF_ICON_QUARTERS_POLICY)
     order=CF_ICONS.get(family)
     need(order is not None and len(root)==len(order), 'Unsupported icon family/count')
     need(all(root.get(k,d) in ('0','1','true','false') for k,d in (('showValue','1'),('reverse','0'),('percent','1'))), 'Invalid icon flags')
