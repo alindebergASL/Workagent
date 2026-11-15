@@ -98,19 +98,20 @@ Implement tabs/cross-tab formulas, formatting/conditional formatting, dropdowns,
 
 **Verify:** Focused native edits and round-trips, realistic populated 100,000-cell/formula workloads, keyboard/phone interactions and meaningful performance/resource observations. Record supported and unsupported formula families. The November 12 competitor's unenumerated 144-function catalogue cannot establish exact formula parity. Account unavailability blocks only the relevant Google flow.
 
-The increment42 candidate adds only `5Quarters` to the installed 16-family XLSX
-icon scope. First-party full/three-quarter/half/quarter/empty SVGs replace that
-family's exported Univer `iconMap` and `iconGroup` entries before `createUniver`
-creates canvas image caches or picker previews. Native IDs, authored controls,
-thresholds and history remain unchanged. Focused native and file round-trips
-are separate from Parent's pending installed RGBA area-ordering/browser proof,
-namespace/PostgreSQL gates, production build, review and provider read. This is
-candidate qualification, not installed readiness or Excel/native pixel parity.
-Existing boundaries, mixed/custom/no-icon/x14, ambiguous percent, precision,
-formula and tied-band refusals remain. Retained LibreOffice observations treat
-TRUE as numeric and ignore strict `gte=false`; source/export file parity does
-not establish native parity. Google, physical-phone and launcher-heavy mobile
-first-screen work remain followups.
+Increment42 is privately installed and verified at `ddb852c4`: `5Quarters`
+adds the seventeenth XLSX icon family. First-party full/three-quarter/half/
+quarter/empty SVGs replace both native registries before canvas caches or picker
+previews; native IDs, authored controls, thresholds and history remain unchanged.
+Parent verified installed native pixels, authoring/manager thumbnails, edit/
+Undo, real file download/reimport, cold reopen, refusals and a fresh read-only
+provider-receipted model answer. Focused/core checks, independent review,
+restricted namespace/PostgreSQL qualification and the exact-source build passed;
+STATUS records precise counts and retained failures. Existing mixed/custom/
+no-icon/x14, ambiguous-percent, precision, formula and tied-band refusals remain.
+LibreOffice source/export parity is separate evidence, not native/Excel parity.
+Google account/API scope and physical-phone proof remain open. The next independent
+increment addresses launcher-heavy mobile work-area first-screen usability without
+removing creation/exchange/chart controls, changing saved work or losing drafts.
 
 ### B05 — Two-human collaboration, presence, comments and history
 
