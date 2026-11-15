@@ -1,7 +1,7 @@
 # Workagent runtime: B01, B02 and first B03 slice
 
 Concrete implementation, **not a completed B01**. Native Univer Sheets use PostgreSQL
-persistence, one owner and one runner. See [STATUS](../../STATUS.md) for checks and
+persistence, one owner and one runner; explicitly configured peers can share bounded artifacts. See [STATUS](../../STATUS.md) for checks and
 Parent's deployed/live evidence. No fixture mode is exposed by the product server.
 Parent's November 13 briefing confirms the cancelled/canonical reconciliation repair
 is deployed and live-qualified at 9513084. B03 below is a new source checkpoint.
@@ -46,7 +46,7 @@ once. Repeated initialization refuses; startup never migrates or resets a databa
 `127.0.0.1`; the only alternative is the dedicated server's `10.0.14.244`.
 `WORKAGENT_PORT` defaults to 8310. Remote `WORKAGENT_ORIGIN` must use HTTPS via Parent's
 private proxy. The access-key login creates an HttpOnly, SameSite cookie (Secure on
-HTTPS); mutation requests require the exact origin. Single-owner use only. The key
+HTTPS); mutation requests require the exact origin. Owner-only by default. The key
 is never supplied to the model. A PostgreSQL advisory lock refuses a second runner.
 
 For inference, Parent supplies `OPENROUTER_API_KEY` and selects the accounting mode
@@ -80,8 +80,48 @@ private account, parser service or operator-home mount.
 Human cell contributions remain protected even after a fresh agent read. Proposals
 show old/new cells and retain their originating revisions. Snapshot, command result,
 job and product event commit together under the PostgreSQL row lock. This is a
-bounded single-owner snapshot authority, **not** Univer collaborative OT. Local
+revision-checked snapshot authority, **not** Univer collaborative OT. Local
 unsaved drafts persist on the device; server saves are the cross-device authority.
+
+## B05 bounded shared-work checkpoint
+
+Normal startup has no peer accounts. For isolated synthetic qualification only,
+Parent may explicitly supply `WORKAGENT_SYNTHETIC_ACCOUNTS_JSON`: an array of
+`{id,name,token}` records with distinct IDs and distinct access keys of at least 32
+characters. This configuration is validated before DB startup; it never provisions
+accounts in stored state. Use independently generated credentials, never public
+fixture keys. Removing an account or rotating its key invalidates its sessions on
+restart. Legacy signed owner sessions remain valid with the unchanged owner key.
+
+`GET /api/session` returns the authenticated principal/name/owner flag and an opaque
+client affinity binding. The client sends that binding to refuse account changes in
+another tab; it cannot authenticate or choose an actor. Peer drafts use separate
+IndexedDB and localStorage namespaces; legacy owner recovery retains its old keys.
+
+The owner uses **Share work** or `GET /api/work/:id/sharing` to inspect configured
+peers, then `POST` to the same path with
+`{commandId,peer,role:'read'|'editor'|null,accessRevision}`. Null revokes access.
+The response revision fences stale sharing changes. ACLs persist in the existing
+workspace JSON transaction; no schema migration or new service is required.
+
+Peers can list/read only shared artifacts. Peer snapshots include
+`access:{role,revision}`; their saves additionally send `accessRevision` alongside
+existing content/permission revisions. Current ACL and grant generation are checked
+before actor-scoped dedup returns. Peer events are filtered snapshot resets with no
+global event cursor, not live native operation replay. Stale saves retain the local
+draft; revoked reconnect/save fails. Download the retained draft from the open tab;
+cold server reopen requires restored access. No background auto-save is added.
+
+Shares exclude source files/context, conversation, maintenance and accounting.
+Model submission/cancellation, proposal acceptance, imports and exports stay owner-only.
+Read access permits local exploration but cannot save. This checkpoint has no native
+coediting/OT, presence/cursors/follow, anchored comments, individual undo or restore
+history. A03 still requires the actual Univer collaboration service and its legitimate
+connection/license limits. Google is a separate stream.
+
+`npm run test:collaboration` runs synthetic principals through actual Workspace,
+HTTP handler and App callbacks with fixture storage/native handles; it is not browser,
+PostgreSQL or socket-server proof. Parent owns those checks before enabling accounts.
 
 ## OpenRouter-backed accounting and adequate output
 

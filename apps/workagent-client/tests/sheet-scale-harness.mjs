@@ -288,7 +288,7 @@ export function mountApp(storage, fetcher) {
     if (name === './maintenance-actions') return { MaintenanceActions };
     if (name.endsWith('.css')) return {};
     return localRequire(name);
-  }, module, module.exports, storage, { getElementById: () => ({}) }, { addEventListener() {}, removeEventListener() {} }, fetcher, { randomUUID }, () => 1, () => {});
+  }, module, module.exports, storage, { getElementById: () => ({}) }, { addEventListener() {}, removeEventListener() {} }, (path, options) => path === '/api/session' ? Promise.resolve({ ok: true, status: 200, json: async () => ({ principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner' }) }) : fetcher(path, options), { randomUUID }, () => 1, () => {});
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
   const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
   function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }

@@ -1,24 +1,43 @@
 import http from 'node:http';
+import { configuredAccounts } from './accounts.mjs';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { Fault } from '../../../packages/workagent-contract/index.mjs';
 const equal = (a, b) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && timingSafeEqual(x, y); };
-export function identity({ token, origin, owner }) {
+export function identity({ token, origin, owner, accounts = [] }) {
   if (!token || token.length < 32) throw new Error('WORKAGENT_AUTH_TOKEN_must_be_at_least_32_characters');
+  const peers = configuredAccounts(owner, token, accounts);
+  const registry = [{ id: owner, name: 'Owner', token }, ...peers];
   const sign = x => createHmac('sha256', token).update(x).digest('base64url');
+  const credential = value => typeof value === 'string' ? registry.find(a => equal(a.token, value)) : undefined;
   return {
-    login(value) { if (typeof value !== 'string' || !equal(value, token)) throw new Fault('access_denied', 401); const expiry = String(Date.now() + 8 * 3600_000); return `${expiry}.${sign(expiry)}`; },
-    authenticate(req) {
-      if (req.headers.authorization && equal(req.headers.authorization, `Bearer ${token}`)) return owner;
-      const cookie = /(?:^|;\s*)workagent_session=([^;]+)/.exec(req.headers.cookie ?? '')?.[1] ?? '';
-      const [expiry, signature = ''] = cookie.split('.');
-      if (!/^\d+$/.test(expiry ?? '') || +expiry < Date.now() || !equal(signature, sign(expiry))) throw new Fault('access_denied', 401);
-      return owner;
+    login(value) {
+      const account = credential(value); if (!account) throw new Fault('access_denied', 401);
+      const payload = `v2.${Date.now() + 8 * 3600_000}.${Buffer.from(account.id).toString('base64url')}`;
+      return `${payload}.${sign(`${payload}.${account.token}`)}`;
     },
+    authenticate(req) {
+      const bearer = /^Bearer (.+)$/.exec(req.headers.authorization ?? '');
+      if (bearer) { const account = credential(bearer[1]); if (!account) throw new Fault('access_denied', 401); return account.id; }
+      const cookie = /(?:^|;\s*)workagent_session=([^;]+)/.exec(req.headers.cookie ?? '')?.[1] ?? '';
+      const parts = cookie.split('.');
+      // Retain the existing signed, owner-only cookie format, with strict parsing.
+      if (parts.length === 2) {
+        const [expiry, signature] = parts;
+        if (/^\d+$/.test(expiry) && +expiry >= Date.now() && equal(signature, sign(expiry))) return owner;
+      }
+      if (parts.length === 4 && parts[0] === 'v2' && /^\d+$/.test(parts[1]) && +parts[1] >= Date.now()) {
+        const account = registry.find(a => Buffer.from(a.id).toString('base64url') === parts[2]);
+        if (account && equal(parts[3], sign(`${parts.slice(0, 3).join('.')}.${account.token}`))) return account.id;
+      }
+      throw new Fault('access_denied', 401);
+    },
+    profile(principal) { const a = registry.find(a => a.id === principal); return { principal, name: a.name, owner: principal === owner, binding: sign(`client-session.${a.id}.${a.token}`) }; },
     origin(req) { if (req.method !== 'GET' && req.headers.origin !== origin) throw new Fault('origin_denied', 403); },
   };
 }
+
 async function body(req, limit = 4_500_000) {
   if (!req.headers['content-type']?.startsWith('application/json')) throw new Fault('json_required', 415);
   let size = 0; const chunks = [];
@@ -47,8 +66,8 @@ export function createServer(options) {
   })();
   return server;
 }
-export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, clientRoot, accounting, onCommand = () => {} }) {
-  const auth = identity({ token, origin, owner }), root = resolve(clientRoot);
+export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounts = [], clientRoot, accounting, onCommand = () => {} }) {
+  const auth = identity({ token, origin, owner, accounts }), root = resolve(clientRoot);
   return async (req, res) => {
     responseHeaders(res);
     const send = (code, value) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
@@ -68,8 +87,11 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
         return send(200, { authenticated: true });
       }
       const principal = auth.authenticate(req);
+      // Affinity is a refusal fence, never an authentication or identity source.
+      if (req.headers['x-workagent-session-binding'] && !equal(req.headers['x-workagent-session-binding'], auth.profile(principal).binding)) throw new Fault('session_changed', 403);
+      if (path === '/api/session' && req.method === 'GET') { await workspace.list(principal); return send(200, auth.profile(principal)); }
       if (path === '/api/accounting' && req.method === 'GET') {
-        await workspace.list(principal); // Includes current access/revocation checks.
+        await workspace.ownerAccess(principal);
         return send(200, accounting?.status ? await accounting.status() : { mode: 'disabled' });
       }
       if (path === '/api/events' && req.method === 'GET') {
@@ -123,6 +145,9 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
         if (admitted) onCommand(result.workId, input.kind, result.intentRevision);
         return send(202, result);
       }
+      const sharing = /^\/api\/work\/([a-zA-Z0-9_-]+)\/sharing$/.exec(path);
+      if (sharing && req.method === 'GET') return send(200, await workspace.sharing(principal, sharing[1]));
+      if (sharing && req.method === 'POST') return send(200, await workspace.share(principal, sharing[1], await body(req)));
       const m = /^\/api\/work\/([a-zA-Z0-9_-]+)(?:\/(save|proposals)(?:\/([a-zA-Z0-9_-]+))?)?$/.exec(path);
       if (m && req.method === 'GET' && !m[2]) return send(200, await workspace.get(principal, m[1]));
       if (m && req.method === 'POST' && m[2] === 'save') return send(200, await workspace.save(principal, m[1], await body(req)));

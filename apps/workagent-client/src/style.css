@@ -76,3 +76,8 @@
   .native-sheet-workspace > .native-editor, .native-document-workspace > .native-editor { flex-basis:min(320px, 55dvh); min-height:min(320px, 55dvh); }
   .work-tools input, .work-tools select, .document-title input { font-size:16px; }
 }
+
+.sharing-bar { flex-shrink: 0; padding: .25rem .75rem; font-size: .85rem; min-width: 0; }
+.sharing-bar summary { cursor: pointer; }
+.sharing-bar label { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .4rem 0; }
+.sharing-bar select { max-width: 100%; }

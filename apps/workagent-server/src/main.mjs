@@ -4,6 +4,7 @@ import { PdfExchange } from './pdf-exchange.mjs';
 import { PdfWorker } from './pdf-worker.mjs';
 import { DocumentExchange } from './document-exchange.mjs';
 import pg from 'pg';
+import { configuredAccounts } from './accounts.mjs';
 import { XlsxExchange } from './xlsx-exchange.mjs';
 import { XlsxWorker } from './xlsx-worker.mjs';
 import { CsvExchange } from './exchange.mjs';
@@ -22,6 +23,8 @@ import { outputAllowance, requestTimeout } from '../../workagent-runner/src/wire
 // Parent supplies these variables on the dedicated server. No dotenv/ambient files.
 const required = name => { if (!process.env[name]) throw new Error(`${name}_required`); return process.env[name]; };
 const owner = required('WORKAGENT_OWNER_ID'), token = required('WORKAGENT_AUTH_TOKEN'), origin = required('WORKAGENT_ORIGIN');
+// Optional explicit synthetic qualification accounts; absent in normal installations.
+const accounts = configuredAccounts(owner, token, JSON.parse(process.env.WORKAGENT_SYNTHETIC_ACCOUNTS_JSON ?? '[]'));
 const hostname = process.env.WORKAGENT_BIND ?? '127.0.0.1';
 if (hostname !== '127.0.0.1' && hostname !== '10.0.14.244') throw new Error('private_bind_required');
 if (!origin.startsWith('https://') && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin)) throw new Error('encrypted_remote_origin_required');
@@ -29,7 +32,7 @@ const pool = new pg.Pool({ connectionString: required('WORKAGENT_DATABASE_URL'),
 // One writer across processes, independently of HTTP clients. Never steal a lock.
 const leadership = await pool.connect();
 if (!(await leadership.query('SELECT pg_try_advisory_lock(721013001) AS acquired')).rows[0].acquired) throw new Error('runner_already_active');
-const workspace = new Workspace(new PostgresStore(pool, owner));
+const workspace = new Workspace(new PostgresStore(pool, owner), { peers: accounts });
 const mode = process.env.WORKAGENT_ACCOUNTING_MODE ?? 'certificate';
 if (!['certificate', 'openrouter'].includes(mode)) throw new Error('invalid_accounting_mode');
 const maxOutputTokens = outputAllowance(process.env.WORKAGENT_MAX_OUTPUT_TOKENS);
@@ -47,7 +50,7 @@ const xlsx = new XlsxExchange({ workspace, files: maintenance.files, worker: new
 const docx = new DocxExchange({ workspace, files: maintenance.files, worker: new DocxWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 const documents = new DocumentExchange({ workspace, files: maintenance.files });
 const pdf = new PdfExchange({ workspace, files: maintenance.files, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
-const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, owner, token, origin, accounts, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

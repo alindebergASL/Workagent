@@ -11,11 +11,13 @@ export function authorize(s, principal) { if (!s.enabled || s.owner !== principa
 export function work(s, workId) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); return w; }
 export function preconditions(s, w) { return { contentRevision: w.contentRevision, intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch }; }
 export function same(a, b) { return Object.keys(b).every(k => a?.[k] === b[k]); }
-export function event(s, w, kind) { s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
-export function dedup(s, key, input, fn) {
-  id(key); const hash = digest(input), old = s.commands[key];
+export function event(s, w, kind) { w.sharedSequence = (w.sharedSequence ?? 0) + 1; s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
+export function dedup(s, key, input, fn, actor) {
+  id(key);
+  const commands = actor ? ((s.actorCommands ??= {})[id(actor)] ??= {}) : s.commands;
+  const hash = digest(input), old = commands[key];
   if (old) { if (old.hash !== hash) throw new Fault('command_conflict'); return old.result; }
-  const result = fn(); s.commands[key] = { hash, result }; return result;
+  const result = fn(); commands[key] = { hash, result }; return result;
 }
 function snapshot(s, w) { return { ...structuredClone(w), eventSequence: s.sequence, expected: preconditions(s, w) }; }
 // Shared authoritative editor commit for agent and deterministic maintenance writes.
@@ -31,7 +33,45 @@ export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed')
   return { status: 'applied', expected: preconditions(s, w) };
 }
 export class Workspace {
-  constructor(store) { this.store = store; }
+  constructor(store, { peers = [] } = {}) {
+    this.store = store;
+    this.peers = new Map(peers.map(p => [id(p.id), { id: p.id, name: p.name }]));
+  }
+  member(s, principal) { if (!s.enabled || (s.owner !== principal && !this.peers.has(principal))) throw new Fault('access_denied', 403); }
+  role(s, principal, w) { const role = this.peers.has(principal) ? w.acl?.[principal] : undefined; return principal === s.owner ? 'owner' : ['read', 'editor'].includes(role) ? role : undefined; }
+  access(s, principal, workId, edit = false) {
+    this.member(s, principal);
+    const w = principal === s.owner ? work(s, workId) : s.works[id(workId)], role = w && this.role(s, principal, w);
+    if (!role || (edit && role === 'read')) throw new Fault('access_denied', 403);
+    return w;
+  }
+  visible(s, principal, w) {
+    const access = { role: this.role(s, principal, w), revision: w.accessRevision ?? 0 };
+    if (principal === s.owner) return { ...snapshot(s, w), access };
+    // Sharing covers the artifact, not its creator's inputs, conversation or effects.
+    return { id: w.id, ...(workKind(w) === 'document' ? { kind: 'document', document: structuredClone(w.document) } : { book: structuredClone(w.book), humanCells: structuredClone(w.humanCells) }),
+      status: w.status, contentRevision: w.contentRevision, intentRevision: w.intentRevision, lastHumanActor: w.lastHumanActor,
+      expected: preconditions(s, w), eventSequence: w.sharedSequence ?? 0, access, messages: [], proposals: [] };
+  }
+  async ownerAccess(principal) { return this.store.read(s => { authorize(s, principal); return true; }); }
+  async sharing(principal, workId) { return this.store.read(s => {
+    authorize(s, principal); const w = work(s, workId);
+    return { revision: w.accessRevision ?? 0, peers: [...this.peers.values()].map(p => ({ ...p, role: w.acl?.[p.id] ?? null })) };
+  }); }
+  async share(principal, workId, input) {
+    if (!input || Object.keys(input).some(k => !['commandId', 'peer', 'role', 'accessRevision'].includes(k)) || ![null, 'read', 'editor'].includes(input.role)) throw new Fault('invalid_share', 400);
+    id(input.commandId); id(input.peer); revision(input.accessRevision);
+    return this.store.transaction(s => {
+      authorize(s, principal); const w = work(s, workId);
+      if (!this.peers.has(input.peer) || input.peer === s.owner) throw new Fault('peer_not_configured', 400);
+      return dedup(s, input.commandId, { operation: 'share', workId, ...input }, () => {
+        if ((w.accessRevision ?? 0) !== input.accessRevision) throw new Fault('sharing_conflict');
+        w.acl ??= {}; if (input.role === null) delete w.acl[input.peer]; else w.acl[input.peer] = input.role;
+        w.accessRevision = (w.accessRevision ?? 0) + 1; event(s, w, 'sharing_changed');
+        return { revision: w.accessRevision };
+      });
+    });
+  }
   async createBlank(principal, input) {
     if (!input || Object.keys(input).some(k => !['commandId', 'title', 'kind'].includes(k))) throw new Fault('invalid_command', 400);
     id(input.commandId); text(input.title, 200);
@@ -48,11 +88,16 @@ export class Workspace {
   }
   // A fresh committed snapshot is sufficient for reads. Mutation preconditions
   // still run under the row lock in transaction; polling must not rewrite it.
-  async list(principal) { return this.store.read(s => { authorize(s, principal); return Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
-  async get(principal, workId) { return this.store.read(s => { authorize(s, principal); return snapshot(s, work(s, workId)); }); }
+  async list(principal) { return this.store.read(s => { this.member(s, principal); return Object.values(s.works).filter(w => this.role(s, principal, w)).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
+  async get(principal, workId) { return this.store.read(s => { return this.visible(s, principal, this.access(s, principal, workId)); }); }
   async events(principal, after) { return this.store.read(s => {
-    authorize(s, principal);
+    this.member(s, principal);
     if (after !== undefined && (!Number.isSafeInteger(after) || after < 0)) throw new Fault('invalid_cursor', 400);
+    // A bounded reset avoids leaking global sequence numbers or unrelated event gaps.
+    if (principal !== s.owner) {
+      const visible = Object.values(s.works).filter(w => this.role(s, principal, w));
+      return { kind: 'reset', cursor: 0, events: [], works: visible.map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })), snapshots: visible.map(w => this.visible(s, principal, w)) };
+    }
     // Bound the replay response, without deleting retained events or contributions.
     const events = s.events.filter(e => e.eventId > (after ?? s.sequence));
     const reset = after === undefined || after > s.sequence || s.sequence - after > 256
@@ -60,7 +105,7 @@ export class Workspace {
     const changed = new Set(events.map(e => e.workId));
     return { kind: reset ? 'reset' : 'events', cursor: s.sequence, events: reset ? [] : events,
       works: Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })),
-      snapshots: Object.values(s.works).filter(w => reset || changed.has(w.id)).map(w => snapshot(s, w)) };
+      snapshots: Object.values(s.works).filter(w => reset || changed.has(w.id)).map(w => this.visible(s, principal, w)) };
   }); }
   async source(principal, input) {
     id(input.commandId); text(input.name, 200); text(input.content, 200000);
@@ -108,14 +153,16 @@ export class Workspace {
     if (document && input.formatEdits !== undefined) throw new Fault('invalid_format_edits', 400);
     revision(input.contentRevision); revision(input.permissionRevision);
     return this.store.transaction(s => {
-      authorize(s, principal); const w = work(s, workId);
+      const w = this.access(s, principal, workId, true);
+      // Re-check live ACL and its generation before returning any stored result.
+      if (principal !== s.owner && input.accessRevision !== (w.accessRevision ?? 0)) throw new Fault('access_changed', 403);
       if ((workKind(w) === 'document') !== !!document) throw new Fault('artifact_type_mismatch', 400);
       if ((document ?? book).id !== w.id) throw new Fault('workbook_identity', 400);
       return dedup(s, input.commandId, { workId, ...input }, () => {
         if (w.contentRevision !== input.contentRevision || s.permissionRevision !== input.permissionRevision) throw new Fault('save_conflict');
         if (document) {
           if (digest(w.document) !== digest(document)) w.humanDocument = true;
-          w.document = document; w.contentRevision++; event(s, w, 'human_saved');
+          w.document = document; w.contentRevision++; w.lastHumanActor = principal; event(s, w, 'human_saved');
           return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
         }
         const human = new Set(w.humanCells);
@@ -154,9 +201,9 @@ export class Workspace {
           const [sid, row, column] = cell.split(':'), sheet = book.sheets[sid];
           if (!book.sheetOrder.includes(sid) || !sheet || +row >= sheet.rowCount || +column >= sheet.columnCount) human.delete(cell);
         }
-        w.humanCells = [...human]; w.book = book; w.contentRevision++; event(s, w, 'human_saved');
+        w.humanCells = [...human]; w.book = book; w.contentRevision++; w.lastHumanActor = principal; event(s, w, 'human_saved');
         return { contentRevision: w.contentRevision, permissionRevision: s.permissionRevision };
-      });
+      }, principal === s.owner ? undefined : principal);
     });
   }
   async mutate(principal, workId, input) {

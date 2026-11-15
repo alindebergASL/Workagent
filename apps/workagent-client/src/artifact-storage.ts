@@ -13,11 +13,12 @@ export interface PayloadTransactions {
 export class IndexedPayloadTransactions implements PayloadTransactions {
   private database?: Promise<IDBDatabase>;
   private factory: () => IDBFactory;
-  constructor(factory: () => IDBFactory = () => indexedDB) { this.factory = factory; }
+  private namespace: string;
+  constructor(factory: () => IDBFactory = () => indexedDB, namespace = '') { this.factory = factory; this.namespace = namespace; }
   private open() {
     if (!this.database) {
       this.database = new Promise<IDBDatabase>((resolve, reject) => {
-        const request = this.factory().open('workagent-artifacts', 1);
+        const request = this.factory().open(`workagent-artifacts${this.namespace ? ':' + this.namespace : ''}`, 1);
         let failed = false;
         request.onupgradeneeded = () => { request.result.createObjectStore('payloads'); };
         request.onerror = () => reject(request.error ?? new Error('Browser storage could not open.'));
@@ -71,7 +72,7 @@ export type SaveAttempt = { record: Payload; request: Pending };
 export class ArtifactStorage {
   private legacy: Pick<Storage, 'getItem' | 'removeItem'>;
   private transactions: PayloadTransactions;
-  constructor(legacy: Pick<Storage, 'getItem' | 'removeItem'>, transactions: PayloadTransactions = new IndexedPayloadTransactions()) { this.legacy = legacy; this.transactions = transactions; }
+  constructor(legacy: Pick<Storage, 'getItem' | 'removeItem'>, transactions?: PayloadTransactions, namespace = '') { this.legacy = legacy; this.transactions = transactions ?? new IndexedPayloadTransactions(undefined, namespace); }
   private change<T>(key: string, legacyKey: string | null, update: (slot: PayloadSlot) => T): Promise<T> {
     return this.changeMany([key], [legacyKey], slots => update(slots[0]));
   }

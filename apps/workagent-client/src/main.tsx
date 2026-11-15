@@ -45,9 +45,10 @@ function chartProposalCell(work: Work, proposal: SheetProposal, cell: Cell, inde
   const before = addedSheet ? '(new cell)' : sameRevision ? chartCellBefore(sheet?.cellData?.[cell.row]?.[cell.column]) : 'unavailable at proposal revision';
   return <li key={index}>{label}, row {cell.row + 1}, column {cell.column + 1}: <del>{before}</del> → <strong>{String(cell.formula ?? cell.value ?? '(empty)')}</strong></li>;
 }
+let sessionBinding: string | undefined;
 async function api<T>(path: string, input?: unknown, method?: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
-  try { response = await fetch(`/api${path}`, { credentials: 'same-origin', signal, method: method ?? (input ? 'POST' : 'GET'), ...(input ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) } : {}) }); }
+  try { response = await fetch(`/api${path}`, { credentials: 'same-origin', signal, method: method ?? (input ? 'POST' : 'GET'), headers: { ...(input ? { 'Content-Type': 'application/json' } : {}), ...(sessionBinding ? { 'X-Workagent-Session-Binding': sessionBinding } : {}) }, ...(input ? { body: JSON.stringify(input) } : {}) }); }
   catch (e) { if (e instanceof TypeError) throw new ApiError(path, 0, 'connection_unavailable'); throw e; }
   const fallback = response.status === 401 ? 'access_denied' : response.status >= 500 ? 'service_unavailable' : 'request_refused';
   let result;
@@ -56,7 +57,10 @@ async function api<T>(path: string, input?: unknown, method?: string, signal?: A
   if (!response.ok) throw new ApiError(path, response.status, typeof result?.error === 'string' ? result.error : fallback);
   return result;
 }
-const friendly: Record<string, string> = { request_too_large: 'This request reached a technical size limit before the next model call was sent. Your saved work is safe. Send a narrower request to continue.', save_conflict: 'The saved work changed while you were editing. Your draft is kept. Download it before opening the saved version.', proposal_conflict: 'This proposal is out of date. Ask the agent to review the current work.', access_denied: 'Please sign in to your private workspace.', accounting_bridge_not_connected: 'Model access is waiting for the accounting connection. You can still edit and save your sheet.', openrouter_not_configured: 'Model access is not configured yet.', execution_interrupted_check_receipt: 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.' };
+const friendly: Record<string, string> = { request_too_large: 'This request reached a technical size limit before the next model call was sent. Your saved work is safe. Send a narrower request to continue.', save_conflict: 'The saved work changed while you were editing. Your draft is kept. Download it before opening the saved version.', proposal_conflict: 'This proposal is out of date. Ask the agent to review the current work.', access_denied: 'Access was refused. Check your sign-in or work sharing. Your local draft is kept.', accounting_bridge_not_connected: 'Model access is waiting for the accounting connection. You can still edit and save your sheet.', openrouter_not_configured: 'Model access is not configured yet.', execution_interrupted_check_receipt: 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.' };
+friendly.access_changed = 'Sharing permissions changed. Your local draft is kept. Download it before reopening the saved version.';
+friendly.session_changed = 'The signed-in account changed in another tab. Your draft is kept; download it, then reload to sign in again.';
+friendly.work_access_revoked = 'Access to this work was revoked. Your local draft is kept and will not be saved. You can download it.';
 friendly.connection_unavailable = 'Connection interrupted. Your edits and message are kept. Retry the action when connected.';
 friendly.service_restarting = 'The service is restarting. Your edits and message are kept. Retry the action when connected.';
 friendly.service_unavailable = 'The service is temporarily unavailable. Your edits and message are kept.';
@@ -118,6 +122,13 @@ const snapshot = (editor: NativeEditor): NativeArtifact => editor.kind === 'docu
 function App() {
   const [authenticated, setAuthenticated] = useState(false), [token, setToken] = useState(''), [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
+  const [profile, setProfile] = useState<{ principal: string; name: string; owner: boolean } | null>(null);
+  const identityRef = useRef<string | null>(null), ownerRef = useRef(true), revoked = useRef(false);
+  // Reads issued before an observed revocation cannot restore access or replace a draft.
+  const accessEpoch = useRef(0);
+  const [accessLost, setAccessLost] = useState(false);
+  const [sharing, setSharing] = useState<{ workId: string; revision: number; peers: { id: string; name: string; role: 'read' | 'editor' | null }[] } | null>(null);
+  const [shareBusy, setShareBusy] = useState(false);
   const [works, setWorks] = useState<{ id: string; title: string; status: string }[]>([]), [work, setWork] = useState<Work | null>(null);
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [draft, setDraft] = useState(false), [prompt, setPrompt] = useState(''), [sourceText, setSourceText] = useState(''), [sourceName, setSourceName] = useState('Pasted data'), [busy, setBusy] = useState(false);
@@ -158,7 +169,9 @@ function App() {
   const editor = useRef<NativeEditor | null>(null), dirty = useRef(false), active = useRef<string | null>(null), base = useRef(editorState), workRef = useRef(work);
   function installEditor(next: typeof editorState) { if (next?.version !== base.current?.version) editor.current = null; base.current = next; setEditorState(next); }
   const hasDraft = () => dirty.current || !!editor.current?.native.isEditing();
-  const report = (e: unknown) => setError(e instanceof Error ? friendly[e.message] ?? e.message : 'Unable to save this change.');
+  const report = (e: unknown) => setError(e instanceof ApiError && e.status === 401
+    ? 'Please sign in to your private workspace. Your local draft and unsent message are kept.'
+    : e instanceof Error ? friendly[e.message] ?? e.message : 'Unable to save this change.');
   function displayComposer(value: ComposerDraft) { composer.current = value; setPrompt(value.prompt); setSourceName(value.sourceName); setSourceText(value.sourceText); setSelectionView(value.selection); }
   function pendingState(workId: string | null) { try { const pending = composers.current.pending(workId); setPendingSend(!!pending); setPendingPreview(pending); } catch (e) { setPendingSend(false); setPendingPreview(null); report(e); } }
   function loadComposer(workId: string | null) {
@@ -170,20 +183,39 @@ function App() {
     const next = { ...composer.current, ...changes }; displayComposer(next);
     try { composers.current.write(active.current, next); } catch (e) { report(e instanceof Error && e.message === 'invalid_composer_draft' ? e : new Error('Local storage is full. Keep this page open to preserve your message.')); }
   }
-  const list = useCallback(async () => { setWorks(await api('/work')); setAuthenticated(true); }, []);
-  const receive = useCallback((w: Work) => {
-    if (active.current !== w.id) return;
+  const list = useCallback(async () => {
+    const session = await api<{ principal: string; name: string; owner: boolean; binding: string }>('/session');
+    if (identityRef.current && identityRef.current !== session.principal) throw new Error('session_changed');
+    if (!identityRef.current) {
+      identityRef.current = session.principal; ownerRef.current = session.owner; sessionBinding = session.binding;
+      if (!session.owner) {
+        const prefix = `workagent-account:${session.principal}:`;
+        const storage = { getItem: (key: string) => localStorage.getItem(prefix + key), setItem: (key: string, value: string) => localStorage.setItem(prefix + key, value), removeItem: (key: string) => localStorage.removeItem(prefix + key) };
+        composers.current = new ComposerDrafts(storage); artifacts.current = new ArtifactStorage(storage, undefined, session.principal);
+      }
+      loadComposer(null);
+    }
+    setProfile(session); setWorks(await api('/work')); setAuthenticated(true);
+  }, []);
+  const receive = useCallback((w: Work, access: number) => {
+    if (access !== accessEpoch.current || active.current !== w.id) return;
     const current = workRef.current;
     if (current?.id === w.id && current.eventSequence > w.eventSequence) return;
     const savedRevision = base.current?.book.id === w.id ? base.current.revision : 0;
     if (w.contentRevision < savedRevision || (current?.id === w.id && (w.contentRevision < current.contentRevision || w.intentRevision < current.intentRevision))) return;
     workRef.current = w; setWork(w);
+    if (revoked.current) setError(previous => previous === friendly.work_access_revoked ? '' : previous);
+    revoked.current = false; setAccessLost(false);
     if (!dirty.current && !editor.current?.native.isEditing() && !saveFlight.current && !(base.current?.book.id === w.id && base.current.revision === w.contentRevision)) {
       const next = { ...content(w), revision: w.contentRevision, permission: w.expected.permissionRevision, version: `${w.id}:${w.contentRevision}` };
       installEditor(next);
     }
   }, []);
-  useEffect(() => { loadComposer(null); list().catch(() => {}); }, [list]);
+  async function refresh(workId: string) {
+    const access = accessEpoch.current;
+    receive(await api<Work>(`/work/${workId}`), access);
+  }
+  useEffect(() => { list().catch(() => {}); }, [list]);
   useEffect(() => {
     try {
       const pending = blankActions.current.read(); blankAttempt.current = pending; setBlankPending(!!pending);
@@ -195,14 +227,17 @@ function App() {
     if (!authenticated) return;
     const cursor = new ProductCursor(); let disposed = false, timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
-      const ticket = cursor.request(), navigation = fence.current.navigation;
+      const ticket = cursor.request(), navigation = fence.current.navigation, access = accessEpoch.current;
       try {
         const batch = await api<ProductBatch>(`/events${cursor.after === undefined ? '' : `?after=${cursor.after}`}`);
         if (disposed) return;
         cursor.apply(ticket, batch, value => {
-          if (navigation !== fence.current.navigation) return false;
+          if (access !== accessEpoch.current || navigation !== fence.current.navigation) return false;
           setWorks(value.works);
-          for (const snapshot of value.snapshots) receive(snapshot);
+          if (!ownerRef.current && active.current && !value.works.some(w => w.id === active.current)) {
+            accessEpoch.current++; revoked.current = true; setAccessLost(true); setError(friendly.work_access_revoked);
+          }
+          for (const snapshot of value.snapshots) receive(snapshot, access);
         });
         setPollError('');
       } catch (e) {
@@ -228,17 +263,18 @@ function App() {
       const preserved = captured ? edited(captured, true) : Promise.resolve(true);
       const ticket = fence.current.request();
       if (!await preserved || navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
+      const access = accessEpoch.current;
       let w = await api<Work>(`/work/${workId}`);
-      if (navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
+      if (access !== accessEpoch.current || navigationFlight.current !== navigation || !fence.current.current(ticket)) return;
       const stored = await artifacts.current.readDraft(workId);
       const pending = await artifacts.current.readSave(workId);
-      if (navigationFlight.current !== navigation || !fence.current.current(ticket) || saveFlight.current) return;
+      if (access !== accessEpoch.current || navigationFlight.current !== navigation || !fence.current.current(ticket) || saveFlight.current) return;
       if (editor.current?.native.isEditing()) { setError('Native input is still finishing. Retry switching work after it finishes.'); return; }
       if (workRef.current?.id === workId && workRef.current.eventSequence > w.eventSequence) w = workRef.current;
       dirty.current = !!pending; setDraft(!!pending); editor.current = null;
       active.current = workId; workRef.current = null;
       installEditor({ ...content(w), revision: w.contentRevision, permission: w.expected.permissionRevision, version: `${w.id}:open:${uuid()}` });
-      receive(w); setError(''); loadComposer(workId); setToolsOpen(false);
+      receive(w, access); setError(''); loadComposer(workId); setToolsOpen(false); setSharing(null); if (!ownerRef.current) setView('sheet');
       const saved = stored?.raw;
       recovery.current = stored ? { workId, record: stored } : null;
       if (saved) {
@@ -256,6 +292,7 @@ function App() {
     }
   }
   async function createBlank(kind: 'sheet' | 'document' = 'sheet') {
+    if (!ownerRef.current) return;
     if (blankFlight.current) return;
     blankFlight.current = true; setBlankBusy(true);
     const actions = blankActions.current;
@@ -337,6 +374,8 @@ function App() {
     catch (error) { if (active.current === workId && base.current?.version === version) report(error); return false; }
   }
   async function save() {
+    if (revoked.current) throw new Error('work_access_revoked');
+    if (workRef.current?.access?.role === 'read') throw new Error('Read access: your local edits are kept, but saving requires editor access.');
     if (saveFlight.current) return saveFlight.current;
     if (!active.current || !base.current || !editor.current) return;
     const workId = active.current, native = editor.current, state = base.current;
@@ -349,7 +388,7 @@ function App() {
       else await draftWrites.current;
       const unresolved = await artifacts.current.readSave(workId);
       if (!dirty.current && !unresolved) return;
-      const attempt = unresolved ?? await artifacts.current.prepareSave(workId, { ...(committed.kind === 'document' ? { document: committed.book } : { book: committed.book, ...(committed.formatEdits == null ? {} : { formatEdits: committed.formatEdits }) }), contentRevision: state.revision, permissionRevision: state.permission }, uuid);
+      const attempt = unresolved ?? await artifacts.current.prepareSave(workId, { ...(committed.kind === 'document' ? { document: committed.book } : { book: committed.book, ...(committed.formatEdits == null ? {} : { formatEdits: committed.formatEdits }) }), contentRevision: state.revision, permissionRevision: state.permission, ...(workRef.current?.access ? { accessRevision: workRef.current.access.revision } : {}) }, uuid);
       const submitted = attempt.request;
       if (active.current !== workId || editor.current !== native || base.current?.version !== state.version) return;
       // Persisted retries retain their exact original body until the server settles it.
@@ -384,10 +423,11 @@ function App() {
     };
     saveFlight.current = operation();
     try { await saveFlight.current; } finally { saveFlight.current = null; }
-    receive(await api<Work>(`/work/${workId}`));
+    await refresh(workId);
   }
   async function submit(event: React.FormEvent) {
-    event.preventDefault(); if (navigationFlight.current || !prompt.trim() || sendFlight.current) return; sendFlight.current = true; setBusy(true); setError(''); fence.current.request();
+    event.preventDefault();
+    if (!ownerRef.current) return; if (navigationFlight.current || !prompt.trim() || sendFlight.current) return; sendFlight.current = true; setBusy(true); setError(''); fence.current.request();
     const requestedWork = active.current, navigation = fence.current.navigation, sent = { ...composer.current };
     let submittedCommandId: string | undefined;
     try {
@@ -436,20 +476,35 @@ function App() {
       report(e);
     } finally { sendFlight.current = false; setBusy(false); pendingState(active.current); }
   }
+  async function loadSharing() {
+    if (!work || !ownerRef.current) return;
+    const workId = work.id;
+    const result = await api<{ revision: number; peers: { id: string; name: string; role: 'read' | 'editor' | null }[] }>(`/work/${workId}/sharing`);
+    if (active.current === workId) setSharing({ workId, ...result });
+  }
+  async function changeShare(peer: string, role: string) {
+    if (!sharing || sharing.workId !== active.current || shareBusy) return;
+    setShareBusy(true);
+    try { await api(`/work/${sharing.workId}/sharing`, { commandId: uuid(), peer, role: role || null, accessRevision: sharing.revision }); await loadSharing(); }
+    catch (e) { report(e); await loadSharing(); }
+    finally { setShareBusy(false); }
+  }
   async function decide(proposal: Proposal, decision: string) {
-    if (!work) return;
+    if (!work || !ownerRef.current) return;
     await save();
     if (hasDraft() || active.current !== work.id) throw new Error('Finish saving your current edits before reviewing changes.');
     await api(`/work/${work.id}/proposals/${proposal.id}`, { commandId: uuid(), decision, expected: work.expected });
-    receive(await api<Work>(`/work/${work.id}`));
+    await refresh(work.id);
   }
   async function viewSaved() {
     if (!active.current || !editor.current || !base.current || saveFlight.current) return;
-    const key = active.current, native = editor.current, state = base.current, ticket = fence.current.request();
-    const current = () => active.current === key && editor.current === native && base.current?.version === state.version
+    const key = active.current, native = editor.current, state = base.current, ticket = fence.current.request(), access = accessEpoch.current;
+    const current = () => access === accessEpoch.current && active.current === key && editor.current === native && base.current?.version === state.version
       && fence.current.current(ticket) && !saveFlight.current && !native.native.isEditing();
     const saved = await api<Work>(`/work/${key}`);
+    if (access !== accessEpoch.current) return;
     const pending = await artifacts.current.readSave(key);
+    if (access !== accessEpoch.current) return;
     if (!current()) { setError('Your latest edit is kept. Finish editing before opening the saved version.'); return; }
     // Archive must commit before releasing either the editor or its draft. Every
     // asynchronous boundary is fenced against navigation and fresh native input.
@@ -467,7 +522,7 @@ function App() {
     const latestSaved = workRef.current?.id === key && workRef.current.eventSequence > saved.eventSequence ? workRef.current : saved;
     dirty.current = !!pending; setDraft(!!pending);
     installEditor({ ...content(latestSaved), revision: latestSaved.contentRevision, permission: latestSaved.expected.permissionRevision, version: `${key}:reload:${uuid()}` });
-    workRef.current = latestSaved; setWork(latestSaved); setError('The previous draft is retained on this device.');
+    receive(latestSaved, access); setError('The previous draft is retained on this device.');
   }
   function downloadDraft() {
     if (!editor.current) return;
@@ -475,12 +530,12 @@ function App() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(editor.current.native.save(), null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'workagent-draft.univer.json'; link.click(); URL.revokeObjectURL(url);
   }
-  if (!authenticated) return <main className="sign-in"><div className="brand">Workagent</div><h1>Your work, together.</h1><p>Sign in to your private workspace.</p><form onSubmit={async e => { e.preventDefault(); try { await api('/session', { token }); setToken(''); setError(''); await list(); } catch (err) { report(err); } }}><label>Access key<input type="password" value={token} onChange={e => setToken(e.target.value)} autoComplete="current-password" /></label><button>Sign in</button></form>{error && <p role="alert">{error}</p>}</main>;
-  return <main className="app"><header className="app-header"><div className="brand">Workagent</div><select aria-label="Saved work" value={work?.id ?? ''} onChange={e => { if (e.target.value) open(e.target.value).catch(report); else newWork().catch(report); }}><option value="">New work</option>{works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}</select><span className="private">Private workspace</span></header>
+  if (!authenticated) return <main className="sign-in"><div className="brand">Workagent</div><h1>Your work, together.</h1><p>Sign in to your private workspace.</p><form onSubmit={async e => { e.preventDefault(); try { sessionBinding = undefined; await api('/session', { token }); setToken(''); setError(''); await list(); } catch (err) { report(err); } }}><label>Access key<input type="password" value={token} onChange={e => setToken(e.target.value)} autoComplete="current-password" /></label><button>Sign in</button></form>{error && <p role="alert">{error}</p>}</main>;
+  return <main className="app"><header className="app-header"><div className="brand">Workagent</div><select aria-label="Saved work" value={work?.id ?? ''} onChange={e => { if (e.target.value) open(e.target.value).catch(report); else newWork().catch(report); }}><option value="">New work</option>{works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}</select><span className="private">{profile?.name ?? 'Private workspace'}</span></header>
     {error && <div className="notice" role="alert" tabIndex={0}>{error}{draft && <><button onClick={downloadDraft}>Download draft</button><button onClick={() => viewSaved().catch(report)}>Open saved version</button></>}</div>}
     {pollError && <div className="notice" role="status" tabIndex={0}>{pollError}</div>}
     <nav className="mobile-tabs" aria-label="Workspace views"><button type="button" aria-pressed={view === 'chat'} aria-controls="conversation" onClick={() => setView('chat')}>Conversation</button><button type="button" aria-pressed={view === 'sheet'} aria-controls="work-area" onClick={() => setView('sheet')}>Work area</button></nav>
-    <div className={`layout view-${view}`}><section id="conversation" className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{!work && <div className="welcome"><h1>What are we working on?</h1><p>Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p>{m.selection?.kind === 'document' && <details><summary>Document passage · {m.selection.title} · revision {m.selection.contentRevision}</summary><p>Body offsets [{m.selection.startOffset}, {m.selection.endOffset}) (UTF-16). Context only.</p><pre className="selected-quote">{m.selection.quote}</pre></details>}</article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}
+    <div className={`layout view-${view}`}><section id="conversation" className="conversation" aria-label="Conversation"><div className="messages" aria-live="polite">{work && profile?.owner === false && <p>This account can access the shared artifact in Work area. Agent requests, proposals and sources stay with the owner.</p>}{!work && <div className="welcome"><h1>{profile?.owner === false ? 'Choose a shared work' : 'What are we working on?'}</h1><p>{profile?.owner === false ? 'Work shared with your account appears in Saved work. Agent requests and source access remain with the owner.' : 'Describe an outcome and add synthetic data. We’ll work through it in an editable sheet.'}</p></div>}{work?.messages.map(m => <article className={m.role} key={m.id}><small>{m.role === 'user' ? 'You' : 'Workagent'}</small><p>{m.text}</p>{m.selection?.kind === 'document' && <details><summary>Document passage · {m.selection.title} · revision {m.selection.contentRevision}</summary><p>Body offsets [{m.selection.startOffset}, {m.selection.endOffset}) (UTF-16). Context only.</p><pre className="selected-quote">{m.selection.quote}</pre></details>}</article>)}{work && ['queued', 'working', 'cancellation_requested'].includes(work.status) && <p className="progress">{work.status === 'cancellation_requested' ? 'Stopping…' : 'Working on your request…'}</p>}{work?.errorCode && <p className="notice">{friendly[work.errorCode] ?? 'This work needs attention before it can continue.'}</p>}
       {work?.proposals.filter(p => p.status === 'pending').map(p => <article className="proposal" key={p.id}><strong>Proposed changes</strong><p>{p.reason === 'chart_definition' ? 'Chart definitions require your review. Your saved sheet stays unchanged until you accept the whole proposal, including any cell edits.' : p.reason === 'human_edit' ? work.kind === 'document' ? 'This document includes your edits.' : 'These cells include your edits.' : 'The work or instructions changed while I was working.'}</p>{p.kind === 'document' && <><p>Title: {p.patch.document.title}</p><p>Whole-document proposal. Your saved document stays unchanged until acceptance. Native styles are included; the preview below shows text only.</p><pre className="document-preview">{documentPreviewText(p.patch.document.body?.dataStream)}</pre></>}{p.patch.title && <p>Title: {p.patch.title}</p>}{p.kind !== 'document' && !!p.patch.chartOps?.length && <>
         <p>{p.patch.chartOps.length} chart {p.patch.chartOps.length === 1 ? 'change' : 'changes'}{p.patch.cells.length ? ` and ${p.patch.cells.length} cell ${p.patch.cells.length === 1 ? 'change' : 'changes'}` : ''}</p>
         <p>Definition preview at saved revision {p.expected.contentRevision}. Sources include the header row and label column; remaining columns are numeric series. Formula results are unknown here. This preview does not calculate chart values.</p>
@@ -488,16 +543,22 @@ function App() {
         {(Object.keys(p.expected) as (keyof typeof p.expected)[]).some(k => p.expected[k] !== work.expected[k]) && <p>This proposal is out of date. Ask for a new proposal before accepting.</p>}
         <ul>{p.chartChanges?.map((change, i) => <li key={i}><strong>{change.op === 'create' ? 'Add chart' : change.op === 'delete' ? 'Remove chart' : 'Update chart'}</strong>: {change.before && <del>{chartDefinitionLabel(change.before)}</del>}{change.before && change.after && ' → '}{change.after && <span>{chartDefinitionLabel(change.after)}</span>}</li>)}</ul>
       </>}{p.kind !== 'document' && p.patch.addSheets?.map(s => <p key={s.id}>Add sheet: {s.name} [{s.id}]</p>)}<ul>{(p.patch.cells ?? []).map((c, i) => p.kind !== 'document' && p.patch.chartOps?.length ? chartProposalCell(work, p, c, i) : <li key={i}>{work.book?.sheets[c.sheetId]?.name ?? c.sheetId}, row {c.row + 1}, column {c.column + 1}: <del>{String(work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.f ?? work.book?.sheets[c.sheetId]?.cellData?.[c.row]?.[c.column]?.v ?? '')}</del> → <strong>{String(c.formula ?? c.value ?? '(empty)')}</strong></li>)}</ul><button onClick={() => decide(p, 'accept').catch(report)}>Accept changes</button><button className="secondary" onClick={() => decide(p, 'reject').catch(report)}>Keep current</button></article>)}
-      {work && work.kind !== 'document' && <MaintenancePanel key={work.id} work={work} api={api} beforeAction={async () => { if (hasDraft() || saveFlight.current) throw new Error('Save your sheet before changing maintenance.'); }} refresh={async () => { receive(await api<Work>(`/work/${work.id}`)); }} />}
-      </div><form className="composer" onSubmit={submit} aria-busy={navigating}>{navigating && <p role="status">Loading work… Your message is kept.</p>}{work && <div className="selection-context"><button type="button" disabled={busy || navigating} onPointerDown={e => e.preventDefault()} onClick={attachSelection}>{work.kind === 'document' ? 'Attach selected text' : 'Attach selected cells'}</button>{selectionView && <div>{selectionView.kind === 'document' ? <><p>Attached document: {selectionView.title} · body offsets [{selectionView.startOffset}, {selectionView.endOffset}) (UTF-16) · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p><pre className="selected-quote">{selectionView.quote}</pre>{(selectionInvalid || selectionView.contentRevision !== editorState?.revision) && <p role="status">Document, selection or editor changed. Reattach selected text before a new send.</p>}<p>Context only. Requested edits use the existing whole-document proposal and acceptance flow.</p></> : <p>Attached: {selectionView.sheetName} · {selectionView.rangeLabel} · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p>}<button type="button" disabled={busy || navigating} onClick={() => editComposer({ selection: undefined })}>Remove selection</button></div>}{pendingPreview && <details><summary>Unresolved send: original captured context retained</summary><p>Retry uses the original message and command, independently of the editable attachment above.</p>{pendingPreview.selection?.kind === 'document' && <><p>Document body [{pendingPreview.selection.startOffset}, {pendingPreview.selection.endOffset}) · saved revision {pendingPreview.selection.contentRevision}</p><pre className="selected-quote">{pendingPreview.draft.selection?.kind === 'document' ? pendingPreview.draft.selection.quote : ''}</pre></>}</details>}</div>}<details><summary>Add synthetic data</summary><input aria-label="Source name" disabled={navigating} value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" disabled={navigating} value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" disabled={navigating} accept=".txt,.csv,.md" onChange={async e => { if (navigationFlight.current) return; const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" disabled={navigating} value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" disabled={navigating} onClick={() => { if (navigationFlight.current) return; const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || navigating || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
+      {profile?.owner && work && work.kind !== 'document' && <MaintenancePanel key={work.id} work={work} api={api} beforeAction={async () => { if (hasDraft() || saveFlight.current) throw new Error('Save your sheet before changing maintenance.'); }} refresh={async () => { await refresh(work.id); }} />}
+      </div><form className="composer" hidden={profile?.owner === false} onSubmit={submit} aria-busy={navigating}>{navigating && <p role="status">Loading work… Your message is kept.</p>}{work && <div className="selection-context"><button type="button" disabled={busy || navigating} onPointerDown={e => e.preventDefault()} onClick={attachSelection}>{work.kind === 'document' ? 'Attach selected text' : 'Attach selected cells'}</button>{selectionView && <div>{selectionView.kind === 'document' ? <><p>Attached document: {selectionView.title} · body offsets [{selectionView.startOffset}, {selectionView.endOffset}) (UTF-16) · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p><pre className="selected-quote">{selectionView.quote}</pre>{(selectionInvalid || selectionView.contentRevision !== editorState?.revision) && <p role="status">Document, selection or editor changed. Reattach selected text before a new send.</p>}<p>Context only. Requested edits use the existing whole-document proposal and acceptance flow.</p></> : <p>Attached: {selectionView.sheetName} · {selectionView.rangeLabel} · attached at revision {selectionView.contentRevision}. Current edits save on Send.</p>}<button type="button" disabled={busy || navigating} onClick={() => editComposer({ selection: undefined })}>Remove selection</button></div>}{pendingPreview && <details><summary>Unresolved send: original captured context retained</summary><p>Retry uses the original message and command, independently of the editable attachment above.</p>{pendingPreview.selection?.kind === 'document' && <><p>Document body [{pendingPreview.selection.startOffset}, {pendingPreview.selection.endOffset}) · saved revision {pendingPreview.selection.contentRevision}</p><pre className="selected-quote">{pendingPreview.draft.selection?.kind === 'document' ? pendingPreview.draft.selection.quote : ''}</pre></>}</details>}</div>}<details><summary>Add synthetic data</summary><input aria-label="Source name" disabled={navigating} value={sourceName} onChange={e => editComposer({ sourceName: e.target.value })} /><textarea aria-label="Source text" disabled={navigating} value={sourceText} onChange={e => editComposer({ sourceText: e.target.value })} placeholder="Paste synthetic notes, CSV or a brief" /><label className="file">Or choose a text/CSV file<input type="file" disabled={navigating} accept=".txt,.csv,.md" onChange={async e => { if (navigationFlight.current) return; const f = e.target.files?.[0]; if (f) { if (f.size > 200000) { setError('Choose a text file under 200 KB.'); return; } const key = active.current, navigation = fence.current.navigation, before = composer.current; const content = await f.text(); if (active.current === key && navigation === fence.current.navigation && composer.current === before) editComposer({ sourceName: f.name, sourceText: content }); } }} /></label></details><label className="sr-only" htmlFor="prompt">Message Workagent</label><textarea id="prompt" disabled={navigating} value={prompt} onChange={e => editComposer({ prompt: e.target.value })} placeholder="Describe the outcome, or correct the direction…" /><div className="composer-actions"><span>Synthetic data only</span>{pendingSend && <button type="button" className="secondary" disabled={navigating} onClick={() => { if (navigationFlight.current) return; const pending = composers.current.pending(active.current); if (pending) { editComposer(pending.draft); setError('The unresolved message is restored. Send checks the same command; it will not create a duplicate.'); } }}>Restore unresolved send</button>}{work && ['working', 'queued'].includes(work.status) && <button type="button" className="secondary" onClick={async () => { try { await api('/work/commands', { commandId: uuid(), kind: 'cancel', workId: work.id, expectedIntentRevision: work.intentRevision, sourceIds: [] }); } catch (e) { report(e); } }}>Stop</button>}<button disabled={busy || navigating || !prompt.trim()}>{busy ? 'Saving…' : 'Send'}</button></div></form></section>
     <section id="work-area" className={`work-area${editorState ? ' has-work' : ''}`} aria-label="Work area">
-      {editorState && <div className="sheet-heading"><div><strong>{editorState.kind === 'document' ? editorState.book.title : editorState.book.name}</strong><span>{draft ? 'Unsaved changes' : 'Saved'}</span></div><button type="button" onClick={() => save().catch(report)} disabled={!draft}>{work?.kind === 'document' ? 'Save document' : 'Save sheet'}</button></div>}
-      <div className="work-actions">
+      {editorState && <div className="sheet-heading"><div><strong>{editorState.kind === 'document' ? editorState.book.title : editorState.book.name}</strong><span>{draft ? 'Unsaved changes' : 'Saved'}</span></div><button type="button" onClick={() => save().catch(report)} disabled={!draft || accessLost || work?.access?.role === 'read'}>{work?.kind === 'document' ? 'Save document' : 'Save sheet'}</button></div>}
+      {work && <div className="sharing-bar">
+        {profile?.owner ? <details><summary onClick={() => { void loadSharing().catch(report); }}>Share work</summary>
+          {sharing?.workId === work.id && (sharing.peers.length ? sharing.peers.map(peer => <label key={peer.id}>{peer.name}<select aria-label={`Access for ${peer.name}`} disabled={shareBusy} value={peer.role ?? ''} onChange={e => { void changeShare(peer.id, e.target.value); }}><option value="">No access</option><option value="read">Read</option><option value="editor">Editor</option></select></label>) : <p>No peer accounts configured.</p>)}
+          <small>Shares this artifact only. Agent actions and sources stay with the owner.</small>
+        </details> : <small>{profile?.name} · {accessLost ? 'Access revoked' : work.access?.role === 'editor' ? 'Editor access · explicit snapshot saves' : 'Read access · edits stay local'}. Concurrent saves may conflict; drafts are kept.</small>}
+      </div>}
+      {profile?.owner !== false && <div className="work-actions">
         <button type="button" className="work-actions-toggle secondary" hidden={!editorState} aria-expanded={!editorState || toolsOpen} aria-controls="work-tools" onClick={() => setToolsOpen(open => !open)}>Work actions · Create, import / export</button>
         {/* Keep one copy of every exchange form mounted, including its preview and unresolved command. */}
         <div id="work-tools" className="work-tools" hidden={!!editorState && !toolsOpen}><div className="blank-sheet"><label>New work name<input aria-label="New work name" value={blankTitle} maxLength={200} disabled={blankBusy || blankPending} onChange={e => setBlankTitle(e.target.value)} /></label><button type="button" disabled={blankBusy || !blankTitle.trim()} onClick={() => void createBlank()}>{blankPending ? 'Retry blank creation' : 'Create blank spreadsheet'}</button><button type="button" disabled={blankBusy || blankPending || !blankTitle.trim()} onClick={() => void createBlank('document')}>New document</button>{createdBlank && <span role="status">New work saved. <button type="button" onClick={() => { void open(createdBlank).then(opened => { if (opened) setView('sheet'); }).catch(report); }}>Open created work</button></span>}</div><DocumentExchange onNotice={toolNotice} api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><DocxExchange onNotice={toolNotice} api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><PdfExchange onNotice={toolNotice} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} api={api} editor={() => editor.current?.kind === 'document' ? editor.current.native : null} work={work?.kind === 'document' ? work : null} /><XlsxExchange onNotice={toolNotice} api={api} editor={() => editor.current?.kind === 'sheet' ? editor.current.native : null} work={work?.kind === 'document' ? null : work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /><CsvExchange onNotice={toolNotice} api={api} editor={() => editor.current?.kind === 'sheet' ? editor.current.native : null} work={work?.kind === 'document' ? null : work} onImported={list} onOpen={async id => { if (await open(id)) setView('sheet'); }} /></div>
         {!!editorState && !toolsOpen && Object.values(toolMessages).some(Boolean) && <div className="work-action-notices" tabIndex={0} role="region" aria-label="File action messages">{Object.entries(toolMessages).filter(([, message]) => message).map(([format, message]) => <p key={format} className="work-action-notice" role="status">{format}: {message}</p>)}</div>}
-      </div>
+      </div>}
       {editorState ? <>{editorState.kind === 'document' ? <DocumentEditor document={editorState.book} version={editorState.version} onReady={e => { if (base.current?.version === editorState.version) { editor.current = e ? { kind: 'document', native: e } : null; const attached = composer.current.selection; if (attached?.kind === 'document' && attached.editorId !== e?.editorId) setSelectionInvalid(true); } }} onSelectionChange={() => { if (base.current?.version === editorState.version && composer.current.selection?.kind === 'document') setSelectionInvalid(true); }} onEdit={d => { if (base.current?.version === editorState.version) edited(d); }} onError={report} /> : <NativeEditor humanCells={work?.id === editorState.book.id ? work.humanCells : undefined} book={editorState.book} formatEdits={editorState.formatEdits} version={editorState.version} onReady={e => { if (base.current?.version === editorState.version) editor.current = e ? { kind: 'sheet', native: e } : null; }} onEdit={d => { if (base.current?.version === editorState.version) edited(d); }} />}</> : <div className="empty-sheet"><span>Room to work</span><p>Your editable sheet or document will appear here.</p></div>}</section></div></main>;
 }
 createRoot(document.getElementById('root')!).render(<App />);

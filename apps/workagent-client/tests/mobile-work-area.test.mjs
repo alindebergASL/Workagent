@@ -40,7 +40,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }) {
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
-    const value=path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:input?await handler(path,input,works):works[path.split('/').at(-1)];
+    const value=path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:input?await handler(path,input,works):works[path.split('/').at(-1)];
     return {ok:true,status:200,json:async()=>structuredClone(value)};
   };
   const modules=new Map();

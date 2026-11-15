@@ -72,7 +72,8 @@ function server(handler) {
   return { works, calls, fetch: async (path, options) => {
     const input = options.body ? JSON.parse(options.body) : undefined; calls.push({ path, input });
     let result;
-    if (path === '/api/work') result = Object.values(works).map(w => ({ id: w.id, title: w.id, status: w.status }));
+    if (path === '/api/session') result = { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner' };
+    else if (path === '/api/work') result = Object.values(works).map(w => ({ id: w.id, title: w.id, status: w.status }));
     else if (path === '/api/events') result = { kind: 'reset', cursor: 1, events: [], works: [], snapshots: [] };
     else if (input && (path.endsWith('/save') || path === '/api/work/commands' || path === '/api/work/blank')) result = await handler(path, input, works);
     else result = works[path.split('/').at(-1)];
@@ -1090,4 +1091,131 @@ for (const status of [200, 401, 403]) test(`poll HTTP ${status} refusal or malfo
   const expected = status === 200 ? /unreadable response/ : status === 401 ? /Please sign in/ : /source_access_denied/;
   assert.match(view.text(), expected); assert.doesNotMatch(view.text(), /Reconnecting/);
   failing = false; await view.poll(); assert.match(view.text(), expected); view.unmount();
+});
+
+async function collaborationHttpFixture() {
+  const { Readable } = await import('node:stream');
+  const { Workspace } = await import('../../workagent-server/src/workspace.mjs');
+  const { initialState } = await import('../../workagent-server/src/store.mjs');
+  const { createHandler } = await import('../../workagent-server/src/http.mjs');
+  const accounts = [{ id: 'peer', name: 'Synthetic Peer', token: 'synthetic-peer-access-at-least-thirty-two-characters' }];
+  const token = 'synthetic-owner-access-at-least-thirty-two-characters', origin = 'https://fixture.test';
+  let state = initialState('owner'), tail = Promise.resolve(), effects = 0;
+  const store = { read: async fn => { await tail; return structuredClone(await fn(structuredClone(state))); }, transaction(fn) { const next = tail.then(async () => { const copy = structuredClone(state); const result = await fn(copy); state = copy; return structuredClone(result); }); tail = next.catch(() => {}); return next; } };
+  const workspace = new Workspace(store, { peers: accounts });
+  const handler = createHandler({ workspace, owner: 'owner', token, accounts, origin, clientRoot: '/tmp', onCommand() { effects++; } });
+  const calls = [];
+  async function transport(cookie, path, options = {}) {
+    const req = Readable.from(options.body ? [Buffer.from(options.body)] : []);
+    Object.assign(req, { url: path, method: options.method ?? 'GET', headers: { origin, cookie, ...Object.fromEntries(Object.entries(options.headers ?? {}).map(([k,v]) => [k.toLowerCase(),v])) } });
+    let status, value; const headers = {};
+    await handler(req, { setHeader(k,v) { headers[k] = v; }, writeHead(s) { status = s; }, end(v) { value = JSON.parse(v); } });
+    calls.push({ path, status, input: options.body && JSON.parse(options.body) });
+    return { status, ok: status >= 200 && status < 300, json: async () => structuredClone(value), cookie: headers['Set-Cookie']?.split(';')[0] };
+  }
+  const login = async key => (await transport('', '/api/session', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: key }) })).cookie;
+  const ownerCookie = await login(token), peerCookie = await login(accounts[0].token);
+  return { workspace, calls, transport, ownerCookie, peerCookie, state: () => state, effects: () => effects };
+}
+
+test('B05: two authenticated App consumers use real HTTP/Workspace sharing, retain concurrent drafts and refuse revoked reconnect/save', async () => {
+  const { workspace, calls, transport, ownerCookie, peerCookie, state, effects } = await collaborationHttpFixture();
+  const created = await workspace.createBlank('owner', { commandId: 'shared', title: 'Shared specimen' });
+  await workspace.createBlank('owner', { commandId: 'private', title: 'Unrelated private title' });
+  const storage = disk();
+  let peerActiveCookie = peerCookie;
+  const owner = mount(storage, (path, options) => transport(ownerCookie, path, options));
+  const peer = mount(storage, (path, options) => transport(peerActiveCookie, path, options));
+  try {
+    await owner.flush(); await peer.flush(); await owner.open(created.workId);
+    const summary = owner.elements().find(n => n.type === 'summary' && n.props.onClick);
+    assert.ok(summary); summary.props.onClick(); await owner.flush();
+    let select = owner.elements().find(n => n.props['aria-label'] === 'Access for Synthetic Peer');
+    select.props.onChange({ target: { value: 'editor' } }); await owner.flush(); await peer.poll();
+    assert.doesNotMatch(peer.text(), /Unrelated private title/);
+    await peer.open(created.workId);
+    assert.equal(peer.elements().some(n => n.props['aria-label'] === 'New work name'), false, 'peer must not mount owner creation/import consumers');
+    const a = attach(owner), b = attach(peer);
+    a.edit('owner draft'); b.edit('peer draft'); await owner.flush(); await peer.flush();
+    await owner.save(); await peer.save();
+    assert.match(peer.text(), /saved work changed.*draft is kept/i);
+    assert.equal(b.handle.save().sheets.sheet1.cellData[0][0].v, 'peer draft');
+    assert.equal((await workspace.get('owner', created.workId)).book.sheets.sheet1.cellData[0][0].v, 'owner draft');
+    const ownerDraft = await draftRaw(storage, created.workId); assert.equal(ownerDraft, null, 'peer storage never overwrites owner recovery');
+    await peer.click('Download draft'); assert.match(await peer.downloads.at(-1).text(), /peer draft/);
+    // Cookie changes in another tab must not submit this draft as the new actor.
+    peerActiveCookie = ownerCookie; await peer.save(); assert.match(peer.text(), /signed-in account changed/);
+    assert.equal(calls.at(-1).status, 403); peerActiveCookie = peerCookie;
+    summary.props.onClick(); await owner.flush();
+    select = owner.elements().find(n => n.props['aria-label'] === 'Access for Synthetic Peer');
+    select.props.onChange({ target: { value: '' } }); await owner.flush();
+    const saves = calls.filter(c => c.path.endsWith('/save')).length;
+    await peer.poll(); assert.match(peer.text(), /revoked.*local draft is kept/i);
+    assert.ok(peer.elements().find(n => n.type === 'button' && n.props.children === 'Save sheet').props.disabled);
+    assert.equal(b.handle.save().sheets.sheet1.cellData[0][0].v, 'peer draft');
+    await peer.open(created.workId); assert.equal(calls.at(-1).status, 403);
+    assert.equal(b.handle.save().sheets.sheet1.cellData[0][0].v, 'peer draft');
+    assert.equal(calls.filter(c => c.path.endsWith('/save')).length, saves);
+    assert.equal(effects(), 0); assert.equal(Object.keys(state().jobs).length, 0);
+  } finally { owner.unmount(); peer.unmount(); }
+});
+
+for (const action of ['open', 'view saved', 'save refresh']) test(`B05: delayed ${action} snapshot cannot undo observed revocation; a fresh regrant read can`, { timeout: 5000 }, async () => {
+  const f = await collaborationHttpFixture();
+  const { workId } = await f.workspace.createBlank('owner', { commandId: 'shared', title: 'Shared specimen' });
+  await f.workspace.share('owner', workId, { commandId: 'grant', peer: 'peer', role: 'editor', accessRevision: 0 });
+  const gate = deferred(), captured = deferred(); let hold = false;
+  const peer = mount(disk(), async (path, options) => {
+    const response = await f.transport(f.peerCookie, path, options);
+    if (hold && path === `/api/work/${workId}` && !options.body) {
+      hold = false; assert.equal(response.status, 200); captured.resolve(); await gate.promise;
+    }
+    return response;
+  });
+  const saveDisabled = () => peer.elements().find(n => n.type === 'button' && n.props.children === 'Save sheet').props.disabled;
+  try {
+    await peer.flush(); await peer.open(workId); const native = attach(peer);
+    native.edit('retained peer draft'); await peer.flush();
+    if (action === 'view saved') {
+      // A genuine save conflict exposes the existing explicit Open saved version action.
+      const owner = await f.workspace.get('owner', workId);
+      await f.workspace.save('owner', workId, { commandId: 'owner-save', book: owner.book, contentRevision: owner.contentRevision, permissionRevision: owner.expected.permissionRevision });
+      await peer.save(); assert.match(peer.text(), /saved work changed/);
+    }
+    hold = true;
+    if (action === 'open') await peer.open(workId);
+    else if (action === 'view saved') await peer.click('Open saved version');
+    else await peer.save();
+    await captured.promise;
+    if (action === 'save refresh') { native.edit('retained peer draft after save'); await peer.flush(); }
+    const version = peer.native().version, draft = native.handle.save();
+    await f.workspace.share('owner', workId, { commandId: 'revoke', peer: 'peer', role: null, accessRevision: 1 });
+    await peer.poll(); assert.match(peer.text(), /Access revoked/); assert.equal(saveDisabled(), true);
+    const saves = f.calls.filter(c => c.path.endsWith('/save')).length;
+    gate.resolve(); await peer.flush();
+    assert.equal(peer.native().version, version, 'delayed read must not replace the mounted draft');
+    assert.match(peer.text(), /Access revoked/); assert.match(peer.text(), /local draft is kept/);
+    assert.equal(saveDisabled(), true, 'delayed authorized response must not re-enable Save');
+    await peer.click('Download draft'); assert.deepEqual(JSON.parse(await peer.downloads.at(-1).text()), draft);
+    await f.workspace.share('owner', workId, { commandId: 'regrant', peer: 'peer', role: 'editor', accessRevision: 2 });
+    if (action === 'view saved') {
+      await peer.poll(); assert.equal(peer.native().version, version); assert.deepEqual(native.handle.save(), draft);
+    } else {
+      await peer.open(workId); assert.deepEqual(peer.native().book, draft, 'new authorized open restores the retained local draft');
+    }
+    assert.match(peer.text(), /Editor access/); assert.doesNotMatch(peer.text(), /Access revoked|Access to this work was revoked/);
+    assert.equal(saveDisabled(), false, 'only a fresh authorized read restores editing');
+    assert.equal(f.calls.filter(c => c.path.endsWith('/save')).length, saves, 'reads never auto-save');
+    assert.equal(f.effects(), 0);
+  } finally { gate.resolve(); peer.unmount(); }
+});
+for (const status of [401, 403]) test(`B05: HTTP ${status} access_denied keeps distinct sign-in or sharing guidance`, async () => {
+  const api = server(() => assert.fail('no action')); let failing = false;
+  const view = mount(disk(), (path, options) => path.startsWith('/api/events') && failing
+    ? Promise.resolve(new Response(JSON.stringify({ error: 'access_denied' }), { status })) : api.fetch(path, options));
+  try {
+    await view.flush(); failing = true; await view.poll();
+    assert.match(view.text(), status === 401 ? /Please sign in/ : /Access was refused/);
+    if (status === 403) assert.doesNotMatch(view.text(), /Please sign in/);
+  } finally { view.unmount(); }
 });

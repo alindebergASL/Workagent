@@ -221,8 +221,9 @@ test('native structural edits and undo/redo relocate blank formatting through Ap
     assert.doesNotMatch(app.text(), /Unsaved changes/, label);
     assert.equal(calls.length, count + 1, label);
     assert.deepEqual(calls.at(-1).formatEdits, formats, label);
-    assert.deepEqual(Object.keys(calls.at(-1)).sort(), ['book', 'commandId', 'contentRevision', 'formatEdits', 'permissionRevision']);
+    assert.deepEqual(Object.keys(calls.at(-1)).sort(), ['accessRevision', 'book', 'commandId', 'contentRevision', 'formatEdits', 'permissionRevision']);
     const saved = await ws.get('owner', workId);
+    assert.equal(calls.at(-1).accessRevision, saved.access.revision, `${label}: authorized access revision`);
     assert.deepEqual(saved.book, calls.at(-1).book, `${label}: whole snapshot persisted`);
     assert.ok(!saved.humanCells.some(c => c.startsWith('automatic:')), label);
     for (const cell of saved.humanCells) {
