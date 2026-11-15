@@ -256,6 +256,7 @@ test('conditional rules traverse the real credentialless worker when namespaces 
   const book=blankWorkbook('worker-cf');book.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{cfId:'r',stopIfTrue:false,ranges:[{startRow:0,endRow:2,startColumn:0,endColumn:0}],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready*?',style:{bl:0,bg:{rgb:'#FFEEAA'}}}}]})}];
   const rules=conditionalRules(book);rules.sheet1.push({cfId:'scale',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'num',value:-5}},{index:1,color:'#00FF00',value:{type:'num',value:5}}]}});book.resources[0].data=JSON.stringify(rules);
   rules.sheet1.push({cfId:'bar',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'dataBar',isShowValue:false,config:{min:{type:'num',value:0},max:{type:'num',value:10},positiveColor:'#123456',nativeColor:'#123456',isGradient:true}}});book.resources[0].data=JSON.stringify(rules);
+  rules.sheet1.push({cfId:'icons',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'iconSet',isShowValue:false,config:[10,5,0].map((value,i)=>({iconType:'3Arrows',iconId:String(i),operator:'greaterThanOrEqual',value:{type:'num',value}}))}});book.resources[0].data=JSON.stringify(rules);
   book.sheets.sheet1.cellData={0:{0:{v:0,t:2}},1:{0:{v:5,t:2}},2:{0:{v:10,t:2}}};
   const worker=new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'});
   let exported;
@@ -265,18 +266,22 @@ test('conditional rules traverse the real credentialless worker when namespaces 
   assert.deepEqual(conditionalRules(imported.book).sheet1[0].rule,conditionalRules(book).sheet1[0].rule);
   assert.deepEqual(conditionalRules(imported.book).sheet1[1].rule,conditionalRules(book).sheet1[1].rule);
   assert.deepEqual(conditionalRules(imported.book).sheet1[2].rule,conditionalRules(book).sheet1[2].rule);
+  assert.deepEqual(conditionalRules(imported.book).sheet1[3].rule,conditionalRules(book).sheet1[3].rule);
   // Independent library-authored mixed file must also cross the production
   // namespace worker; a native export/reimport alone is not this evidence.
-  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(base64.b64encode(m.data_bar_fixture()).decode())`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
+  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(base64.b64encode(m.icon_fixture()).decode())`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
   assert.equal(generated.status,0,generated.stderr);
   const independent=await worker.run({op:'import',base64:generated.stdout.trim()});
   assert.equal(independent.book.sheetOrder.length,2);
   for(const entries of Object.values(conditionalRules(independent.book))){
+    const icons=entries.filter(e=>e.rule.type==='iconSet');assert.equal(icons.length,3);assert.deepEqual(icons.map(e=>e.rule.config[0].iconType),['3Arrows','4Rating','5Rating']);
     const bars=entries.filter(e=>e.rule.type==='dataBar');assert.equal(bars.length,4);
     assert.deepEqual(bars.map(e=>e.rule.config.min.type),['min','percent','percentile','num']);
     assert.deepEqual(bars.map(e=>e.rule.isShowValue),[true,false,true,false]);
     assert.ok(bars.every(e=>e.rule.config.positiveColor==='#123456'&&e.rule.config.nativeColor==='#123456'&&e.rule.config.isGradient===true&&!e.stopIfTrue));
   }
+  const custom=structuredClone(book),customRules=conditionalRules(custom);customRules.sheet1[3].rule.config[0].iconType='3Flags';custom.resources[0].data=JSON.stringify(customRules);
+  await assert.rejects(()=>worker.run({op:'export',book:custom}),/mixed\/custom\/no-icon/);
   const signed=structuredClone(book);signed.sheets.sheet1.cellData[0][0].v=-1;
   await assert.rejects(()=>worker.run({op:'export',book:signed}),/Signed data bar/);
 });
@@ -305,4 +310,38 @@ for(const sandbox of [false,true]) test(`resolved worksheet CF names refuse atom
     assert.deepEqual(await f.state(),before,'no partial work, commands, flattening or mutation of existing native rules');
   }
   assert.equal(writes,0);
+});
+
+
+for(const sandbox of [false,true]) test(`5Quarters API import/export refuse without original writes or state changes through ${sandbox?'production namespace worker':'real codec'}`,async t=>{
+  const worker=sandbox?new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'}):trustedWorker;
+  if(sandbox){
+    try{await worker.run({op:'export',book:blankWorkbook('quarter-probe')});}
+    catch(e){if(/^xlsx_sandbox/.test(e.code)){t.skip(`Production namespace/socket execution unverified here (${e.code}); quarter refusal assertions did not run`);return;}throw e;}
+  }
+  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64,json\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(json.dumps([base64.b64encode(m.quarters_fixture(show)).decode() for show in (False,True)]))`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
+  assert.equal(generated.status,0,generated.stderr);
+  const f=await fixture(worker),{workId}=await f.workspace.createBlank('owner',{commandId:'quarter-native',title:'Native quarters'});
+  const b=(await f.workspace.get('owner',workId)).book;
+  b.sheets.sheet1.cellData={0:{0:{v:0,t:2}},1:{0:{v:40,t:2}},2:{2:{f:'=1+1'}}};
+  b.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{cfId:'quarters',stopIfTrue:false,ranges:[{startRow:0,endRow:5,startColumn:0,endColumn:0}],rule:{type:'iconSet',isShowValue:false,config:[40,30,20,10,0].map((value,i)=>({iconType:'5Quarters',iconId:String(i),operator:'greaterThanOrEqual',value:{type:'num',value}}))}}]})}];
+  validateWorkbook(b);await f.workspace.save('owner',workId,{commandId:'save-quarters',book:b,contentRevision:1,permissionRevision:1,formatEdits:{}});
+  const saved=await f.workspace.get('owner',workId);assert.equal((await f.workspace.mutate('owner',workId,{commandId:'quarter-proposal',expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:5,column:0,value:99}]}})).status,'proposed');
+  const before=await f.state(),snapshot=structuredClone(b);let writes=0;
+  f.files.writeOriginal=async()=>{writes++;throw Error('must refuse before retaining original');};
+  const token='synthetic-quarter-api-token-at-least-32-characters',origin='https://private.example.test';
+  const handler=createHandler({...f,owner:'owner',token,origin,clientRoot:f.root,onCommand:()=>{throw Error('must not schedule work');}});
+  async function request(path,data){
+    const req=Readable.from([Buffer.from(JSON.stringify(data))]);Object.assign(req,{url:'/api/exchange/xlsx/'+path,method:'POST',headers:{'content-type':'application/json',origin,authorization:`Bearer ${token}`}});
+    const result={};await handler(req,{setHeader(){},writeHead(status){result.status=status;},end(body){result.body=body;}});
+    assert.equal(result.status,400);assert.match(String(result.body),/installed quarter glyphs do not distinguish the bands/);assert.equal(JSON.parse(result.body).base64,undefined);
+  }
+  for(const [i,base64] of JSON.parse(generated.stdout).entries()){
+    const input={commandId:'quarter-import-'+i,filename:'Quarters.xlsx',synthetic:true,base64};
+    await request('preview',input);await request('import',input);
+    const rules=conditionalRules(b);rules.sheet1[0].rule.isShowValue=Boolean(i);b.resources[0].data=JSON.stringify(rules);
+    await request('export',{workId,book:b});
+  }
+  assert.equal(writes,0);assert.deepEqual(await f.state(),before);
+  b.resources[0].data=snapshot.resources[0].data;assert.deepEqual(b,snapshot);
 });

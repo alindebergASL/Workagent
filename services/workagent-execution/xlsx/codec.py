@@ -743,12 +743,15 @@ def worksheet_parts(parts):
 # expression language below is a closed set: import reconstructs the entire
 # template and compares it byte-for-byte; it never evaluates a supplied formula.
 CF_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN'
-CF_POLICY = 'Conditional highlights: authored rules for six numeric comparisons (>, >=, <, <=, between, not-between) and six case-sensitive text comparisons with unambiguous literals are preserved. Numeric equality, blank/error text operators, ambiguous literals, icons and other expressions/differential styles are refused.'
+CF_POLICY = 'Conditional highlights: authored rules for six numeric comparisons (>, >=, <, <=, between, not-between) and six case-sensitive text comparisons with unambiguous literals are preserved. Numeric equality, blank/error text operators, ambiguous literals and other expressions/differential styles are refused.'
 CF_BAR_POLICY = 'Data bars: nonnegative gradient bars with one RGB color, explicit 0/100 length limits, show/hide values and ordered numeric or one relative threshold family (min/max, percent or percentile). Signed values/bounds, distinct negative colors, solid fills (the native default), tied/constant relative bounds, overlapping ranges within a rule, covered formulas, stopIfTrue, omitted/non-0/100 lengths, axis/border/direction settings, RTL sheets and x14 extensions are refused.'
 CF_BAR_RENDER_POLICY = 'Data-bar exchange preserves authored rules, not identical pixels. Native bars exclude text, booleans, blanks and errors, clip at numeric bounds and omit zero-length bars. Default standard-file length limits are not treated as native 0/100 lengths. Bar rendering and overlaps in LibreOffice and Microsoft Excel remain unverified.'
 CF_SCALE_POLICY = 'Two/three-color RGB scale rules retain strictly ordered numeric stops or one relative family (min/max with percent or percentile). Mixed families, tied/constant thresholds, overlapping ranges within one scale rule, scale stopIfTrue and relative scales covering formulas are refused. Fixed numeric scales may cover formulas.'
 CF_RENDER_POLICY = 'Authored conditional rules, values and priority/stop flags are retained; their application and display can differ between apps. Native scales exclude booleans. In tested LibreOffice files, TRUE received a scale color and changed percentile ranks, and a scale fill appeared instead of a higher-priority stopping highlight. Microsoft Excel behavior is unverified.'
 CF_RENDER_UNVERIFIED = 'Boolean-returning formulas, nonstopping highlight/scale overlaps and scale/scale overlaps remain unverified across renderers. These combinations remain supported within the stated exchange limits.'
+CF_ICON_POLICY = 'Icon sets preserve 16 standard 3/4/5-icon families, normal/reversed order, show/hide values and strictly ordered numeric, percent or percentile bands with > or >=. Mixed/custom/no-icon/x14 families, mixed/tied bands, covered formulas, stopIfTrue and overlapping ranges are refused. Relative bottom thresholds must be zero; bottom gte=false is refused. Numeric/percentile rules require explicit percent=false; percent rules require true or omitted.'
+CF_ICON_QUARTERS_POLICY = '5Quarters XLSX import/export is refused because the installed quarter glyphs do not distinguish the bands. Native 5Quarters controls remain available; glyph repair and exchange requalification are deferred.'
+CF_ICON_RENDER_POLICY = 'Icon exchange retains authored rules, not identical pixels. Native icons exclude text, booleans, blanks and errors. The bottom band is fallback; its threshold is inert. Omitted family/showValue/reverse/gte use 3TrafficLights1/true/false/true. Constant relative populations are refused. Icon rendering, boolean populations and overlaps in LibreOffice and Microsoft Excel remain unverified.'
 CF_INPUT_POLICY = 'Conditional exports refuse precision loss or CR/CRLF normalization in rule text and covered cell inputs. If a rule covers a formula, inputs across all tabs must serialize exactly; LF, tabs and ordinary Unicode remain supported.'
 CF_ERRORS = ('#DIV/0!', '#NAME?', '#VALUE!', '#NUM!', '#N/A', '#CYCLE!', '#REF!', '#SPILL!', '#CALC!', '#ERROR!', '#GETTING_DATA', '#NULL!')
 CF_NUM = {'greaterThan':'>','greaterThanOrEqual':'>=','lessThan':'<','lessThanOrEqual':'<=','between':None,'notBetween':None}
@@ -1024,6 +1027,80 @@ def cf_bar_inputs(rule, ranges, sheet):
     # disjoint ranges, and ordered resolved relative bounds (no constant ranks).
     cf_scale_inputs(bar_scale(rule),ranges,sheet)
 
+# Installed Univer 1.4 iconGroup lists are high-to-low except signal ratings
+# (signal0/25/.../100). Standard OOXML cfvo runs low-to-high; reverse flips
+# glyphs, never thresholds/comparators. No x14/custom glyph aliases are mapped.
+CF_ICONS = {name: tuple(range(int(name[0]))) for name in (
+    '3Arrows','3ArrowsGray','3Flags','3TrafficLights1','3TrafficLights2',
+    '3Signs','3Symbols','3Symbols2','4Arrows','4ArrowsGray','4RedToBlack',
+    '4TrafficLights','5Arrows','5ArrowsGray')}
+CF_ICONS.update({'4Rating':(3,2,1,0),'5Rating':(4,3,2,1,0)})
+
+def cf_icon(rule):
+    cf_object(rule,('type','config','isShowValue'),('type','config'))
+    need(type(rule.get('isShowValue',True)) is bool, 'Invalid icon show-value flag')
+    points=rule['config']; need(isinstance(points,list) and len(points) in (3,4,5), 'Invalid icon count')
+    for p in points:
+        cf_object(p,('operator','value','iconType','iconId'),('operator','value','iconType','iconId'))
+        cf_object(p['value'],('type','value'),('type','value'))
+    need(all(p['iconType']!='5Quarters' for p in points), CF_ICON_QUARTERS_POLICY)
+    family=points[0]['iconType']; order=CF_ICONS.get(family)
+    need(order is not None and len(order)==len(points) and all(p['iconType']==family for p in points), 'Unsupported mixed/custom/no-icon family')
+    ids=tuple(p['iconId'] for p in points)
+    forward=tuple(str(i) for i in order)
+    need(ids in (forward,forward[::-1]), 'Icons must use a complete standard family in normal or reversed order')
+    kinds={p['value']['type'] for p in points}
+    need(len(kinds)==1 and kinds<= {'num','percent','percentile'}, 'Mixed/formula/min/max icon thresholds cannot be exchanged')
+    kind=next(iter(kinds)); vals=[p['value']['value'] for p in points]
+    for value in vals:
+        cf_number(value)
+        if kind!='num': need(0<=value<=100, 'Icon percentage outside 0–100')
+    need(all(a>b for a,b in zip(vals[:-1],vals[1:-1])) and vals[-1]<=vals[-2], 'Tied/crossed icon thresholds cannot be exchanged')
+    if kind!='num': need(vals[-1]==0, 'Relative icon bottom threshold must be zero')
+    root=Element('{'+MAIN+'}iconSet',{'iconSet':family,'showValue':str(int(rule.get('isShowValue',True))),
+        'reverse':str(int(ids!=forward)), 'percent':str(int(kind=='percent'))})
+    for i,p in reversed(list(enumerate(points))):
+        op=p['operator']
+        need(op in (('greaterThanOrEqual','lessThanOrEqual') if i==len(points)-1 else ('greaterThan','greaterThanOrEqual')), 'Unsupported icon comparator/bottom threshold')
+        SubElement(root,'{'+MAIN+'}cfvo',{'type':kind,'val':cf_number(p['value']['value']),'gte':str(int(op!='greaterThan'))})
+    return root
+
+def read_cf_icon(root):
+    need(root.tag=='{'+MAIN+'}iconSet' and not set(root.attrib)-{'iconSet','showValue','reverse','percent'}, 'Unsupported icon schema/attributes')
+    family=root.get('iconSet','3TrafficLights1')
+    need(family!='5Quarters', CF_ICON_QUARTERS_POLICY)
+    order=CF_ICONS.get(family)
+    need(order is not None and len(root)==len(order), 'Unsupported icon family/count')
+    need(all(root.get(k,d) in ('0','1','true','false') for k,d in (('showValue','1'),('reverse','0'),('percent','1'))), 'Invalid icon flags')
+    need(all(not (e.text or '').strip() and not (e.tail or '').strip() for e in root.iter()), 'Icon set contains text')
+    values=[]
+    for i,v in enumerate(root):
+        need(v.tag=='{'+MAIN+'}cfvo' and not len(v) and not set(v.attrib)-{'type','val','gte'} and {'type','val'}<=set(v.attrib), 'Unsupported icon cfvo schema/namespace')
+        need(v.get('gte','1') in ('0','1','true','false'), 'Invalid icon gte')
+        need(i!=0 or v.get('gte','1') in ('1','true'), 'Icon bottom gte=false cannot be exchanged')
+        raw=v.get('val'); need(re.fullmatch(r'-?(?:[0-9]+(?:\.[0-9]+)?)(?:[eE][+-]?[0-9]+)?',raw), 'Icon threshold must be a finite numeric literal')
+        value=float(raw)
+        from decimal import Decimal
+        need(Decimal(raw)==Decimal(cf_number(value)), 'Icon threshold precision loss')
+        values.append({'value':{'type':v.get('type'),'value':value},'operator':'greaterThanOrEqual' if v.get('gte','1') in ('1','true') else 'greaterThan'})
+    # The schema's percent default is true. Only coherent explicit/default
+    # combinations are qualified; do not guess how another app resolves conflicts.
+    kind=values[0]['value']['type']
+    need((root.get('percent','1') in ('1','true')) == (kind=='percent'), 'Ambiguous icon percent flag; numeric/percentile rules require percent=false')
+    if root.get('reverse','0') in ('1','true'): order=order[::-1]
+    points=[{**v,'iconType':family,'iconId':str(order[i])} for i,v in enumerate(reversed(values))]
+    result={'type':'iconSet','isShowValue':root.get('showValue','1') in ('1','true'),'config':points}
+    cf_icon(result); return result
+
+def cf_icon_inputs(rule, ranges, sheet):
+    for row,columns in sheet.get('cellData',{}).items():
+        for col,cell in columns.items():
+            if cell and any(r['startRow']<=int(row)<=r['endRow'] and r['startColumn']<=int(col)<=r['endColumn'] for r in ranges):
+                need('f' not in cell and 'si' not in cell, 'Icon sets covering formulas cannot be verified without evaluating formulas')
+    # Shared binary64/disjoint-population qualification, using only active bands.
+    # Last native row is fallback; first OOXML cfvo is retained inert metadata.
+    cf_scale_inputs({'config':list(reversed(rule['config'][:-1]))},ranges,sheet)
+
 def native_conditionals(book):
     data={}; budget=[0,0]; count=0
     for resource in book.get('resources',[]):
@@ -1043,9 +1120,12 @@ def native_conditionals(book):
             cf_id(entry['cfId']); need(entry['cfId'] not in ids,'Duplicate conditional identity'); ids.add(entry['cfId'])
             need(type(entry['stopIfTrue']) is bool,'Invalid conditional stopIfTrue')
             rule=entry['rule']
-            need(isinstance(rule,dict) and rule.get('type') in ('highlightCell','colorScale','dataBar'),'Conditional icon sets are not supported in XLSX exchange')
-            scale=rule['type']=='colorScale'; bar=rule['type']=='dataBar'
-            if bar:
+            need(isinstance(rule,dict) and rule.get('type') in ('highlightCell','colorScale','dataBar','iconSet'),'Unsupported conditional rule type')
+            scale=rule['type']=='colorScale'; bar=rule['type']=='dataBar'; icon=rule['type']=='iconSet'
+            if icon:
+                need(not entry['stopIfTrue'], 'Icon stopIfTrue is not supported by Excel')
+                icon_xml=cf_icon(rule); dxf=None
+            elif bar:
                 need(sheet.get('rightToLeft',0)==0, 'Right-to-left data bar sheets cannot be exchanged')
                 need(not entry['stopIfTrue'], 'Data bar stopIfTrue is not supported by Excel')
                 bar_xml=cf_bar(rule); dxf=None
@@ -1061,9 +1141,10 @@ def native_conditionals(book):
                 need(all(type(r.get(k)) is int and r[k]>=0 for k in ('startRow','endRow','startColumn','endColumn')), 'Invalid conditional range')
                 need(r['endRow']<sheet['rowCount'] and r['endColumn']<sheet['columnCount'] and r.get('rangeType',0)==0 and r.get('unitId',book['id'])==book['id'] and r.get('sheetId',sid)==sid and all(r.get(k,0) in (0,1,2,3) for k in ('startAbsoluteRefType','endAbsoluteRefType')), 'Conditional range ownership/bounds mismatch')
             refs=sorted((cf_ref(r) for r in ranges),key=lambda x:bounds(x)); sqref=' '.join(refs)
-            canonical=cf_ranges(sqref,budget); expression=None if scale or bar else cf_formula(rule,refs[0].split(':')[0])
+            canonical=cf_ranges(sqref,budget); expression=None if scale or bar or icon else cf_formula(rule,refs[0].split(':')[0])
             if scale: cf_scale_inputs(rule,canonical,sheet)
             if bar: cf_bar_inputs(rule,canonical,sheet)
+            if icon: cf_icon_inputs(rule,canonical,sheet)
             for r in canonical:
                 for control in controls.get(sid,[]):
                     if control.get('type')=='checkbox':
@@ -1074,7 +1155,7 @@ def native_conditionals(book):
                         for col,cell in values.items():
                             if not r['startColumn']<=int(col)<=r['endColumn'] or not cell: continue
                             need(not (cell.get('t')==4 and cell.get('v') in CF_ERRORS) and not (cell.get('v')=='' and not cell.get('f')), 'Conditional numeric rules cannot exchange forced error text or literal empty text')
-            result[sid].append({'ranges':canonical,'sqref':sqref,'formula':expression,'priority':index,'stop':entry['stopIfTrue'],'dxf':dxf,'rule':rule,**({'scale':scale_xml} if scale else {'bar':bar_xml} if bar else {})})
+            result[sid].append({'ranges':canonical,'sqref':sqref,'formula':expression,'priority':index,'stop':entry['stopIfTrue'],'dxf':dxf,'rule':rule,**({'scale':scale_xml} if scale else {'bar':bar_xml} if bar else {'icon':icon_xml} if icon else {})})
     return result
 
 def conditional_parts(parts, descriptors):
@@ -1086,11 +1167,12 @@ def conditional_parts(parts, descriptors):
         root=fromstring(raw); parents={c:p for p in root.iter() for c in p}
         for el in root.iter():
             local=el.tag.rsplit('}',1)[-1]
-            if local in ('colorScale','dataBar','cfvo'):
+            need(local not in ('cfIcon','conditionalFormattings'), 'Shadowed/misplaced conditional formatting: custom/x14 icons')
+            if local in ('colorScale','dataBar','iconSet','cfvo'):
                 parent=parents.get(el); grand=parents.get(parent)
                 need(name in paths and root.tag=='{'+MAIN+'}worksheet' and el.tag=='{'+MAIN+'}'+local and parent is not None and (
-                    local in ('colorScale','dataBar') and parent.tag=='{'+MAIN+'}cfRule' and grand is not None and grand.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(grand) is root
-                    or local=='cfvo' and parent.tag in ('{'+MAIN+'}colorScale','{'+MAIN+'}dataBar') and grand is not None and grand.tag=='{'+MAIN+'}cfRule'
+                    local in ('colorScale','dataBar','iconSet') and parent.tag=='{'+MAIN+'}cfRule' and grand is not None and grand.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(grand) is root
+                    or local=='cfvo' and parent.tag in ('{'+MAIN+'}colorScale','{'+MAIN+'}dataBar','{'+MAIN+'}iconSet') and grand is not None and grand.tag=='{'+MAIN+'}cfRule'
                     and parents.get(grand) is not None and parents[grand].tag=='{'+MAIN+'}conditionalFormatting' and parents.get(parents[grand]) is root), 'Shadowed/misplaced conditional scale/bar')
             if local in ('dxfs','dxf'):
                 parent=parents.get(el)
@@ -1105,10 +1187,17 @@ def conditional_parts(parts, descriptors):
                     need(set(el.attrib)=={'sqref'} and len(el)>0 and all(c.tag=='{'+MAIN+'}cfRule' for c in el) and not (el.text or '').strip(), 'Unsupported conditional container')
                     for rule in el:
                         count+=1; need(count<=256, 'Conditional rule limit')
-                        scale=rule.get('type')=='colorScale'; bar=rule.get('type')=='dataBar'
-                        need(not set(rule.attrib)-({'type','priority','stopIfTrue'} if scale or bar else {'type','priority','dxfId','stopIfTrue'}) and rule.get('type') in ('expression','colorScale','dataBar'), 'Unsupported conditional rule: Excel built-ins and icons require different semantics')
+                        scale=rule.get('type')=='colorScale'; bar=rule.get('type')=='dataBar'; icon=rule.get('type')=='iconSet'
+                        need(not set(rule.attrib)-({'type','priority','stopIfTrue'} if scale or bar or icon else {'type','priority','dxfId','stopIfTrue'}) and rule.get('type') in ('expression','colorScale','dataBar','iconSet'), 'Unsupported conditional rule: Excel built-ins require different semantics')
                         priority=integer(rule.get('priority'),2147483648,'Invalid conditional priority'); need(priority>0,'Invalid conditional priority')
                         need(rule.get('stopIfTrue','0') in ('0','1','true','false') and not (rule.text or '').strip() and not (rule.tail or '').strip(), 'Invalid conditional rule flags/text')
+                        if icon:
+                            need(rule.get('stopIfTrue','0') in ('0','false'), 'Icon stopIfTrue is not supported by Excel')
+                            need(len(rule)==1, 'Icon set requires exactly one payload')
+                            native=read_cf_icon(rule[0]); ranges=cf_ranges(el.get('sqref'),budget)
+                            from openpyxl.formatting.rule import IconSet
+                            result[name].append({'ranges':ranges,'sqref':el.get('sqref'),'formula':None,'priority':priority,'stop':False,'rule':native,'parsedIcon':IconSet.from_tree(rule[0])})
+                            continue
                         if bar:
                             # Standard bars inherit worksheet direction; native
                             # RTL layout is not mapped by this file adapter.
@@ -1141,7 +1230,7 @@ def conditional_parts(parts, descriptors):
     for rules in result.values():
         need(len({r['priority'] for r in rules})==len(rules), 'Duplicate conditional priority')
         for r in rules:
-            if 'parsedScale' in r or 'parsedBar' in r: continue
+            if 'parsedScale' in r or 'parsedBar' in r or 'parsedIcon' in r: continue
             need(r['dxfId']<len(styles),'Dangling conditional differential style index')
             r['rule']['style']=styles[r['dxfId']]; r['parsedDxf']=DifferentialStyle.from_tree(dxfs[r['dxfId']])
         rules.sort(key=lambda r:r['priority'])
@@ -1155,7 +1244,9 @@ def import_conditionals(ws, expected, sheet):
     need(len(loaded)==len(expected),'Loaded conditional rule count mismatch'); result=[]
     for (sqref,rule),spec in zip(loaded,expected):
         need(sqref==spec['sqref'] and rule.priority==spec['priority'] and bool(rule.stopIfTrue)==spec['stop'], 'Loaded conditional rule/style interpretation mismatch')
-        if 'parsedBar' in spec:
+        if 'parsedIcon' in spec:
+            need(rule.type=='iconSet' and rule.iconSet==spec['parsedIcon'] and not rule.formula and rule.dxfId is None and rule.dxf is None and rule.colorScale is None and rule.dataBar is None, 'Loaded conditional icon interpretation mismatch')
+        elif 'parsedBar' in spec:
             need(rule.type=='dataBar' and rule.dataBar==spec['parsedBar'] and not rule.formula and rule.dxfId is None and rule.dxf is None and rule.colorScale is None and rule.iconSet is None, 'Loaded conditional data bar interpretation mismatch')
         elif 'parsedScale' in spec:
             need(rule.type=='colorScale' and rule.colorScale==spec['parsedScale'] and not rule.formula and rule.dxfId is None and rule.dxf is None and rule.dataBar is None and rule.iconSet is None, 'Loaded conditional color scale interpretation mismatch')
@@ -1180,7 +1271,10 @@ def add_conditional_parts(data, rules):
         position=next((i for i,e in enumerate(root) if e.tag.rsplit('}',1)[-1] in ('dataValidations','hyperlinks','printOptions','pageMargins','pageSetup','headerFooter','drawing','legacyDrawing','extLst')),len(root))
         for spec in ruleset:
             container=Element('{'+MAIN+'}conditionalFormatting',{'sqref':spec['sqref']})
-            if 'bar' in spec:
+            if 'icon' in spec:
+                rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'iconSet','priority':str(spec['priority'])})
+                rule.append(spec['icon'])
+            elif 'bar' in spec:
                 rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'dataBar','priority':str(spec['priority'])})
                 rule.append(spec['bar'])
             elif 'scale' in spec:
@@ -1200,7 +1294,7 @@ def add_conditional_parts(data, rules):
 
 def preflight(data):
     need(len(data) <= BYTES and data[:4] == b'PK\x03\x04', 'Choose an unencrypted XLSX under 2 MB')
-    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_BAR_POLICY, CF_BAR_RENDER_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY])
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_ICON_POLICY, CF_ICON_QUARTERS_POLICY, CF_ICON_RENDER_POLICY, CF_BAR_POLICY, CF_BAR_RENDER_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY])
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         infos = z.infolist()
         need(1 <= len(infos) <= 256, 'Archive entry limit')
@@ -1442,13 +1536,13 @@ def conditional_export_fidelity(book, data, conditional):
     actual=native_conditionals(reopened)
     for sid,new_sid in zip(book['sheetOrder'],reopened['sheetOrder']):
         before=conditional.get(sid,[]); after=actual.get(new_sid,[])
-        need(len(before)==len(after) and all(a['formula']==b['formula'] and all((key not in a and key not in b) or key in a and key in b and tostring(a[key])==tostring(b[key]) for key in ('scale','bar')) for a,b in zip(before,after)),
+        need(len(before)==len(after) and all(a['formula']==b['formula'] and all((key not in a and key not in b) or key in a and key in b and tostring(a[key])==tostring(b[key]) for key in ('scale','bar','icon')) for a,b in zip(before,after)),
              'Conditional export refused: rule text changes during XLSX serialization (CR/CRLF normalization). Use LF or tab text instead.')
 
 def export_book(book):
     validations = export_validations(book)
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
-    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_BAR_POLICY, CF_BAR_RENDER_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_ICON_POLICY, CF_ICON_QUARTERS_POLICY, CF_ICON_RENDER_POLICY, CF_BAR_POLICY, CF_BAR_RENDER_POLICY, CF_SCALE_POLICY, CF_RENDER_POLICY, CF_RENDER_UNVERIFIED, CF_INPUT_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
     checkbox_cells = {}
     for index, sid in enumerate(book['sheetOrder'], 1):

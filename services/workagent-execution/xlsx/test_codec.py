@@ -293,7 +293,144 @@ def renamed_data_bar_fixture(target, extension=None):
             dest.writestr('xl/worksheets/'+target if name=='xl/worksheets/sheet2.xml' else name,raw)
     return out.getvalue()
 
+def icon_numeric_fixture(values=('0','5','10'), kind='num', formula=False):
+    def edit(name,raw):
+        if name!='xl/worksheets/sheet1.xml':return raw
+        root=ET.fromstring(raw);q=lambda n:'{'+NS+'}'+n
+        r=root.find('.//'+q('cfRule'));r.set('type','iconSet');r.remove(r[0])
+        icon=ET.SubElement(r,q('iconSet'),{'iconSet':'3Arrows','percent':'1' if kind=='percent' else '0'})
+        for value in ([0,5,10] if kind=='num' else [0,50,90]):ET.SubElement(icon,q('cfvo'),{'type':kind,'val':str(value)})
+        return ET.tostring(root)
+    return rewrite(color_scale_numeric_fixture(values,True,formula),edit)
+
+def icon_fixture():
+    # Independent openpyxl authoring, appended to mixed highlights/scales/bars.
+    from openpyxl.formatting.rule import Rule, IconSet, FormatObject
+    def edit(name,raw):
+        if name not in ('xl/worksheets/sheet1.xml','xl/worksheets/sheet2.xml'):return raw
+        root=ET.fromstring(raw);q=lambda n:'{'+NS+'}'+n
+        for i,(family,kind) in enumerate([('3Arrows','num'),('4Rating','percent'),('5Rating','percentile')]):
+            count=int(family[0]);values=[j*(10 if kind=='num' else 100//count) for j in range(count)]
+            icon=IconSet(iconSet=family,percent=kind=='percent',reverse=i==1,showValue=i!=2,
+                cfvo=[FormatObject(type=kind,val=v,gte=j!=1) for j,v in enumerate(values)])
+            rule=Rule(type='iconSet',priority=50+i,iconSet=icon)
+            container=ET.SubElement(root,q('conditionalFormatting'),{'sqref':'F1:F8 H1:H8'})
+            xml=rule.to_tree()
+            for e in xml.iter():e.tag=q(e.tag.rsplit('}',1)[-1])
+            container.append(xml)
+        return ET.tostring(root)
+    return rewrite(data_bar_fixture(),edit)
+
+def quarters_fixture(show=False):
+    # Independent openpyxl file; C1 only supplies the native harness calculation
+    # event and is outside the rule. Never derive this refused file via export.
+    from openpyxl.formatting.rule import Rule, IconSet, FormatObject
+    wb=openpyxl.Workbook();ws=wb.active
+    for v in (0,10,20,30,40):ws.append([v])
+    ws['C1']='=1+1'
+    ws.conditional_formatting.add('A1:A6',Rule(type='iconSet',iconSet=IconSet(
+        iconSet='5Quarters',showValue=show,percent=False,reverse=False,
+        cfvo=[FormatObject(type='num',val=v,gte=True) for v in (0,10,20,30,40)])))
+    out=io.BytesIO();wb.save(out);return out.getvalue()
+
+def icon_rewrite(data,change):
+    def edit(name,raw):
+        if name!='xl/worksheets/sheet1.xml':return raw
+        root=ET.fromstring(raw);change(root);return ET.tostring(root)
+    return rewrite(data,edit)
+
 class CodecTests(unittest.TestCase):
+    def test_icon_quarters_refused_before_reader_and_native_export(self):
+        for show in (False,True):
+            raw=quarters_fixture(show)
+            loaded=openpyxl.load_workbook(io.BytesIO(raw));container=next(iter(loaded.active.conditional_formatting))
+            self.assertEqual(loaded.active.conditional_formatting[container][0].iconSet.showValue,show)
+            with patch.object(codec,'ExcelReader',side_effect=AssertionError('refuse before reader')):
+                with self.assertRaisesRegex(ValueError,'installed quarter glyphs do not distinguish the bands'):codec.import_book(raw)
+            b=codec.import_book(icon_numeric_fixture())['book'];rules=json.loads(b['resources'][0]['data'])
+            rules['sheet1'][0]['rule']={'type':'iconSet','isShowValue':show,'config':[
+                {'iconType':'5Quarters','iconId':str(i),'operator':'greaterThanOrEqual','value':{'type':'num','value':40-10*i}} for i in range(5)]}
+            b['resources'][0]['data']=json.dumps(rules);before=deepcopy(b)
+            with self.assertRaisesRegex(ValueError,'installed quarter glyphs do not distinguish the bands'):codec.export_book(b)
+            self.assertEqual(b,before)
+
+    def test_icon_independent_families_flags_and_loaded_agreement(self):
+        q=lambda n:'{'+NS+'}'+n
+        for family,order in codec.CF_ICONS.items():
+            for reverse in (False,True):
+                def change(root):
+                    icon=root.find('.//'+q('iconSet'));icon.set('iconSet',family);icon.set('reverse',str(int(reverse)));icon.set('showValue','0')
+                    for v in list(icon):icon.remove(v)
+                    for i in range(len(order)):ET.SubElement(icon,q('cfvo'),{'type':'num','val':str(i*10),'gte':'1' if i%2==0 else '0'})
+                data=icon_rewrite(icon_numeric_fixture(),change)
+                b=codec.import_book(data)['book'];rules=json.loads(b['resources'][0]['data']);r=rules['sheet1'][0]['rule']
+                self.assertEqual([p['iconId'] for p in r['config']],list(map(str,order[::-1] if reverse else order)))
+                self.assertFalse(r['isShowValue'])
+                output=base64.b64decode(codec.export_book(b)['base64']);loaded=openpyxl.load_workbook(io.BytesIO(output))
+                rule=next(iter(loaded.active.conditional_formatting));icon=loaded.active.conditional_formatting[rule][0].iconSet
+                self.assertEqual(icon.iconSet,family);self.assertEqual(icon.reverse,reverse)
+                self.assertEqual([v.val for v in icon.cfvo],[i*10 for i in range(len(order))])
+                self.assertEqual(json.loads(codec.import_book(output)['book']['resources'][0]['data']),rules)
+        original=codec.ExcelReader
+        class Changed(original):
+            def read(self):
+                super().read()
+                for c in self.wb.active.conditional_formatting:
+                    for r in self.wb.active.conditional_formatting[c]:
+                        if r.iconSet:r.iconSet.reverse=True
+        with patch.object(codec,'ExcelReader',Changed),self.assertRaisesRegex(ValueError,'interpretation mismatch'):codec.import_book(icon_numeric_fixture())
+
+    def test_icon_defaults_bottom_and_population_fidelity(self):
+        q=lambda n:'{'+NS+'}'+n
+        def defaults(root):root.find('.//'+q('iconSet')).attrib.clear()
+        b=codec.import_book(icon_rewrite(icon_numeric_fixture(kind='percent'),defaults))['book']
+        r=json.loads(b['resources'][0]['data'])['sheet1'][0]['rule']
+        self.assertEqual(r['config'][0]['iconType'],'3TrafficLights1');self.assertTrue(r['isShowValue'])
+        for kind in ('num','percent','percentile'):
+            for values in [('9007199254740992','9007199254740993'),('0','9'*400)]:
+                with self.subTest(kind=kind,values=values),self.assertRaises((ValueError,OverflowError)):codec.import_book(icon_numeric_fixture(values,kind))
+            with self.assertRaisesRegex(ValueError,'without evaluating formulas'):codec.import_book(icon_numeric_fixture(kind=kind,formula=True))
+            if kind!='num':
+                with self.assertRaisesRegex(ValueError,'Tied/crossed'):codec.import_book(icon_numeric_fixture(('5','5'),kind))
+        b=codec.import_book(icon_numeric_fixture(('9007199254740992','9007199254740994')))['book']
+        self.assertEqual(b['sheets']['sheet1']['cellData']['1']['0']['v'],9007199254740994)
+        for cell in ({'v':1.0000000000000002,'t':2},{'v':'A\rB','t':1},{'f':'=1+1','v':5,'t':2},{'si':'shared','v':5,'t':2}):
+            b['sheets']['sheet1']['cellData']['0']['0']=cell
+            with self.subTest(cell=cell),self.assertRaises(ValueError):codec.export_book(b)
+
+    def test_icon_malformed_raw_refuses_before_reader(self):
+        q=lambda n:'{'+NS+'}'+n
+        def icon(r):return r.find('.//'+q('iconSet'))
+        changes=[lambda r:icon(r).set('custom','1'),lambda r:icon(r).set('iconSet','3Stars'),
+            lambda r:icon(r).set('percent','1'),lambda r:icon(r).set('reverse','2'),
+            lambda r:icon(r)[0].set('gte','0'),lambda r:icon(r)[1].set('gte','2'),
+            lambda r:icon(r)[1].set('val','9007199254740993'),lambda r:icon(r)[1].set('val','NaN'),
+            lambda r:icon(r)[1].set('val','10'),lambda r:icon(r)[1].set('type','formula'),
+            lambda r:icon(r)[1].set('{foreign}gte','1'),lambda r:setattr(icon(r)[1],'tag','{foreign}cfvo'),
+            lambda r:icon(r).append(ET.Element(q('cfIcon'))),lambda r:icon(r).remove(icon(r)[0]),
+            lambda r:r.find('.//'+q('cfRule')).set('stopIfTrue','1'),
+            lambda r:r.find('.//'+q('cfRule')).set('dxfId','0'),
+            lambda r:r.append(ET.Element(q('iconSet'))),lambda r:setattr(icon(r),'tag','{foreign}iconSet')]
+        for change in changes:
+            with self.subTest(change=change),patch.object(codec,'ExcelReader',side_effect=AssertionError('must reject raw first')):
+                with self.assertRaises(ValueError):codec.import_book(icon_rewrite(icon_numeric_fixture(),change))
+
+    def test_icon_renamed_second_tabs_and_x14_extensions(self):
+        # Reuse descriptor-renaming fixture builder with icon sources. Both x14
+        # only and mixed payloads remain rejected before openpyxl strips them.
+        source=icon_fixture()
+        icon_fixture_source=lambda:source
+        for suffix in ('tab.XML','tab','tab.data'):
+            with patch.dict(globals(),{'data_bar_fixture':icon_fixture_source}):
+                raw=renamed_data_bar_fixture(suffix)
+            b=codec.import_book(raw)['book'];self.assertEqual(len(json.loads(b['resources'][0]['data'])['sheet2']),10)
+            for mode in ('only','mixed'):
+                with patch.dict(globals(),{'data_bar_fixture':icon_fixture_source}):raw=renamed_data_bar_fixture(suffix,mode)
+                # Convert x14 bar fixture to x14 icons without changing identities.
+                raw=rewrite(raw,lambda n,r:r.replace(b'dataBar',b'iconSet') if n=='xl/worksheets/'+suffix else r)
+                with patch.object(codec,'ExcelReader',side_effect=AssertionError('raw first')),self.assertRaises(ValueError):codec.import_book(raw)
+
+
     def test_data_bar_resolved_part_names_preserve_supported_rules_and_values(self):
         expected=codec.import_book(data_bar_fixture())['book']
         for target in ('other.xml','other.XML','other','other.data'):

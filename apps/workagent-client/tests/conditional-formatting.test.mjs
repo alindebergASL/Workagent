@@ -961,7 +961,7 @@ test('malformed icon metadata refuses before actual mutation, evaluation, persis
   }finally{v.dispose();}
 });
 
-test('icon-only native save/reopen and removal preserve blank ownership, maintenance proposals and export refusal',async()=>{
+test('icon-only native save/reopen and removal preserve blank ownership, maintenance proposals and bounded export',async()=>{
   const state=initialState('owner'),ws=new Workspace({transaction:async fn=>fn(state),read:async fn=>fn(state)});
   const {workId}=await ws.createBlank('owner',{commandId:'new',title:'Icons'}),b=state.works[workId].book;
   b.sheets.sheet1.cellData={0:{0:{v:20,t:2,s:{it:1}},2:{f:'=1+2'}},1:{0:{v:0,t:2}}};let v=mountNative({book:structuredClone(b),version:'icons'}),saved;
@@ -976,7 +976,13 @@ test('icon-only native save/reopen and removal preserve blank ownership, mainten
     const resourceOnly=structuredClone(state.works[workId]);resourceOnly.humanCells=[];
     assert.deepEqual(commitEditorPatch(state,resourceOnly,patch,saved.expected,'maintenance_changed'),{status:'protected',reason:'human_edit'});
     assert.deepEqual((await ws.get('owner',workId)).book,saved.book);
-    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book}),/xlsx_conditional_formatting_not_supported/);
+    const exchange=new XlsxExchange({workspace:ws,worker:trustedWorker}),beforeExchange=structuredClone(state);
+    const unsupported=structuredClone(book),rs=conditionalRules(unsupported);rs.sheet1[0].rule.config[0].iconType='3Flags';unsupported.resources.find(r=>r.name===CONDITIONAL_RESOURCE).data=JSON.stringify(rs);
+    await assert.rejects(()=>exchange.export('owner',{workId,book:unsupported}),/mixed\/custom\/no-icon/);
+    const exported=await exchange.export('owner',{workId,book:structuredClone(book)}),reopened=trustedCodec({op:'import',base64:exported.base64}).book;
+    const normalize=b=>Object.values(conditionalRules(b)).map(list=>list.map(({cfId,...entry})=>({...entry,rule:{...entry.rule,config:entry.rule.config.map((p,i,a)=>i===a.length-1?{...p,operator:'greaterThanOrEqual'}:p)}})));
+    assert.deepEqual(normalize(reopened),normalize(book));assert.equal(reopened.sheets.sheet1.cellData[0][0].v,20);assert.equal(reopened.sheets.sheet1.cellData[0][0].s.it,1);assert.equal(reopened.sheets.sheet1.cellData[1][0].v,0);assert.equal(reopened.sheets.sheet1.cellData[0][2].f,'=1+2');assert.equal(reopened.sheets.sheet1.cellData[0][2].v,undefined);
+    assert.deepEqual(state,beforeExchange,'real supported/refused exports leave saved work and proposals unchanged');
     assert.throws(()=>serializeCsv(book,'sheet1'),/cannot preserve conditional/);
     s.deleteConditionalFormattingRule('icons');assert.equal(v.conditional.composeStyle(workId,'sheet1',0,0)?.iconSet,undefined);
     assert.ok(!s.getSheet().getCell(0,0).fontRenderExtension?.isSkip);
