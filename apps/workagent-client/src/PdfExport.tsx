@@ -4,8 +4,9 @@ import type { DocumentHandle } from './DocumentEditor';
 import type { Work } from './types';
 type Api = <T>(path: string, input?: unknown, method?: string, signal?: AbortSignal) => Promise<T>;
 type DocumentWork = Extract<Work, { kind: 'document' }>;
-export function PdfExport({ api, editor, work }: { api: Api; editor: () => DocumentHandle | null; work: DocumentWork | null }) {
+export function PdfExport({ api, editor, work, onNotice }: { onNotice?: (format: string, message: string) => void; api: Api; editor: () => DocumentHandle | null; work: DocumentWork | null }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState('');
+  useEffect(() => { onNotice?.('PDF export', message); }, [message, onNotice]);
   const flight = useRef(false), alive = useRef(true), current = useRef(work), request = useRef<AbortController | null>(null);
   current.current = work;
   useEffect(() => { alive.current = true; return () => { alive.current = false; request.current?.abort(); }; }, []);

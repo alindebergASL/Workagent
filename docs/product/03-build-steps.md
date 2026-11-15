@@ -109,9 +109,19 @@ restricted namespace/PostgreSQL qualification and the exact-source build passed;
 STATUS records precise counts and retained failures. Existing mixed/custom/
 no-icon/x14, ambiguous-percent, precision, formula and tied-band refusals remain.
 LibreOffice source/export parity is separate evidence, not native/Excel parity.
-Google account/API scope and physical-phone proof remain open. The next independent
-increment addresses launcher-heavy mobile work-area first-screen usability without
-removing creation/exchange/chart controls, changing saved work or losing drafts.
+Google account/API scope and physical-phone proof remain open. Increment43 is a
+qualified, not-yet-installed mobile work-area candidate: identity/save first,
+mounted collapsible creation/exchange tools, taller native panes and compact
+chart/document disclosures. Independent scoped Astra review PASS; Parent canonical
+686 Node checks/typecheck/diff and exact-source remote101-source/80-artifact build
+passed. Eleven actual compiled-browser stages at360/390/430/1440 widths passed
+on explicitly isolated synthetic Workspace/HTTP state:390px sheet canvas351px
+high, document406px, retained native edits/title/messages/CSV preview and chart
+controls/navigation guard, no layout-triggered writes/inference. Backend/contract/
+runner unchanged, prior restrictedPG evidence reused rather than rerun. Retained
+harness negatives and initial corrected chart-disclosure test are in STATUS.
+Private installation and installed-browser verification remain; emulator is not
+physical-phone proof. Full product scope is unchanged.
 
 ### B05 — Two-human collaboration, presence, comments and history
 

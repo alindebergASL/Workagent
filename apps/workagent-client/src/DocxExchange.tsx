@@ -8,12 +8,13 @@ import type { Work } from './types';
 type Preview = { filename: string; bytes: number; sample: string; clipped: boolean; paragraphs: number; warnings: string[] };
 type Upload = { filename: string; base64: string; synthetic: true };
 type Api = <T>(path: string, input?: unknown) => Promise<T>;
-export function DocxExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => DocumentHandle | null; work: Extract<Work, { kind: 'document' }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
+export function DocxExchange({ api, editor, work, onNotice, onImported, onOpen }: { onNotice?: (format: string, message: string) => void; api: Api; editor: () => DocumentHandle | null; work: Extract<Work, { kind: 'document' }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
   const actions = useRef(new MaintenanceActions(localStorage, 'docx-import'));
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());
   const attempt = useRef(pending);
   const [message, setMessage] = useState(''), [created, setCreated] = useState<string | null>(() => localStorage.getItem('workagent-docx:created')), [busy, setBusy] = useState(false);
+  useEffect(() => { onNotice?.('Word / DOCX', message); }, [message, onNotice]);
   const alive = useRef(true), sequence = useRef(0), flight = useRef(false);
   useEffect(() => { alive.current = true; return () => { alive.current = false; sequence.current++; }; }, []);
   const report = (e: unknown) => setMessage(e instanceof Error && /docx_sandbox/.test(e.message) ? 'Isolated Word conversion is unavailable. No file was adopted. Retry when the service is available.' : e instanceof Error ? e.message : 'Word / DOCX operation failed.');

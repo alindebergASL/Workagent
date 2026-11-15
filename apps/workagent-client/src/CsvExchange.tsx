@@ -6,12 +6,13 @@ import type { Work } from './types';
 type Preview = { filename: string; bytes: number; encoding: string; rows: number; columns: number; raggedRows: number; sample: string[][] };
 type Upload = { filename: string; base64: string; synthetic: true };
 type Api = <T>(path: string, input?: unknown) => Promise<T>;
-export function CsvExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => EditorHandle | null; work: Extract<Work, { book: unknown }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
+export function CsvExchange({ api, editor, work, onNotice, onImported, onOpen }: { onNotice?: (format: string, message: string) => void; api: Api; editor: () => EditorHandle | null; work: Extract<Work, { book: unknown }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
   const actions = useRef(new MaintenanceActions(localStorage, 'csv-import'));
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());
   const attempt = useRef(pending);
   const [message, setMessage] = useState(''), [created, setCreated] = useState<string | null>(() => localStorage.getItem('workagent-csv:created')), [busy, setBusy] = useState(false);
+  useEffect(() => { onNotice?.('CSV', message); }, [message, onNotice]);
   const alive = useRef(true), sequence = useRef(0), flight = useRef(false);
   useEffect(() => { alive.current = true; return () => { alive.current = false; sequence.current++; }; }, []);
   const report = (e: unknown) => setMessage(e instanceof Error ? e.message : 'CSV operation failed.');

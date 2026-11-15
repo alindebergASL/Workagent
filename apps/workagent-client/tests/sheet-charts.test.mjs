@@ -98,11 +98,12 @@ test('production chart panel create/edit/selected source/delete and unsaved form
   const view=mountNative({book:fixture(),version:'panel'});let panel;
   try{
     await view.settle();panel=mountConditionalEditor(SheetCharts,{controller:view.handle.charts});
-    const scope=panel.find(n=>n.type==='details'&&treeNodes(n).some(c=>c.type==='summary'&&c.props.children==='Chart scope and restrictions'));
+    const scope=panel.find(n=>n.type==='details'&&treeNodes(n).some(c=>c.type==='summary'&&c.props.children==='Chart limits · edits restricted; XLSX styling differs, CSV loses charts'));
     assert.ok(!scope.props.open,'full disclosure starts collapsed');
     assert.ok(treeNodes(scope).some(n=>n.type==='p'&&n.props.children===CHART_SCOPE),'entire chart disclosure retained');
     assert.equal(panel.find(n=>n.type==='section').props.tabIndex,0,'chart scroller is keyboard reachable');
-    assert.ok(treeNodes(panel.tree).some(n=>n.type==='p'&&typeof n.props.children==='string'&&/structural edits.*XLSX preserves supported/.test(n.props.children)&&!treeNodes(scope).includes(n)),'material warning remains outside collapsed details');
+    assert.match(panel.find(n=>n.type==='summary'&&String(n.props.children).startsWith('Chart limits')).props.children,/edits restricted; XLSX styling differs, CSV loses charts/,'material warning stays in the always-visible summary');
+    assert.ok(treeNodes(scope).some(n=>n.type==='p'&&typeof n.props.children==='string'&&/structural edits.*XLSX preserves supported/.test(n.props.children)),'full editing and fidelity instructions remain available');
     await click(panel,'Add chart');assert.equal(view.handle.isEditing(),true);
     await assert.rejects(view.handle.commit,/Apply or cancel/);assert.throws(view.handle.save,/Apply or cancel/);
     panel.change(field('Chart title'),{target:{value:'<b>Human</b>'}});panel.change(field('Chart source range'),{target:{value:'A1:C5'}});

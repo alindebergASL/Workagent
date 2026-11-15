@@ -3,7 +3,7 @@
 // DOM, layout, browser events or pixels. No SDK source extraction/rewrite.
 import assert from 'node:assert/strict';
 import React from 'react';
-export function mountConditionalEditor(Component, props, injector, observeRender) {
+export function mountConditionalEditor(Component, props, injector, observeRender, expandedComponents = []) {
   const instances = new Map(); let tree, dirty = true, active, index, effects = [];
   const internals = React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
   const depsChanged = (a,b) => !a || !b || a.length !== b.length || a.some((v,i)=>!Object.is(v,b[i]));
@@ -13,9 +13,11 @@ export function mountConditionalEditor(Component, props, injector, observeRender
     useState:state, useReducer:(fn,initial)=>{const [v,set]=state(initial);return [v,a=>set(v=>fn(v,a))];},
     useRef:initial=>{const i=index++;active.hooks[i]??={current:initial};return active.hooks[i];},
     useMemo:(fn,deps)=>{const i=index++;if(depsChanged(active.hooks[i]?.deps,deps))active.hooks[i]={deps,value:fn()};return active.hooks[i].value;},
+    useCallback:(fn,deps)=>dispatcher.useMemo(()=>fn,deps),
     useEffect:effect,useLayoutEffect:effect,useContext:()=>({injector}),
   };
   const expanded = new Set(['SheetCharts','ChartPanel','ConditionFormattingPanel','RuleEdit','IconSet','IconSetRuleEdit','NativeIconRuleEditor','ConditionalRuleEditor','StartNativeRule','HighlightCellStyleEditor','HighlightCellInput','ConditionalStyleEditor','DataBarStyleEditor','ColorScaleStyleEditor']);
+  expandedComponents.forEach(name => expanded.add(name));
   const walk = (node,path='root',force=false) => {
     if(Array.isArray(node))return node.map((n,i)=>walk(n,`${path}.${i}`));
     if(!node?.props)return node;

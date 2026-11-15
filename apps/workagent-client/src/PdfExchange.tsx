@@ -11,13 +11,14 @@ type Mode = 'text' | 'ocr-eng';
 type Preview = { mode: Mode; language: string | null; filename: string; bytes: number; sample: string; clipped: boolean; paragraphs: number; pages: number; previewHash: string; warnings: string[] };
 type Upload = { mode: Mode; filename: string; base64: string; synthetic: true; previewHash?: string };
 type Api = <T>(path: string, input?: unknown) => Promise<T>;
-export function PdfExchange({ api, editor, work, onImported, onOpen }: { api: Api; editor: () => DocumentHandle | null; work: Extract<Work, { kind: 'document' }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
+export function PdfExchange({ api, editor, work, onNotice, onImported, onOpen }: { onNotice?: (format: string, message: string) => void; api: Api; editor: () => DocumentHandle | null; work: Extract<Work, { kind: 'document' }> | null; onImported: () => Promise<void>; onOpen: (id: string) => Promise<unknown> }) {
   const actions = useRef(new MaintenanceActions(localStorage, 'pdf-import'));
   const [mode, setMode] = useState<Mode>('text');
   const [preview, setPreview] = useState<Preview | null>(null), [upload, setUpload] = useState<Upload | null>(null);
   const [pending, setPending] = useState<Pending | null>(() => actions.current.read());
   const attempt = useRef(pending);
   const [message, setMessage] = useState(''), [created, setCreated] = useState<string | null>(() => localStorage.getItem('workagent-pdf:created')), [busy, setBusy] = useState(false);
+  useEffect(() => { onNotice?.('PDF import', message); }, [message, onNotice]);
   const alive = useRef(true), sequence = useRef(0), flight = useRef(false);
   useEffect(() => { alive.current = true; return () => { alive.current = false; sequence.current++; }; }, []);
   const report = (e: unknown) => setMessage(e instanceof Error && e.message === 'pdf_ocr_page_without_text' ? 'A page has no meaningful recognized text. It may be blank or recognition may have failed; the entire PDF was refused. No partial document was imported.' : e instanceof Error && /pdf_.*timeout/.test(e.message) ? 'PDF processing exceeded its time limit. No partial document was imported.' : e instanceof Error && ['pdf_ocr_diagnostics', 'pdf_ocr_failed', 'pdf_ocr_render_failed', 'pdf_ocr_invalid_raster'].includes(e.message) ? 'English OCR could not complete reliably. The entire PDF was refused; no partial document was imported.' : e instanceof Error && /pdf_.*unavailable/.test(e.message) ? 'Isolated PDF conversion is unavailable. Retry when the service is available.' : e instanceof Error && e.message === 'pdf_page_without_text' ? 'At least one page has no Unicode letter or number in its extracted text layer. The entire PDF is refused, including PDFs with blank or scanned-only pages. No partial document was imported. Select English OCR explicitly to recognize page images (up to 5 pages).' : e instanceof Error && e.message === 'pdf_ocr_not_supported' ? 'No meaningful text layer was found. Scanned PDFs require OCR. Select English OCR explicitly (up to 5 pages). Blank pages are also refused.' : e instanceof Error && e.message === 'pdf_encrypted_not_supported' ? 'Encrypted or password-protected PDFs are not supported.' : e instanceof Error && /pdf_.*limit/.test(e.message) ? 'This PDF exceeds the page, text, paragraph or output limits. No partial document was imported.' : e instanceof Error ? e.message : 'PDF import failed.');
@@ -110,7 +111,7 @@ export function PdfExchange({ api, editor, work, onImported, onOpen }: { api: Ap
     {pending && <><p>Unresolved import: {String(pending.input.filename ?? 'unknown file')} · {pending.input.mode === 'ocr-eng' ? 'English OCR' : 'Text layer'}. The exact original upload is retained on this device for safe retries.</p><button type="button" disabled={busy} onClick={() => void importFile(pending)}>Retry unresolved PDF import: {String(pending.input.filename ?? 'unknown file')}</button></>}
     {created && <button type="button" onClick={() => onOpen(created).catch(report)}>Open imported PDF text document</button>}
     {work && <>{work.original && <p><a href={`/api/work/${work.id}/original/${work.original.id}`} download>Download original: {work.original.filename}</a> · {work.original.size} bytes · {work.original.encoding}<br /><small>SHA-256: {work.original.hash}</small></p>}</>}
-    <PdfExport api={api} editor={editor} work={work} />
+    <PdfExport onNotice={onNotice} api={api} editor={editor} work={work} />
     {message && <p role="status">{message}</p>}
   </details>;
 }

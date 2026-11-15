@@ -47,11 +47,10 @@ function ChartPanel({ controller }: { controller: ChartController }) {
     try { if (form) { const { address, ...chart } = form; controller.put({ ...chart, range: parseChartRange(address) }); setForm(null); setError(''); } }
     catch (e) { setError((e as Error).message === 'invalid_sheet_charts' ? 'Use a source with 1 header row, 1 label column, 1–100 data rows and 1–4 numeric series, within the sheet and without merged cells; at most 8 charts.' : (e as Error).message); }
   };
-  return <section className="sheet-charts" aria-label="Sheet charts" tabIndex={0}>
-    <div className="sheet-chart-actions"><strong>Workagent charts · Bar / Line</strong><button type="button" disabled={!!form || view.charts.length >= CHART_LIMITS.charts} onClick={() => start()}>Add chart</button>
+  return <section className={`sheet-charts${!view.charts.length && !form ? ' sheet-charts-empty' : ''}`} aria-label="Sheet charts" tabIndex={0}>
+    <div className="sheet-chart-actions"><strong>Charts · Bar / Line</strong><button type="button" disabled={!!form || view.charts.length >= CHART_LIMITS.charts} onClick={() => start()}>Add chart</button>
     {view.charts.length > 0 && <button type="button" onClick={() => { controller.invalidate(); }}>Refresh charts</button>}</div>
-    <p>Cell paste and fill work within sheet bounds. Whole-row/column insert/delete adjusts chart sources with Undo/Redo; headers, labels and size limits are protected. Other structural edits, sorting, merges and cut are refused. XLSX preserves supported column/line chart sources and titles; position and styling differ. CSV loses charts.</p>
-    <details><summary>Chart scope and restrictions</summary><p>{CHART_SCOPE}</p></details>
+
     {form && <fieldset><legend>{view.charts.some(c=>c.id===form.id) ? 'Edit chart' : 'Create chart'}</legend>
       <p>Apply to keep this chart edit in the recoverable sheet draft. Apply or Cancel before Save or switching work.</p>
       <label>Chart title<input aria-label="Chart title" maxLength={160} value={form.title} onChange={e=>setForm({...form,title:e.target.value})} /></label>
@@ -62,9 +61,10 @@ function ChartPanel({ controller }: { controller: ChartController }) {
     </fieldset>}
     {error && <p className="sheet-chart-error" role="alert">{error}</p>}
     {view.charts.length > 0 && <p role="status">{view.status}</p>}
-    {view.charts.map(chart=><article key={chart.id}><h3>{chart.title || 'Untitled chart'}</h3><p>{controller.tabs().find(s=>s.id===chart.sheetId)?.name} · {chartRangeLabel(chart.range)}</p>
+    {view.charts.map(chart=><article key={chart.id}><h3>{chart.title || 'Untitled chart'}</h3>{view.data[chart.id] && <ChartGraphic chart={chart} data={view.data[chart.id]} />}<p>{controller.tabs().find(s=>s.id===chart.sheetId)?.name} · {chartRangeLabel(chart.range)}</p>
       <button type="button" disabled={!!form} onClick={()=>start(chart)}>Edit chart</button><button type="button" disabled={!!form} onClick={()=>{try{controller.remove(chart.id);}catch(e){setError((e as Error).message);}}}>Delete chart</button>
-      {view.data[chart.id] && <ChartGraphic chart={chart} data={view.data[chart.id]} />}
     </article>)}
+    <details><summary>Chart limits · edits restricted; XLSX styling differs, CSV loses charts</summary><p>Cell paste and fill work within sheet bounds. Whole-row/column insert/delete adjusts chart sources with Undo/Redo; headers, labels and size limits are protected. Other structural edits, sorting, merges and cut are refused. XLSX preserves supported column/line chart sources and titles; position and styling differ. CSV loses charts.</p>
+    <p>{CHART_SCOPE}</p></details>
   </section>;
 }
