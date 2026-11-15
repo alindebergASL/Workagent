@@ -109,19 +109,19 @@ restricted namespace/PostgreSQL qualification and the exact-source build passed;
 STATUS records precise counts and retained failures. Existing mixed/custom/
 no-icon/x14, ambiguous-percent, precision, formula and tied-band refusals remain.
 LibreOffice source/export parity is separate evidence, not native/Excel parity.
-Google account/API scope and physical-phone proof remain open. Increment43 is a
-qualified, not-yet-installed mobile work-area candidate: identity/save first,
-mounted collapsible creation/exchange tools, taller native panes and compact
-chart/document disclosures. Independent scoped Astra review PASS; Parent canonical
-686 Node checks/typecheck/diff and exact-source remote101-source/80-artifact build
-passed. Eleven actual compiled-browser stages at360/390/430/1440 widths passed
-on explicitly isolated synthetic Workspace/HTTP state:390px sheet canvas351px
-high, document406px, retained native edits/title/messages/CSV preview and chart
-controls/navigation guard, no layout-triggered writes/inference. Backend/contract/
-runner unchanged, prior restrictedPG evidence reused rather than rerun. Retained
-harness negatives and initial corrected chart-disclosure test are in STATUS.
-Private installation and installed-browser verification remain; emulator is not
-physical-phone proof. Full product scope is unchanged.
+Google account/API scope and physical-phone proof remain open. Increment43 is
+privately live and verified at0d016cfb32480f06ee808c7224cbdf6f337876aa/196 blobs:
+identity/save first, mounted collapsible creation/exchange tools, native panes
+before chart details and retained compact disclosures. Independent Astra review
+PASS; Parent686 Node checks/typecheck/diff and exact101-source/80-artifact build
+passed. Twelve isolated compiled-browser stages and thirteen installed-browser
+stages passed; installed390px no-chart sheet canvas367px high and document406px,
+with360/390/430/1440 containment, actual typing/title/messages/CSV preview retained,
+explicit saves and cold reopen. Existing chart controls and collapsed error notices
+remain reachable. Two new QA works only;55prior works/108jobs/7financial tables
+unchanged,0new model calls,0active jobs, exact runtime.env. Backend/contract/runner
+unchanged; prior restrictedPG evidence reused, not rerun. Physical phone remains
+unverified: browser emulation is not phone proof. Full product scope is unchanged.
 
 ### B05 — Two-human collaboration, presence, comments and history
 
