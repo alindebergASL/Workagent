@@ -787,7 +787,26 @@ test('data bars persist through Workspace, protect blank ranges and removal, coe
     assert.equal((await ws.mutate('owner',workId,{commandId:'agent',expected:saved.expected,patch})).status,'proposed');
     const resourceOnly=structuredClone(state.works[workId]);resourceOnly.humanCells=[];
     assert.deepEqual(commitEditorPatch(state,resourceOnly,patch,saved.expected,'maintenance_changed'),{status:'protected',reason:'human_edit'});
-    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book}),/xlsx_conditional_formatting_not_supported/);
+    const exchange=new XlsxExchange({workspace:ws,worker:trustedWorker}),beforeExchange=structuredClone(state);
+    await assert.rejects(()=>exchange.export('owner',{workId,book}),{message:'Data bars require an explicit gradient fill; native default/solid fills cannot be exchanged'});
+    assert.deepEqual(state,beforeExchange);
+    // Qualify each remaining refusal through the actual codec, then export a
+    // supported clone. The saved signed/default bar and pending proposal stay intact.
+    const supported=structuredClone(barOnly.book),supportedRules=conditionalRules(supported),config=supportedRules.sheet1[0].rule.config;
+    const updateRules=()=>supported.resources.find(r=>r.name===CONDITIONAL_RESOURCE).data=JSON.stringify(supportedRules);
+    config.isGradient=true;updateRules();
+    await assert.rejects(()=>exchange.export('owner',{workId,book:supported}),{message:'Distinct data bar negative colors cannot be exchanged; use the same positive and negative RGB color'});
+    assert.deepEqual(state,beforeExchange);
+    config.positiveColor=config.nativeColor='#FFBE38';updateRules();
+    await assert.rejects(()=>exchange.export('owner',{workId,book:supported}),{message:'Signed data bar inputs cannot be exchanged'});
+    assert.deepEqual(state,beforeExchange);
+    supported.sheets.sheet1.cellData[0][0].v=0;
+    const exported=await exchange.export('owner',{workId,book:supported}),reopened=trustedCodec({op:'import',base64:exported.base64}).book;
+    const meaning=entries=>entries.map(({cfId,...entry})=>entry);
+    assert.deepEqual(meaning(conditionalRules(reopened).sheet1),meaning(supportedRules.sheet1));
+    assert.equal(reopened.sheets.sheet1.cellData[0][0].v,0);
+    assert.equal(reopened.sheets.sheet1.cellData[0][2].f,'=1+2');
+    assert.deepEqual(state,beforeExchange,'refused and supported exports never alter saved native work or pending proposals');
     assert.throws(()=>serializeCsv(book,'sheet1'),/cannot preserve conditional/);
     for(const id of ['numeric','scale','bar'])s.deleteConditionalFormattingRule(id);
     await ws.save('owner',workId,{commandId:'remove',book:await v.handle.commit(),formatEdits:v.handle.formatEdits(),contentRevision:saved.contentRevision,permissionRevision:1});

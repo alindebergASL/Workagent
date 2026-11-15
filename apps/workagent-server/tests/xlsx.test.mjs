@@ -5,6 +5,7 @@ import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
+import { spawnSync } from 'node:child_process';
 import { XlsxExchange } from '../src/xlsx-exchange.mjs';
 import { XlsxWorker, sandboxArgs } from '../src/xlsx-worker.mjs';
 import { CsvExchange } from '../src/exchange.mjs';
@@ -254,6 +255,8 @@ test('mixed color scale/highlight import protects blanks and originals, dirty ex
 test('conditional rules traverse the real credentialless worker when namespaces are available',async t=>{
   const book=blankWorkbook('worker-cf');book.resources=[{name:CONDITIONAL_RESOURCE,data:JSON.stringify({sheet1:[{cfId:'r',stopIfTrue:false,ranges:[{startRow:0,endRow:2,startColumn:0,endColumn:0}],rule:{type:'highlightCell',subType:'text',operator:'containsText',value:'Ready*?',style:{bl:0,bg:{rgb:'#FFEEAA'}}}}]})}];
   const rules=conditionalRules(book);rules.sheet1.push({cfId:'scale',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'colorScale',config:[{index:0,color:'#FF0000',value:{type:'num',value:-5}},{index:1,color:'#00FF00',value:{type:'num',value:5}}]}});book.resources[0].data=JSON.stringify(rules);
+  rules.sheet1.push({cfId:'bar',stopIfTrue:false,ranges:rules.sheet1[0].ranges,rule:{type:'dataBar',isShowValue:false,config:{min:{type:'num',value:0},max:{type:'num',value:10},positiveColor:'#123456',nativeColor:'#123456',isGradient:true}}});book.resources[0].data=JSON.stringify(rules);
+  book.sheets.sheet1.cellData={0:{0:{v:0,t:2}},1:{0:{v:5,t:2}},2:{0:{v:10,t:2}}};
   const worker=new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'});
   let exported;
   try{exported=await worker.run({op:'export',book});}
@@ -261,4 +264,45 @@ test('conditional rules traverse the real credentialless worker when namespaces 
   const imported=await worker.run({op:'import',base64:exported.base64});
   assert.deepEqual(conditionalRules(imported.book).sheet1[0].rule,conditionalRules(book).sheet1[0].rule);
   assert.deepEqual(conditionalRules(imported.book).sheet1[1].rule,conditionalRules(book).sheet1[1].rule);
+  assert.deepEqual(conditionalRules(imported.book).sheet1[2].rule,conditionalRules(book).sheet1[2].rule);
+  // Independent library-authored mixed file must also cross the production
+  // namespace worker; a native export/reimport alone is not this evidence.
+  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nprint(base64.b64encode(m.data_bar_fixture()).decode())`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
+  assert.equal(generated.status,0,generated.stderr);
+  const independent=await worker.run({op:'import',base64:generated.stdout.trim()});
+  assert.equal(independent.book.sheetOrder.length,2);
+  for(const entries of Object.values(conditionalRules(independent.book))){
+    const bars=entries.filter(e=>e.rule.type==='dataBar');assert.equal(bars.length,4);
+    assert.deepEqual(bars.map(e=>e.rule.config.min.type),['min','percent','percentile','num']);
+    assert.deepEqual(bars.map(e=>e.rule.isShowValue),[true,false,true,false]);
+    assert.ok(bars.every(e=>e.rule.config.positiveColor==='#123456'&&e.rule.config.nativeColor==='#123456'&&e.rule.config.isGradient===true&&!e.stopIfTrue));
+  }
+  const signed=structuredClone(book);signed.sheets.sheet1.cellData[0][0].v=-1;
+  await assert.rejects(()=>worker.run({op:'export',book:signed}),/Signed data bar/);
+});
+
+function renamedConditionalFiles() {
+  const generated=spawnSync(process.cwd()+'/.local/xlsx-python/bin/python',['-I','-B','-c',`import importlib.util,base64,json\ns=importlib.util.spec_from_file_location('f',${JSON.stringify(process.cwd()+'/services/workagent-execution/xlsx/test_codec.py')})\nm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\ne=lambda target,ext=None:base64.b64encode(m.renamed_data_bar_fixture(target,ext)).decode()\nprint(json.dumps({'good':e('other.XML'),'bad':[e(target,ext) for target in ('other.XML','other','other.data') for ext in ('only','mixed')]}))`],{encoding:'utf8',timeout:12000,maxBuffer:6000000});
+  assert.equal(generated.status,0,generated.stderr);return JSON.parse(generated.stdout);
+}
+for(const sandbox of [false,true]) test(`resolved worksheet CF names refuse atomically through ${sandbox?'production namespace worker':'real codec and server'}`,async t=>{
+  const files=renamedConditionalFiles(),worker=sandbox?new XlsxWorker({venv:process.env.WORKAGENT_XLSX_VENV||process.cwd()+'/.local/xlsx-python'}):trustedWorker;
+  if(sandbox){
+    try{await worker.run({op:'import',base64:files.good});}
+    catch(e){if(/^xlsx_sandbox/.test(e.code)){t.skip(`Production namespace/socket execution unverified here (${e.code}); refusal assertions did not run`);return;}throw e;}
+  }
+  const f=await fixture(worker),input={...xlsxInput('renamed-supported'),base64:files.good};
+  const adopted=await f.xlsx.import('owner',input),saved=await f.workspace.get('owner',adopted.workId);
+  assert.deepEqual(Object.values(conditionalRules(saved.book)).map(rules=>rules.length),[9,7]);
+  assert.equal(saved.book.sheets.sheet2.cellData[1][5].v,5);
+  assert.deepEqual((await f.exchange.original('owner',saved.id,adopted.original.id)).bytes,Buffer.from(files.good,'base64'));
+  const before=await f.state();let writes=0;
+  f.files.writeOriginal=async()=>{writes++;throw new Error('refused file must never reach original storage');};
+  for(const [i,base64] of files.bad.entries()){
+    const bad={...input,commandId:'renamed-refusal-'+i,base64};
+    await assert.rejects(()=>f.xlsx.preview('owner',bad),/Shadowed\/misplaced conditional formatting/);
+    await assert.rejects(()=>f.xlsx.import('owner',bad),/Shadowed\/misplaced conditional formatting/);
+    assert.deepEqual(await f.state(),before,'no partial work, commands, flattening or mutation of existing native rules');
+  }
+  assert.equal(writes,0);
 });

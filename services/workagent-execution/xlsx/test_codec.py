@@ -220,7 +220,251 @@ def color_scale_numeric_fixture(values, fixed=False, formula=False):
     stops='<cfvo type="num" val="-10"/><cfvo type="num" val="10"/>' if fixed else '<cfvo type="min"/><cfvo type="max"/>'
     return package(f'<worksheet xmlns="{NS}"><sheetData>{"".join(rows)}</sheetData><conditionalFormatting sqref="A1:A8"><cfRule type="colorScale" priority="1"><colorScale>{stops}<color rgb="FFFF0000"/><color rgb="FF00FF00"/></colorScale></cfRule></conditionalFormatting></worksheet>',second=None)
 
+def data_bar_numeric_fixture(values=('0','5','10'), fixed=False, formula=False, lengths=True):
+    # Independent literal XML, including digits that a JS/Python writer could
+    # round before the test ever reaches the parser.
+    def edit(name,raw):
+        if name!='xl/worksheets/sheet1.xml':return raw
+        root=ET.fromstring(raw);q=lambda n:'{'+NS+'}'+n
+        rule=root.find('.//'+q('cfRule'));rule.set('type','dataBar')
+        bar=rule[0];bar.tag=q('dataBar');bar.remove(bar[-1])
+        if fixed:bar[0].set('val','0')
+        if lengths:bar.attrib.update(minLength='0',maxLength='100')
+        return ET.tostring(root)
+    return rewrite(color_scale_numeric_fixture(values,fixed,formula),edit)
+
+def data_bar_fixture():
+    # Independent openpyxl bar construction, mixed with the independent existing
+    # numeric/text/scales fixture; nonconsecutive priorities and two worksheets.
+    from openpyxl.formatting.rule import Rule, DataBar, FormatObject
+    def edit(name,raw):
+        if name not in ('xl/worksheets/sheet1.xml','xl/worksheets/sheet2.xml'):return raw
+        q=lambda n:'{'+NS+'}'+n;root=ET.fromstring(raw);sd=root.find(q('sheetData'))
+        rows={int(r.get('r')):r for r in sd}
+        for row,col,value in [(1,'F',0),(2,'F',5),(3,'F',10),(1,'H',20)]:
+            if row not in rows:rows[row]=ET.SubElement(sd,q('row'),{'r':str(row)})
+            c=ET.SubElement(rows[row],q('c'),{'r':f'{col}{row}','t':'n'});ET.SubElement(c,q('v')).text=str(value)
+        for i,(lo,hi) in enumerate([('min','max'),('percent','percent'),('percentile','percentile'),('num','num')]):
+            r=Rule(type='dataBar',priority=30+i,dataBar=DataBar(minLength=0,maxLength=100,showValue=i%2==0,
+                cfvo=[FormatObject(type=lo,val=None if lo=='min' else 0),FormatObject(type=hi,val=None if hi=='max' else 100 if hi!='num' else 10)],color='FF123456'))
+            container=ET.SubElement(root,q('conditionalFormatting'),{'sqref':'F1:F8 H1:H8'})
+            xml=r.to_tree()
+            for e in xml.iter():e.tag=q(e.tag.rsplit('}',1)[-1])
+            container.append(xml)
+        # A stopping highlight overlaps the bars; its priority remains higher.
+        r=Rule(type='expression',priority=25,stopIfTrue=True,dxfId=0,formula=['IFERROR(IF(OR(ISNUMBER(F1),ISBLANK(F1)),F1<2,FALSE),FALSE)'])
+        container=ET.SubElement(root,q('conditionalFormatting'),{'sqref':'F1:F8 H1:H8'});xml=r.to_tree()
+        for e in xml.iter():e.tag=q(e.tag.rsplit('}',1)[-1])
+        container.append(xml)
+        return ET.tostring(root)
+    return rewrite(color_scale_fixture(),edit)
+
+def renamed_data_bar_fixture(target, extension=None):
+    """Relationship-resolved second tab, with supported CF or x14 auto bounds.
+
+    No xm:f children: the cell/formula structure guard must not mask the
+    conditional-formatting filename regression.
+    """
+    q=lambda n:'{'+NS+'}'+n
+    x14='http://schemas.microsoft.com/office/spreadsheetml/2009/9/main'
+    xm='http://schemas.microsoft.com/office/excel/2006/main'
+    out=io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(data_bar_fixture())) as source,zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as dest:
+        for name in source.namelist():
+            raw=source.read(name)
+            if name=='xl/worksheets/sheet2.xml' and extension:
+                root=ET.fromstring(raw)
+                if extension=='only':
+                    for child in list(root):
+                        if child.tag==q('conditionalFormatting'):root.remove(child)
+                ext=ET.SubElement(ET.SubElement(root,q('extLst')),q('ext'),{'uri':'{78C0D931-6437-407D-A8EE-F0AAD7539E65}'})
+                cf=ET.SubElement(ET.SubElement(ext,'{'+x14+'}conditionalFormattings'),'{'+x14+'}conditionalFormatting')
+                rule=ET.SubElement(cf,'{'+x14+'}cfRule',{'type':'dataBar','id':'{01234567-1234-1234-1234-0123456789AB}'})
+                bar=ET.SubElement(rule,'{'+x14+'}dataBar',{'minLength':'0','maxLength':'100','gradient':'0','axisPosition':'middle','border':'1'})
+                for kind in ('autoMin','autoMax'):ET.SubElement(bar,'{'+x14+'}cfvo',{'type':kind})
+                ET.SubElement(bar,'{'+x14+'}fillColor',{'rgb':'FF8844CC'})
+                ET.SubElement(cf,'{'+xm+'}sqref').text='F1:F8';raw=ET.tostring(root)
+            elif name in ('[Content_Types].xml','xl/_rels/workbook.xml.rels'):
+                root=ET.fromstring(raw)
+                for el in root:
+                    for key,value in list(el.attrib.items()):
+                        if value.endswith('worksheets/sheet2.xml'):el.set(key,value.replace('worksheets/sheet2.xml','worksheets/'+target))
+                raw=ET.tostring(root)
+            dest.writestr('xl/worksheets/'+target if name=='xl/worksheets/sheet2.xml' else name,raw)
+    return out.getvalue()
+
 class CodecTests(unittest.TestCase):
+    def test_data_bar_resolved_part_names_preserve_supported_rules_and_values(self):
+        expected=codec.import_book(data_bar_fixture())['book']
+        for target in ('other.xml','other.XML','other','other.data'):
+            with self.subTest(target=target):
+                actual=codec.import_book(renamed_data_bar_fixture(target))['book']
+                self.assertEqual(actual,expected) # all values, styles, ranges, flags and all 16 mixed rules
+                reopened=codec.import_book(base64.b64decode(codec.export_book(actual)['base64']))['book']
+                for sid in actual['sheetOrder']:
+                    self.assertEqual(reopened['sheets'][sid]['cellData'],actual['sheets'][sid]['cellData'])
+                before=json.loads(actual['resources'][0]['data']);after=json.loads(reopened['resources'][0]['data'])
+                for rules in (before,after):
+                    for entries in rules.values():
+                        for e in entries:e.pop('cfId')
+                self.assertEqual(before,after)
+
+    def test_data_bar_resolved_part_names_refuse_second_tab_x14_before_library(self):
+        import warnings
+        for target in ('other.xml','other.XML','other','other.data'):
+            for extension in ('only','mixed'):
+                raw=renamed_data_bar_fixture(target,extension)
+                with self.subTest(target=target,extension=extension):
+                    with warnings.catch_warnings(record=True) as caught,patch.object(codec,'ExcelReader',side_effect=AssertionError('must refuse before library parsing')):
+                        warnings.simplefilter('always')
+                        with self.assertRaisesRegex(ValueError,'Shadowed/misplaced conditional formatting'):codec.import_book(raw)
+                    self.assertEqual(caught,[],'no warning-only success or partial native book')
+
+    def test_data_bar_independent_mixed_library_zip_roundtrip(self):
+        b=codec.import_book(data_bar_fixture())['book'];before=json.loads(b['resources'][0]['data'])
+        self.assertEqual([len(r) for r in before.values()],[9,7])
+        result=codec.export_book(b);raw=base64.b64decode(result['base64']);again=codec.import_book(raw)['book']
+        after=json.loads(again['resources'][0]['data'])
+        for rules in (before,after):
+            for entries in rules.values():
+                for e in entries:e.pop('cfId')
+        self.assertEqual(before,after)
+        self.assertLessEqual(max(map(len,result['warnings'])),500)
+        with zipfile.ZipFile(io.BytesIO(raw)) as z:
+            for path in ('xl/worksheets/sheet1.xml','xl/worksheets/sheet2.xml'):
+                root=ET.fromstring(z.read(path));bars=root.findall('.//{'+NS+'}dataBar')
+                self.assertEqual(len(bars),4)
+                for bar in bars:self.assertEqual([bar.get('minLength'),bar.get('maxLength')],['0','100'])
+        wb=openpyxl.load_workbook(io.BytesIO(raw))
+        for ws in wb:
+            bars=[r.dataBar for c in ws.conditional_formatting for r in ws.conditional_formatting[c] if r.dataBar]
+            self.assertEqual([r.showValue for r in bars],[True,False,True,False])
+
+    def test_data_bar_defaults_flags_and_threshold_families(self):
+        b=codec.import_book(data_bar_numeric_fixture())['book'];e=json.loads(b['resources'][0]['data'])['sheet1'][0]
+        self.assertTrue(e['rule']['isShowValue']);self.assertTrue(e['rule']['config']['isGradient'])
+        for lo,hi in [({'type':'min'},{'type':'max'}),({'type':'min','value':0},{'type':'max','value':100}),
+                      ({'type':'num','value':2},{'type':'num','value':8}),({'type':'percent','value':10},{'type':'percent','value':90}),
+                      ({'type':'min'},{'type':'percentile','value':90}),({'type':'percentile','value':10},{'type':'max'})]:
+            for show in (None,False,True):
+                r=deepcopy(e);r['rule']['config'].update(min=lo,max=hi)
+                if show is None:r['rule'].pop('isShowValue')
+                else:r['rule']['isShowValue']=show
+                b['resources'][0]['data']=json.dumps({'sheet1':[r]})
+                parsed=codec.import_book(base64.b64decode(codec.export_book(b)['base64']))['book']
+                actual=json.loads(parsed['resources'][0]['data'])['sheet1'][0]['rule']
+                self.assertEqual(actual['config'],r['rule']['config']);self.assertEqual(actual['isShowValue'],show is not False)
+        # The two omitted native colors are different; a single omitted color
+        # only maps when its actual native default equals the other color.
+        for missing,other,color in [('positiveColor','nativeColor','#ffbe38'),('nativeColor','positiveColor','#abd91a')]:
+            r=deepcopy(e);r['rule']['config'].pop(missing);r['rule']['config'][other]=color
+            b['resources'][0]['data']=json.dumps({'sheet1':[r]});self.assertTrue(codec.export_book(b)['base64'])
+        with self.assertRaisesRegex(ValueError,'explicit minLength'):codec.import_book(data_bar_numeric_fixture(lengths=False))
+
+    def test_data_bar_native_refusals_and_population_domains(self):
+        b=codec.import_book(data_bar_numeric_fixture())['book'];e=json.loads(b['resources'][0]['data'])['sheet1'][0]
+        edits=[lambda r:r['rule']['config'].pop('isGradient'),lambda r:r['rule']['config'].update(isGradient=False),
+               lambda r:r['rule']['config'].update(nativeColor='#ABCDEF'),lambda r:r.update(stopIfTrue=True),
+               lambda r:r['rule'].update(isShowValue=1),lambda r:r['rule']['config'].update(axisPosition='none'),
+               lambda r:r['rule']['config'].update(min={'type':'num','value':-1},max={'type':'num','value':10}),
+               lambda r:r['rule']['config'].update(min={'type':'num','value':5},max={'type':'num','value':5}),
+               lambda r:r['rule']['config'].update(min={'type':'percent','value':0},max={'type':'percentile','value':100}),
+               lambda r:r['rule']['config'].update(min={'type':'min'},max={'type':'num','value':10}),
+               lambda r:r['rule']['config'].update(min={'type':'percent','value':-1}),lambda r:r.update(ranges=r['ranges']*2)]
+        for edit in edits:
+            r=deepcopy(e);edit(r);r['cfId']='bad'
+            b['resources'][0]['data']=json.dumps({'sheet1':[e,r]})
+            with self.subTest(edit=edit),self.assertRaises(ValueError):codec.export_book(b)
+        for values in [('5','5'),('0','0'),('-10','-5'),('-1','0','1')]:
+            with self.subTest(values=values),self.assertRaises(ValueError):codec.import_book(data_bar_numeric_fixture(values))
+        for values in [('5','5'),('0','0'),('0','10'),('0','1','100')]:
+            parsed=codec.import_book(data_bar_numeric_fixture(values,True))['book'];self.assertTrue(codec.export_book(parsed)['base64'])
+        for fixed in (False,True):
+            with self.assertRaisesRegex(ValueError,'without evaluating formulas'):codec.import_book(data_bar_numeric_fixture(formula=True,fixed=fixed))
+        b['resources'][0]['data']=json.dumps({'sheet1':[e]});b['sheets']['sheet1']['rightToLeft']=1
+        with self.assertRaisesRegex(ValueError,'Right-to-left'):codec.export_book(b)
+        b['sheets']['sheet1']['rightToLeft']=0
+        b['resources'][0]['data']=json.dumps({'sheet1':[e]});b['sheets']['sheet1']['cellData']={}
+        self.assertTrue(codec.export_book(b)['base64'])
+
+    def test_data_bar_raw_schema_ownership_and_atomic_sibling_refusals(self):
+        data=data_bar_fixture();q=lambda n:'{'+NS+'}'+n
+        def bar(r):return r.find('.//'+q('dataBar'))
+        def rule(r):return next(x for x in r.findall('.//'+q('cfRule')) if x.get('type')=='dataBar')
+        def container(r):return next(x for x in r.findall(q('conditionalFormatting')) if x[0].get('type')=='dataBar')
+        edits=[]
+        for k,v in [('minLength','10'),('maxLength','90'),('minLength','-1'),('maxLength','101'),('showValue','yes'),('gradient','1'),('border','0'),('direction','leftToRight'),('axisPosition','none'),('negativeBarColorSameAsPositive','1'),('{evil}showValue','1')]:
+            edits.append(lambda r,k=k,v=v:bar(r).set(k,v))
+        edits += [lambda r:bar(r).attrib.pop('minLength'),lambda r:bar(r)[0].set('gte','1'),lambda r:bar(r)[0].set('type','autoMin'),
+            lambda r:bar(r)[0].set('type','formula'),lambda r:bar(r)[0].set('val','A1'),lambda r:bar(r)[0].set('val','1.0000000000000002'),
+            lambda r:bar(r)[0].set('{evil}val','0'),lambda r:bar(r)[2].set('theme','1'),lambda r:bar(r)[2].set('rgb','80112233'),
+            lambda r:bar(r)[2].set('tint','0'),lambda r:bar(r).append(deepcopy(bar(r)[2])),lambda r:bar(r).remove(bar(r)[0]),
+            lambda r:bar(r).insert(0,bar(r)[2]),lambda r:setattr(bar(r)[0],'tag','{evil}cfvo'),lambda r:setattr(bar(r)[2],'tag','{evil}color'),
+            lambda r:setattr(bar(r),'tag','{http://schemas.microsoft.com/office/spreadsheetml/2009/9/main}dataBar'),
+            lambda r:bar(r).append(ET.Element(q('extLst'))),lambda r:rule(r).append(ET.Element(q('extLst'))),
+            lambda r:rule(r).set('stopIfTrue','true'),lambda r:rule(r).set('dxfId','0'),lambda r:rule(r).append(ET.Element(q('formula'))),
+            lambda r:r.append(deepcopy(bar(r))),lambda r:r.find(q('sheetData')).append(deepcopy(rule(r))),
+            lambda r:container(r).append(deepcopy(rule(r))),lambda r:container(r).set('sqref','F1:F8 F3:F9'),
+            lambda r:container(r).set('sqref','F1:F10001'),lambda r:setattr(bar(r)[0],'text','shadow'),
+            lambda r:r.find('.//'+q('sheetView')).set('rightToLeft','1'),
+            lambda r:r.find('.//'+q('sheetView')).set('{evil}rightToLeft','1')]
+        for i,edit in enumerate(edits):
+            def mutate(name,raw):
+                if name!='xl/worksheets/sheet1.xml':return raw
+                root=ET.fromstring(raw);edit(root);return ET.tostring(root)
+            with self.subTest(attack=i),self.assertRaises(ValueError):codec.import_book(rewrite(data,mutate))
+        for part in ('xl/workbook.xml','xl/styles.xml'):
+            def mutate(name,raw):
+                if name!=part:return raw
+                root=ET.fromstring(raw);ET.SubElement(root,q('dataBar'));return ET.tostring(root)
+            with self.subTest(part=part),self.assertRaises(ValueError):codec.import_book(rewrite(data,mutate))
+
+    def test_data_bar_x14_extension_is_not_silently_stripped(self):
+        import warnings
+        x14='http://schemas.microsoft.com/office/spreadsheetml/2009/9/main'
+        xm='http://schemas.microsoft.com/office/excel/2006/main'
+        def mutate(name,raw):
+            if name!='xl/worksheets/sheet1.xml':return raw
+            root=ET.fromstring(raw);q=lambda n:'{'+NS+'}'+n
+            ext=ET.SubElement(ET.SubElement(root,q('extLst')),q('ext'),{'uri':'{78C0D931-6437-407D-A8EE-F0AAD7539E65}'})
+            formatting=ET.SubElement(ET.SubElement(ext,'{'+x14+'}conditionalFormattings'),'{'+x14+'}conditionalFormatting')
+            rule=ET.SubElement(formatting,'{'+x14+'}cfRule',{'type':'dataBar','id':'{01234567-1234-1234-1234-0123456789AB}'})
+            ET.SubElement(rule,'{'+x14+'}dataBar',{'minLength':'0','maxLength':'100','gradient':'0','axisPosition':'middle','border':'1'})
+            ET.SubElement(formatting,'{'+xm+'}sqref').text='A1:A8'
+            return ET.tostring(root)
+        raw=rewrite(data_bar_numeric_fixture(),mutate)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always');wb=openpyxl.load_workbook(io.BytesIO(raw))
+        self.assertTrue(any('extension' in str(w.message).lower() for w in caught))
+        out=io.BytesIO();wb.save(out)
+        with zipfile.ZipFile(io.BytesIO(out.getvalue())) as z:
+            self.assertNotIn(x14.encode(),z.read('xl/worksheets/sheet1.xml'))
+        # The real library would lose the extension. Raw validation must refuse
+        # the entire mixed file before ExcelReader can silently do that.
+        with patch.object(codec,'ExcelReader',side_effect=AssertionError('raw validation must precede library parsing')):
+            with self.assertRaisesRegex(ValueError,'Shadowed/misplaced'):codec.import_book(raw)
+
+    def test_data_bar_loaded_disagreement_and_serialization_fidelity(self):
+        original=codec.ExcelReader
+        class ChangedReader(original):
+            def read(self):
+                super().read()
+                for c in self.wb.worksheets[0].conditional_formatting:
+                    for rule in self.wb.worksheets[0].conditional_formatting[c]:
+                        if rule.dataBar:rule.dataBar.showValue=not rule.dataBar.showValue
+        with patch.object(codec,'ExcelReader',ChangedReader),self.assertRaisesRegex(ValueError,'interpretation mismatch'):codec.import_book(data_bar_fixture())
+        b=codec.import_book(data_bar_numeric_fixture(fixed=True))['book']
+        for cell in [{'v':1.0000000000000002,'t':2},{'v':'A\rB','t':1},{'v':'A\r\nB','t':1}]:
+            b['sheets']['sheet1']['cellData']['0']['0']=cell
+            with self.subTest(cell=cell),self.assertRaisesRegex(ValueError,'Conditional export refused'):codec.export_book(b)
+        # Boolean/error/formula results are never numeric source cells or caches.
+        for f in ('=TRUE()','=1/0','=1+1'):
+            b['sheets']['sheet1']['cellData']['0']['0']={'f':f,'v':5,'t':2}
+            with self.assertRaisesRegex(ValueError,'without evaluating formulas'):codec.export_book(b)
+        b['sheets']['sheet1']['cellData']['0']['0']={'v':5,'t':2}
+        b['resources'].append({'name':codec.CONTROL_RESOURCE,'data':json.dumps({'sheet1':[{'uid':'check','type':'checkbox','ranges':[{'startRow':6,'endRow':6,'startColumn':0,'endColumn':0}]}]})})
+        with self.assertRaisesRegex(ValueError,'Conditional checkbox'):codec.export_book(b)
+
     def test_color_scale_js_number_domain_guard(self):
         ranges=[{'startRow':0,'endRow':7,'startColumn':0,'endColumn':0}]
         for fixed in (False,True):
