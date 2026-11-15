@@ -133,6 +133,89 @@ Enforce current ACLs on reads and submissions, not only room entry. Support iden
 
 **Verify:** Two human identities and an agent, reconnect, row insertion, revoke mid-session, overlapping/disjoint edits, individual undo and restore history. Diagnose the three-connection evaluation limit, including agents, before calling a connection refusal a bug; no limit bypass. Two-human evidence is required for this claim, not B01.
 
+Native qualification slice (unpublished, not installed): `native:qualification` is a
+separate, opt-in consumer of `native-collaboration.mjs` and `NativeCollaborationEditor`.
+One synthetic Sheet/two configured Workagent principals; only cell mutations and row
+insert/remove are admitted. Legacy snapshots, model writes, export and other lifecycle
+paths are unavailable. Native content lives only in the SDK adapter; Workspace owns ACLs.
+
+The Workspace transaction row lock encloses the SDK `commitChangeset` continuation
+(actual SQLite CAS). Before native dedup, Workspace durably binds the unchanged SID
+to its authenticated principal, unit and storage pair. Reconnect/restart/regrant retain
+these bindings; missing legacy ownership refuses rather than adopting history. SID
+strings are bounded to 128 ASCII identifier characters and 4096 retained bindings;
+exhaustion refuses new identities without evicting old ones. SDK reqId dedup, ACKs and
+operation identities are unchanged; no second operation-outcome ledger exists.
+
+Each HTTP/WS delivery enqueue independently takes the same Workspace lock. The pinned
+1.4.0 Node transport calls `socket.send` synchronously inside its Promise executor;
+the promise settles on write completion. Only enqueue runs under the lock; completion
+is awaited outside it, with immediate rejection handling and a 10-second close timeout.
+This composition is specific to that transport contract, not arbitrary async sends.
+`Workspace.share` uses the same lock. A revocation that wins the lock rejects an
+admitted edit; a commit already holding it precedes revocation. Session access revisions
+fence downgrade/regrant. Bytes already enqueued before revocation cannot be recalled.
+No cross-database atomic propagation, failover or safe agent-commit claim is made.
+
+Startup validates all configuration before writes. Parent must explicitly provision a
+NEW private root and empty synthetic Workspace pair. The marker binds owner, unit,
+actual PG database identity, a random pair ID, canonical paths and root/file device/inode
+identities; Workspace retains the same marker and SID ownership namespace. The root and
+files must belong to the service UID with private permissions, no links/hardlinks or
+unknown files. The writable SDK constructor follows these checks. Ready pairs never
+reseed a missing unit. Partial provisioning is retained for Parent diagnosis, not
+silently adopted. Existing evidence files without markers are intentionally refused.
+The dedicated 0700 root and exclusive process leadership assume no concurrent trusted
+same-UID filesystem replacement; this is not protection from a privileged host actor.
+
+Parent commands (not run by the repair writer; Parent's generated lock stays unchanged):
+```bash
+npm run test:native-collaboration
+npm run typecheck
+# Client unchanged by this repair; Parent may reuse the prior qualified build.
+# For the SDK check, /ABS/PARENT must exist and /ABS/PARENT/NEW must NOT exist:
+WORKAGENT_NATIVE_SDK_CHECK=fresh-synthetic-only WORKAGENT_NATIVE_SDK_SQLITE=/ABS/PARENT/NEW/content.sqlite node apps/workagent-server/tests/native-collaboration-sdk.mjs
+# Use a NEW isolated PG database named workagent_native_<suffix>, apply
+# apps/workagent-server/migrations/0001_workspace.sql, set WORKAGENT_DATABASE_URL
+# and WORKAGENT_OWNER_ID, then provision its empty Workspace:
+WORKAGENT_DISPOSABLE_SCHEMA=workagent_b01 npm run provision
+# Set existing-style WORKAGENT_AUTH_TOKEN, WORKAGENT_ORIGIN and exactly one
+# WORKAGENT_SYNTHETIC_ACCOUNTS_JSON peer. Also set all of:
+# WORKAGENT_NATIVE_DATABASE_NAME=<actual new database name>
+# WORKAGENT_NATIVE_ROOT=/ABS/PARENT/NEW-PG-PAIR (must not yet exist)
+# WORKAGENT_NATIVE_SQLITE=/ABS/PARENT/NEW-PG-PAIR/content.sqlite
+# WORKAGENT_NATIVE_QUALIFICATION=synthetic-only
+WORKAGENT_NATIVE_PROVISION=new-owned-pair npm run native:provision
+npm run native:qualification
+```
+Post-repair qualification: the same independent reviewer closed all three findings.
+Parent passed 117 affected Node tests (zero failures/skips), typecheck and diff checks.
+Fresh actual SDK 1.4.0/SQLite plus restricted PostgreSQL verified SID-poison refusal,
+legitimate retry/restart/regrant, real row-lock contention, revocation-before-commit,
+foreign/unmarked/symlink/wrong-pair refusals without writable construction or changes
+to PG/owned/foreign SQLite, and PG revocation before a controlled send promise flushed.
+The controlled-backpressure probe is not a claim about kernel TCP-buffer saturation.
+
+Eight distinct two-context browser stages passed against the real native service:
+load, bidirectional cell convergence, lost-ACK SDK retry (three identical SID/reqId
+submissions, one native commit), offline E5 edit transformed to E6 across a peer row
+insertion, exact native snapshot after process restart, live editor→read fencing,
+fresh read-only pointer-edit refusal, and revocation denying session/snapshot reads.
+The initial ACK-recording hook incorrectly read responseText for responseType=json;
+that harness error is retained. The ACK and WS echo were actually withheld, and the
+SDK recovered the same operation without Parent replay. This is not error-free fault
+instrumentation. No model calls, homegrown OT, licensing edits or watermark removal.
+The unchanged UI reused its qualified build after compiled-input/dependency/lock checks;
+80 deployed artifact hashes matched. Qualification services stopped; paired stores and
+browser state retained. The installed normal application remains unchanged.
+
+The SDK-only command above uses a fake Workspace store, not PG or browser proof.
+Parent's separate fresh-PG/browser runs supply that evidence. Full B05 remains open:
+normal-workspace integration, same-cell conflicts, durable browser-crash recovery,
+presence/comments/anchors/history/individual undo and safe agent proposals. Next wire
+fresh native-backed sheets into the normal workspace without converting existing human
+work or re-enabling legacy/model/export writes for native content.
+
 ### B06 — Boards, editable decks and multilingual dictation
 
 **Scope:** P03/P04/P16. **Depends on:** native editor/asset/selection boundaries and B05 for collaborative claims. Dictation depends on a legitimate input engine and microphone permission, not narration or partner agreements.

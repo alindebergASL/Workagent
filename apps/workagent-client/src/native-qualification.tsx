@@ -1,0 +1,11 @@
+import { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { NativeCollaborationEditor, type NativeSession } from './NativeCollaborationEditor';
+function Qualification() {
+  const [session, setSession] = useState<NativeSession | null>(null), [message, setMessage] = useState('Authenticate with your configured synthetic Workagent credential.');
+  async function open() { const r = await fetch('/api/native/session'); if (!r.ok) { setMessage('Session or sheet access denied.'); return; } setSession(await r.json()); }
+  return <main style={{ fontFamily: 'sans-serif', margin: 16 }}><h1>Native collaboration qualification</h1><p>One synthetic Sheet, two principals. Cell edits and row insertion only. Native licensing and watermarks apply. Full B05 remains incomplete.</p>
+    {!session ? <><form onSubmit={async e => { e.preventDefault(); const form = e.currentTarget; const token = String(new FormData(form).get('token')); const r = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) }); form.reset(); if (r.ok) await open(); else setMessage('Authentication failed.'); }}><label>Workagent credential <input name="token" type="password" autoComplete="off" required/></label><button>Sign in</button></form><button onClick={() => void open()}>Use existing session</button><p>{message}</p></> : <><p>{session.name} · {session.access.role}</p><NativeCollaborationEditor session={session}/>{session.owner && <fieldset><legend>Qualification ACL transition</legend>{(['editor', 'read', null] as const).map(role => <button key={String(role)} onClick={async () => { const current = await fetch('/api/native/session'); if (!current.ok) { setMessage('Session access denied.'); return; } const access = (await current.json()).access; const r = await fetch('/api/native/sharing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ commandId: crypto.randomUUID(), peer: session.peer, role, accessRevision: access.revision }) }); setMessage(r.ok ? 'ACL changed; existing sessions fenced. Reopen after preserving pending edits.' : 'ACL change refused; refresh the access revision.'); }}>{role ?? 'Revoke'} peer</button>)}<p>{message}</p></fieldset>}</>}
+  </main>;
+}
+createRoot(document.getElementById('root')!).render(<Qualification/>);

@@ -8,7 +8,7 @@ import { bindSelection } from './selection.mjs';
 export const digest = data => createHash('sha256').update(JSON.stringify(canonical(data))).digest('hex');
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
 export function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
-export function work(s, workId) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); return w; }
+export function work(s, workId, native = false) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); if (w.nativeCollaboration && !native) throw new Fault('native_collaboration_required', 409); return w; }
 export function preconditions(s, w) { return { contentRevision: w.contentRevision, intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch }; }
 export function same(a, b) { return Object.keys(b).every(k => a?.[k] === b[k]); }
 export function event(s, w, kind) { w.sharedSequence = (w.sharedSequence ?? 0) + 1; s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
@@ -39,9 +39,10 @@ export class Workspace {
   }
   member(s, principal) { if (!s.enabled || (s.owner !== principal && !this.peers.has(principal))) throw new Fault('access_denied', 403); }
   role(s, principal, w) { const role = this.peers.has(principal) ? w.acl?.[principal] : undefined; return principal === s.owner ? 'owner' : ['read', 'editor'].includes(role) ? role : undefined; }
-  access(s, principal, workId, edit = false) {
+  access(s, principal, workId, edit = false, native = false) {
     this.member(s, principal);
-    const w = principal === s.owner ? work(s, workId) : s.works[id(workId)], role = w && this.role(s, principal, w);
+    const w = principal === s.owner ? work(s, workId, native) : s.works[id(workId)], role = w && this.role(s, principal, w);
+    if (w?.nativeCollaboration && !native) throw new Fault('native_collaboration_required', 409);
     if (!role || (edit && role === 'read')) throw new Fault('access_denied', 403);
     return w;
   }
@@ -55,14 +56,14 @@ export class Workspace {
   }
   async ownerAccess(principal) { return this.store.read(s => { authorize(s, principal); return true; }); }
   async sharing(principal, workId) { return this.store.read(s => {
-    authorize(s, principal); const w = work(s, workId);
+    authorize(s, principal); const w = work(s, workId, true);
     return { revision: w.accessRevision ?? 0, peers: [...this.peers.values()].map(p => ({ ...p, role: w.acl?.[p.id] ?? null })) };
   }); }
   async share(principal, workId, input) {
     if (!input || Object.keys(input).some(k => !['commandId', 'peer', 'role', 'accessRevision'].includes(k)) || ![null, 'read', 'editor'].includes(input.role)) throw new Fault('invalid_share', 400);
     id(input.commandId); id(input.peer); revision(input.accessRevision);
     return this.store.transaction(s => {
-      authorize(s, principal); const w = work(s, workId);
+      authorize(s, principal); const w = work(s, workId, true);
       if (!this.peers.has(input.peer) || input.peer === s.owner) throw new Fault('peer_not_configured', 400);
       return dedup(s, input.commandId, { operation: 'share', workId, ...input }, () => {
         if ((w.accessRevision ?? 0) !== input.accessRevision) throw new Fault('sharing_conflict');
@@ -88,14 +89,14 @@ export class Workspace {
   }
   // A fresh committed snapshot is sufficient for reads. Mutation preconditions
   // still run under the row lock in transaction; polling must not rewrite it.
-  async list(principal) { return this.store.read(s => { this.member(s, principal); return Object.values(s.works).filter(w => this.role(s, principal, w)).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
+  async list(principal) { return this.store.read(s => { this.member(s, principal); return Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => this.role(s, principal, w)).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
   async get(principal, workId) { return this.store.read(s => { return this.visible(s, principal, this.access(s, principal, workId)); }); }
   async events(principal, after) { return this.store.read(s => {
     this.member(s, principal);
     if (after !== undefined && (!Number.isSafeInteger(after) || after < 0)) throw new Fault('invalid_cursor', 400);
     // A bounded reset avoids leaking global sequence numbers or unrelated event gaps.
     if (principal !== s.owner) {
-      const visible = Object.values(s.works).filter(w => this.role(s, principal, w));
+      const visible = Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => this.role(s, principal, w));
       return { kind: 'reset', cursor: 0, events: [], works: visible.map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })), snapshots: visible.map(w => this.visible(s, principal, w)) };
     }
     // Bound the replay response, without deleting retained events or contributions.
@@ -104,8 +105,8 @@ export class Workspace {
       || events.length !== s.sequence - after || events.some((e, i) => e.eventId !== after + i + 1);
     const changed = new Set(events.map(e => e.workId));
     return { kind: reset ? 'reset' : 'events', cursor: s.sequence, events: reset ? [] : events,
-      works: Object.values(s.works).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })),
-      snapshots: Object.values(s.works).filter(w => reset || changed.has(w.id)).map(w => this.visible(s, principal, w)) };
+      works: Object.values(s.works).filter(w => !w.nativeCollaboration).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })),
+      snapshots: Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => reset || changed.has(w.id)).map(w => this.visible(s, principal, w)) };
   }); }
   async source(principal, input) {
     id(input.commandId); text(input.name, 200); text(input.content, 200000);

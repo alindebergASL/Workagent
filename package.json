@@ -40,7 +40,11 @@
     "test:google:contract": "node apps/workagent-server/tests/google-contract.test.mjs",
     "test:google:integration": "node apps/workagent-server/tests/google-exchange.test.mjs && node apps/workagent-client/tests/google-exchange.test.mjs && node apps/workagent-client/tests/mobile-work-area.test.mjs",
     "test:google:integration:http": "node apps/workagent-server/tests/google-exchange-http.test.mjs",
-    "google:simulator": "node apps/workagent-server/src/google-simulation.mjs"
+    "google:simulator": "node apps/workagent-server/src/google-simulation.mjs",
+    "test:native-collaboration": "node apps/workagent-server/tests/native-collaboration.test.mjs && node apps/workagent-server/tests/native-qualification-storage.test.mjs",
+    "native:provision": "node apps/workagent-server/src/native-qualification-provision.mjs",
+    "native:qualification": "node apps/workagent-server/src/native-qualification.mjs",
+    "build:native": "vite build --config apps/workagent-client/vite.native.config.ts"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",
@@ -51,7 +55,16 @@
     "@univerjs/presets": "1.4.0",
     "pg": "8.16.3",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "@univerjs-pro/collaboration-service": "1.4.0",
+    "@univerjs-pro/collaboration-endpoint": "1.4.0",
+    "@univerjs-pro/collaboration-transport-node": "1.4.0",
+    "@univerjs-pro/collaboration-database-sqlite": "1.4.0",
+    "@univerjs-pro/collaboration": "1.4.0",
+    "@univerjs-pro/collaboration-client": "1.4.0",
+    "@univerjs-pro/collaboration-client-ui": "1.4.0",
+    "@univerjs-pro/license": "1.4.0",
+    "@univerjs/protocol": "1.4.0"
   },
   "devDependencies": {
     "@types/react": "19.2.2",
