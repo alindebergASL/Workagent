@@ -150,6 +150,33 @@ def zip_headers(data, name, *, size=None, crc=None, compressed_delta=0, local_me
     if local_method is not None: struct.pack_into('<H', raw, local + 8, local_method)
     return bytes(raw)
 
+def cf_entry(operator,value,subtype='number'):
+    # Stable distinct test identities; production IDs have no semantic meaning.
+    import hashlib
+    return {'cfId':'cf-'+hashlib.sha256((operator+repr(value)).encode()).hexdigest()[:16], 'ranges':[{'startRow':0,'endRow':7,'startColumn':0,'endColumn':0}], 'stopIfTrue':operator=='lessThan', 'rule':{'type':'highlightCell','subType':subtype,'operator':operator,'value':value,'style':{'bg':{'rgb':'#FFEEAA'},'bl':0,'it':0,'ul':{'s':0},'st':{'s':0}}}}
+
+def conditional_fixture():
+    # Independent openpyxl Rule construction with hand-authored expressions,
+    # followed by raw false-overlay fields its Font serializer otherwise drops.
+    from openpyxl.formatting.rule import Rule
+    from openpyxl.styles.differential import DifferentialStyle
+    wb=openpyxl.Workbook(); ws=wb.active; ws.title='Highlights 雪'
+    for row,v in enumerate([0,-2,'0','Ready *?~ "雪"','#DIV/0!','=1/0','=1+1',None],1):
+        if v is not None:ws.cell(row,1,v)
+    ws['A5'].data_type='s'
+    dxf=DifferentialStyle(fill=PatternFill('solid',fgColor='FFFFEEAA'))
+    ws.conditional_formatting.add('A1:A8 C1:C8',Rule(type='expression',priority=7,stopIfTrue=True,dxf=dxf,formula=['IFERROR(IF(OR(ISNUMBER(A1),ISBLANK(A1)),A1<=0,FALSE),FALSE)']))
+    ws.conditional_formatting.add('A1:A8',Rule(type='expression',priority=12,stopIfTrue=False,dxf=DifferentialStyle(font=Font(color='FF123456')),formula=['IFERROR(ISNUMBER(FIND("Ready",A1)),FALSE)']))
+    other=wb.create_sheet('Other');other['A1']='雪 <&> "*?~"'
+    other.conditional_formatting.add('A1:A8',Rule(type='expression',priority=1,dxf=DifferentialStyle(font=Font(italic=True)),formula=['IFERROR(EXACT(A1,"雪 <&> ""*?~"""),FALSE)']))
+    out=io.BytesIO();wb.save(out)
+    def edit(name,raw):
+        if name!='xl/styles.xml':return raw
+        root=ET.fromstring(raw);dxf=root.find('{'+NS+'}dxfs')[0];font=ET.Element('{'+NS+'}font');dxf.insert(0,font)
+        for tag,val in [('b','0'),('i','0'),('u','none'),('strike','0')]:ET.SubElement(font,'{'+NS+'}'+tag,{'val':val})
+        return ET.tostring(root)
+    return rewrite(out.getvalue(),edit)
+
 class CodecTests(unittest.TestCase):
     def test_checkbox_namespace_identity(self):
         # Two tabs, same address: checkbox false and ordinary boolean true.
@@ -809,6 +836,166 @@ class CodecTests(unittest.TestCase):
         def excessive(root):
             for _ in range(161):ET.SubElement(rich(root),a('p'))
         with self.assertRaises(ValueError):codec.import_book(chart_rewrite(data,excessive))
+
+
+    def test_conditional_independent_fixture_and_raw_overlay(self):
+        data=conditional_fixture(); result=codec.import_book(data); book=result['book']
+        rules=json.loads(next(r['data'] for r in book['resources'] if r['name']==codec.CF_RESOURCE))
+        self.assertEqual(len(rules['sheet1']),2); self.assertEqual(len(rules['sheet2']),1)
+        self.assertTrue(rules['sheet1'][0]['stopIfTrue'])
+        self.assertEqual(rules['sheet1'][0]['rule']['style'],{'bl':0,'it':0,'ul':{'s':0},'st':{'s':0},'bg':{'rgb':'#FFEEAA'}})
+        self.assertNotIn('bl',rules['sheet1'][1]['rule']['style'])
+        self.assertEqual(len(rules['sheet1'][0]['ranges']),2)
+        exported=base64.b64decode(codec.export_book(book)['base64']); loaded=openpyxl.load_workbook(io.BytesIO(exported))
+        self.assertEqual(len(loaded.worksheets[0].conditional_formatting),2)
+        again=codec.import_book(exported)['book']; after=json.loads(next(r['data'] for r in again['resources'] if r['name']==codec.CF_RESOURCE))
+        for ruleset in (rules,after):
+            for entries in ruleset.values():
+                for r in entries:r.pop('cfId')
+        self.assertEqual(rules,after)
+        self.assertEqual(again['sheets']['sheet1']['cellData']['5']['0']['f'],'=1/0')
+        self.assertNotIn('v',again['sheets']['sheet1']['cellData']['5']['0'])
+        self.assertNotIn('s',again['sheets']['sheet1']['cellData']['0']['0'])
+
+    def test_conditional_all_supported_templates_and_literals(self):
+        book=codec.import_book(fixture())['book']; entries=[]
+        for op in codec.CF_NUM:
+            entries.append(cf_entry(op,[-2,0] if op in ('between','notBetween') else -0.5))
+        for op in codec.CF_TEXT:
+            for literal in ['Ready','ready','雪 <&> "*?~"','a"b','😀雪']:
+                entries.append(cf_entry(op,literal,'text'))
+        book['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet2':entries})}]
+        result=codec.export_book(book); again=codec.import_book(base64.b64decode(result['base64']))['book']
+        rules=json.loads(again['resources'][0]['data'])['sheet2']
+        self.assertEqual([e['rule'] for e in entries],[e['rule'] for e in rules])
+        self.assertEqual([e['stopIfTrue'] for e in entries],[e['stopIfTrue'] for e in rules])
+
+    def test_conditional_mixed_unsupported_atomic_and_caps(self):
+        book=codec.import_book(fixture())['book']
+        for rule in [cf_entry('equal',0),cf_entry('notEqual',0),cf_entry('containsBlanks',None,'text'),cf_entry('containsErrors',None,'text'),
+                     cf_entry('equal','123','text'),cf_entry('containsText','TRUE','text'),cf_entry('containsText','#REF!','text'),cf_entry('beginsWith','','text'),cf_entry('greaterThan',1e16),
+                     {**cf_entry('greaterThan',0),'rule':{'type':'dataBar','config':{}}}]:
+            book['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet1':[cf_entry('lessThan',0),rule]})}]
+            with self.subTest(rule=rule),self.assertRaises(ValueError):codec.export_book(book)
+        entries=[cf_entry('lessThan',i) for i in range(257)]
+        for entries in [entries,[{**cf_entry('lessThan',0),'ranges':[{'startRow':0,'endRow':9999,'startColumn':0,'endColumn':199}]}],
+                        [{**cf_entry('lessThan',0),'ranges':[{'startRow':0,'endRow':0,'startColumn':0,'endColumn':0}]*1001}]]:
+            book['resources'][0]['data']=json.dumps({'sheet1':entries})
+            with self.assertRaises(ValueError):codec.export_book(book)
+
+    def test_conditional_xml_shadow_dangling_and_expression_attacks(self):
+        data=conditional_fixture(); q=lambda n:'{'+NS+'}'+n
+        def mutate(part,change):
+            def edit(name,raw):
+                if name!=part:return raw
+                root=ET.fromstring(raw);change(root);return ET.tostring(root)
+            return rewrite(data,edit)
+        def first(root):return root.find(q('conditionalFormatting'))
+        def rule(root):return first(root)[0]
+        attacks=[
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).set('dxfId','255')),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).set('priority','0')),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).set('{urn:evil}priority','2')),
+          ('xl/worksheets/sheet1.xml',lambda r:first(r).append(deepcopy(rule(r)))),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).set('operator','greaterThan')),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).set('type','cellIs')),
+          ('xl/worksheets/sheet1.xml',lambda r:setattr(first(r),'tag','{urn:evil}conditionalFormatting')),
+          ('xl/worksheets/sheet1.xml',lambda r:setattr(rule(r)[0],'tag','{urn:evil}formula')),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).append(ET.Element(q('extLst')))),
+          ('xl/worksheets/sheet1.xml',lambda r:rule(r).append(deepcopy(rule(r)[0]))),
+          ('xl/worksheets/sheet1.xml',lambda r:setattr(rule(r)[0],'text',rule(r)[0].text.replace('A1','B1'))),
+          ('xl/worksheets/sheet1.xml',lambda r:setattr(rule(r)[0],'text','WEBSERVICE("https://example.invalid")')),
+          ('xl/worksheets/sheet1.xml',lambda r:first(r).set('sqref','A1:XFD1048576')),
+          ('xl/worksheets/sheet1.xml',lambda r:first(r).set('sqref','Sheet2!A1')),
+          ('xl/worksheets/sheet1.xml',lambda r:first(r).set('sqref','C1:C8 A1:A8')),
+          ('xl/worksheets/sheet1.xml',lambda r:r.find(q('sheetData')).append(deepcopy(first(r)))),
+          ('xl/styles.xml',lambda r:r.find(q('dxfs'))[0].append(ET.Element(q('extLst')))),
+          ('xl/styles.xml',lambda r:r.append(deepcopy(r.find(q('dxfs'))))),
+          ('xl/styles.xml',lambda r:setattr(r.find(q('dxfs'))[0],'tag','{urn:evil}dxf')),
+          ('xl/styles.xml',lambda r:r.find(q('dxfs'))[0][0].append(ET.Element('{urn:evil}b'))),
+          ('xl/styles.xml',lambda r:r.find(q('dxfs'))[0][0].append(ET.Element(q('color'),{'theme':'1'}))),
+          ('xl/workbook.xml',lambda r:ET.SubElement(r,q('conditionalFormatting'),{'sqref':'A1'})),
+        ]
+        for part,change in attacks:
+            with self.subTest(part=part,change=change),self.assertRaises(ValueError):codec.import_book(mutate(part,change))
+        # Supported sibling must never be adopted when a built-in scale appears.
+        def mixed(root):
+            c=ET.SubElement(root,q('conditionalFormatting'),{'sqref':'D1'});ET.SubElement(c,q('cfRule'),{'type':'colorScale','priority':'99'})
+        with self.assertRaises(ValueError):codec.import_book(mutate('xl/worksheets/sheet1.xml',mixed))
+
+    def test_conditional_loaded_interpretation_disagreement_refused(self):
+        original=codec.ExcelReader
+        class ChangedReader(original):
+            def read(self):
+                super().read()
+                ws=self.wb.worksheets[0]
+                group=next(iter(ws.conditional_formatting))
+                ws.conditional_formatting[group][0].priority=99
+        with patch.object(codec,'ExcelReader',ChangedReader),self.assertRaisesRegex(ValueError,'interpretation mismatch'):
+            codec.import_book(conditional_fixture())
+
+    def test_conditional_checkbox_and_forced_error_refusal(self):
+        b=codec.import_book(fixture())['book']; e=cf_entry('greaterThan',0)
+        b['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet1':[e]})}, {'name':codec.CONTROL_RESOURCE,'data':json.dumps({'sheet1':[{'uid':'checks','type':'checkbox','ranges':e['ranges']}]})}]
+        with self.assertRaisesRegex(ValueError,'Conditional checkbox'):codec.export_book(b)
+        b['resources'].pop(); b['sheets']['sheet1']['cellData']['0']['0']={'v':'#REF!','t':4}
+        with self.assertRaisesRegex(ValueError,'forced error'):codec.export_book(b)
+        b['sheets']['sheet1']['cellData']['0']['0']={'v':'','t':1}
+        with self.assertRaisesRegex(ValueError,'literal empty'):codec.export_book(b)
+
+
+    def test_conditional_export_refuses_actual_numeric_serialization_loss(self):
+        b=codec.import_book(fixture())['book'];b['sheets']['sheet1']['cellData']={}
+        b['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet1':[cf_entry('greaterThan',1)]})}]
+        for value in [1.0000000000000002,1.0000000000000004,-1.0000000000000002]:
+            b['sheets']['sheet1']['cellData']={'0':{'0':{'v':value,'t':2}}}
+            with self.subTest(value=value),self.assertRaisesRegex(ValueError,'precision or text normalization'):
+                codec.export_book(b)
+        for value in [0,-2,1,1.000000000000001,1.000000000000002,0.125]:
+            b['sheets']['sheet1']['cellData']={'0':{'0':{'v':value,'t':2}}}
+            raw=base64.b64decode(codec.export_book(b)['base64']);codec.preflight(raw)
+            parsed=openpyxl.load_workbook(io.BytesIO(raw)).worksheets[0]['A1'].value
+            self.assertEqual(parsed,value)
+            self.assertEqual(codec.import_book(raw)['book']['sheets']['sheet1']['cellData']['0']['0']['v'],value)
+        # An unrelated literal remains under the legacy policy when no covered
+        # formula could consume it; this correction is conditional-specific.
+        b['sheets']['sheet1']['cellData']['0']['10']={'v':1.0000000000000002,'t':2}
+        codec.export_book(b)
+
+    def test_conditional_export_rule_and_cell_cr_crlf_normalization(self):
+        b=codec.import_book(fixture())['book'];b['sheets']['sheet1']['cellData']={}
+        for literal,cell in [('A\rB','A\nB'),('A\r\nB','A\nB'),('A\nB','A\rB'),('A\nB','A\r\nB'),('A\rB','A\rB')]:
+            b['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet1':[cf_entry('equal',literal,'text')]})}]
+            b['sheets']['sheet1']['cellData']={'0':{'0':{'v':cell,'t':1}}}
+            with self.subTest(literal=repr(literal),cell=repr(cell)),self.assertRaisesRegex(ValueError,'Conditional export refused'):
+                codec.export_book(b)
+        for text in ['A\nB','A\tB','雪 <&> "*?~" 😀']:
+            b['resources'][0]['data']=json.dumps({'sheet1':[cf_entry('equal',text,'text')]})
+            b['sheets']['sheet1']['cellData']={'0':{'0':{'v':text,'t':1}}}
+            raw=base64.b64decode(codec.export_book(b)['base64']);codec.preflight(raw)
+            parsed=openpyxl.load_workbook(io.BytesIO(raw)).worksheets[0]
+            self.assertEqual(parsed['A1'].value,text)
+            formula=next(iter(parsed.conditional_formatting.values()))[0].formula[0] if hasattr(parsed.conditional_formatting,'values') else parsed.conditional_formatting[next(iter(parsed.conditional_formatting))][0].formula[0]
+            self.assertIn(text.replace('"','""'),formula)
+            again=codec.import_book(raw)['book'];self.assertEqual(again['sheets']['sheet1']['cellData']['0']['0']['v'],text)
+            self.assertEqual(json.loads(again['resources'][0]['data'])['sheet1'][0]['rule']['value'],text)
+
+    def test_conditional_formula_dependency_inputs_must_serialize_exactly(self):
+        b=codec.import_book(fixture())['book']
+        b['resources']=[{'name':codec.CF_RESOURCE,'data':json.dumps({'sheet1':[cf_entry('greaterThan',1)]})}]
+        b['sheets']['sheet1']['cellData']={'0':{'0':{'f':"='Summary'!B1"}}}
+        b['sheets']['sheet2']['cellData']={'0':{'1':{'f':'=C1'},'2':{'v':1.0000000000000002,'t':2}}}
+        with self.assertRaisesRegex(ValueError,'exact inputs across all tabs'):codec.export_book(b)
+        b['sheets']['sheet2']['cellData']['0']['2']={'v':2,'t':2}
+        raw=base64.b64decode(codec.export_book(b)['base64']);codec.preflight(raw)
+        again=codec.import_book(raw)['book'];self.assertEqual(again['sheets']['sheet1']['cellData']['0']['0']['f'],"='Summary'!B1")
+        # Text and formula literals in indirect inputs can also change numeric
+        # output (LEN/IF/etc.), so the same check covers both source forms.
+        for source in [{'v':'A\rB','t':1},{'v':'A\r\nB','t':1},{'f':'=LEN("A\rB")'}]:
+            b['sheets']['sheet2']['cellData']['0']['2']=source
+            with self.subTest(source=source),self.assertRaisesRegex(ValueError,'Conditional export refused'):codec.export_book(b)
+        b['sheets']['sheet2']['cellData']['0']['2']={'v':'A\nB\t雪','t':1}
+        codec.export_book(b)
 
 
 if __name__ == '__main__':

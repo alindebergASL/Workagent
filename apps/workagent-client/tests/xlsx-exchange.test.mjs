@@ -104,7 +104,7 @@ test('XLSX local quota includes other drafts and refusal creates no import effec
 });
 for (const [code, message] of [
   ['xlsx_controls_not_supported', /cannot preserve these checkbox settings/],
-  ['xlsx_conditional_formatting_not_supported', /cannot yet preserve conditional formatting/],
+  ['xlsx_conditional_formatting_not_supported', /six numeric comparisons/],
 ]) test(`XLSX UI explains ${code} and creates no download`, async () => {
   const native = {commit:async()=>({id:'current'})};
   const view = mount(storage(), {api:async()=>{throw new Error(code);},editor:()=>native,work:{id:'current'},onImported:async()=>{},onOpen:async()=>{}});

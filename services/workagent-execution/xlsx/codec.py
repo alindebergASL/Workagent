@@ -38,7 +38,7 @@ POLICY = ['Original bytes remain available. Native exchange preserves a bounded 
           'Bounded literal dropdowns and modern in-cell boolean/blank checkboxes are preserved. Checkbox formulas, merges, custom values and inherited row/column controls are refused. Legacy drawing controls and conditional checkbox styles are unsupported.',
           'Reference/name/custom validation is not retained; no validation formulas are evaluated. Checkbox insertion defaults do not replace saved values.',
           'Dropdown colors/chips and render-mode presentation are not retained. Error/prompt settings are carried; Excel and native warning dialogs may differ.',
-          'Images, comments, hyperlinks, conditional formatting, tables, names, print settings, protection and advanced styles are not carried into native exports.',
+          'Images, comments, hyperlinks, tables, names, print settings, protection and advanced styles are not carried into native exports.',
           'Date/time conversion uses the 1900 epoch with millisecond precision; the Excel fictitious leap day is refused. Empty grid padding can differ on reopen.']
 FUNCTIONS = set('SUM AVERAGE MIN MAX COUNT COUNTA COUNTBLANK IF IFERROR AND OR NOT ROUND ROUNDUP ROUNDDOWN ABS INT MOD POWER SQRT SUMIF SUMIFS COUNTIF COUNTIFS AVERAGEIF AVERAGEIFS CONCAT CONCATENATE LEFT RIGHT MID LEN TRIM UPPER LOWER DATE YEAR MONTH DAY TODAY'.split())
 class FormulaTokenizer(Tokenizer):
@@ -126,11 +126,7 @@ def export_validations(book):
             native_charts(book)
             continue
         if name == 'SHEET_CONDITIONAL_FORMATTING_PLUGIN':
-            conditional = json.loads(data) if data else {}
-            need(isinstance(conditional, dict) and all(
-                re.fullmatch(r'[a-zA-Z0-9_-]{1,100}', sid) and sid not in ('__proto__', 'constructor', 'prototype')
-                and (sid in book['sheetOrder'] or sid not in book['sheets']) and rules == []
-                for sid, rules in conditional.items()), 'Conditional formatting cannot be exported')
+            native_conditionals(book)
             continue
         if name != CONTROL_RESOURCE:
             need(name in EMPTY_RESOURCES and data in ('', '{}', '[]'), 'Unsupported native resource'); continue
@@ -743,9 +739,273 @@ def worksheet_parts(parts):
          and refs == {rid for rid,(kind,_) in rels.items() if kind == REL+'/worksheet'}, 'Ambiguous worksheet parts')
     return descriptors
 
+# Conditional highlights are author rules, never calculated cell styles. The
+# expression language below is a closed set: import reconstructs the entire
+# template and compares it byte-for-byte; it never evaluates a supplied formula.
+CF_RESOURCE = 'SHEET_CONDITIONAL_FORMATTING_PLUGIN'
+CF_POLICY = 'Conditional highlights: six numeric comparisons (>, >=, <, <=, between, not-between) and six case-sensitive text comparisons with unambiguous literals are preserved. Numeric equality, blank/error text operators, ambiguous literals, scales, bars, icons and other expressions/differential styles are refused.'
+CF_INPUT_POLICY = 'Conditional exports refuse precision loss or CR/CRLF normalization in rule text and covered cell inputs. If a rule covers a formula, inputs across all tabs must serialize exactly; LF, tabs and ordinary Unicode remain supported.'
+CF_ERRORS = ('#DIV/0!', '#NAME?', '#VALUE!', '#NUM!', '#N/A', '#CYCLE!', '#REF!', '#SPILL!', '#CALC!', '#ERROR!', '#GETTING_DATA', '#NULL!')
+CF_NUM = {'greaterThan':'>','greaterThanOrEqual':'>=','lessThan':'<','lessThanOrEqual':'<=','between':None,'notBetween':None}
+CF_TEXT = ('equal','notEqual','beginsWith','endsWith','containsText','notContainsText')
+
+def cf_object(value, keys, required=()):
+    need(isinstance(value, dict) and not set(value)-set(keys) and set(required)<=set(value), 'Unsupported conditional formatting fields')
+
+def cf_id(value):
+    need(isinstance(value,str) and re.fullmatch(r'[a-zA-Z0-9_-]{1,100}',value) and value not in ('__proto__','constructor','prototype'), 'Invalid conditional formatting identity')
+
+def cf_number(value):
+    need(type(value) in (int,float) and math.isfinite(value) and abs(value)<=999999999999999
+         and (value==0 or abs(value)>=2.2250738585072014e-308) and float(format(value,'.15g'))==value, 'Conditional numeric threshold needs 15 significant digits, magnitude below 10^15 and no subnormal values')
+    return format(value,'.15g')
+
+def cf_literal(value):
+    field(value,200)
+    # Native converts numbers with JS String(), booleans via its internal 0/1
+    # representation, errors to their names, and whitespace-only strings to ''.
+    # These literals cannot match any of those coercions in either engine.
+    need(value and any((c.isalpha() and c not in 'eE') or c in '\"<>&*?~' for c in value)
+         and not any(value in x for x in ('TRUE','FALSE',*CF_ERRORS))
+         and not re.search(r'_x[0-9a-fA-F]{4}_',value),
+         'Conditional text literal is ambiguous across Excel/native coercion; include distinctive text, quotes, XML or wildcard characters')
+    need(len(value.encode('utf-16-le'))//2<=200, 'Conditional text literal exceeds 200 UTF-16 units')
+    return '"'+value.replace('"','""')+'"'
+
+def cf_formula(rule, ref):
+    op=rule.get('operator'); value=rule.get('value')
+    if rule.get('subType')=='number':
+        need(op in CF_NUM, 'Conditional numeric equality/not-equality unsupported: native uses floating-point tolerance')
+        if op in ('between','notBetween'):
+            need(isinstance(value,list) and len(value)==2, 'Conditional comparison needs two thresholds')
+            a,b=map(cf_number,value); need(value[0]<=value[1], 'Crossed conditional thresholds')
+            compare=f'AND({ref}>={a},{ref}<={b})'
+            if op=='notBetween': compare=f'NOT({compare})'
+        else: compare=f'{ref}{CF_NUM[op]}{cf_number(value)}'
+        nonnumber='FALSE'
+        if op in ('greaterThan','greaterThanOrEqual','notBetween'):
+            nonnumber='NOT(OR('+','.join(f'EXACT({ref},"{e}")' for e in CF_ERRORS)+'))'
+        return f'IFERROR(IF(OR(ISNUMBER({ref}),ISBLANK({ref})),{compare},{nonnumber}),FALSE)'
+    need(rule.get('subType')=='text' and op in CF_TEXT, 'Conditional blank/error text operators unsupported: native whitespace/error coercion differs')
+    literal=cf_literal(value)
+    if op in ('equal','notEqual'): expr=f'EXACT({ref},{literal})'
+    elif op in ('beginsWith','endsWith'): expr=f'EXACT({"LEFT" if op=="beginsWith" else "RIGHT"}({ref},LEN({literal})),{literal})'
+    else: expr=f'ISNUMBER(FIND({literal},{ref}))'
+    expr=f'IFERROR({expr},FALSE)'
+    return f'NOT({expr})' if op in ('notEqual','notContainsText') else expr
+
+def parse_cf_formula(text, ref):
+    need(isinstance(text,str) and len(text)<=2000, 'Conditional expression limit')
+    # Extract only literal candidates, then require the complete known grammar.
+    if text.startswith('IFERROR(IF(OR(ISNUMBER('):
+        nums=re.findall(r'(?<=[<>=])(-?(?:[0-9]+(?:\.[0-9]+)?)(?:e[+-]?[0-9]+)?)',text)
+        for op in CF_NUM:
+            if len(nums)!=(2 if op in ('between','notBetween') else 1): continue
+            values=[float(n) for n in nums]
+            rule={'type':'highlightCell','subType':'number','operator':op,'value':values if len(values)==2 else values[0]}
+            if cf_formula(rule,ref)==text: return rule
+    else:
+        literals=re.findall(r'"((?:[^"]|"")*)"',text)
+        if literals:
+            value=literals[0].replace('""','"')
+            for op in CF_TEXT:
+                rule={'type':'highlightCell','subType':'text','operator':op,'value':value}
+                if cf_formula(rule,ref)==text: return rule
+    need(False, 'Unsupported conditional expression; use the bounded Workagent comparison templates (Excel built-ins differ on case, blanks and errors)')
+
+def cf_ranges(text, budget):
+    need(isinstance(text,str) and text and len(text)<=30000, 'Invalid conditional ranges')
+    refs=text.split(); result=[]; seen=set()
+    for ref in refs:
+        need(re.fullmatch(r'[A-Z]{1,3}[1-9][0-9]*(?::[A-Z]{1,3}[1-9][0-9]*)?',ref) and ref not in seen, 'Invalid/duplicate conditional range'); seen.add(ref)
+        a,b,c,d=bounds(ref); budget[0]+=1; budget[1]+=(c-a+1)*(d-b+1)
+        need(budget[0]<=1000 and budget[1]<=100000, 'Conditional range/area limit')
+        result.append({'startRow':b-1,'endRow':d-1,'startColumn':a-1,'endColumn':c-1})
+    # openpyxl stores sqref as a set, ordered by column then row. Disallow an
+    # ambiguous anchor instead of silently moving a relative expression.
+    need(refs==sorted(refs,key=lambda x:bounds(x)), 'Conditional ranges must be in canonical column/row order')
+    return result
+
+def cf_ref(r):
+    a=f"{get_column_letter(r['startColumn']+1)}{r['startRow']+1}"
+    b=f"{get_column_letter(r['endColumn']+1)}{r['endRow']+1}"
+    return a if a==b else a+':'+b
+
+def cf_color(value):
+    need(isinstance(value,str), 'Conditional color must be RGB')
+    if re.fullmatch(r'#[0-9a-fA-F]{3}',value): value='#'+''.join(c*2 for c in value[1:])
+    m=re.fullmatch(r'rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)',value)
+    if m:
+        need(all(int(c)<=255 for c in m.groups()), 'Invalid conditional RGB color')
+        value='#'+''.join(f'{int(c):02X}' for c in m.groups())
+    need(re.fullmatch(r'#[0-9a-fA-F]{6}',value), 'Conditional color must be opaque RGB')
+    return 'FF'+value[1:].upper()
+
+def cf_dxf(style):
+    cf_object(style,('bg','cl','bl','it','ul','st'))
+    root=Element('{'+MAIN+'}dxf')
+    if any(k in style for k in ('cl','bl','it','ul','st')):
+        font=SubElement(root,'{'+MAIN+'}font')
+        for key,tag in (('bl','b'),('it','i'),('ul','u'),('st','strike')):
+            if key not in style: continue
+            value=style[key]
+            if key in ('ul','st'): cf_object(value,('s',),('s',)); value=value['s']
+            need(type(value) is int and value in (0,1), 'Invalid conditional font flag')
+            SubElement(font,'{'+MAIN+'}'+tag,{'val':('single' if value else 'none') if key=='ul' else str(value)})
+        if 'cl' in style:
+            cf_object(style['cl'],('rgb',),('rgb',)); SubElement(font,'{'+MAIN+'}color',{'rgb':cf_color(style['cl']['rgb'])})
+    if 'bg' in style:
+        cf_object(style['bg'],('rgb',),('rgb',))
+        fill=SubElement(root,'{'+MAIN+'}fill'); pattern=SubElement(fill,'{'+MAIN+'}patternFill',{'patternType':'solid'})
+        SubElement(pattern,'{'+MAIN+'}fgColor',{'rgb':cf_color(style['bg']['rgb'])})
+    return root
+
+def read_cf_dxf(root):
+    need(root.tag=='{'+MAIN+'}dxf' and not root.attrib, 'Unsupported conditional differential style')
+    style={}; seen=set()
+    for el in root:
+        tag=el.tag
+        need(tag in ('{'+MAIN+'}font','{'+MAIN+'}fill') and tag not in seen and not el.attrib, 'Unsupported/duplicate conditional differential format'); seen.add(tag)
+        if tag.endswith('}font'):
+            used=set()
+            for child in el:
+                name=child.tag.removeprefix('{'+MAIN+'}')
+                need(child.tag=='{'+MAIN+'}'+name and name in ('b','i','u','strike','color') and name not in used and not len(child), 'Unsupported conditional font'); used.add(name)
+                if name=='color':
+                    need(set(child.attrib)=={'rgb'} and re.fullmatch(r'(?:FF|00)[0-9A-Fa-f]{6}',child.get('rgb','')), 'Conditional theme/indexed/transparent colors unsupported')
+                    style['cl']={'rgb':'#'+child.get('rgb')[-6:].upper()}
+                elif name=='u':
+                    need(not set(child.attrib)-{'val'} and child.get('val','single') in ('single','none'), 'Unsupported conditional underline')
+                    style['ul']={'s':int(child.get('val','single')=='single')}
+                else:
+                    need(not set(child.attrib)-{'val'} and child.get('val','1') in ('1','0','true','false'), 'Invalid conditional boolean')
+                    value=int(child.get('val','1') in ('1','true'))
+                    style[{'b':'bl','i':'it','strike':'st'}[name]]={'s':value} if name=='strike' else value
+        else:
+            need(len(el)==1 and el[0].tag=='{'+MAIN+'}patternFill' and el[0].attrib=={'patternType':'solid'}, 'Unsupported conditional fill')
+            pattern=el[0]; need(len(pattern)==1 and pattern[0].tag=='{'+MAIN+'}fgColor' and not len(pattern[0]) and set(pattern[0].attrib)=={'rgb'} and re.fullmatch(r'(?:FF|00)[0-9A-Fa-f]{6}',pattern[0].get('rgb','')), 'Unsupported conditional fill color')
+            style['bg']={'rgb':'#'+pattern[0].get('rgb')[-6:].upper()}
+    need(all(not (e.text or '').strip() and not (e.tail or '').strip() for e in root.iter()), 'Conditional style contains text')
+    return style
+
+def native_conditionals(book):
+    data={}; budget=[0,0]; count=0
+    for resource in book.get('resources',[]):
+        if resource.get('name')==CF_RESOURCE: data=json.loads(resource['data']) if resource['data'] else {}
+    need(isinstance(data,dict), 'Invalid conditional resource'); result={}
+    controls={}
+    for resource in book.get('resources',[]):
+        if resource.get('name')==CONTROL_RESOURCE: controls=json.loads(resource['data'] or '{}')
+    for sid,entries in data.items():
+        cf_id(sid); need(isinstance(entries,list), 'Invalid conditional sheet rules')
+        if not entries and sid not in book['sheets']: continue
+        need(sid in book['sheetOrder'], 'Conditional rule belongs to missing sheet')
+        sheet=book['sheets'][sid]; ids=set(); result[sid]=[]
+        for index,entry in enumerate(entries,1):
+            count+=1; need(count<=256,'Conditional rule limit')
+            cf_object(entry,('cfId','ranges','stopIfTrue','rule'),('cfId','ranges','stopIfTrue','rule'))
+            cf_id(entry['cfId']); need(entry['cfId'] not in ids,'Duplicate conditional identity'); ids.add(entry['cfId'])
+            need(type(entry['stopIfTrue']) is bool,'Invalid conditional stopIfTrue')
+            rule=entry['rule']
+            need(isinstance(rule,dict) and rule.get('type')=='highlightCell','Conditional scales, data bars and icon sets are not supported in XLSX exchange')
+            cf_object(rule,('type','subType','operator','value','style'),('type','subType','operator','style'))
+            dxf=cf_dxf(rule['style']); ranges=entry['ranges']; need(isinstance(ranges,list) and ranges,'Conditional ranges required')
+            for r in ranges:
+                cf_object(r,('startRow','endRow','startColumn','endColumn','rangeType','startAbsoluteRefType','endAbsoluteRefType','unitId','sheetId'))
+                need(all(type(r.get(k)) is int and r[k]>=0 for k in ('startRow','endRow','startColumn','endColumn')), 'Invalid conditional range')
+                need(r['endRow']<sheet['rowCount'] and r['endColumn']<sheet['columnCount'] and r.get('rangeType',0)==0 and r.get('unitId',book['id'])==book['id'] and r.get('sheetId',sid)==sid and all(r.get(k,0) in (0,1,2,3) for k in ('startAbsoluteRefType','endAbsoluteRefType')), 'Conditional range ownership/bounds mismatch')
+            refs=sorted((cf_ref(r) for r in ranges),key=lambda x:bounds(x)); sqref=' '.join(refs)
+            canonical=cf_ranges(sqref,budget); expression=cf_formula(rule,refs[0].split(':')[0])
+            for r in canonical:
+                for control in controls.get(sid,[]):
+                    if control.get('type')=='checkbox':
+                        need(not any(r['startRow']<=q['endRow'] and r['endRow']>=q['startRow'] and r['startColumn']<=q['endColumn'] and r['endColumn']>=q['startColumn'] for q in control['ranges']), 'Conditional checkbox styles unsupported')
+                if rule['subType']=='number':
+                    for row,values in sheet.get('cellData',{}).items():
+                        if not r['startRow']<=int(row)<=r['endRow']: continue
+                        for col,cell in values.items():
+                            if not r['startColumn']<=int(col)<=r['endColumn'] or not cell: continue
+                            need(not (cell.get('t')==4 and cell.get('v') in CF_ERRORS) and not (cell.get('v')=='' and not cell.get('f')), 'Conditional numeric rules cannot exchange forced error text or literal empty text')
+            result[sid].append({'ranges':canonical,'sqref':sqref,'formula':expression,'priority':index,'stop':entry['stopIfTrue'],'dxf':dxf,'rule':rule})
+    return result
+
+def conditional_parts(parts, descriptors):
+    paths={s['path'] for s in descriptors}; result={p:[] for p in paths}; dxfs=[]; budget=[0,0]; count=0
+    for name,raw in parts.items():
+        if not name.endswith('.xml'): continue
+        root=fromstring(raw); parents={c:p for p in root.iter() for c in p}
+        for el in root.iter():
+            local=el.tag.rsplit('}',1)[-1]
+            if local in ('dxfs','dxf'):
+                parent=parents.get(el)
+                need(name=='xl/styles.xml' and root.tag=='{'+MAIN+'}styleSheet' and el.tag=='{'+MAIN+'}'+local and parent is not None and (parent is root if local=='dxfs' else parent.tag=='{'+MAIN+'}dxfs' and parents.get(parent) is root), 'Shadowed/misplaced conditional differential styles')
+                if local=='dxfs':
+                    need(not set(el.attrib)-{'count'} and len(el)<=256 and all(c.tag=='{'+MAIN+'}dxf' for c in el) and (el.get('count') is None or el.get('count')==str(len(el))), 'Invalid differential style count/schema')
+                    dxfs=list(el)
+            if local in ('conditionalFormatting','cfRule'):
+                parent=parents.get(el)
+                need(name in paths and el.tag=='{'+MAIN+'}'+local and parent is not None and (parent is root if local=='conditionalFormatting' else parent.tag=='{'+MAIN+'}conditionalFormatting' and parents.get(parent) is root), 'Shadowed/misplaced conditional formatting')
+                if local=='conditionalFormatting':
+                    need(set(el.attrib)=={'sqref'} and len(el)>0 and all(c.tag=='{'+MAIN+'}cfRule' for c in el) and not (el.text or '').strip(), 'Unsupported conditional container')
+                    for rule in el:
+                        count+=1; need(count<=256, 'Conditional rule limit')
+                        need(not set(rule.attrib)-{'type','priority','dxfId','stopIfTrue'} and rule.get('type')=='expression', 'Unsupported conditional rule: Excel built-ins, scales, bars and icons require different semantics')
+                        priority=integer(rule.get('priority'),2147483648,'Invalid conditional priority'); need(priority>0,'Invalid conditional priority')
+                        index=integer(rule.get('dxfId'),256,'Invalid conditional differential style index')
+                        need(rule.get('stopIfTrue','0') in ('0','1','true','false') and not (rule.text or '').strip() and not (rule.tail or '').strip(), 'Invalid conditional rule flags/text')
+                        need(len(rule)==1 and rule[0].tag=='{'+MAIN+'}formula' and not rule[0].attrib and not len(rule[0]) and not (rule[0].tail or '').strip(), 'Unsupported conditional formula schema')
+                        ranges=cf_ranges(el.get('sqref'),budget); expression=rule[0].text
+                        native=parse_cf_formula(expression,el.get('sqref').split()[0].split(':')[0])
+                        result[name].append({'ranges':ranges,'sqref':el.get('sqref'),'formula':expression,'priority':priority,'stop':rule.get('stopIfTrue','0') in ('1','true'),'dxfId':index,'rule':native})
+    styles=[read_cf_dxf(d) for d in dxfs]
+    from openpyxl.styles.differential import DifferentialStyle
+    for rules in result.values():
+        need(len({r['priority'] for r in rules})==len(rules), 'Duplicate conditional priority')
+        for r in rules:
+            need(r['dxfId']<len(styles),'Dangling conditional differential style index')
+            r['rule']['style']=styles[r['dxfId']]; r['parsedDxf']=DifferentialStyle.from_tree(dxfs[r['dxfId']])
+        rules.sort(key=lambda r:r['priority'])
+    return result
+
+def import_conditionals(ws, expected, sheet):
+    loaded=[]
+    for container in ws.conditional_formatting:
+        for rule in ws.conditional_formatting[container]: loaded.append((str(container.sqref),rule))
+    loaded.sort(key=lambda pair:pair[1].priority)
+    need(len(loaded)==len(expected),'Loaded conditional rule count mismatch'); result=[]
+    for (sqref,rule),spec in zip(loaded,expected):
+        need(sqref==spec['sqref'] and rule.type=='expression' and rule.formula==[spec['formula']] and rule.priority==spec['priority'] and bool(rule.stopIfTrue)==spec['stop'] and rule.dxfId==spec['dxfId'] and rule.dxf==spec['parsedDxf'], 'Loaded conditional rule/style interpretation mismatch')
+        result.append({'cfId':f'xlsx-cf-{rule.priority}','ranges':spec['ranges'],'stopIfTrue':spec['stop'],'rule':spec['rule']})
+        for r in spec['ranges']:
+            sheet['rowCount']=max(sheet['rowCount'],r['endRow']+1); sheet['columnCount']=max(sheet['columnCount'],r['endColumn']+1)
+    return result
+
+def add_conditional_parts(data, rules):
+    if not any(rules.values()): return data
+    with zipfile.ZipFile(io.BytesIO(data)) as z: parts={n:z.read(n) for n in z.namelist()}
+    descriptors=worksheet_parts(parts); styles=fromstring(parts['xl/styles.xml'])
+    need(styles.find('{'+MAIN+'}dxfs') is None,'Unexpected export differential styles')
+    dxfs=Element('{'+MAIN+'}dxfs'); index=0
+    # OOXML styleSheet sequence places dxfs before tableStyles/colors/extLst.
+    position=next((i for i,e in enumerate(styles) if e.tag.rsplit('}',1)[-1] in ('tableStyles','colors','extLst')),len(styles)); styles.insert(position,dxfs)
+    for sheet,ruleset in zip(descriptors,rules.values()):
+        # caller supplies every sheet in sheetOrder, including empty buckets.
+        root=fromstring(parts[sheet['path']])
+        position=next((i for i,e in enumerate(root) if e.tag.rsplit('}',1)[-1] in ('dataValidations','hyperlinks','printOptions','pageMargins','pageSetup','headerFooter','drawing','legacyDrawing','extLst')),len(root))
+        for spec in ruleset:
+            dxfs.append(spec['dxf']); container=Element('{'+MAIN+'}conditionalFormatting',{'sqref':spec['sqref']})
+            rule=SubElement(container,'{'+MAIN+'}cfRule',{'type':'expression','priority':str(spec['priority']),'dxfId':str(index),'stopIfTrue':str(int(spec['stop']))})
+            SubElement(rule,'{'+MAIN+'}formula').text=spec['formula']; index+=1; root.insert(position,container); position+=1
+        parts[sheet['path']]=tostring(root)
+    dxfs.set('count',str(index)); parts['xl/styles.xml']=tostring(styles)
+    out=io.BytesIO()
+    with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+        for name,raw in parts.items(): z.writestr(name,raw)
+    return out.getvalue()
+
 def preflight(data):
     need(len(data) <= BYTES and data[:4] == b'PK\x03\x04', 'Choose an unencrypted XLSX under 2 MB')
-    warnings = set(POLICY + [CHART_POLICY])
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_INPUT_POLICY])
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         infos = z.infolist()
         need(1 <= len(infos) <= 256, 'Archive entry limit')
@@ -834,7 +1094,7 @@ def preflight(data):
                         if tag in ('xf', 'font', 'fill', 'border', 'numFmt'):
                             styles += 1; need(styles <= 4000, 'Style complexity limit')
                         if worksheet and tag == 'f': need(el.get('t', 'normal') in ('normal', 'shared'), 'Array/data-table formulas unsupported')
-                        if tag in ('legacyDrawing', 'legacyDrawingHF', 'controls', 'control', 'hyperlink', 'conditionalFormatting', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
+                        if tag in ('legacyDrawing', 'legacyDrawingHF', 'controls', 'control', 'hyperlink', 'tablePart', 'definedName', 'sheetProtection', 'autoFilter', 'pane', 'extLst') or tag == 'dataValidation' and el.tag != '{'+MAIN+'}dataValidation':
                             warnings.add('Unsupported extension metadata is not retained; recognized in-cell checkbox controls are mapped.' if tag == 'extLst' else 'Not retained: ' + tag)
                     else:
                         if el.text: field(el.text, 20000)
@@ -847,7 +1107,8 @@ def preflight(data):
                         need(not any(a <= x <= c and b <= y <= d and (x,y) != (a,b) for a,b,c,d in merged), 'Merge would discard cell content')
         checkboxes = checkbox_metadata(parts, worksheets)
         charts = chart_parts(parts, descriptors)
-    return warnings, [{**sheet, 'checkboxes':checkboxes.get(sheet['path'], []), 'charts':charts[sheet['path']]} for sheet in descriptors]
+        conditional = conditional_parts(parts, descriptors)
+    return warnings, [{**sheet, 'checkboxes':checkboxes.get(sheet['path'], []), 'charts':charts[sheet['path']], 'conditional':conditional[sheet['path']]} for sheet in descriptors]
 
 def rgb(color):
     return '#' + color.rgb[-6:] if color and color.type == 'rgb' else None
@@ -881,7 +1142,7 @@ def import_book(data):
     checkboxes = [sheet['checkboxes'] for sheet in descriptors]
     need(wb.epoch == WINDOWS_EPOCH, '1904 date-epoch workbooks are refused; convert to the 1900 epoch before import. Original not adopted.')
     book = {'id': 'preview', 'name': 'Imported XLSX', 'appVersion': '1.4.0', 'locale': 'enUS', 'styles': {}, 'sheetOrder': [], 'sheets': {}}
-    total = 0; formulas = 0; budget = [0]; controls = {}; charts = []
+    total = 0; formulas = 0; budget = [0]; controls = {}; charts = []; conditional = {}
     for i, ws in enumerate(wb.worksheets):
         sid = 'sheet' + str(i+1); book['sheetOrder'].append(sid)
         need(ws.max_row <= 10000 and ws.max_column <= 200, 'Sheet bounds')
@@ -897,6 +1158,8 @@ def import_book(data):
             sheet['rowCount']=max(sheet['rowCount'], r['endRow']+1)
             sheet['columnCount']=max(sheet['columnCount'], r['endColumn']+1)
             charts.append({k:spec[k] for k in ('title','type','range')} | {'id':f'xlsx-chart-{len(charts)+1}', 'sheetId':sid})
+        cf = import_conditionals(ws, descriptors[i]['conditional'], sheet)
+        if cf: conditional[sid] = cf
         rules = import_validations(ws, sheet, sid, warnings)
         check_positions = {(row,col) for r in checkboxes[i] for row in range(r['startRow'],r['endRow']+1) for col in range(r['startColumn'],r['endColumn']+1)}
         if checkboxes[i]:
@@ -938,13 +1201,59 @@ def import_book(data):
     if charts:
         book.setdefault('resources', []).append({'name':CHART_RESOURCE,'data':json.dumps(charts,ensure_ascii=True,separators=(',', ':'))})
         native_charts(book)
+    if conditional:
+        book.setdefault('resources', []).append({'name':CF_RESOURCE,'data':json.dumps(conditional,ensure_ascii=True,separators=(',', ':'))})
+        native_conditionals(book)
     warnings.add('Column widths use approximate Excel-to-pixel conversion. Rich text is imported as plain text; theme colors and advanced layout may differ.')
     return {'book': book, 'warnings': sorted(warnings), 'cells': total}
+
+def conditional_export_fidelity(book, data, conditional):
+    """Check actual serialized inputs before releasing an XLSX with live rules.
+
+    A formula under a rule can depend on any tab, transitively. Rather than add
+    a dependency/evaluation engine, require every stored workbook input to
+    survive the real parser in that case. Uncovered literals in a workbook
+    without a covered formula retain the existing exchange policy.
+    """
+    if not any(conditional.values()): return
+    covered={}
+    formula_inputs=False
+    for sid,rules in conditional.items():
+        positions=covered[sid]=set()
+        for spec in rules:
+            for r in spec['ranges']:
+                positions.update((row,col) for row in range(r['startRow'],r['endRow']+1)
+                                 for col in range(r['startColumn'],r['endColumn']+1))
+        sheet=book['sheets'][sid]
+        for row,values in sheet.get('cellData',{}).items():
+            for col,cell in values.items():
+                if cell and (int(row),int(col)) in positions and (cell.get('f') or cell.get('si')):
+                    formula_inputs=True
+    # This is the same bounded, credentialless import parser; no evaluation.
+    reopened=import_book(data)['book']
+    for sid,new_sid in zip(book['sheetOrder'],reopened['sheetOrder']):
+        for row,values in book['sheets'][sid].get('cellData',{}).items():
+            for col,cell in values.items():
+                if not cell or not (formula_inputs or (int(row),int(col)) in covered.get(sid,set())): continue
+                parsed=reopened['sheets'][new_sid]['cellData'].get(str(row),{}).get(str(col),{})
+                if cell.get('f'):
+                    same=cell['f']==parsed.get('f')
+                elif cell.get('si'): continue # caches are not source inputs
+                else:
+                    value=cell.get('v'); same=value==parsed.get('v')
+                need(same, 'Conditional export refused: cell/formula input changes during XLSX serialization (precision or text normalization). Covered formulas require exact inputs across all tabs.')
+    # Raw formula templates must still describe the submitted rule, including
+    # CR versus LF and CRLF. Checking only preflight of the output misses this.
+    actual=native_conditionals(reopened)
+    for sid,new_sid in zip(book['sheetOrder'],reopened['sheetOrder']):
+        before=conditional.get(sid,[]); after=actual.get(new_sid,[])
+        need(len(before)==len(after) and all(a['formula']==b['formula'] for a,b in zip(before,after)),
+             'Conditional export refused: rule text changes during XLSX serialization (CR/CRLF normalization). Use LF or tab text instead.')
 
 def export_book(book):
     validations = export_validations(book)
     wb = openpyxl.Workbook(); wb.remove(wb.active); wb.calculation = CalcProperties(calcId=0, fullCalcOnLoad=True, forceFullCalc=True)
-    warnings = set(POLICY + [CHART_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
+    warnings = set(POLICY + [CHART_POLICY, CF_POLICY, CF_INPUT_POLICY]); total = 0; formulas = 0; merge_area = 0; budget = [0]
     need(1 <= len(book['sheetOrder']) <= 20 and len(set(book['sheetOrder'])) == len(book['sheetOrder']), 'Sheet limit')
     checkbox_cells = {}
     for index, sid in enumerate(book['sheetOrder'], 1):
@@ -1045,8 +1354,11 @@ def export_book(book):
         ws.add_chart(chart, f'G{1+index*16}')
     output = io.BytesIO(); wb.save(output); data = output.getvalue()
     if checkbox_cells: data = add_checkbox_parts(data, checkbox_cells)
+    conditional = native_conditionals(book)
+    data = add_conditional_parts(data, {sid:conditional.get(sid,[]) for sid in book['sheetOrder']})
     need(len(data) <= BYTES, 'Export exceeds 2 MB; no file produced')
     preflight(data)
+    conditional_export_fidelity(book, data, conditional)
     return {'base64': base64.b64encode(data).decode(), 'warnings': sorted(warnings)}
 
 def main():

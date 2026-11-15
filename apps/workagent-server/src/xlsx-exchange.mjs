@@ -1,4 +1,4 @@
-import { hasConditionalRules } from '../../../packages/workagent-contract/conditional-formatting.mjs';
+import { CONDITIONAL_RESOURCE, conditionalRules, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { CONTROL_RESOURCE, controlCells, sheetControls } from '../../../packages/workagent-contract/sheet-controls.mjs';
 import { requireSheet } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID } from 'node:crypto';
@@ -40,6 +40,7 @@ function importedHumanCells(book) {
     }
   }
   for (const anchor of controlCells(book).keys()) anchors.add(anchor);
+  for (const anchor of conditionalCells(book).keys()) anchors.add(anchor);
   return [...anchors];
 }
 export class XlsxExchange {
@@ -86,6 +87,12 @@ export class XlsxExchange {
         }
         const resource = book.resources?.find(r => r.name === CONTROL_RESOURCE);
         if (resource) resource.data = JSON.stringify(controls);
+        const conditional = conditionalRules(book);
+        for (const rules of Object.values(conditional)) for (const rule of rules) for (const range of rule.ranges) {
+          if (range.unitId !== undefined) range.unitId = workId;
+        }
+        const cfResource = book.resources?.find(r => r.name === CONDITIONAL_RESOURCE);
+        if (cfResource) cfResource.data = JSON.stringify(conditional);
         validateWorkbook(book);
         const w = { id: workId, book, original, contentRevision: 1, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells, sourceIds: [], status: 'ready' };
         s.works[workId] = w; event(s, w, 'human_imported');
@@ -98,7 +105,8 @@ export class XlsxExchange {
     if (Object.keys(input).some(k => !['workId', 'book'].includes(k))) throw new Fault('invalid_xlsx_input', 400);
     const book = withoutFormulaResults(validateWorkbook(input.book));
     if (book.id !== input.workId) throw new Fault('invalid_workbook', 400);
-    if (hasConditionalRules(book)) throw new Fault('xlsx_conditional_formatting_not_supported', 400);
+    if (Object.values(conditionalRules(book)).some(rules => rules.some(entry => entry.rule.type !== 'highlightCell')))
+      throw new Fault('xlsx_conditional_formatting_not_supported', 400);
     if (Object.values(sheetControls(book)).some(rules => rules.some(rule => rule.type === 'checkbox' && (
       rule.allowBlank === false || rule.showDropDown === false || rule.showErrorMessage === true || rule.showInputMessage === true
       || ['error', 'errorTitle', 'prompt', 'promptTitle'].some(key => rule[key]) || rule.renderMode !== undefined

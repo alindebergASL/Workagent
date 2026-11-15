@@ -103,7 +103,7 @@ test('native SDK highlights are derived, mutable, ordered, editable and persist 
     saved=await ws.get('owner',workId);assert.ok(saved.humanCells.includes('sheet1:3:0'));assert.ok(!saved.humanCells.includes('sheet1:0:2'));
     assert.equal((await ws.mutate('owner',workId,{commandId:'agent',expected:saved.expected,patch:{cells:[{sheetId:'sheet1',row:3,column:0,value:99}]}})).status,'proposed');
     await assert.rejects(()=>ws.save('intruder',workId,{...input,commandId:'denied'}));
-    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('must not run');}}}).export('owner',{workId,book:snapshot}),/xlsx_conditional_formatting_not_supported/);
+    await assert.rejects(()=>new XlsxExchange({workspace:ws,worker:{run(){throw new Error('supported highlights reach worker');}}}).export('owner',{workId,book:snapshot}),/supported highlights reach worker/);
     assert.throws(()=>serializeCsv(snapshot,'sheet1'),/cannot preserve conditional/);
     const before=conditionalRules(view.handle.save());
     sheet.addConditionalFormattingRule({...rule(),cfId:'bad',rule:{type:'highlightCell',subType:'formula',value:'=1',style:{}}});
