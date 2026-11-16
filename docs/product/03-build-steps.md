@@ -559,12 +559,46 @@ unchanged. Own QA tabs retired with contexts/storage retained. Browser harness
 readiness/interception corrections are recorded, not presented as product fixes.
 No physical-phone, over-capacity refusal or general reconnect-latency claim.
 
+Author-only native root/reply text editing is now qualified on private QA8b0fdd933632
+(port43087, fresh DB710f7969189b), not installed in main. Explicit Edit/Save/Cancel
+retains original claims and prior private body versions; exact committed native
+receipts alone publish current text. Owner cannot rewrite a peer reply. Current
+member/principal/ACL/epoch/head/body-version/anchor checks protect native admission.
+Missing proof affects only its comment. Unchanged Save retains no identity or POST.
+Explicit unused abandonment can fence an absent preparation under the admission lock;
+missing GET or a409 alone never proves no effect. Admitted uncertainty is retained.
+A confirmed own version advances the form only when no newer draft would be lost.
+
+SAME independent review passed after the unchanged-Save lockout and stale-form
+correction. Parent original reproduction RED→GREEN;75 selected tests and types/diff
+pass, not full-SDK green. Real restricted PG/native SQLite/cookie HTTP/licensed WS
+8e1c1a505615 passed restart,5 committed edits,2 unused abandonments,9 native POSTs/
+head10, hidden native reply and abandon recovery without replay, refusal/delayed-
+preparation fencing, author/reader/epoch protection and max2/final0 connections.
+Its initial harness wrongly expected peer receipts in owner GET; actor-scoped
+readback corrected the harness, with the failed fixture retained rather than reset.
+
+Fourteen browser stages pass: unchanged Save/no identity, repeated owner edits with
+fresh form basis, peer reply authorship, resolved-thread edit, actual lost prepare
+and abandon replies recovered by GET, explicit new edit after settlement, unsent
+drafts/offline recovery,390px layout, same-owner cold tab, reader UI/HTTP403,
+navigation draft protection and revocation. Storage enumeration order and collapsed
+comment details were harness corrections, not product fixes. Final epoch4/head9;
+2 original claims,1 resolution and6 edit records(5 admitted/1 abandoned),0 jobs/
+provider journal rows.226 source/80 artifact and served entry hashes verified.
+Actual process environment has neither model gate nor provider key. Evidence
+correction: the previous resolution QA had a keyless config, but its legacy launcher
+injected a process key; its gates remain disabled and0 jobs/journal were reverified.
+Original paid job/proposal/receipts, runtime.env/main/default/public remain unchanged.
+Own tabs retired with contexts, localStorage and unsent-draft evidence retained.
+No physical-phone, capacity-refusal or general reconnect-latency claim.
+
 Full B05 remains open: expanded native surface and conflict coverage, durable
-browser-crash recovery, comment-body editing/manual deletion and text/object anchors,
+browser-crash recovery, manual comment deletion and text/object anchors,
 broader individual/account undo and whole-artifact restore-as-new-revision,
-broader-than-scalar agent acceptance and two-human usability. Next is comment-body
-editing with retained revisions, then broader native conflict/recovery coverage. Existing human Sheet
-conversion and native export remain unclaimed.
+broader-than-scalar agent acceptance and two-human usability. Next is manual comment
+deletion with retained evidence, then broader native conflict/recovery coverage.
+Existing human Sheet conversion and native export remain unclaimed.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

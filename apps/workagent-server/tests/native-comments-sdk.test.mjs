@@ -116,3 +116,22 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) test('resolve/reopen public
   }
  }finally{f.dispose();}
 });
+
+if(process.argv[1]===fileURLToPath(import.meta.url)) test('public update root and reply emits exact text payload and preserves original identity and anchor',async()=>{
+ const {UpdateCommentCommand,UpdateCommentMutation,IThreadCommentDataSourceService}=await import('@univerjs/thread-comment');
+ const f=fixture();try{
+  await add(f,'root','owner');await add(f,'reply','peer','root');await insert(f);
+  const source=f.univer.__getInjector().get(IThreadCommentDataSourceService),calls=[];
+  source.dataSource={saveCommentToSnapshot:c=>c,updateComment:async c=>{calls.push(structuredClone(c));return true;}};source.syncUpdateMutationToColla=true;
+  for(const id of ['root','reply']){
+   const before=structuredClone(f.model.getComment(f.unitID,TAB,id)),payload={commentId:id,text:{dataStream:'Revised text\r\n',paragraphs:[{startIndex:12}]}};
+   const start=f.emitted.length;
+   assert.equal(await f.commands.executeCommand(UpdateCommentCommand.id,{unitId:f.unitID,subUnitId:TAB,payload}),true);
+   assert.deepEqual(calls.at(-1).text,payload.text);
+   assert.deepEqual(f.emitted.slice(start).map(m=>[m.id,m.params,m.options.onlyLocal]),[[UpdateCommentMutation.id,{unitId:f.unitID,subUnitId:TAB,payload,trigger:UpdateCommentCommand.id},false]]);
+   const after=f.model.getComment(f.unitID,TAB,id);for(const k of ['id','personId','dT','ref','threadId','parentId'])assert.deepEqual(after[k],before[k]);assert.deepEqual(after.text,payload.text);
+  }
+  assert.equal(thread(f).root.ref,'H10');assert.equal(thread(f).children.length,1);
+  const loaded=fixture(f.save());try{assert.equal(thread(loaded).root.text.dataStream,'Revised text\r\n');assert.equal(thread(loaded).children[0].text.dataStream,'Revised text\r\n');}finally{loaded.dispose();}
+ }finally{f.dispose();}
+});

@@ -101,6 +101,11 @@ test('comments HTTP binding matches native cookie/bearer connection, preserving 
     prepareAction(principal,unit,session,input,send){captured.push({operation:'prepare',principal,unit,session,input});send({status:'unknown'});},
     abandonAction(principal,unit,session,id,send){captured.push({operation:'abandon',principal,unit,session,id});send({status:'abandoned'});},
   };
+  comments.editing={
+    prepare(principal,unit,session,input,send){captured.push({operation:'edit',principal,unit,session,input});send({status:'unknown'});},
+    abandon(principal,unit,session,id,send,input){captured.push({operation:'edit-abandon',principal,unit,session,id,input});send({status:'abandoned'});},
+  };
+  const edit={id:'synthetic-edit',commentId:'root',memberID:'member',previousVersion:'original',body:'Exact retained draft'};
   const handler=createHandler({...options,workspace:{},native:{authority:{comments}},clientRoot:'/unused'});
   const bindings=[];
   for(const credentialHeaders of [{cookie:`workagent_session=${cookie}`},{authorization:`Bearer ${token}`}]){
@@ -115,9 +120,9 @@ test('comments HTTP binding matches native cookie/bearer connection, preserving 
       let data;const res={setHeader(){},writeHead(status){this.status=status;},end(value){data=JSON.parse(value);this.writableEnded=true;}};
       await handler(req,res);return {status:res.status,data};
     };
-    for(const [operation,suffix,input] of [['list','',undefined],['prepare','/actions',{id:'synthetic-action',commentId:'root',memberID:'member',resolved:true}],['abandon','/actions/synthetic-action/abandon',{}]]){
+    for(const [operation,suffix,input] of [['list','',undefined],['prepare','/actions',{id:'synthetic-action',commentId:'root',memberID:'member',resolved:true}],['abandon','/actions/synthetic-action/abandon',{}],['edit','/edits',edit],['edit-abandon','/edits/synthetic-edit/abandon',edit]]){
       const result=await api(suffix,input);assert.equal(result.status,200);const seen=captured.at(-1);
-      assert.equal(seen.operation,operation);assert.equal(seen.principal,'owner');assert.equal(seen.unit,UNIT);assert.equal(seen.session.revision,1);
+      assert.equal(seen.operation,operation);if(operation.startsWith('edit'))assert.deepEqual(seen.input,input);assert.equal(seen.principal,'owner');assert.equal(seen.unit,UNIT);assert.equal(seen.session.revision,1);
       assert.ok(seen.session.binding===expected,`${operation} must pass native authenticated binding, not the browser profile marker`);
       const count=captured.length;assert.equal((await api(suffix,input,'wrong-browser-marker')).status,403);assert.equal(captured.length,count);
       assert.equal((await api(suffix,input,expected)).status,403,'native binding cannot replace the browser profile header');assert.equal(captured.length,count);

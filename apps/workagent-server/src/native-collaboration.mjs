@@ -1,3 +1,4 @@
+import { UPDATE_COMMENT } from './native-comment-editing.mjs';
 import { NativeAgentAcceptance } from './native-agent-acceptance.mjs';
 import { NativeAgent } from './native-agent.mjs';
 import { NativeReversal } from './native-reversal.mjs';
@@ -52,7 +53,7 @@ export class NativeAuthority {
   validateChangeset(c) {
     if (!c || (this.unitID !== null && c.unitID !== this.unitID) || c.type !== UniverType.UNIVER_SHEET || typeof c.sid !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(c.sid) || !Number.isSafeInteger(c.reqId) || c.reqId < 1 || !Array.isArray(c.mutations) || !c.mutations.length) deny();
     for (const m of c.mutations) {
-      if (!mutations.has(m.id) && !(this.comments && [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT].includes(m.id))) deny();
+      if (!mutations.has(m.id) && !(this.comments && [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT, UPDATE_COMMENT].includes(m.id))) deny();
       let p; try { p = JSON.parse(m.data); } catch { deny(); }
       if (p?.unitId !== c.unitID || p.subUnitId !== NATIVE_TAB) deny();
     }

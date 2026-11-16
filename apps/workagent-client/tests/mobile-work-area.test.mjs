@@ -564,12 +564,12 @@ test('comments App: refused prewrite retains usable draft, explicit new intent c
   try{
     await f.flush();await f.message('root composer');await f.open('A');await native.poll();await f.flush();
     textarea().props.onChange({target:{value:'retained comment'}});await f.flush();await f.open('B');assert.equal(native.instances.length,1);assert.equal(textarea().props.value,'retained comment');
-    native.setCommentRefusal(true);await f.click('Add immutable comment');assert.equal(native.commentPosts.length,1);assert.equal(native.instances[0].nativeAdds.length,0);assert.equal(textarea().props.disabled,false);assert.match(f.panel.text(),/No native add began/);
-    native.setCommentRefusal(false);await f.click('Add immutable comment');assert.equal(native.commentPosts.length,2);assert.equal(textarea().props.disabled,true);
+    native.setCommentRefusal(true);await f.click('Add comment');assert.equal(native.commentPosts.length,1);assert.equal(native.instances[0].nativeAdds.length,0);assert.equal(textarea().props.disabled,false);assert.match(f.panel.text(),/No native add began/);
+    native.setCommentRefusal(false);await f.click('Add comment');assert.equal(native.commentPosts.length,2);assert.equal(textarea().props.disabled,true);
     await native.poll();await f.flush();assert.equal(textarea().props.value,'retained comment');await f.open('B');assert.equal(native.instances.length,1);
     // A queued input event can arrive after submission. Confirmation must not
     // erase newer text, including when a stale click handler runs a second time.
-    textarea().props.onChange({target:{value:'newer unsent comment'}});await f.flush();f.button('Add immutable comment').props.onClick();await f.flush();
+    textarea().props.onChange({target:{value:'newer unsent comment'}});await f.flush();f.button('Add comment').props.onClick();await f.flush();
     native.published.set('A',native.instances[0].nativeAdds);await native.poll();await f.flush();assert.equal(textarea().props.value,'newer unsent comment');assert.equal(native.commentPosts.length,2);
     await f.click('Clear unsent comment draft');
     await f.open('B');assert.equal(native.instances.length,2);await f.open('');assert.equal(f.messageValue(),'root composer');
@@ -583,10 +583,10 @@ test('comments App: deleted reply target retains text with explicit new-cell cho
   const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');
   try{
     await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');textarea().props.onChange({target:{value:'reply draft'}});await f.flush();
-    native.published.set('A',[]);await native.poll();await f.flush();assert.match(f.panel.text(),/target is no longer published/);assert.equal(f.button('Add immutable comment').props.disabled,true);
+    native.published.set('A',[]);await native.poll();await f.flush();assert.match(f.panel.text(),/target is no longer published/);assert.equal(f.button('Add comment').props.disabled,true);
     await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'reply draft');
-    native.instances[0].editing=true;await native.poll();await f.flush();assert.equal(f.button('Add immutable comment').props.disabled,true);assert.match(f.panel.text(),/Finish active cell/);assert.equal(native.commentPosts.length,0);
-    native.instances[0].editing=false;await f.click('Clear unsent comment draft');await f.open('B');assert.throws(()=>textarea(),/control missing/);assert.doesNotMatch(f.panel.text(),/Add immutable comment/);assert.equal(native.commentPosts.length,0);
+    native.instances[0].editing=true;await native.poll();await f.flush();assert.equal(f.button('Add comment').props.disabled,true);assert.match(f.panel.text(),/Finish active cell/);assert.equal(native.commentPosts.length,0);
+    native.instances[0].editing=false;await f.click('Clear unsent comment draft');await f.open('B');assert.throws(()=>textarea(),/control missing/);assert.doesNotMatch(f.panel.text(),/Add comment/);assert.equal(native.commentPosts.length,0);
     assert.equal(native.instances[0].commentListeners.size,0);
   }finally{f.dispose();await new Promise(setImmediate);}
 });
@@ -596,10 +596,10 @@ test('comments App: committed and removed before polling unlocks recovery, prese
   for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
   const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');
   try{
-    await f.flush();await f.message('root retained');await f.open('A');await native.poll();await f.flush();textarea().props.onChange({target:{value:'Published then removed; keep my text'}});await f.flush();await f.click('Add immutable comment');
+    await f.flush();await f.message('root retained');await f.open('A');await native.poll();await f.flush();textarea().props.onChange({target:{value:'Published then removed; keep my text'}});await f.flush();await f.click('Add comment');
     const id=native.commentPosts[0].id;
     native.receipts.set(id,{id,status:'unknown'});await native.poll();await f.flush();assert.equal(textarea().props.disabled,true);assert.equal(f.button('Clear unsent comment draft').props.disabled,true);await f.open('B');assert.equal(native.instances.length,1);
-    native.receipts.set(id,{id,status:'committed-removed',revision:2});await native.poll();await f.flush();assert.equal(textarea().props.disabled,false);assert.equal(textarea().props.value,'Published then removed; keep my text');assert.match(f.panel.text(),/committed, then removed/);assert.equal(f.button('Add immutable comment').props.disabled,true);assert.equal(native.commentPosts.length,1);
+    native.receipts.set(id,{id,status:'committed-removed',revision:2});await native.poll();await f.flush();assert.equal(textarea().props.disabled,false);assert.equal(textarea().props.value,'Published then removed; keep my text');assert.match(f.panel.text(),/committed, then removed/);assert.equal(f.button('Add comment').props.disabled,true);assert.equal(native.commentPosts.length,1);
     await f.open('B');assert.equal(native.instances.length,1,'draft remains protected until explicit action');
     await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'Published then removed; keep my text');assert.equal(native.commentPosts.length,1);
     await f.click('Clear unsent comment draft');await f.open('B');await f.open('');assert.equal(f.messageValue(),'root retained');assert.equal(native.commentPosts.length,1);
@@ -766,4 +766,42 @@ test('comments resolution App: explicit unused abandonment retains drafts and ne
   assert.ok(f.button('Abandon unused thread action'));await f.click('Abandon unused thread action');assert.equal(posts,1);assert.equal(textarea().props.value,'comment abandon draft');assert.equal(native.instances[0].nativeAdds.length,0);assert.equal(f.storage.getItem(key),JSON.stringify(a));
   await native.poll();await f.flush();assert.equal(posts,1);assert.match(f.panel.text(),/abandoned/);await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root abandon draft');
  }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('comments editing App: author draft is separate, Cancel has no effect and active cell input cannot save',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ native.published.set('A',[{id:'root',threadId:'root',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'Original body\r\n'},bodyVersion:'original',children:[{id:'peer-reply',personId:'peer',authorName:'Peer',text:{dataStream:'Peer body\r\n'},bodyVersion:'original'}]}]);
+ try{await f.flush();await f.message('root draft exact');await f.open('A');await native.poll();await f.flush();
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');textarea().props.onChange({target:{value:'new comment draft exact'}});await f.flush();await f.click('Edit comment');
+  const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');edit().props.onChange({target:{value:'edit draft exact'}});await f.flush();assert.throws(()=>f.button('Edit reply'));assert.equal(textarea().props.value,'new comment draft exact');
+  native.instances[0].editing=true;await native.poll();await f.flush();assert.equal(f.button('Save text revision').props.disabled,true);f.button('Save text revision').props.onClick();await f.flush();assert.equal(native.commentPosts.length,0);assert.equal(edit().props.value,'edit draft exact');assert.equal(native.instances[0].editing,true);
+  native.instances[0].editing=false;await f.click('Cancel edit draft');assert.equal(native.commentPosts.length,0);assert.equal(textarea().props.value,'new comment draft exact');await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root draft exact');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('comments editing App: unchanged Save disabled; own confirmed edit advances only unchanged draft basis without replacing its textarea',async()=>{
+ for(const newer of [false,true]){
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);let receipts=[],editPosts=[];
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const root={id:'root',threadId:'root',unitId:'A',subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'Original\r\n'},bodyVersion:'original'};native.published.set('A',[root]);
+ const request=native.commentsRequest;native.commentsRequest=async(path,options)=>{
+  if(path.endsWith('/edits')&&options.method==='POST'){const a=JSON.parse(options.body);editPosts.push(a);return {ok:true,json:async()=>({...a,status:'unknown',phase:'prepared',head:2})};}
+  const r=await request(path,options),v=await r.json();return {ok:true,json:async()=>({...v,edits:receipts})};
+ };
+ try{await f.flush();await f.message('root text unchanged');await f.open('A');await native.poll();await f.flush();
+  const entry=native.instances[0],execute=entry.commands.executeCommand.bind(entry.commands);entry.commands.executeCommand=async(id,params)=>{
+   if(id!=='thread-comment.command.update-comment')return execute(id,params);
+   await entry.commentSource.dataSource.updateComment({...root,...params.payload});for(const fn of entry.commentListeners)fn({id:'thread-comment.mutation.update-comment',params});return true;
+  };
+  const comment=()=>f.find(n=>n.props['aria-label']==='Comment draft');comment().props.onChange({target:{value:'comment text unchanged'}});await f.flush();await f.click('Edit comment');
+  const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');assert.equal(f.button('Save text revision').props.disabled,true);f.button('Save text revision').props.onClick();await f.flush();assert.equal(editPosts.length,0);
+  edit().props.onChange({target:{value:'Second'}});await f.flush();await f.click('Save text revision');assert.equal(editPosts.length,1);const a=editPosts[0];
+  if(newer){edit().props.onChange({target:{value:'newer unsent draft'}});await f.flush();}
+  receipts=[{...a,status:'committed',phase:'admitted',head:2,revision:3}];native.published.set('A',[{...root,text:{dataStream:'Second\r\n'},bodyVersion:a.id}]);await native.poll();await f.flush();
+  if(newer){assert.equal(edit().props.value,'newer unsent draft');assert.equal(f.button('Save text revision').props.disabled,true);f.button('Save text revision').props.onClick();await f.flush();assert.equal(editPosts.length,1);await f.click('Cancel edit draft');}
+  else { assert.equal(edit().props.value,'Second'); assert.equal(f.button('Save text revision').props.disabled,true); }
+  if(newer)await f.click('Edit comment');assert.equal(edit().props.value,'Second');edit().props.onChange({target:{value:'Third'}});await f.flush();await f.click('Save text revision');assert.equal(editPosts.length,2);assert.equal(editPosts[1].previousVersion,a.id);assert.equal(comment().props.value,'comment text unchanged');assert.equal(entry.anchor,'H9');assert.equal(entry.editing,false);
+ }finally{f.dispose();await new Promise(setImmediate);}
+ }
 });

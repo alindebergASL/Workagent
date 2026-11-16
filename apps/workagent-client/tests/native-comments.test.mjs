@@ -8,19 +8,19 @@ import { fixture as sdk } from '../../workagent-server/tests/native-comments-sdk
 const deferred=()=>{let resolve;return {promise:new Promise(r=>resolve=r),resolve};};
 function fixture(role='owner') {
   const local=sdk(), source=local.univer.__getInjector().get(IThreadCommentDataSourceService), states=[],posts=[],signals=[];
-  let published=[],refusal=false,busy=false,gate,receipt,actionReceipts=[],lostAction=false,actionGate,lostAbandon=false;const saved=new Map(),disk={getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v),key:i=>[...saved.keys()][i]??null,get length(){return saved.size;}};
+  let editRefusal=false,published=[],refusal=false,busy=false,gate,receipt,actionReceipts=[],lostAction=false,actionGate,lostAbandon=false;const saved=new Map(),disk={getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v),key:i=>[...saved.keys()][i]??null,get length(){return saved.size;}};
   const session={unitID:local.unitID,principal:'owner',name:'Owner',binding:'synthetic',owner:role==='owner',access:{role,revision:1}};
-  const request=async(url,options)=>{assert.match(url,/native-comments\/1(?:\?|\/actions|$)/);signals.push(options.signal);
+  const request=async(url,options)=>{assert.match(url,/native-comments\/1(?:\?|\/actions|\/edits|$)/);signals.push(options.signal);
     if(options.method==='POST'){
-      const body=JSON.parse(options.body);posts.push(body);if(url.endsWith('/abandon')){const id=url.split('/').at(-2),r=actionReceipts.find(a=>a.id===id);Object.assign(r,{phase:'abandoned',status:'abandoned'});if(lostAbandon)throw Error('lost abandonment response');return {ok:true,json:async()=>structuredClone(r)};}if(url.endsWith('/actions')){if(actionGate)await actionGate.promise;if(lostAction)throw Error('lost preparation response');return {ok:true,json:async()=>({...body,status:'unknown',head:3})};}if(refusal)return {ok:false,status:409};
+      const body=JSON.parse(options.body);posts.push(body);if(url.endsWith('/abandon')){const id=url.split('/').at(-2);let r=actionReceipts.find(a=>a.id===id);if(!r&&url.includes('/edits/')){assert.equal(body.id,id);r={...body,head:3};actionReceipts.push(r);}Object.assign(r,{phase:'abandoned',status:'abandoned'});if(lostAbandon)throw Error('lost abandonment response');return {ok:true,json:async()=>structuredClone(r)};}if(url.endsWith('/actions')||url.endsWith('/edits')){if(url.endsWith('/edits')&&editRefusal)return {ok:false,status:409};if(actionGate)await actionGate.promise;if(lostAction)throw Error('lost preparation response');return {ok:true,json:async()=>({...body,status:'unknown',phase:'prepared',head:3})};}if(refusal)return {ok:false,status:409};
       const canonical={id:body.id,threadId:body.parentId??body.id,unitId:local.unitID,subUnitId:'sheet-1',personId:'owner',authorName:'Owner',dT:'2026-11-16T00:00:00.000Z',ref:body.ref,text:{dataStream:body.body+'\r\n',paragraphs:[{startIndex:body.body.length}]},...(body.parentId?{parentId:body.parentId}:{})};
       return {ok:true,json:async()=>canonical};
     }
     if(gate)await gate.promise;
-    return {ok:true,json:async()=>({revision:3,comments:structuredClone(published),receipt,actions:actionReceipts})};
+    return {ok:true,json:async()=>({revision:3,comments:structuredClone(published),receipt,actions:actionReceipts,edits:actionReceipts})};
   };
   const helper=nativeComments(session,source,local.commands,()=>!busy,v=>states.push(v),request,()=> 'member',disk);
-  return {local,helper,source,states,posts,signals,saved,disk,session,request,setLostAbandon:v=>lostAbandon=v,setActionGate:v=>actionGate=v,setActions:v=>actionReceipts=v,setLostAction:v=>lostAction=v,setRefusal:v=>refusal=v,setBusy:v=>busy=v,setPublished:v=>published=v,setGate:v=>gate=v,setReceipt:v=>receipt=v,
+  return {local,helper,source,states,posts,signals,saved,disk,session,request,setEditRefusal:v=>editRefusal=v,setLostAbandon:v=>lostAbandon=v,setActionGate:v=>actionGate=v,setActions:v=>actionReceipts=v,setLostAction:v=>lostAction=v,setRefusal:v=>refusal=v,setBusy:v=>busy=v,setPublished:v=>published=v,setGate:v=>gate=v,setReceipt:v=>receipt=v,
     dispose(){helper.dispose();local.dispose();}};
 }
 test('actual AddCommentCommand: definite body refusal emits no mutation, retains editable draft and only explicit new intent retries',async()=>{
@@ -109,5 +109,54 @@ test('possibly-sent native resolution cannot be abandoned even if a stale GET cl
  const f=fixture();try{
   await f.helper.add('body','H9');const root=f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id);f.setPublished([structuredClone(root)]);await f.helper.refresh();await f.helper.resolve(root);
   const a=f.posts.at(-1);f.setActions([{...a,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();assert.deepEqual(f.states.at(-1).abandonable,[]);const count=f.posts.length;await f.helper.abandon(a.id);assert.equal(f.posts.length,count);assert.ok([...f.saved.keys()].some(k=>k.includes('started:')));
+ }finally{f.dispose();}
+});
+
+test('text editing: actual public command retains identity; only committed receipt publishes; author and active-input guards',async()=>{
+ const {UpdateCommentMutation}=await import('@univerjs/thread-comment');const f=fixture();try{
+  await f.helper.add('Original','H9');const root=f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id);const published={...structuredClone(root),bodyVersion:'original'};f.setPublished([published]);await f.helper.refresh();
+  assert.equal(f.helper.editing.canEdit({...published,personId:'peer'}),false);f.setBusy(true);await f.helper.editing.edit(published,'Changed');assert.equal(f.posts.length,1);f.setBusy(false);
+  await f.helper.editing.edit(published,'Changed');const a=f.posts.at(-1);assert.equal(a.body,'Changed');assert.equal(a.previousVersion,'original');assert.equal(root.text.dataStream,'Changed\r\n');assert.equal(f.local.emitted.at(-1).id,UpdateCommentMutation.id);assert.equal(f.helper.editing.canEdit(published),false);
+  await f.helper.refresh();assert.equal(f.states.at(-1).comments[0].text.dataStream,'Original\r\n');assert.match(f.states.at(-1).editing.message,/unknown/);const count=f.posts.length;
+  f.setActions([{...a,status:'committed',phase:'admitted',head:2,revision:3}]);f.setPublished([{...published,text:{dataStream:'Changed\r\n'},bodyVersion:a.id}]);await f.helper.refresh();assert.match(f.states.at(-1).editing.message,/recorded/);assert.equal(f.posts.length,count);
+  assert.equal(f.saved.get([...f.saved.keys()].find(k=>k.endsWith('intent:'+a.id))),JSON.stringify(a));
+ }finally{f.dispose();}
+});
+test('text edit busy during preparation: explicit unused abandonment, lost response/remount GET-only and immutable draft identity',async()=>{
+ const f=fixture(),gate=deferred();let reopened;try{
+  await f.helper.add('Original','H9');const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id)),bodyVersion:'original'};f.setPublished([root]);await f.helper.refresh();f.setActionGate(gate);
+  const work=f.helper.editing.edit(root,'Retain this edit');await new Promise(setImmediate);const a=f.posts.at(-1);f.setBusy(true);gate.resolve();await work;assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1',root.id).text.dataStream,'Original\r\n');f.setBusy(false);
+  f.setActions([{...a,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();assert.deepEqual(f.states.at(-1).editing.abandonable,[a.id]);f.setLostAbandon(true);await f.helper.editing.abandon(a.id);const count=f.posts.length,before=new Map(f.saved);
+  f.helper.dispose();const reversed=new Map([...f.saved].reverse()),disk={getItem:k=>reversed.get(k)??null,setItem:(k,v)=>reversed.set(k,v),key:i=>[...reversed.keys()][i]??null,get length(){return reversed.size;}};
+  reopened=nativeComments(f.session,f.source,f.local.commands,()=>true,()=>{},f.request,()=> 'new-member',disk);await reopened.refresh();assert.equal(f.posts.length,count);for(const [key,value] of before)assert.equal(disk.getItem(key),value);assert.equal(reopened.editing.canEdit(root),true);
+  assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1',root.id).text.dataStream,'Original\r\n');
+ }finally{reopened?.dispose();f.dispose();}
+});
+
+test('editing unchanged text creates no identity or POST across cancel/remount; changed Save uses current body version',async()=>{
+ const f=fixture();let reopened;try{
+  await f.helper.add('Original','H9');const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id)),bodyVersion:'original'};f.setPublished([root]);await f.helper.refresh();const before=new Map(f.saved),posts=f.posts.length,mutations=f.local.emitted.length;
+  await f.helper.editing.edit(root,'Original');assert.equal(f.posts.length,posts);assert.deepEqual(f.saved,before);assert.equal(f.local.emitted.length,mutations);assert.equal(f.helper.editing.canEdit(root),true);
+  f.helper.dispose();reopened=nativeComments(f.session,f.source,f.local.commands,()=>true,()=>{},f.request,()=> 'new-member',f.disk);await reopened.refresh();await reopened.editing.edit(root,'Original');assert.equal(f.posts.length,posts);assert.deepEqual(f.saved,before);
+  await reopened.editing.edit(root,'Second');const a=f.posts.at(-1);f.setActions([{...a,status:'committed',phase:'admitted',head:2,revision:3}]);const fresh={...root,bodyVersion:a.id,text:{dataStream:'Second\r\n'}};f.setPublished([fresh]);await reopened.refresh();
+  assert.equal(reopened.editing.canEdit(root),false,'old form must not reinterpret a draft at the new body version');assert.equal(reopened.editing.canEdit(fresh),true);await reopened.editing.edit(fresh,'Third');assert.equal(f.posts.at(-1).previousVersion,a.id);
+ }finally{reopened?.dispose();f.dispose();}
+});
+
+test('refused preparation stays unknown until explicit server settlement; absent GET never releases identity; second consumer reconciles lost abandonment',async()=>{
+ const f=fixture();let other;try{
+  await f.helper.add('Original','H9');const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id)),bodyVersion:'original'};f.setPublished([root]);await f.helper.refresh();f.setEditRefusal(true);await f.helper.editing.edit(root,'Changed');const a=f.posts.at(-1),saved=new Map(f.saved),count=f.posts.length;
+  assert.equal(f.helper.editing.canEdit(root),false);await f.helper.refresh();assert.equal(f.posts.length,count);assert.equal(f.helper.editing.canEdit(root),false);assert.deepEqual(f.states.at(-1).editing.abandonable,[a.id]);
+  const states=[];other=nativeComments(f.session,f.source,f.local.commands,()=>true,v=>states.push(v),f.request,()=> 'new-member',f.disk);await other.refresh();assert.equal(other.editing.canEdit(root),false);assert.equal(f.posts.length,count);
+  f.setLostAbandon(true);await f.helper.editing.abandon(a.id);assert.equal(f.helper.editing.canEdit(root),false);await f.helper.editing.abandon(a.id);assert.equal(f.posts.length,count+1);for(const [k,v]of saved)assert.equal(f.saved.get(k),v);
+  await other.refresh();assert.equal(other.editing.canEdit(root),true);assert.equal(f.posts.length,count+1);f.setEditRefusal(false);await other.editing.edit(root,'Changed explicitly');assert.equal(f.posts.length,count+2);assert.notEqual(f.posts.at(-1).id,a.id);
+ }finally{other?.dispose();f.dispose();}
+});
+test('delayed preparation and lost response never auto release; native-started or authoritative admitted uncertainty cannot abandon',async()=>{
+ const f=fixture(),gate=deferred();try{
+  await f.helper.add('Original','H9');const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id)),bodyVersion:'original'};f.setPublished([root]);await f.helper.refresh();f.setActionGate(gate);f.setLostAction(true);
+  const work=f.helper.editing.edit(root,'Changed');await new Promise(setImmediate);assert.equal(f.helper.editing.view().busy,true);assert.deepEqual(f.helper.editing.view().abandonable,[]);gate.resolve();await work;const a=f.posts.at(-1),count=f.posts.length;await f.helper.refresh();assert.equal(f.helper.editing.canEdit(root),false);assert.equal(f.posts.length,count);
+  f.setActions([{...a,status:'unknown',phase:'admitted',head:3}]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);await f.helper.editing.abandon(a.id);assert.equal(f.posts.length,count);
+  const intentKey=[...f.saved.keys()].find(k=>k.endsWith('intent:'+a.id));assert.equal(f.saved.get(intentKey.replace('intent:','started:')),JSON.stringify(a));f.setActions([]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);f.setActions([{...a,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);assert.equal(f.helper.editing.canEdit(root),false);
  }finally{f.dispose();}
 });

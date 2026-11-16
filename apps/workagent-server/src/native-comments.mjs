@@ -1,3 +1,4 @@
+import { NativeCommentEditing, UPDATE_COMMENT } from './native-comment-editing.mjs';
 // Immutable bodies belong to Workspace; membership/anchors belong only to Univer.
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
@@ -35,7 +36,7 @@ export function nativeCommentView(data, revision) {
   return { revision, roots, sheet: data.sheets[TAB] };
 }
 export class NativeComments {
-  constructor(authority, service, dbAdapter) { Object.assign(this, { authority, service, dbAdapter }); }
+  constructor(authority, service, dbAdapter) { Object.assign(this, { authority, service, dbAdapter }); this.editing = new NativeCommentEditing(this); }
   async prepare(principal, unitID, session) {
     // This native read takes its OWN Workspace fence. Never call inside a store transaction.
     const loaded = await this.authority.scope.run({ unitID, session }, () => this.service.getUnitLoadDataWithBlocks({ unitID, type: UniverType.UNIVER_SHEET, revision: 0 }, { userID: principal }));
@@ -59,6 +60,7 @@ export class NativeComments {
         if (receipt.status === 'committed') root.resolved = receipt.resolved;
         else { delete root.resolved; root.resolutionUnknown = true; }
       }
+      await this.editing.project(principal, unitID, session, view);
       return view;
     } finally { await materializer.dispose(); }
   }
@@ -104,13 +106,15 @@ export class NativeComments {
       const hydrate = (meta, ref) => {
         const claim = claims[meta.id];
         if (!claim || meta.personId !== claim.principal || meta.threadId !== claim.comment.threadId) return null;
-        return { ...claim.comment, ...(meta.resolutionUnknown ? { resolutionUnknown: true, resolved: undefined } : { resolved: meta.resolved === true }), ref, children: (meta.children ?? []).map(c => hydrate(c, ref)).filter(Boolean) };
+        return { ...claim.comment, text: meta.bodyUnknown ? { dataStream: '' } : meta.editedText ?? claim.comment.text, bodyVersion: meta.bodyVersion, bodyUnknown: meta.bodyUnknown === true, bodyRevision: meta.bodyRevision, ...(meta.resolutionUnknown ? { resolutionUnknown: true, resolved: undefined } : { resolved: meta.resolved === true }), ref, children: (meta.children ?? []).map(c => hydrate(c, ref)).filter(Boolean) };
       };
       const receipt = pendingID === undefined ? undefined : await this.ownReceipt(principal, unitID, session, claims[pendingID], pendingID, view);
       const actions = [];
       for (const a of Object.values(s.works[unitID].nativeCommentActions ?? {}).filter(a => a.principal === principal && a.epoch === session.revision && a.binding === session.binding)) actions.push(await this.actionReceipt(principal, unitID, a));
+      const edits = [];
+      for (const a of Object.values(s.works[unitID].nativeCommentEdits ?? {}).filter(a => a.principal === principal && a.epoch === session.revision && a.binding === session.binding)) edits.push(await this.editing.receipt(principal, unitID, a));
       await this.current(principal, unitID, view);
-      send({ actions, revision: view.revision, comments: view.roots.map(r => hydrate(r, r.ref)).filter(Boolean), ...(receipt ? { receipt } : {}) });
+      send({ edits, actions, revision: view.revision, comments: view.roots.map(r => hydrate(r, r.ref)).filter(Boolean), ...(receipt ? { receipt } : {}) });
     });
   }
   // Called only under list's current ACL/epoch/head fence, never via a native
@@ -127,7 +131,7 @@ export class NativeComments {
     const present = view.roots.some(r => r.id === id || r.children?.some(c => c.id === id));
     return { id, status: present ? 'committed-present' : 'committed-removed', revision: committed.revision };
   }
-  needs(changeset) { return changeset.mutations.some(m => [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT, REMOVE].includes(m.id)); }
+  needs(changeset) { return changeset.mutations.some(m => [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT, UPDATE_COMMENT, REMOVE].includes(m.id)); }
   async prepareAction(principal, unitID, session, input, send) {
     if (!input || Object.keys(input).sort().join() !== 'commentId,id,memberID,resolved' || !identifier(input.id) || !identifier(input.commentId) || !identifier(input.memberID) || typeof input.resolved !== 'boolean' || !session.binding) refuse();
     const view = await this.prepare(principal, unitID, session);
@@ -189,6 +193,7 @@ export class NativeComments {
     return matches[0];
   }
   bind(s, context, session, admission) {
+    this.editing.bind(s, context, session, admission);
     const action = this.resolution(s, context, session);
     if (action) {
       const c = context.request.changeset, attempt = { sid: c.sid, reqId: c.reqId, hash: createHash('sha256').update(JSON.stringify(c.mutations)).digest('hex') };
@@ -207,6 +212,7 @@ export class NativeComments {
   validate(s, context, view) {
     const c = context.changeset, original = context.request.changeset;
     const parsed = c.mutations.map(m => ({ id: m.id, p: JSON.parse(m.data) }));
+    if (parsed.some(m => m.id === UPDATE_COMMENT)) return this.editing.validate(s, context, view);
     if (parsed.some(m => m.id === RESOLVE_COMMENT)) {
       const session = this.authority.sessions.get(context.memberID), action = this.resolution(s, context, session);
       const root = view.roots.find(r => r.id === action?.input.commentId);

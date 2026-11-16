@@ -143,3 +143,74 @@ test('root-author editor may resolve; other editor/read/epoch and commit-time AC
   f.comments.prepare=prepare;await assert.rejects(f.comments.abandonAction('peer',UNIT,{...peer,revision:2},'reopen',()=>{}));
  }finally{await f.service.dispose();}
 });
+
+test('author text versions: exact native commit publishes root/reply edits, immutable originals and bounded receipt proof',async()=>{
+ const {UPDATE_COMMENT}=await import('../src/native-comment-editing.mjs');const f=await fixture();try{
+  const root=await f.claim();await f.submit([[ADD_COMMENT,{comment:root}]]);
+  const peer={userID:'peer',unitID:UNIT,revision:1,binding:'binding'};f.authority.sessions.set('peer',peer);
+  let reply;await f.comments.claim('peer','Peer',UNIT,peer,{id:'reply',parentId:'root',ref:'H9',body:'Peer original'},c=>reply=c);await f.submitAs('peer','peer',[[ADD_COMMENT,{comment:reply}]]);
+  const original=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);
+  const input={id:'edit-root',commentId:'root',memberID:'m',previousVersion:'original',body:'Owner revised'};
+  await assert.rejects(f.comments.editing.prepare('peer',UNIT,peer,{...input,memberID:'peer'},()=>{}));
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,{...input,commentId:'reply'},()=>{}));
+  await f.comments.editing.prepare('owner',UNIT,f.session,input,()=>{});await f.comments.editing.prepare('owner',UNIT,f.session,input,()=>{});
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,{...input,body:'different'},()=>{}));
+  assert.equal((await f.list()).comments[0].text.dataStream,root.text.dataStream);
+  const mutation=a=>[UPDATE_COMMENT,{payload:{commentId:a.commentId,text:{dataStream:a.body+'\r\n',paragraphs:[{startIndex:a.body.length}]}}}];
+  assert.equal((await f.submit([mutation(input)])).status,'committed');
+  let list=await f.list();assert.equal(list.comments[0].text.dataStream,'Owner revised\r\n');assert.equal(list.comments[0].bodyVersion,input.id);assert.equal(list.edits[0].status,'committed');
+  const child={id:'edit-reply',commentId:'reply',memberID:'peer',previousVersion:'original',body:'Peer revised'};
+  await f.comments.editing.prepare('peer',UNIT,peer,child,()=>{});assert.equal((await f.submitAs('peer','peer',[mutation(child)])).status,'committed');
+  list=await f.list();assert.equal(list.comments[0].children[0].text.dataStream,'Peer revised\r\n');assert.equal(list.comments[0].children[0].dT,reply.dT);assert.equal(list.comments[0].ref,'H9');
+  assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),original);
+  await f.checkpoint(5000);assert.equal((await f.list()).comments[0].text.dataStream,'Owner revised\r\n');
+  const read=f.db.getChangesets;f.db.getChangesets=async(c,u,r)=>r.from===3?[]:read(c,u,r);list=await f.list();assert.equal(list.comments[0].bodyUnknown,true);assert.equal(list.comments[0].text.dataStream,'');assert.equal(list.comments[0].children[0].text.dataStream,'Peer revised\r\n');await f.claim('ordinary-new');
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,{...input,id:'cannot-guess',previousVersion:'edit-root',body:'next'},()=>{}));
+ }finally{await f.service.dispose();}
+});
+test('text edits: abandoned identity fences late use; admitted unknown, stale native head and revoked epoch never become new body',async()=>{
+ const {UPDATE_COMMENT}=await import('../src/native-comment-editing.mjs');const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);
+  const input={id:'unused-edit',commentId:'root',memberID:'m',previousVersion:'original',body:'new'};
+  const mutation=[UPDATE_COMMENT,{payload:{commentId:'root',text:{dataStream:'new\r\n',paragraphs:[{startIndex:3}]}}}];
+  await f.comments.editing.prepare('owner',UNIT,f.session,input,()=>{});await f.comments.editing.abandon('owner',UNIT,f.session,input.id,()=>{});await f.comments.editing.abandon('owner',UNIT,f.session,input.id,()=>{});
+  assert.equal((await f.submit([mutation])).status,'rejected');assert.equal(f.head,2);
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,{...input,id:'quarantine'},()=>{}));
+  f.authority.sessions.set('fresh',{...f.session});await f.comments.editing.prepare('owner',UNIT,f.session,{...input,id:'fresh-edit',memberID:'fresh'},()=>{});
+  await f.submit([['sheet.mutation.set-range-values',{cellValue:{0:{0:{v:71}}}}]]);
+  assert.equal((await f.submitAs('owner','fresh',[mutation],2)).status,'rejected');
+  await assert.rejects(f.comments.editing.abandon('owner',UNIT,f.session,'fresh-edit',()=>{}));
+  const list=await f.list();assert.equal(list.comments[0].bodyUnknown,true);assert.equal(list.edits.find(e=>e.id==='fresh-edit').status,'unknown');
+  await f.workspace.share('owner',UNIT,{commandId:'read-edit',peer:'peer',role:'read',accessRevision:1});
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,{...input,id:'revoked'},()=>{}));
+  assert.equal(f.head,3);
+ }finally{await f.service.dispose();}
+});
+
+test('edit pre-prepare refusal explicitly settles exact unused input; late prepare/mutation cannot revive it',async()=>{
+ const {UPDATE_COMMENT}=await import('../src/native-comment-editing.mjs');const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);const input={id:'stale-body',commentId:'root',memberID:'m',previousVersion:'unknown-prior',body:'Draft retained'};
+  await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,input,()=>{}));assert.equal((await f.list()).edits.length,0);
+  let r;await f.comments.editing.abandon('owner',UNIT,f.session,input.id,v=>r=v,input);assert.equal(r.status,'abandoned');const retained=await f.store.read(s=>s.works[UNIT].nativeCommentEdits[input.id]);assert.deepEqual(retained.input,input);
+  await f.comments.editing.prepare('owner',UNIT,f.session,input,v=>r=v);assert.equal(r.status,'abandoned');
+  const mutation=[UPDATE_COMMENT,{payload:{commentId:'root',text:{dataStream:input.body+'\r\n',paragraphs:[{startIndex:input.body.length}]}}}];assert.equal((await f.submit([mutation])).status,'rejected');assert.equal(f.head,2);
+  await assert.rejects(f.comments.editing.abandon('owner',UNIT,f.session,input.id,()=>{},{...input,body:'different'}));
+  const next={...input,id:'fresh-body',previousVersion:'original',body:'Explicit different edit'};await f.comments.editing.prepare('owner',UNIT,f.session,next,()=>{});
+  await assert.rejects(f.comments.editing.abandon('peer',UNIT,{...f.session,userID:'peer'},'foreign',()=>{},{...next,id:'foreign'}));
+ }finally{await f.service.dispose();}
+});
+
+test('edit unused settlement serializes with preparation; head-read refusal settles without poisoning another reserved native tuple',async()=>{
+ const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);const a={id:'head-refused',commentId:'root',memberID:'m',previousVersion:'original',body:'After head refusal'};
+  const current=f.comments.current;f.comments.current=async()=>{throw new Fault('native_comment_head_changed',409);};await assert.rejects(f.comments.editing.prepare('owner',UNIT,f.session,a,()=>{}));f.comments.current=current;
+  assert.equal((await f.list()).edits.length,0);await f.comments.editing.abandon('owner',UNIT,f.session,a.id,()=>{},a);
+  for(const bad of [{...f.session,binding:'wrong'},{...f.session,revision:2}])await assert.rejects(f.comments.editing.abandon('owner',UNIT,bad,'wrong-scope',()=>{},{...a,id:'wrong-scope'}));
+  const next={...a,id:'next',body:'Distinct explicit draft'};await f.comments.editing.prepare('owner',UNIT,f.session,next,()=>{});const saved=await f.store.read(s=>s.works[UNIT].nativeCommentEdits.next);
+  await assert.rejects(f.comments.editing.abandon('owner',UNIT,f.session,'poison',()=>{},{...next,id:'poison'}));assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentEdits.next),saved);
+  await f.comments.editing.abandon('owner',UNIT,f.session,next.id,()=>{},next);
+  const raced={...a,id:'raced',body:'Raced unused draft'};let received;
+  await Promise.all([f.comments.editing.abandon('owner',UNIT,f.session,raced.id,()=>{},raced),f.comments.editing.prepare('owner',UNIT,f.session,raced,r=>received=r)]);assert.equal(received.status,'abandoned');assert.equal(f.head,2);
+  const retained=await f.store.read(s=>s.works[UNIT].nativeCommentEdits);assert.deepEqual(retained[a.id].input,a);assert.equal(retained[raced.id].abandoned,true);assert.equal(retained.poison,undefined);
+ }finally{await f.service.dispose();}
+});
