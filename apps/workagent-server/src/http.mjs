@@ -154,10 +154,11 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
         if (!Number.isSafeInteger(Number(epoch))) throw new Fault('invalid_native_history_epoch', 400);
         return await native.authority.history.read(principal, unitID, { userID: principal, unitID, revision: Number(epoch) }, new URL(req.url, origin).searchParams, value => send(200, value));
       }
-      const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)$/.exec(path);
+      const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)(\/actions(?:\/([a-zA-Z0-9_-]+)\/abandon)?)?$/.exec(path);
       if (nativeComments) {
         if (!native?.authority.comments) throw new Fault('native_comments_disabled', 409);
-        const [, unitID, epoch] = nativeComments, session = { userID: principal, unitID, revision: Number(epoch) };
+        const [, unitID, epoch, actions, abandonID] = nativeComments, session = { userID: principal, unitID, revision: Number(epoch), binding: auth.sessionBinding(req) };
+        if (actions) { if (req.method !== 'POST') throw new Fault('native_comment_operation_unavailable', 405); const input = await body(req); if (abandonID) { if (!input || Object.keys(input).length) throw new Fault('native_comment_refused', 409); return await native.authority.comments.abandonAction(principal, unitID, session, abandonID, value => send(200, value)); } return await native.authority.comments.prepareAction(principal, unitID, session, input, value => send(200, value)); }
         if (req.method === 'GET') return await native.authority.comments.list(principal, unitID, session, value => send(200, value), new URL(req.url, origin).searchParams.get('pending') ?? undefined);
         if (req.method === 'POST') return await native.authority.comments.claim(principal, auth.profile(principal).name, unitID, session, await body(req), value => send(200, value));
         throw new Fault('native_comment_operation_unavailable', 405);

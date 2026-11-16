@@ -99,3 +99,20 @@ if(process.argv[1]===fileURLToPath(import.meta.url)){
     }finally{source.dispose();await materializer.dispose();}
   });
 }
+
+if(process.argv[1]===fileURLToPath(import.meta.url)) test('resolve/reopen public command emits only native root state mutation and retains bodies/replies/anchors',async()=>{
+ const {ResolveCommentCommand,ResolveCommentMutation,IThreadCommentDataSourceService}=await import('@univerjs/thread-comment');
+ const f=fixture();try{
+  await add(f,'root','owner');await add(f,'reply','peer','root');
+  const source=f.univer.__getInjector().get(IThreadCommentDataSourceService),calls=[];
+  source.dataSource={saveCommentToSnapshot:c=>c,resolveComment:async c=>{calls.push(structuredClone(c));return true;}};source.syncUpdateMutationToColla=true;
+  for(const resolved of [true,false]){
+   const start=f.emitted.length;
+   assert.equal(await f.commands.executeCommand(ResolveCommentCommand.id,{unitId:f.unitID,subUnitId:TAB,commentId:'root',resolved}),true);
+   assert.equal(calls.at(-1).resolved,resolved);assertTree(f);
+   const mutations=f.emitted.slice(start);assert.deepEqual(mutations.map(m=>[m.id,m.params,m.options.onlyLocal]),[[ResolveCommentMutation.id,{unitId:f.unitID,subUnitId:TAB,commentId:'root',resolved,trigger:ResolveCommentCommand.id},false]]);
+   assert.equal(thread(f).root.resolved,resolved);
+   const reopened=fixture(f.save());try{assert.equal(thread(reopened).root.resolved,resolved);assertTree(reopened);}finally{reopened.dispose();}
+  }
+ }finally{f.dispose();}
+});

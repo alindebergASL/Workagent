@@ -736,3 +736,34 @@ test('acceptance App: explicit confirm owns one action, holds navigation and pre
  gate.resolve();await f.flush();assert.match(f.panel.text(),/Recorded as native revision 3/);assert.equal(disposed,1);assert.equal(f.find(n=>n.props.ref).props.inert,undefined);assert.equal(f.find(n=>n.props['aria-label']==='Native agent request draft').props.value,'agent draft keep');assert.equal(entry.nativeAdds.length,0);await f.open('');assert.equal(f.messageValue(),'root confirm keep');
  }finally{gate.resolve();f.dispose();await new Promise(setImmediate);}
 });
+
+test('comments resolution App: root state controls retain comment/composer drafts and refuse active cell input',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ native.published.set('A',[{id:'root',threadId:'root',unitId:'A',subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:'H9',resolved:false,text:{dataStream:'Published body\r\n'}}]);
+ try{
+  await f.flush();await f.message('root resolution draft');await f.open('A');await native.poll();await f.flush();
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');textarea().props.onChange({target:{value:'unsent resolution draft'}});await f.flush();
+  const entry=native.instances[0];entry.editing=true;await native.poll();await f.flush();
+  assert.equal(f.button('Resolve thread').props.disabled,true);f.button('Resolve thread').props.onClick();await f.flush();assert.equal(native.commentPosts.length,0);assert.equal(entry.editing,true);assert.equal(textarea().props.value,'unsent resolution draft');
+  native.published.get('A')[0].resolved=true;await native.poll();await f.flush();assert.ok(f.button('Reopen thread'));assert.match(f.panel.text(),/Resolved/);assert.equal(native.commentPosts.length,0);
+  entry.editing=false;await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root resolution draft');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('comments resolution App: explicit unused abandonment retains drafts and never resolves natively',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const session=native.sessions.get('A'),a={id:'unused-resolution',commentId:'root',memberID:'self',resolved:true};let receipt={...a,status:'unknown',phase:'prepared',head:3},posts=0;
+ const key=`workagent:native-comment-resolution:${session.principal}:A:${session.binding}:${session.access.revision}:intent:${a.id}`;
+ f.storage.setItem(key,JSON.stringify(a));native.published.set('A',[{id:'root',threadId:'root',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'Body\r\n'},resolved:false}]);
+ const original=native.commentsRequest;native.commentsRequest=async(path,options)=>{
+  if(path.endsWith('/abandon')){posts++;receipt={...receipt,status:'abandoned',phase:'abandoned'};return {ok:true,json:async()=>receipt};}
+  const response=await original(path,options),value=await response.json();return {ok:true,json:async()=>({...value,actions:[receipt]})};
+ };
+ try{await f.flush();await f.message('root abandon draft');await f.open('A');await native.poll();await f.flush();
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');textarea().props.onChange({target:{value:'comment abandon draft'}});await f.flush();
+  assert.ok(f.button('Abandon unused thread action'));await f.click('Abandon unused thread action');assert.equal(posts,1);assert.equal(textarea().props.value,'comment abandon draft');assert.equal(native.instances[0].nativeAdds.length,0);assert.equal(f.storage.getItem(key),JSON.stringify(a));
+  await native.poll();await f.flush();assert.equal(posts,1);assert.match(f.panel.text(),/abandoned/);await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root abandon draft');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});

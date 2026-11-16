@@ -88,3 +88,40 @@ test('comment-free native transformed row batches retain existing behavior; stra
   assert.doesNotThrow(()=>f.comments.validate({},c,{revision:7,roots:[],sheet:{rowCount:100,columnCount:26}}));
   c.changeset.mutations.push({id:DELETE_COMMENT,data:JSON.stringify({commentId:'someone-else'})});assert.throws(()=>f.comments.validate({},c,{revision:7,roots:[],sheet:{rowCount:100,columnCount:26}}));
 });
+
+// Real identity/HTTP/native-route functions; captured comment adapter arguments.
+// Synthetic credentials and in-process request streams, NOT live transport proof.
+test('comments HTTP binding matches native cookie/bearer connection, preserving browser profile header fence',async()=>{
+  const {Readable}=await import('node:stream'),{randomBytes}=await import('node:crypto');
+  const {identity,createHandler}=await import('../src/http.mjs'),{nativeRoute}=await import('../src/native-workspace.mjs');
+  const token=randomBytes(32).toString('hex'),origin='http://localhost:8310',options={token,origin,owner:'owner'},auth=identity(options);
+  const profile=auth.profile('owner').binding,cookie=auth.login(token),captured=[];
+  const comments={
+    list(principal,unit,session,send){captured.push({operation:'list',principal,unit,session});send({comments:[]});},
+    prepareAction(principal,unit,session,input,send){captured.push({operation:'prepare',principal,unit,session,input});send({status:'unknown'});},
+    abandonAction(principal,unit,session,id,send){captured.push({operation:'abandon',principal,unit,session,id});send({status:'abandoned'});},
+  };
+  const handler=createHandler({...options,workspace:{},native:{authority:{comments}},clientRoot:'/unused'});
+  const bindings=[];
+  for(const credentialHeaders of [{cookie:`workagent_session=${cookie}`},{authorization:`Bearer ${token}`}]){
+    const headers={...credentialHeaders,origin,'content-type':'application/json','x-workagent-session-binding':profile};
+    const nativeReq={url:`/api/native/${UNIT}/1/universer-api/user/session-ticket`,headers:{...headers}};
+    nativeRoute(nativeReq,origin,auth);const expected=nativeReq.nativeBinding;bindings.push(expected);
+    assert.ok(expected===auth.sessionBinding({headers}),'native route uses authenticated connection identity');
+    assert.ok(expected!==profile,'browser profile and native connection remain separate domains');
+    const api=async(suffix,input,browserBinding=profile)=>{
+      const req=Readable.from(input===undefined?[]:[Buffer.from(JSON.stringify(input))]);
+      Object.assign(req,{url:`/api/work/${UNIT}/native-comments/1${suffix}`,method:input===undefined?'GET':'POST',headers:{...headers,'x-workagent-session-binding':browserBinding}});
+      let data;const res={setHeader(){},writeHead(status){this.status=status;},end(value){data=JSON.parse(value);this.writableEnded=true;}};
+      await handler(req,res);return {status:res.status,data};
+    };
+    for(const [operation,suffix,input] of [['list','',undefined],['prepare','/actions',{id:'synthetic-action',commentId:'root',memberID:'member',resolved:true}],['abandon','/actions/synthetic-action/abandon',{}]]){
+      const result=await api(suffix,input);assert.equal(result.status,200);const seen=captured.at(-1);
+      assert.equal(seen.operation,operation);assert.equal(seen.principal,'owner');assert.equal(seen.unit,UNIT);assert.equal(seen.session.revision,1);
+      assert.ok(seen.session.binding===expected,`${operation} must pass native authenticated binding, not the browser profile marker`);
+      const count=captured.length;assert.equal((await api(suffix,input,'wrong-browser-marker')).status,403);assert.equal(captured.length,count);
+      assert.equal((await api(suffix,input,expected)).status,403,'native binding cannot replace the browser profile header');assert.equal(captured.length,count);
+    }
+  }
+  assert.ok(bindings[0]!==bindings[1],'cookie and bearer connection identities stay distinct');
+});

@@ -528,11 +528,42 @@ reversal13/13, acceptance17/17, types/diff and SAME review pass; exact225-source
 80-artifact build and served entries verified. This is not a general reconnect
 latency or physical-phone qualification.
 
+Explicit native root-thread Resolve/Reopen is qualified on private QA5724f1f0a466
+(port43086, fresh DBf5fae1ddcc7f), not installed in main. Owner/root-author authority
+and current native member/session/epoch/head/anchor checks protect the real public
+SDK mutation. Original bodies, replies and add claims remain immutable. Because
+the SDK server snapshot omits resolution state, reads use exact identity-matched
+native receipts; unavailable proof marks only that thread uncertain. Ordinary
+future revisions do not impose a whole-unit history-age cutoff. Explicit unused
+abandonment is admission-locked and retains evidence. The same abandoned root/
+head/member requires a newer native head or explicitly reopened editor before a
+separate new request; no automatic reconnect or replay.
+
+SAME review closed the history-age outage and unused-preparation lockout, then a
+real-transport binding-domain mismatch. Native cookie/bearer binding and browser
+profile-header checks stay distinct. Parent selected62 checks passed before the
+last binding fix; final server8/pipeline7/types/diff passed. Two unchanged SDK
+negative characterizations remain labeled negative, not a full-SDK pass.
+
+Fresh restricted PG/native SQLite/real cookie HTTP/licensed WS87111a4690ac passed
+reopen, exact receipts,7 native POSTs/4 committed resolutions/1 unused abandon,
+hidden commit and abandon replies with GET-only recovery, author/reader/epoch
+fences and max2 connections/final0. No model calls. Thirteen fresh browser stages
+pass: owner/peer draft and focus preservation, explicit resolve/cold-reopen, actual
+busy-cell preparation and abandon, fresh-editor recovery, peer authorship, offline
+convergence, same-owner third tab,390px layout, reader denial and revocation. Final
+epoch4/head9,3 immutable claims and6 actions(5 admitted/1 abandoned),0 jobs/provider
+journal rows; native model gates disabled. Exact225-source/80-artifact build and
+served entries verified. Prior paid evidence/main/runtime.env/default/public are
+unchanged. Own QA tabs retired with contexts/storage retained. Browser harness
+readiness/interception corrections are recorded, not presented as product fixes.
+No physical-phone, over-capacity refusal or general reconnect-latency claim.
+
 Full B05 remains open: expanded native surface and conflict coverage, durable
-browser-crash recovery, richer comment editing/resolution and text/object anchors,
+browser-crash recovery, comment-body editing/manual deletion and text/object anchors,
 broader individual/account undo and whole-artifact restore-as-new-revision,
-broader-than-scalar agent acceptance and two-human usability. Next is two-human
-usability qualification and its concrete corrections. Existing human Sheet
+broader-than-scalar agent acceptance and two-human usability. Next is comment-body
+editing with retained revisions, then broader native conflict/recovery coverage. Existing human Sheet
 conversion and native export remain unclaimed.
 
 ### B06 — Boards, editable decks and multilingual dictation
