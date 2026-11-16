@@ -14,6 +14,8 @@ import { blankWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
 import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
+import { BehaviorSubject, Subject, NEVER } from 'rxjs';
+import { SessionStatus, CollaborationController, DataLoaderService } from '@univerjs-pro/collaboration-client';
 const require = createRequire(import.meta.url);
 const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
 const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
@@ -289,20 +291,34 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle() {
+function nativeLifecycle({ offline = false } = {}) {
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
   for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
-    const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null }; instances.push(entry); active++; peak = Math.max(peak, active);
+    const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
+    const session = { get sessionStatus(){return entry.status.value;}, sessionStatus$: entry.status, getMemberID: () => 'self' };
+    const entityInit = new Subject();
+    const stream = name => ({subscribe(fn){entry.events.set(name,fn);return {unsubscribe(){entry.events.delete(name);}};}});
+    const entity = {session,state:{status:'synced'},status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
+    const controller = {getCollabEntity:id=>entry.unitID===id?entity:null,getCollabEntity$:()=>entityInit,hasWritePending:()=>entry.pending,readyForCollab:async id=>{assert.equal(id,entry.unitID);}};
+    const loader = {loadUnit:async unitID=>{entry.unitID=unitID;if(!offline)entry.join();entityInit.next(entity);return {};}};
+    let roomExists = !offline;
+    const roomWaiters = new Set(), memberMap = new Map();
+    const room = {getAllMembers:()=>[...memberMap.values()],members$:{subscribe(callback){entry.members=list=>callback(new Map(list.map(m=>[m.memberID,m])));callback(new Map(memberMap));return {unsubscribe(){entry.members=null;entry.membershipDisposed++;}};}}};
+    entry.join = () => {for(const m of [{memberID:'self',userID:'owner',name:'Owner'},{memberID:'peer',userID:'peer',name:`Peer in ${entry.unitID}`}])memberMap.set(m.memberID,m);roomExists=true;for(const fn of roomWaiters)fn(room);entry.members?.([...memberMap.values()]);};
+    const membership = {getRoom:()=>roomExists?room:undefined,removeMember(_unit,id){memberMap.delete(id);},waitForRoom$(){return {subscribe(fn){roomWaiters.add(fn);if(roomExists)fn(room);return {unsubscribe(){roomWaiters.delete(fn);}};}};}};
     const cache = { loadOfflineData: async () => null, saveOfflineData: async () => true, clearOfflineData: async () => {}, updateOfflineData() {}, exhaustSavingTask: async () => { await entry.drain; } };
-    return { univer: { __getInjector: () => ({ get: key => key === 'user' ? { setCurrentUser() {} } : cache }), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; active--; } },
-      univerAPI: { Event: { CollaborationStatusChanged: 'status', CollaborationChangesetResend: 'resend', CollaborationConflict: 'conflict' },
-        addEvent(name, fn) { entry.events.set(name, fn); return { dispose: () => entry.events.delete(name) }; },
-        getActiveWorkbook: () => ({ isCellEditing: () => false }),
-        getCollaboration: () => ({ getCollaborationStatus: () => 'synced', hasWritePending: () => entry.pending,
-          loadSheetAsync: async unitID => { entry.unitID = unitID; return {}; } }) } };
+    return { univer: { __getInjector: () => ({ get: key => {
+      if(key==='user')return {setCurrentUser(){}};
+      if(key==='collaboration-controller'||key===CollaborationController)return controller;
+      if(key===DataLoaderService)return loader;
+      if(key==='members')return membership;
+      if(key==='collaboration-sessions')return {socket$:NEVER};
+      assert.equal(key,'cache');return cache;
+    }}), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; entry.status.complete();entityInit.complete(); active--; } },
+      univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => false })} };
   };
   return { instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
     session: path => structuredClone(sessions.get(path.split('/')[3])),
@@ -312,12 +328,66 @@ function nativeLifecycle() {
     attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
     dependency(name){
       if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user'};
+      if(name==='@univerjs-pro/collaboration-client')return {CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
       if(name==='@univerjs/presets')return {createUniver,mergeLocales:()=>({})};
       if(name==='@univerjs/preset-sheets-core')return {UniverSheetsCorePreset:()=>({})};
       return {};
     },
   };
 }
+test('native roster: reader names, disconnect/revoke cleanup, stale callbacks and drafts stay in their session', async () => {
+  const native = nativeLifecycle(), f = fixture(undefined, false, native);
+  for (const id of ['A','B']) f.works[id] = { id, kind:'native-sheet', title:id, status:'ready', access:{role:'read',revision:1} };
+  native.sessions.get('A').access.role = 'read';
+  try {
+    await f.flush(); await f.message('retained root draft'); await f.open('A');
+    assert.match(f.panel.text(), /Owner \(you, read-only\)/); assert.match(f.panel.text(), /Peer in A/);
+    const a = native.instances[0], late = a.members;
+    a.pending = true; await f.open('B'); assert.equal(native.instances.length,1); assert.match(f.panel.text(),/Peer in A/);
+    a.status.next(SessionStatus.OFFLINE); await f.flush();
+    assert.doesNotMatch(f.panel.text(), /Peer in A/); assert.match(f.panel.text(), /Live collaborators unavailable/);
+    late([{memberID:'self',userID:'owner',name:'Owner'},{memberID:'late',userID:'peer',name:'Stale peer'}]); await f.flush();
+    assert.doesNotMatch(f.panel.text(), /Stale peer/);
+    a.status.next(SessionStatus.ONLINE); a.join(); await f.flush(); assert.match(f.panel.text(), /Peer in A/);
+    native.sessions.get('A').access.revision = 2; await native.poll(); await f.flush();
+    assert.doesNotMatch(f.panel.text(), /Peer in A/); assert.equal(a.members,null);
+    a.pending = false; await f.open('B'); assert.equal(a.disposed,true); assert.match(f.panel.text(), /Peer in B/);
+    late([{memberID:'self',userID:'owner',name:'Owner'},{memberID:'late',userID:'peer',name:'Stale peer'}]); await f.flush();
+    assert.doesNotMatch(f.panel.text(), /Stale peer/);
+    await f.open(''); assert.equal(f.messageValue(),'retained root draft'); assert.equal(native.peak,1);
+  } finally {f.dispose(); await new Promise(setImmediate);}
+  assert.equal(native.active,0); for(const entry of native.instances)assert.equal(entry.status.observers.length,0);
+});
+test('native component attaches while loaded offline, then observes ONLINE before room creation', async () => {
+  const native=nativeLifecycle({offline:true}),f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  try {
+    await f.flush();await f.open('A');const entry=native.instances[0];
+    assert.match(f.panel.text(),/Live collaborators unavailable/);
+    entry.status.next(SessionStatus.ONLINE);await f.flush();assert.doesNotMatch(f.panel.text(),/Peer in A/);
+    entry.join();await f.flush();assert.match(f.panel.text(),/Peer in A/);
+  }finally{f.dispose();await new Promise(setImmediate);}
+  assert.equal(native.active,0);
+});
+test('scoped native streams retain retry feedback, pending leave guard and conflict recovery in the real component', async () => {
+  const native=nativeLifecycle(),f=fixture(undefined,false,native);
+  for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+  try {
+    await f.flush();await f.open('A');const entry=native.instances[0];
+    entry.pending=true;entry.events.get('resend')({reqId:9,reason:'reconnect'});await f.flush();
+    assert.match(f.panel.text(),/SDK retry 9: reconnect/);
+    let prevented=0;const event={preventDefault(){prevented++;},returnValue:null};for(const fn of native.listeners)fn(event);
+    assert.ok(prevented>0);assert.equal(event.returnValue,'');
+    await f.open('B');assert.equal(native.instances.length,1);
+    const localChanges={awaitingChangeset:{sid:'retained-native',reqId:9}};
+    entry.events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges,cacheCleared:true});await f.flush();
+    assert.match(f.panel.text(),/Conflict: permission_rejected/);assert.match(f.panel.text(),/Download retained recovery/);
+    assert.deepEqual(JSON.parse(f.storage.getItem('workagent:native-recovery:fixture-owner:A:1')).localChanges,localChanges);
+    assert.equal(entry.members,null);entry.pending=false;entry.events.get('status')();await f.flush();
+    assert.match(f.panel.text(),/Conflict: permission_rejected/);await f.open('B');assert.equal(native.instances.length,1);
+  }finally{f.dispose();await new Promise(setImmediate);}
+  assert.equal(native.active,0);assert.equal(native.instances[0].events.size,0);
+});
 for (const changed of ['unit', 'principal', 'binding', 'epoch']) test(`native session lifecycle: fresh ${changed} remounts through App while revoked source remains fenced`, async () => {
   const native = nativeLifecycle(), f = fixture(undefined, false, native);
   for (const id of ['A', 'B']) f.works[id] = { id, kind: 'native-sheet', title: id, status: 'ready', access: { role: 'owner', revision: 1 } };

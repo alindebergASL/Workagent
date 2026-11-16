@@ -271,7 +271,68 @@ revoked A → authorized B and regrant transitions, legacy drafts, and the full 
 two-principal flow. Exact backend hashes can reuse Parent's proof above. Reviewer
 closure is pending; this is not self-approval or complete B05 acceptance.
 
-Full B05 remains open: normal-workspace qualification, same-cell conflicts, durable
+Presence checkpoint after Parent's qualified `ae3133d` cursor/workspace foundation:
+the native editor observes the existing session and `MemberService.getRoom(unitID).members$`
+to show authenticated names, this tab and other sessions of the same account. Disconnect,
+conflict, access fencing and disposal clear the roster; no additional session or send.
+Native cursor/selection rendering remains unchanged. Writer checks: 3 actual SDK
+membership-service tests with inert session status, 19 App/work-area fixture tests,
+8 existing cursor tests and typecheck pass. The first membership run was 2 pass/1 fail
+because the fixture subscribed before creating its room. Subsequent independent review
+proved ONLINE-before-room can occur in production too; the initial fixture adjustment
+was not sufficient qualification. Corrected live closure is recorded below.
+
+Ordinary-editor isolation correction: importing the collaboration facade globally made
+ordinary FUniver factories demand CollaborationController. The native consumer now uses
+public DataLoaderService.loadUnit → CollaborationController.readyForCollab and entity
+status$/changesetResend$/conflict$ subscriptions, scoped to its unit/instance. The roster
+uses MemberService directly. Actual SDK factory regression reproduced the failure and
+now passes for ordinary document/sheet edits after native imports and injected native
+service setup; no legacy collaboration plugins or vendor patches. Correction checks:
+2 isolation/service-wiring, 20 App/work-area, 3 membership, 8 cursor and 3 selected
+navigation tests pass (36 total, zero failures/skips), typecheck/diff pass. The first
+post-fix factory fixture lacked the render plugin used by production Sheets; adding
+that fixture dependency resolved its separate render-manager error. Parent cold and
+native→legacy browser/clipboard checks subsequently passed as recorded below; this is
+not a main-service installation claim.
+
+Roster lifecycle correction: 1.4.0 retains the member map and emits ONLINE before
+merging JOIN members. The view waits for actual room creation and removes the previous
+join's members through public MemberService APIs before that native merge. A pre-load
+observer of the existing CollaborationSessionService.socket$ reconciles departures
+against successful, current-source, same-unit JOIN lists with the authenticated self.
+It covers reconnects completed before entity/UI readiness, creates no socket/session,
+and sends nothing. Both reviewer cases reproduced RED with real MemberService;
+real CollaborationSession plus inert message sources exercise the SDK JOIN/enter/leave
+ordering. Final writer checks: 7 presence, 7 selected component, 8 cursor and 2 isolation
+tests pass (24, zero failures/skips), typecheck/diff pass. Those were inert-source checks;
+no runtime operation was performed by the writer.
+
+Parent closure: the same reviewer additionally reproduced a malformed-JOIN exception.
+Full-container/member-array validation now ignores invalid responses without partial
+pruning; actual RED/GREEN regression and SAME-reviewer PASS close that P2. Final serial
+affected gates: 267 passed, zero failures/skips, typecheck/diff passed. Guarded build
+f44cc7d492d1 verifies 188 source and 80 artifact hashes and serves private QA only.
+Ten browser stages pass: initial named owner/reader presence, same-account live tabs,
+offline clearing and peer departure, rejoin without stale peer/self, peer return/narrow
+wrapping, tab departure/cursor delivery, revoke/epoch clearing, read regrant/root draft,
+queued-cursor disconnect, and ordinary document/sheet editing with retained drafts.
+Native C/B snapshots remain unchanged; original pending work remains untouched. Earlier
+ordinary-editor clipboard checks are retained. Old read-only fixture retirement and
+expired synthetic-cookie renewal are harness corrections, not product fixes. The
+shutdown fixture twice hit its unchanged startup watchdog; isolated reruns and the
+complete serial gate passed. Main installation/default merge/public deployment remain
+separate; full B05 is not closed.
+
+Following is not implemented in this checkpoint. The same reviewer's public-API
+judgment supersedes the missing cursor-controller export blocker: native session
+UPDATE_CURSOR events, engine-formula serializeRangeWithSheet/deserializeRangeWithSheet,
+RefRangeService.watchRange and viewport-only ScrollToRangeOperation provide a supported
+route. The serialized sheetName is the worksheet ID. That route still needs implementation,
+input/permission/disconnect guards and browser proof; no private-hook workaround or SDK
+upgrade is required by the source judgment.
+
+Full B05 remains open: following, normal-workspace qualification, same-cell conflicts, durable
 browser-crash recovery, presence/comments/anchors/history/individual undo and safe
 agent proposals. No existing human Sheet conversion or native export/model bridge.
 
