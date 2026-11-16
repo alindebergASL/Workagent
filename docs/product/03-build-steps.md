@@ -465,13 +465,36 @@ exercised. Automatic human reconnect latency remains unbounded.390px emulation i
 not physical-phone evidence. No product inference, main installation, default
 merge or public deployment.
 
+Native agent read/propose is now qualified on private QA40938f81d768, not installed
+in main. The default-off development opt-in reuses the existing DSH host, jobs,
+commands, cancellation and accounting. Public pinned native reads and retained
+canonical scalar proposals add no agent editing connection and never apply changes.
+Mounted owner controls preserve per-command evidence across tabs and unknown replies.
+Current authorized owners can inspect bounded same-principal/unit historical results
+after sharing changes; original bases remain immutable and old-epoch proposals stale.
+SAME Astra review closed two-tab evidence erasure, own-cancel blockage and historical
+visibility. Prior375/375 serial tests passed; final affected64/64, typecheck/diff,
+221-source/80-artifact build and fresh restricted PG/SQLite actual HTTP/WS/helper/
+DSH-fixture restart/no-replay proof passed (48d11303aa09).
+
+One real OpenRouter/typesafe/jev-router browser job9432da4c-aa28-49e3-9fd7-3d0b57f4c4f6
+completed with3 provider receipts/$0.0035901620/no unresolved. Its A1→33 proposal
+remains unapplied. Corrected-build qualification reused this result without another
+paid request. Thirteen scoped browser stages pass,11 on corrected code: owner history,
+reader/editor denial, focus/selection and drafts, status/disconnect, second-tab
+identity retention,390px switching, peer B2=71 edit and revoke/reopen. Final head2
+contains only B2=71; A1 remains empty and the original1job/3receipts are unchanged.
+Actual QA process/source and served entry hashes match; runtime.env and main remain
+unchanged. Cancellation/unknown-reply proof uses HTTP/DSH fixtures, not a paid browser
+cancellation. Phone, automatic reconnect latency and over-capacity refusal are not
+qualified. New scopes use explicit Check request status to load historical results.
+
 Full B05 remains open: expanded native surface and conflict coverage, durable
 browser-crash recovery, richer comment editing/resolution and text/object anchors,
 broader individual/account undo and whole-artifact restore-as-new-revision, safe
-agent proposals and two-human usability. Next is the bounded agent proposal
-integration; native reversal does not by itself qualify agent authority or stale
-proposal protection. No existing human Sheet conversion or native export/model
-bridge is claimed.
+agent acceptance/apply and two-human usability. Next is explicit proposal acceptance
+with stale/conflict, permission, identity and uncertain-effect protection. Existing
+human Sheet conversion and native export remain unclaimed.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

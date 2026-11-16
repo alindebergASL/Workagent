@@ -91,3 +91,9 @@ test('normal handler authenticates create and session; epoch routes refuse forei
   const requestOff = Readable.from([Buffer.from('{}')]); Object.assign(requestOff, { url: '/api/work/native', method: 'POST', headers: { origin, authorization: `Bearer ${token}`, 'content-type': 'application/json' } });
   let status; await off(requestOff, { setHeader() {}, writeHead(s) { status = s; }, end() {} }); assert.equal(status, 409);
 });
+test('native agent capability is default-off and owner-only even for an editing peer',async()=>{
+ const f=fixture(),auth=identity({owner,token,origin,accounts}),{workId}=await create(f);let value;
+ await nativeSession(f.native,auth,owner,workId,(_s,v)=>value=v);assert.equal(value.agent,false);
+ f.authority.agent={enabled:true};await nativeSession(f.native,auth,owner,workId,(_s,v)=>value=v);assert.equal(value.agent,true);
+ await f.workspace.share(owner,workId,{commandId:'peer-agent',peer:'peer',role:'editor',accessRevision:1});await nativeSession(f.native,auth,'peer',workId,(_s,v)=>value=v);assert.equal(value.agent,false);
+});

@@ -1,3 +1,4 @@
+import { NativeAgent } from './native-agent.mjs';
 import { NativeReversal } from './native-reversal.mjs';
 import { NativeHistory } from './native-history.mjs';
 import { NativeComments, ADD_COMMENT, DELETE_COMMENT, nativeCommentPolicy } from './native-comments.mjs';
@@ -202,7 +203,7 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
-  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); }
+  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); authority.agent = new NativeAgent(authority,service,dbAdapter); }
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });

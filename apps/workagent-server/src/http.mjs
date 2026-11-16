@@ -105,6 +105,22 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (req.headers['x-workagent-session-binding'] && !equal(req.headers['x-workagent-session-binding'], auth.profile(principal).binding)) throw new Fault('session_changed', 403);
       if (path === '/api/session' && req.method === 'GET') { await workspace.list(principal); return send(200, { ...auth.profile(principal), nativeEnabled: !!native }); }
       if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
+      const nativeAgent = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-agent\/([1-9][0-9]*)$/.exec(path);
+      if (nativeAgent) {
+        const agent=native?.authority.agent;
+        if (!agent?.enabled) throw new Fault('native_agent_disabled',409);
+        const [,unitID,epoch]=nativeAgent;
+        if (!Number.isSafeInteger(Number(epoch))) throw new Fault('invalid_native_epoch',400);
+        if (req.method==='GET') return await agent.inspect(principal,unitID,Number(epoch),value=>send(200,value));
+        if (req.method==='POST') {
+          const input=await body(req);
+          if (input.accessRevision!==Number(epoch)) throw new Fault('native_agent_epoch_mismatch',409);
+          const {result,admitted}=await agent.admit(principal,unitID,input);
+          if(admitted)onCommand(result.workId,input.kind,result.intentRevision);
+          return send(202,result);
+        }
+        throw new Fault('native_agent_operation_unavailable',405);
+      }
       const nativeWork = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-session$/.exec(path);
       if (nativeWork && req.method === 'GET') { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeSession(native, auth, principal, nativeWork[1], send); }
       const reversal = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-reversal\/([1-9][0-9]*)(?:\/([a-zA-Z0-9_-]+)(\/abandon)?)?$/.exec(path);

@@ -9,7 +9,9 @@ export const digest = data => createHash('sha256').update(JSON.stringify(canonic
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
 export function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
 export function work(s, workId, native = false) { const w = s.works[id(workId)]; if (!w) throw new Fault('work_not_found', 404); if (w.nativeCollaboration && !native) throw new Fault('native_collaboration_required', 409); return w; }
-export function preconditions(s, w) { return { contentRevision: w.contentRevision, intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch }; }
+export function intentConditions(s, w) { return { intentRevision: w.intentRevision ?? 0, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch ?? 0, ...(w.nativeCollaboration ? { accessRevision: w.accessRevision } : {}) }; }
+export function preconditions(s, w) { return { ...(!w.nativeCollaboration ? { contentRevision: w.contentRevision } : {}), ...intentConditions(s, w) }; }
+function jobWork(s, j) { return work(s, j.workId, j.kind === 'native-agent'); }
 export function same(a, b) { return Object.keys(b).every(k => a?.[k] === b[k]); }
 export function event(s, w, kind) { w.sharedSequence = (w.sharedSequence ?? 0) + 1; s.events.push({ eventId: ++s.sequence, workId: w.id, kind, contentRevision: w.contentRevision, intentRevision: w.intentRevision }); }
 export function dedup(s, key, input, fn, actor) {
@@ -117,21 +119,26 @@ export class Workspace {
   async command(principal, input) {
     return (await this.admitCommand(principal, input)).result;
   }
-  async admitCommand(principal, input) {
+  async admitCommand(principal, input, nativeAgent) {
     id(input.commandId); if (!['start', 'continue', 'cancel'].includes(input.kind)) throw new Fault('invalid_command', 400);
     if (input.kind !== 'cancel') text(input.text);
     if (!Array.isArray(input.sourceIds) || input.sourceIds.length > 10) throw new Fault('invalid_sources', 400);
     return this.store.transaction(s => {
       authorize(s, principal);
       for (const sourceId of input.sourceIds) if (s.sources[id(sourceId)]?.owner !== principal) throw new Fault('source_access_denied', 403);
-      if (input.workId && s.works[input.workId]?.nativeCollaboration) throw new Fault('native_collaboration_required', 409);
+      const native = !!input.workId && !!s.works[input.workId]?.nativeCollaboration;
+      if (native) {
+        if (!nativeAgent || this.nativeAgent !== nativeAgent || !nativeAgent.enabled) throw new Fault('native_collaboration_required',409);
+        nativeAgent.admission(s,principal,input);
+      } else if (nativeAgent) throw new Fault('native_sheet_required',409);
       const replay = !!s.commands[input.commandId];
       const result = dedup(s, input.commandId, input, () => {
         let w;
         if (input.kind === 'start') {
           const workId = randomUUID(); w = { id: workId, contentRevision: 0, intentRevision: 0, cancellationEpoch: 0, book: blankWorkbook(workId), messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'queued' }; s.works[workId] = w;
         } else {
-          w = work(s, input.workId); revision(input.expectedIntentRevision);
+          w = work(s, input.workId, native); revision(input.expectedIntentRevision);
+          if (native) { w.intentRevision ??= 0; w.cancellationEpoch ??= 0; w.messages ??= []; w.sourceIds ??= []; }
           if (input.expectedIntentRevision !== w.intentRevision) throw new Fault('intent_conflict');
         }
         const selection = input.selection === undefined ? undefined : bindSelection(w, input.selection, input.kind);
@@ -140,7 +147,7 @@ export class Workspace {
         if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
           w.messages.push({ id: input.commandId, role: 'user', text: input.text, ...(selection?.kind === 'document' ? { selection: structuredClone(selection) } : {}) }); w.status = 'queued'; delete w.errorCode;
-          s.jobs[input.commandId] = { id: input.commandId, workId: w.id, text: input.text, ...(selection ? { selection } : {}), status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
+          s.jobs[input.commandId] = { id: input.commandId, ...(native ? { kind: 'native-agent', principal } : {}), workId: w.id, text: input.text, ...(selection ? { selection } : {}), status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
         }
         event(s, w, input.kind); return { workId: w.id, commandId: input.commandId, intentRevision: w.intentRevision };
       });
@@ -296,22 +303,23 @@ export class Workspace {
     const running = new Set(Object.values(s.jobs).filter(j => j.status === 'running').map(j => j.workId));
     const j = Object.values(s.jobs).sort((a, b) => Number(a.kind === 'maintenance') - Number(b.kind === 'maintenance')).find(j => {
       if (j.status !== 'queued' || running.has(j.workId)) return false;
-      const w = work(s, j.workId);
+      const w = jobWork(s, j);
+      if (j.kind === 'native-agent' && !this.nativeAgent?.enabled) { j.status = 'interrupted'; j.errorCode = 'native_agent_disabled_no_replay'; if (w.intentRevision === j.expected.intentRevision) { w.status = j.status; w.errorCode = j.errorCode; event(s,w,'native_agent_disabled'); } return false; }
       if (j.kind === 'maintenance') return !Object.values(s.jobs).some(other => other.workId === j.workId && other.kind !== 'maintenance' && ['queued', 'running'].includes(other.status));
-      if (!same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) { j.status = 'superseded'; return false; }
+      if (!same(j.expected, intentConditions(s, w))) { j.status = 'superseded'; return false; }
       return true;
     }); if (!j) return null;
-    const w = work(s, j.workId);
+    const w = jobWork(s, j);
     if (j.kind === 'maintenance') { j.status = 'running'; j.expected = preconditions(s, w); return j; }
     j.phase ??= 'admitted'; j.status = 'running'; w.status = 'working'; event(s, w, 'working');
     // Freeze the accepted context before native creation; recovery must use this same input.
-    j.work ??= snapshot(s, w); j.sources ??= w.sourceIds.map(k => structuredClone(s.sources[k]));
+    j.work ??= j.kind === 'native-agent' ? { id:w.id, kind:'native-sheet', messages:structuredClone(w.messages), expected:preconditions(s,w) } : snapshot(s, w); j.sources ??= w.sourceIds.map(k => structuredClone(s.sources[k]));
     return j;
   }); }
   async checkpoint(principal, job, phase, details = {}) { return this.store.transaction(s => {
-    authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId);
+    authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId, j?.kind === 'native-agent');
     if (!j || j.status !== 'running' || j.sessionId !== job.sessionId) throw new Fault('job_not_running');
-    if (!['completed', 'incomplete'].includes(phase) && !same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch })) throw new Fault('work_superseded');
+    if (!['completed', 'incomplete'].includes(phase) && !same(j.expected, intentConditions(s, w))) throw new Fault('work_superseded');
     const phases = ['admitted', 'session_ready', 'prompt_accepted', 'execution_started', 'completed', 'incomplete'];
     if (!phases.includes(phase) || phases.indexOf(phase) < phases.indexOf(j.phase)) throw new Fault('invalid_job_phase');
     j.phase = phase;
@@ -320,25 +328,25 @@ export class Workspace {
     return null;
   }); }
   async finish(principal, job, messages, status, errorCode) { return this.store.transaction(s => {
-    authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId);
+    authorize(s, principal); const j = s.jobs[job.id], w = work(s, job.workId, j?.kind === 'native-agent');
     if (j.status !== 'running') return null;
     j.status = w.cancellationEpoch !== job.expected.cancellationEpoch ? 'stopped'
-      : w.intentRevision !== job.expected.intentRevision ? 'superseded' : status;
+      : w.intentRevision !== job.expected.intentRevision || j.kind === 'native-agent' && !same(j.expected,intentConditions(s,w)) ? 'superseded' : status;
     j.errorCode = errorCode ?? (j.status === 'stopped' && j.requestIds?.length ? 'cancelled_check_receipt' : undefined);
     for (const message of messages) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
     if (w.status === 'cancellation_requested') { w.status = 'stopped'; w.errorCode = j.errorCode; }
-    if (w.intentRevision === job.expected.intentRevision) { w.status = status; w.errorCode = errorCode; }
+    if (w.intentRevision === job.expected.intentRevision) { w.status = j.kind === 'native-agent' ? j.status : status; w.errorCode = errorCode; }
     event(s, w, 'work_finished'); return null;
   }); }
   async recover(principal, inspectNative) { return this.store.transaction(async s => {
     authorize(s, principal);
     for (const j of Object.values(s.jobs)) if (j.status === 'running') {
-      const w = work(s, j.workId);
+      const w = jobWork(s, j);
       if (j.kind === 'maintenance') { j.status = 'queued'; event(s, w, 'maintenance_recovered'); continue; }
       // No callback means no native-storage evidence, including for old B01 jobs.
       const native = inspectNative ? await inspectNative(j) : null;
       for (const message of native?.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
-      const current = same(j.expected, { intentRevision: w.intentRevision, permissionRevision: s.permissionRevision, cancellationEpoch: w.cancellationEpoch });
+      const current = same(j.expected, intentConditions(s, w));
       if (['completed', 'incomplete'].includes(j.phase) || native?.outcome) {
         for (const message of j.messages ?? []) if (!w.messages.some(m => m.id === message.id)) w.messages.push(message);
         const outcome = native?.outcome ?? j.outcome ?? { status: j.phase === 'completed' ? 'ready' : 'incomplete' };

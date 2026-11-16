@@ -36,6 +36,8 @@ if (!['certificate', 'openrouter'].includes(mode)) throw new Error('invalid_acco
 const maxOutputTokens = outputAllowance(process.env.WORKAGENT_MAX_OUTPUT_TOKENS);
 const requestTimeoutMs = requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS);
 const nativeConfig = nativeWorkspaceConfig(process.env);
+const nativeAgentOptIn = process.env.WORKAGENT_NATIVE_AGENT_PROPOSALS;
+if (nativeAgentOptIn !== undefined && (nativeAgentOptIn !== 'development-only' || !nativeConfig)) throw new Error('native_agent_configuration_refused');
 required('WORKAGENT_STATE_DIR');
 const pool = new pg.Pool({ connectionString: required('WORKAGENT_DATABASE_URL'), max: 3 });
 // One writer across processes, independently of HTTP clients. Never steal a lock.
@@ -52,7 +54,7 @@ const accounting = mode === 'openrouter'
   ? new OpenRouterAccounting({ journal: new PostgresProviderJournal(pool), apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL, maxOutputTokens })
   : process.env.WORKAGENT_ISSUER_SOCKET ? new IssuerSocketAccounting(process.env.WORKAGENT_ISSUER_SOCKET) : new DisabledAccounting();
 const host = await bootHost({ stateRoot: resolve(required('WORKAGENT_STATE_DIR')), workspace, principal: owner,
-  accounting, maxOutputTokens, requestTimeoutMs, reasoningEffort: process.env.WORKAGENT_REASONING_EFFORT,
+  nativeAgent: nativeAgentOptIn ? native?.authority.agent : undefined, accounting, maxOutputTokens, requestTimeoutMs, reasoningEffort: process.env.WORKAGENT_REASONING_EFFORT,
   apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL });
 await workspace.recover(owner, host.inspect);
 const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(required('WORKAGENT_STATE_DIR'))), budgetReference: mode === 'openrouter' ? 'openrouter:configured-provider-limits' : 'certificate:existing-accounting' });

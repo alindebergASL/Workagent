@@ -48,7 +48,9 @@
     "test:native-comments": "node apps/workagent-server/tests/native-comments.test.mjs && node apps/workagent-server/tests/native-comments-pipeline.test.mjs && node apps/workagent-client/tests/native-comments.test.mjs",
     "test:native-history": "node apps/workagent-server/tests/native-history-sdk.test.mjs && node apps/workagent-server/tests/native-history.test.mjs && node apps/workagent-client/tests/native-history.test.mjs",
     "test:native-reversal": "node apps/workagent-server/tests/native-reversal.test.mjs && npm run test:native-reversal-client",
-    "test:native-reversal-client": "node apps/workagent-client/tests/native-reversal.test.mjs"
+    "test:native-reversal-client": "node apps/workagent-client/tests/native-reversal.test.mjs",
+    "test:native-agent": "node apps/workagent-runner/tests/native-agent.test.mjs",
+    "test:native-agent-client": "node apps/workagent-client/tests/native-agent.test.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",
