@@ -14,8 +14,8 @@ const session={principal:'owner',binding:'binding',unitID:'A',access:{role:'owne
 const mutation={id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:'A',subUnitId:'sheet-1',cellValue:{0:{0:{t:2,v:11,f:null,si:null,s:'0',ft:null,fd:null}}},styleRefMap:{'0':{cl:{rgb:'#1B1C1F'}}}})};
 const ack={unitID:'A',type:2,baseRev:1,revision:2,userID:'owner',memberID:'self',sid:'native-sid',reqId:1,mutations:[mutation]};
 const flush=async()=>{for(let i=0;i<4;i++)await new Promise(setImmediate);};
-function fixture(saved=new Map(),settings={}){
- const events=new Subject(),status=new BehaviorSubject(SessionStatus.ONLINE),views=[],calls=[],actions=[];let busy=false,head=2,mode='ok',prepared,receiptStatus='unknown',release;
+function fixture(saved=new Map(),settings={},initialStatus=SessionStatus.ONLINE){
+ const events=new Subject(),status=new BehaviorSubject(initialStatus),views=[],calls=[],actions=[];let busy=false,head=2,mode='ok',prepared,receiptStatus='unknown',release;
  const storage={getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v)};
  const native={event$:events,sessionStatus$:status,get sessionStatus(){return status.value;},getMemberID:()=> 'self'};
  const fetcher=async(url,options={})=>{
@@ -111,4 +111,45 @@ test('lost abandonment response retains identity, disables confirm/repost and re
  const f=fixture();f.emit();await flush();await f.helper.preview();const id=f.view().retainedID;f.setMode('cancel-lost');await f.helper.abandon();assert.equal(f.view().canConfirm,false);assert.equal(f.view().canAbandon,false);const count=f.calls.length;await f.helper.abandon();assert.equal(f.calls.length,count);f.helper.dispose();
  const fresh=fixture(f.saved);try{fresh.restore({id,disposition:'rejected',reason:'native_reversal_abandoned_unused'});await fresh.helper.check();assert.equal(fresh.view().disposition,'rejected');assert.ok(fresh.calls.every(c=>!c.options.method));assert.equal(fresh.actions.length,0);}finally{fresh.helper.dispose();}
  const g=fixture();try{g.emit();await flush();await g.helper.preview();g.setMode('submit-lost');await g.helper.confirm();assert.equal(g.view().canAbandon,false);const count=g.calls.length;await g.helper.abandon();assert.equal(g.calls.length,count);}finally{g.helper.dispose();}
+});
+
+// Connection events are public SDK status values; fetch/action/storage remain
+// fixture doubles. These tests do not claim browser reconnect qualification.
+test('reversal reconnect: empty scope and initial OFFLINE transition show current guidance without rebuilding a candidate',async()=>{
+ for(const initial of [SessionStatus.ONLINE,SessionStatus.OFFLINE]){
+  const f=fixture(new Map(),{},initial);try{
+   if(initial===SessionStatus.ONLINE){f.emit();await flush();assert.equal(f.view().canPreview,true);f.status.next(SessionStatus.OFFLINE);}
+   assert.match(f.view().message,/disconnected/i);const before=new Map(f.saved);
+   f.status.next(SessionStatus.ONLINE);assert.doesNotMatch(f.view().message,/session disconnected/i);assert.match(f.view().message,/connected|restored/i);assert.match(f.view().message,/acknowledg/i);
+   assert.equal(f.view().canPreview,false);assert.equal(f.view().canConfirm,false);assert.equal(f.calls.length,0);assert.equal(f.actions.length,0);assert.deepEqual(f.saved,before);
+   f.status.next(SessionStatus.ONLINE);assert.equal(f.calls.length,0);assert.equal(f.view().canPreview,false);
+  }finally{f.helper.dispose();}
+ }
+});
+test('reversal reconnect: retained unresolved identity stays unknown, GET-only and never rearms prepared or attempted actions',async()=>{
+ for(const attempted of [false,true]){
+  const f=fixture();try{
+   f.emit();await flush();await f.helper.preview();assert.equal(f.view().canConfirm,true);
+   if(attempted){f.setMode('submit-lost');await f.helper.confirm();}
+   const disk=new Map(f.saved),calls=f.calls.length,actions=f.actions.length,submits=f.actions.reduce((n,a)=>n+a.posts.length,0);
+   f.status.next(SessionStatus.OFFLINE);f.status.next(SessionStatus.ONLINE);
+   assert.doesNotMatch(f.view().message,/session disconnected/i);assert.match(f.view().message,/connected|restored/i);assert.match(f.view().message,/unknown|uncertain/i);assert.match(f.view().message,/GET only/);
+   assert.equal(f.view().canConfirm,false);assert.equal(f.view().canPreview,false);assert.equal(f.view().preview,undefined);assert.equal(f.calls.length,calls);assert.equal(f.actions.length,actions);assert.deepEqual(f.saved,disk);
+   await f.helper.confirm();assert.equal(f.calls.length,calls);assert.equal(f.actions.reduce((n,a)=>n+a.posts.length,0),submits);assert.deepEqual(f.saved,disk);
+   f.setMode('ok');await f.helper.check();assert.equal(f.calls.length,calls+1);assert.equal(f.calls.at(-1).options.method,undefined);assert.equal(f.view().canConfirm,false);
+  }finally{f.helper.dispose();}
+ }
+});
+test('reversal reconnect preserves authoritative committed/refused messages and malformed-metadata refusal',async()=>{
+ for(const outcome of ['committed','rejected']){
+  const f=fixture();try{
+   f.emit();await flush();await f.helper.preview();
+   if(outcome==='committed')await f.helper.confirm();else{f.restore({id:f.view().retainedID,disposition:'rejected',reason:'native_reversal_head_changed'});await f.helper.check();}
+   const message=f.view().message,disk=new Map(f.saved),calls=f.calls.length;
+   f.status.next(SessionStatus.OFFLINE);f.status.next(SessionStatus.ONLINE);assert.equal(f.view().disposition,outcome);assert.equal(f.view().message,message);assert.deepEqual(f.saved,disk);assert.equal(f.calls.length,calls);assert.equal(f.view().canConfirm,false);
+   if(outcome==='committed'){f.setHead(3);f.helper.refresh();assert.match(f.view().message,/Live editor has reached/);}
+  }finally{f.helper.dispose();}
+ }
+ const disk=new Map([['workagent:native-reversal:owner:A:binding:1','{invalid']]),f=fixture(disk);
+ try{const message=f.view().message;f.status.next(SessionStatus.OFFLINE);f.status.next(SessionStatus.ONLINE);assert.equal(f.view().message,message);assert.equal(f.view().canPreview,false);assert.equal(f.calls.length,0);assert.equal(disk.values().next().value,'{invalid');}finally{f.helper.dispose();}
 });

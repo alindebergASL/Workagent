@@ -133,7 +133,21 @@ export function nativeReversal(session: Session, native: Pick<CollaborationSessi
     if (!reversalCandidate(c, session.unitID)) { message = 'Latest ACK is not one supported scalar cell mutation (batch/formula/rich text/multi-cell operations cannot be reversed here).'; emit(); return; }
     void digest(JSON.stringify(c.mutations)).then(hash => { if (disposed || token !== candidateGeneration) return; candidate = { revision: c.revision, memberID: c.memberID, sid, reqId, hash }; if (!unresolved()) message = `Your acknowledged native operation at revision ${c.revision} is available for preview.`; emit(); }, () => { if (!disposed && token === candidateGeneration) { candidate = undefined; message = 'Cannot hash exact native acknowledgement. Preview unavailable.'; emit(); } });
   });
-  const status = native.sessionStatus$.subscribe(value => { if (value !== SessionStatus.ONLINE) { candidateGeneration++; candidate = undefined; prepared = undefined; message = 'Native session disconnected. Retained identity can be checked; no action reconnect or retry.'; } emit(); });
+  let wasOffline = false;
+  const status = native.sessionStatus$.subscribe(value => {
+    const preserveOutcome = storageFailed || retained?.disposition === 'committed' || retained?.disposition === 'rejected';
+    if (value !== SessionStatus.ONLINE) {
+      wasOffline = true;
+      candidateGeneration++; candidate = undefined; prepared = undefined;
+      if (!preserveOutcome) message = 'Native session disconnected. Retained identity can be checked; no action reconnect or retry.';
+    } else if (wasOffline) {
+      wasOffline = false;
+      if (!preserveOutcome) message = retained
+        ? 'Native session connected. Retained reversal outcome remains unknown. Check status (GET only); no action reconnect or retry.'
+        : 'Native session connected. No eligible acknowledgement yet. Wait for a new own acknowledged scalar cell operation.';
+    }
+    emit();
+  });
   emit();
   return { preview, confirm, check, abandon, active: () => active, locked: () => locked, refresh(pending = false) { if (pending) { candidateGeneration++; candidate = undefined; prepared = undefined; if (!active) message = 'Pending native edits invalidated the previous reversal candidate.'; } emit(); }, dispose() { if (disposed) return; disposed = true; generation++; candidateGeneration++; clearTimeout(deadline); abort?.abort(); owned?.dispose(); owned = undefined; events.unsubscribe(); status.unsubscribe(); active = locked = false; changed({ message: 'Reversal unavailable — session closed or access changed. Identity retained.', active: false, locked: false, canPreview: false, canConfirm: false }); } };
 }

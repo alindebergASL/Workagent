@@ -519,6 +519,15 @@ are not interpreted/replayed under a new scope. Own QA tabs were retired, keepin
 contexts/storage. Over-capacity refusal, automatic reconnect latency and physical
 phone remain unqualified. Main, prior QA, runtime.env, default and public unchanged.
 
+A subsequent two-human usability correction runs on private QA2530f61a4113:
+reversal guidance no longer says disconnected after ONLINE. Parent reproduced the
+old UI contradiction, then passed cold-connect and real offline/automatic-online
+browser checks without action rearming, agent/reversal POSTs or retained-storage
+changes. Native head4/A1=33/B2=71 and the paid result remain unchanged. Parent
+reversal13/13, acceptance17/17, types/diff and SAME review pass; exact225-source/
+80-artifact build and served entries verified. This is not a general reconnect
+latency or physical-phone qualification.
+
 Full B05 remains open: expanded native surface and conflict coverage, durable
 browser-crash recovery, richer comment editing/resolution and text/object anchors,
 broader individual/account undo and whole-artifact restore-as-new-revision,
