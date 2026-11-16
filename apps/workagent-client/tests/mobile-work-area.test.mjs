@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration && path.includes('/native-comments/')) return collaboration.commentsRequest(path,options);
     const value=collaboration && path.endsWith('/native-session') ? collaboration.session(path) : path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:path.endsWith('/sharing')||input?await handler(path,input,works):works[path.split('/').at(-1)];
     return {ok:true,status:200,json:async()=>structuredClone(value)};
   };
@@ -294,15 +295,24 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false } = {}) {
+function nativeLifecycle({ offline = false, comments = false } = {}) {
+  const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
-  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, sessionPath: `/api/work/${unitID}/native-session` });
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
     entry.cursor = new Subject(); entry.scrolls = []; entry.watches = new Set(); entry.facadeEvents = new Map(); entry.editing = false;
-    entry.commands = options.override[0][1].useFactory({createInstance:()=>({executeCommand:()=>entry.pastePromise,syncExecuteCommand(...args){entry.scrolls.push(args);return true;}})});
+    entry.commentSource={dataSource:null,syncUpdateMutationToColla:true};entry.commentListeners=new Set();entry.nativeAdds=[];entry.anchor='H9';
+    entry.commands = options.override[0][1].useFactory({createInstance:()=>({
+      beforeCommandExecuted(fn){entry.commentListeners.add(fn);return {dispose(){entry.commentListeners.delete(fn);}};},
+      async executeCommand(id,params){
+        if(id!=='thread-comment.command.add-comment')return entry.pastePromise;
+        const comment=await entry.commentSource.dataSource.addComment(params.comment);
+        for(const fn of entry.commentListeners)fn({id:'thread-comment.mutation.add-comment',params:{...params,comment}});
+        entry.nativeAdds.push(comment);return true;
+      },syncExecuteCommand(...args){entry.scrolls.push(args);return true;}})});
     const session = { get sessionStatus(){return entry.status.value;}, sessionStatus$: entry.status, event$:entry.cursor, getMemberID: () => 'self' };
     const entityInit = new Subject();
     const stream = name => ({subscribe(fn){entry.events.set(name,fn);return {unsubscribe(){entry.events.delete(name);}};}});
@@ -316,6 +326,7 @@ function nativeLifecycle({ offline = false } = {}) {
     const membership = {getRoom:()=>roomExists?room:undefined,removeMember(_unit,id){memberMap.delete(id);},waitForRoom$(){return {subscribe(fn){roomWaiters.add(fn);if(roomExists)fn(room);return {unsubscribe(){roomWaiters.delete(fn);}};}};}};
     const cache = { loadOfflineData: async () => null, saveOfflineData: async () => true, clearOfflineData: async () => {}, updateOfflineData() {}, exhaustSavingTask: async () => { await entry.drain; } };
     return { univer: { __getInjector: () => ({ get: key => {
+      if(key==='comment-source')return entry.commentSource;
       if(key==='user')return {setCurrentUser(){}};
       if(key==='collaboration-controller'||key===CollaborationController)return controller;
       if(key===DataLoaderService)return loader;
@@ -326,9 +337,13 @@ function nativeLifecycle({ offline = false } = {}) {
       if(key==='commands')return entry.commands;
       assert.equal(key,'cache');return cache;
     }}), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; entry.status.complete();entityInit.complete(); active--; } },
-      univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => entry.editing }),Event:{BeforeClipboardPaste:'beforePaste',ClipboardPasted:'pasted'},addEvent(name,fn){entry.facadeEvents.set(name,fn);return {dispose(){entry.facadeEvents.delete(name);}};}} };
+      univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => entry.editing, getActiveSheet:()=>({getSheetId:()=> 'sheet-1'}),getActiveRange:()=>entry.anchor?{getRange:()=>({startRow:8,endRow:8,startColumn:7,endColumn:7}),getA1Notation:()=>entry.anchor}:null }),Event:{BeforeClipboardPaste:'beforePaste',ClipboardPasted:'pasted'},addEvent(name,fn){entry.facadeEvents.set(name,fn);return {dispose(){entry.facadeEvents.delete(name);}};}} };
   };
-  return { instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
+  return { commentPosts,published,receipts,setCommentRefusal(value){refuseComment=value;},
+    async commentsRequest(path,options){const unitID=path.split('/')[3];
+      if(options.method==='POST'){const body=JSON.parse(options.body);commentPosts.push(body);if(refuseComment)return {ok:false,status:409};return {ok:true,json:async()=>({id:body.id,threadId:body.parentId??body.id,parentId:body.parentId,unitId:unitID,subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:body.ref,text:{dataStream:body.body+'\r\n'}})};}
+      return {ok:true,json:async()=>({revision:3,comments:structuredClone(published.get(unitID)??[]),receipt:receipts.get(new URL(path,'http://fixture').searchParams.get('pending'))})};},
+    instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
     session: path => structuredClone(sessions.get(path.split('/')[3])),
     window: { addEventListener(_name, fn){listeners.add(fn);}, removeEventListener(_name, fn){listeners.delete(fn);}, setInterval(fn){timers.set(++next, fn);return next;} },
     clearInterval: id => timers.delete(id),
@@ -336,6 +351,7 @@ function nativeLifecycle({ offline = false } = {}) {
     attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{events:new Map(),addEventListener(name,fn){this.events.set(name,fn);},removeEventListener(name){this.events.delete(name);}});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
     dependency(name){
       if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands'};
+      if(name==='@univerjs/thread-comment')return {IThreadCommentDataSourceService:'comment-source'};
       if(name==='@univerjs/sheets')return {RefRangeService:'refs'};
       if(name==='@univerjs-pro/collaboration-client')return {CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
       if(name==='@univerjs/presets')return {createUniver,mergeLocales:()=>({})};
@@ -530,4 +546,53 @@ test('native follow controls: reader view only, local input/clipboard, disconnec
     assert.ok(f.calls.every(c=>c.input===undefined),'following issues no writes');
   }finally{f.dispose();await new Promise(setImmediate);}
   assert.equal(native.active,0);
+});
+
+test('comments App: refused prewrite retains usable draft, explicit new intent confirms only on published membership; navigation preserves drafts',async()=>{
+  const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+  for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+  try{
+    await f.flush();await f.message('root composer');await f.open('A');await native.poll();await f.flush();
+    textarea().props.onChange({target:{value:'retained comment'}});await f.flush();await f.open('B');assert.equal(native.instances.length,1);assert.equal(textarea().props.value,'retained comment');
+    native.setCommentRefusal(true);await f.click('Add immutable comment');assert.equal(native.commentPosts.length,1);assert.equal(native.instances[0].nativeAdds.length,0);assert.equal(textarea().props.disabled,false);assert.match(f.panel.text(),/No native add began/);
+    native.setCommentRefusal(false);await f.click('Add immutable comment');assert.equal(native.commentPosts.length,2);assert.equal(textarea().props.disabled,true);
+    await native.poll();await f.flush();assert.equal(textarea().props.value,'retained comment');await f.open('B');assert.equal(native.instances.length,1);
+    // A queued input event can arrive after submission. Confirmation must not
+    // erase newer text, including when a stale click handler runs a second time.
+    textarea().props.onChange({target:{value:'newer unsent comment'}});await f.flush();f.button('Add immutable comment').props.onClick();await f.flush();
+    native.published.set('A',native.instances[0].nativeAdds);await native.poll();await f.flush();assert.equal(textarea().props.value,'newer unsent comment');assert.equal(native.commentPosts.length,2);
+    await f.click('Clear unsent comment draft');
+    await f.open('B');assert.equal(native.instances.length,2);await f.open('');assert.equal(f.messageValue(),'root composer');
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('comments App: deleted reply target retains text with explicit new-cell choice; busy and read role refuse creation',async()=>{
+  const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+  for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+  native.sessions.get('B').access.role='read';
+  native.published.set('A',[{id:'root',threadId:'root',authorName:'Peer',ref:'H9',text:{dataStream:'Published question\r\n'}}]);
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+  try{
+    await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');textarea().props.onChange({target:{value:'reply draft'}});await f.flush();
+    native.published.set('A',[]);await native.poll();await f.flush();assert.match(f.panel.text(),/target is no longer published/);assert.equal(f.button('Add immutable comment').props.disabled,true);
+    await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'reply draft');
+    native.instances[0].editing=true;await native.poll();await f.flush();assert.equal(f.button('Add immutable comment').props.disabled,true);assert.match(f.panel.text(),/Finish active cell/);assert.equal(native.commentPosts.length,0);
+    native.instances[0].editing=false;await f.click('Clear unsent comment draft');await f.open('B');assert.throws(()=>textarea(),/control missing/);assert.doesNotMatch(f.panel.text(),/Add immutable comment/);assert.equal(native.commentPosts.length,0);
+    assert.equal(native.instances[0].commentListeners.size,0);
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('comments App: committed and removed before polling unlocks recovery, preserves text/composer, never replays; unknown remains fenced',async()=>{
+  const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+  for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+  try{
+    await f.flush();await f.message('root retained');await f.open('A');await native.poll();await f.flush();textarea().props.onChange({target:{value:'Published then removed; keep my text'}});await f.flush();await f.click('Add immutable comment');
+    const id=native.commentPosts[0].id;
+    native.receipts.set(id,{id,status:'unknown'});await native.poll();await f.flush();assert.equal(textarea().props.disabled,true);assert.equal(f.button('Clear unsent comment draft').props.disabled,true);await f.open('B');assert.equal(native.instances.length,1);
+    native.receipts.set(id,{id,status:'committed-removed',revision:2});await native.poll();await f.flush();assert.equal(textarea().props.disabled,false);assert.equal(textarea().props.value,'Published then removed; keep my text');assert.match(f.panel.text(),/committed, then removed/);assert.equal(f.button('Add immutable comment').props.disabled,true);assert.equal(native.commentPosts.length,1);
+    await f.open('B');assert.equal(native.instances.length,1,'draft remains protected until explicit action');
+    await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'Published then removed; keep my text');assert.equal(native.commentPosts.length,1);
+    await f.click('Clear unsent comment draft');await f.open('B');await f.open('');assert.equal(f.messageValue(),'root retained');assert.equal(native.commentPosts.length,1);
+  }finally{f.dispose();await new Promise(setImmediate);}
 });

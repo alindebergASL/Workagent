@@ -101,6 +101,14 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
       const nativeWork = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-session$/.exec(path);
       if (nativeWork && req.method === 'GET') { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeSession(native, auth, principal, nativeWork[1], send); }
+      const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)$/.exec(path);
+      if (nativeComments) {
+        if (!native?.authority.comments) throw new Fault('native_comments_disabled', 409);
+        const [, unitID, epoch] = nativeComments, session = { userID: principal, unitID, revision: Number(epoch) };
+        if (req.method === 'GET') return await native.authority.comments.list(principal, unitID, session, value => send(200, value), new URL(req.url, origin).searchParams.get('pending') ?? undefined);
+        if (req.method === 'POST') return await native.authority.comments.claim(principal, auth.profile(principal).name, unitID, session, await body(req), value => send(200, value));
+        throw new Fault('native_comment_operation_unavailable', 405);
+      }
       if (path === '/api/work/native' && req.method === 'POST') {
         if (!native) throw new Fault('native_collaboration_disabled', 409);
         await workspace.ownerAccess(principal); return send(200, await native.createWork(await body(req)));

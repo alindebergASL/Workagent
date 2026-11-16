@@ -1,3 +1,4 @@
+import { NativeComments, ADD_COMMENT, DELETE_COMMENT, nativeCommentPolicy } from './native-comments.mjs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Fault, id, text } from '../../../packages/workagent-contract/index.mjs';
 import { authorize, dedup, event } from './workspace.mjs';
@@ -12,7 +13,7 @@ export const NATIVE_TAB = 'sheet-1';
 const deny = () => { throw new CollabError('PERMISSION_DENIED', 'Native qualification access denied'); };
 const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows']);
 const editActions = new Set([UnitAction.Edit, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
-export function allowedNativeAction(role, action) { return !!role && (action === UnitAction.View || (role !== 'read' && editActions.has(action))); }
+export function allowedNativeAction(role, action, comments = false) { return !!role && (action === UnitAction.View || (role !== 'read' && (editActions.has(action) || (comments && action === UnitAction.Comment)))); }
 
 // The same Workspace row lock used by Workspace.share is held through native
 // dbAdapter.commitChangeset, and independently through each delivery enqueue.
@@ -36,7 +37,7 @@ export class NativeAuthority {
   validateChangeset(c) {
     if (!c || (this.unitID !== null && c.unitID !== this.unitID) || c.type !== UniverType.UNIVER_SHEET || typeof c.sid !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(c.sid) || !Number.isSafeInteger(c.reqId) || c.reqId < 1 || !Array.isArray(c.mutations) || !c.mutations.length) deny();
     for (const m of c.mutations) {
-      if (!mutations.has(m.id)) deny();
+      if (!mutations.has(m.id) && !(this.comments && [ADD_COMMENT, DELETE_COMMENT].includes(m.id))) deny();
       let p; try { p = JSON.parse(m.data); } catch { deny(); }
       if (p?.unitId !== c.unitID || p.subUnitId !== NATIVE_TAB) deny();
     }
@@ -74,19 +75,25 @@ export class NativeAuthority {
     for (const action of ['deleteUnits', 'recoverUnits']) service.use(action, async () => deny());
     service.use('submitChangeset', async (c, next) => {
       const session = this.submission(c);
-      await this.workspace.store.transaction(s => {
+      await this.workspace.store.transaction(async s => {
         this.check(s, c.userID, c.request.changeset.unitID, true, session);
         this.bindSubmission(s, c, true);
+        await nativeCommentPolicy(() => this.comments?.bind(s, c, session, true));
       });
       await next();
     });
     service.use('commitChangeset', async (c, next) => {
       const session = this.submission(c);
       this.validateChangeset(c.changeset);
+      const commentView = this.comments?.needs(c.changeset) ? await this.comments.prepare(c.userID, c.changeset.unitID, session) : null;
       await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
         this.bindSubmission(s, c);
-        for (const p of c.requiredUnitPermissions) if (p.unitID !== c.changeset.unitID || !allowedNativeAction(access.role, p.action)) deny();
+        await nativeCommentPolicy(async () => {
+          this.comments?.bind(s, c, session, false);
+          if (commentView) { await this.comments.current(c.userID, c.changeset.unitID, commentView); this.comments.validate(s, c, commentView); }
+        });
+        for (const p of c.requiredUnitPermissions) if (p.unitID !== c.changeset.unitID || !allowedNativeAction(access.role, p.action, !!this.comments)) deny();
         await next(); // Actual native database CAS/commit, not just admission.
       });
     });
@@ -185,6 +192,7 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
+  if (mode === 'workspace') authority.comments = new NativeComments(authority, service, dbAdapter);
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });

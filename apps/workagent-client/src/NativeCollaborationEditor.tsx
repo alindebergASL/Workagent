@@ -1,3 +1,7 @@
+import { nativeComments } from './native-comments';
+import type { CommentView } from './native-comments';
+import { UniverThreadCommentPlugin, IThreadCommentDataSourceService } from '@univerjs/thread-comment';
+import { UniverSheetsThreadCommentPlugin } from '@univerjs/sheets-thread-comment';
 import { scopeNativeCache } from './native-cache';
 import { nativeCursorSessionOverride } from './native-cursor-session';
 import { observeNativePresence, observeNativeMembershipJoins } from './native-presence';
@@ -22,7 +26,7 @@ import '@univerjs/sheets-ui/facade';
 import '@univerjs/preset-sheets-core/lib/index.css';
 import '@univerjs-pro/collaboration-client-ui/lib/index.css';
 
-export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string }
+export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string; comments?: boolean }
 export interface NativeCollaborationHandle { canLeave(): boolean; close(): Promise<void> }
 // Native operations/cache are the only synchronization path. Never call legacy
 // save, create a local workbook, replace a snapshot or mint retry identities.
@@ -36,11 +40,20 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const [presence, setPresence] = useState<NativePresence>({ online: false, members: [] });
   const follow = useRef<ReturnType<typeof nativeFollow> | null>(null);
   const [following, setFollowing] = useState<NativeFollowState>({ message: 'Not following' });
+  const comments = useRef<ReturnType<typeof nativeComments> | null>(null);
+  const draft = useRef('');
+  const submittedDraft = useRef<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [commentView, setCommentView] = useState<CommentView>({ comments: [], message: 'Loading comments', pending: false });
+  const [anchor, setAnchor] = useState('');
+  const [commentAvailable, setCommentAvailable] = useState(false);
+  const [reply, setReply] = useState<string | undefined>();
+  const anchorRead = useRef<() => string>(() => '');
   useEffect(() => {
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false;
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
@@ -57,7 +70,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         sendChangesetTimeout: 200, authzUrl: `${base}/authz`, snapshotServerUrl: `${base}/snapshot`,
         collabSubmitChangesetUrl: `${base}/comb`, wsSessionTicketUrl: `${base}/user/session-ticket`,
         collabWebSocketUrl: `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${basePath}/comb/connect`,
-      }], UniverCollaborationClientUIPlugin],
+      }], UniverCollaborationClientUIPlugin, ...(session.comments ? [UniverThreadCommentPlugin, UniverSheetsThreadCommentPlugin] : [])],
     });
     univer.__getInjector().get(UserManagerService).setCurrentUser({ userID: session.principal, name: session.name, avatar: '' });
     const cache = univer.__getInjector().get(ILocalCacheService);
@@ -66,6 +79,15 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(MemberService));
     const collaboration = nativeCollaborationClient(univer.__getInjector(), session.unitID);
     let composing = false;
+    anchorRead.current = () => {
+      const book = univerAPI.getActiveWorkbook(), range = book?.getActiveRange();
+      if (book?.getActiveSheet().getSheetId() !== 'sheet-1' || !range) return '';
+      const r = range.getRange();
+      return r.startRow === r.endRow && r.startColumn === r.endColumn ? range.getA1Notation() : '';
+    };
+    if (session.comments) comments.current = nativeComments(session, univer.__getInjector().get(IThreadCommentDataSourceService), univer.__getInjector().get(ICommandService),
+      () => loaded && !revoked && !conflict && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending(),
+      value => { if (live && !revoked && !conflict) { setCommentView(value); if (value.confirmed && draft.current === submittedDraft.current) { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; } } }, fetch);
     const localInteraction = () => follow.current?.localInteraction();
     const element = host.current;
     const inputStart = () => { composing = true; localInteraction(); };
@@ -75,6 +97,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     element.addEventListener('compositionstart', inputStart, true); element.addEventListener('compositionend', inputEnd, true);
     element.addEventListener('paste', localInteraction, true);
     const report = () => {
+      if (live) setCommentAvailable(!!comments.current?.canAdd());
       if (!live || conflict || revoked) return;
       const state = collaboration.getCollaborationStatus();
       const name = String(state);
@@ -95,12 +118,12 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         } catch { setStatus(`Conflict: ${event.reason}. Recovery is in memory only — download it before closing this tab.`); }
       } }),
     ];
-    const beforeUnload = (event: BeforeUnloadEvent) => { if (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict) { event.preventDefault(); event.returnValue = ''; } };
+    const beforeUnload = (event: BeforeUnloadEvent) => { if (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending()) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', beforeUnload);
     void collaboration.loadSheetAsync().then(book => {
       if (!live) return;
       if (!book) { setStatus('Unable to load authoritative sheet. Retained operations have not been replaced.'); setBlocked(true); return; }
-      loaded = true; report();
+      loaded = true; report(); void comments.current?.refresh();
       if (revoked || conflict) return;
       const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID);
       if (entity) {
@@ -117,6 +140,8 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     let checking = false;
     const timer = window.setInterval(async () => {
       if (checking || !live) return; checking = true;
+      if (session.comments) { setAnchor(anchorRead.current()); setCommentAvailable(!!comments.current?.canAdd()); }
+      if (!revoked && !conflict) void comments.current?.refresh();
       try {
         const response = await fetch(session.sessionPath ?? '/api/native/session', { headers: { 'X-Workagent-Session-Binding': session.binding } });
         if (!live) return;
@@ -130,13 +155,13 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     }, 1500);
     let closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => {
-      if (live && (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict)) { closing = undefined; throw new Error('Native edits are pending; keep this editor open.'); }
+      if (live && (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending())) { closing = undefined; throw new Error('Native edits are pending; keep this editor open.'); }
       if (host.current) host.current.inert = true;
       await cache.exhaustSavingTask();
       stopPresence();
       univer.dispose();
     })().catch(error => { closing = undefined; if (live && host.current) host.current.inert = blocked; throw error; });
-    ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict, close });
+    ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !comments.current?.pending(), close });
     return () => {
       ready.current?.(null);
       live = false; clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
@@ -160,5 +185,16 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       {presence.online ? presence.members.filter(m => !m.self).map(m => <span key={m.memberID}>{m.name || 'Unnamed collaborator'}{m.userID === session.principal ? ' (your other session)' : ''} <button onPointerDown={event => event.preventDefault()} onClick={() => follow.current?.follow(m.memberID)} aria-label={`Follow ${m.name || 'collaborator'}${m.userID === session.principal ? ' (your other session)' : ''}`}>Follow</button></span>) : <span>Live collaborators unavailable</span>}
     </div>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowWrap: 'anywhere' }}><span role="status" data-native-follow>{following.message}</span>{following.memberID && <button onPointerDown={event => event.preventDefault()} onClick={() => follow.current?.stop()}>Stop following</button>}</div>
+    {session.comments && <details><summary>Cell comments</summary>
+      <p role="status">{blocked ? 'Comments unavailable — access or native state changed. Draft retained.' : commentView.message}</p>
+      {!blocked && commentView.comments.map(root => <div key={root.id}><p><strong>{root.authorName}</strong> · {root.ref}: {root.text.dataStream}</p>{root.children?.map(child => <p key={child.id}>{child.authorName}: {child.text.dataStream}</p>)}{session.access.role !== 'read' && <button disabled={commentView.pending || !!commentDraft} onClick={() => { setReply(root.id); setAnchor(root.ref); }}>Reply to {root.ref}</button>}</div>)}
+      {session.access.role !== 'read' && <><p>{reply ? (commentView.comments.some(c => c.id === reply) ? `Reply to thread ${reply}` : 'Reply target is no longer published. Choose a new cell comment to keep using this draft.') : `Selected cell: ${anchor || 'select a single cell'}`} </p>
+        <textarea aria-label="Comment draft" value={commentDraft} maxLength={8000} disabled={blocked || commentView.pending} onChange={event => { draft.current = event.target.value; setCommentDraft(event.target.value); }}/>
+        <button disabled={blocked || commentView.pending || !!commentView.removed || !commentAvailable || !commentDraft.trim() || (reply ? !commentView.comments.some(c => c.id === reply) : !anchor)} onClick={() => { const ref = reply ? commentView.comments.find(c => c.id === reply)?.ref : anchorRead.current(); if (ref) { if (comments.current?.canAdd()) submittedDraft.current = draft.current; void comments.current?.add(draft.current, ref, reply); } else comments.current?.explain('The selected cell or reply target is unavailable. Choose a current cell; draft retained.'); }}>Add immutable comment</button>
+        {!commentAvailable && !blocked && !commentView.pending && <p>Finish active cell input, paste or pending native edits before adding.</p>}
+        {(reply || commentView.removed) && <button disabled={commentView.pending} onClick={() => { setReply(undefined); setAnchor(anchorRead.current()); comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Use draft for a new cell comment</button>}
+        <button disabled={commentView.pending} onClick={() => { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Clear unsent comment draft</button>
+        <p>Pending or refused comments retain this draft; no automatic retry. Body editing, resolution and manual deletion are not enabled.</p></>}
+    </details>}
     {hasRecovery && <button onClick={download}>Download retained recovery operations</button>}<div style={{ position: 'relative' }}><div ref={host} style={{ height: '75vh' }} inert={blocked || undefined}/>{blocked && <p>Editing paused. Keep this tab open while resolving access or pending work.</p>}</div></>;
 }

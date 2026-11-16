@@ -361,9 +361,47 @@ Merge and additional worksheets remain disabled by current qualification permiss
 no live proof for those paths is claimed. Full-row positions pause as unavailable.
 Browser IME uses CDP, not a physical keyboard. Revisionless ordering limits remain.
 
+Immutable cell comments/replies are qualified on private QA dccf0b193314, not
+installed in main. Public thread-comment commands and sheet resource anchors are
+paired with an instance-scoped external body data source. PostgreSQL prewrites are
+immutable, principal/epoch/request bound and private until native committed
+membership publishes them. Current ACL/head fences protect reads and commits;
+normal structural deletion cascades the thread, while incomplete batches refuse.
+Only known precommit policy faults map to definitive SDK rejection; native-head
+races and unknown database outcomes retain their actual retry semantics. Own-request
+history receipts distinguish committed-then-removed from unknown, without publishing
+private bodies, guessing from absence/idle, or resubmitting. Drafts survive refusal,
+queued newer input, removal, navigation guards and access changes; recovery is explicit.
+
+Parent closure: SAME reviewer PASS; 39 focused and 308 serial affected tests passed,
+zero failures/skips, typecheck/diff. Positive comment tests are in
+`test:native-collaboration`; the original SDK capability probes retain intentional
+missing-body/canonicalization negatives outside that green gate. Guarded build
+verifies 198 sources/80 artifacts. Actual restricted PostgreSQL plus fresh native
+SQLite and production HTTP handlers passed create/reply/anchor/delete/refusal,
+closed-pool/new-backend exact claim reread, native reopen, unpublished-body privacy
+and committed-removed receipts. An in-memory canonical-store probe alone was not
+counted as PostgreSQL durability.
+
+Nineteen corrected-build browser stages pass: distinct-principal root/reply,
+reader visibility and HTTP403 without mutation, native H9→H10 movement, root/reply
+structural deletion, cold hydration, unsent navigation guard, 390px containment,
+actual commit then peer deletion before delayed confirmation reads, explicit
+recovery without replay, full private-server restart, revoke/regrant, post-regrant
+explicit creation, cross-work isolation, ordinary document/sheet real typing and
+authoritative save readback, and safe retirement. Original C/B and prior pending
+work were untouched; all new native connections ended at zero. The existing root
+draft was restored exactly after undoing only a known harness-appended suffix.
+Collapsed-panel text, cold readiness and offscreen native-menu targeting corrections
+remain in evidence, not extra passes. Restart was observed offline beyond124s before
+automatic convergence without another comment POST: SDK exponential backoff exists,
+but exact cause/latency bound is unqualified. 390px is not physical-phone proof.
+No product inference, default merge, main installation or public deployment.
+
 Full B05 remains open: expanded native surface, same-cell conflicts, durable
-browser-crash recovery, comments/anchors/history/individual undo, safe agent proposals
-and two-human usability. No existing human Sheet conversion or native export/model bridge.
+browser-crash recovery, richer comment editing/resolution and text/object anchors,
+history/individual undo, safe agent proposals and two-human usability. No existing
+human Sheet conversion or native export/model bridge.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

@@ -14,7 +14,7 @@ export function nativeRoute(req, origin, auth) {
 }
 export async function nativeSession(native, auth, principal, unitID, send) {
   return native.authority.fence(principal, unitID, false, access => send(200, {
-    ...auth.profile(principal), unitID, access,
+    ...auth.profile(principal), unitID, access, comments: !!native.authority.comments,
     basePath: `/api/native/${unitID}/${access.revision}/universer-api`, sessionPath: `/api/work/${unitID}/native-session`,
   }));
 }
@@ -25,7 +25,7 @@ export async function nativeRequest(native, auth, origin, req, res, body, send) 
     if (!Array.isArray(input.requests) || input.requests.length > 100) throw new Fault('invalid_permissions', 400);
     return native.authority.fence(principal, unitID, false, access => send(200, {
       error: { code: ErrorCode.OK, message: '' }, objectActions: input.requests.map(r => ({ unitID: r.unitID, objectID: r.objectID,
-        actions: (Array.isArray(r.actions) ? r.actions : []).map(action => ({ action, allowed: r.unitID === unitID && allowedNativeAction(access.role, action) })) })),
+        actions: (Array.isArray(r.actions) ? r.actions : []).map(action => ({ action, allowed: r.unitID === unitID && allowedNativeAction(access.role, action, !!native.authority.comments) })) })),
     }), req.nativeAccess);
   }
   return native.transport.handleRequest(req, res);
