@@ -14,6 +14,11 @@ const uuid = v => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}
 const fileIdentity = s => ({ dev: String(s.dev), ino: String(s.ino) });
 const same = isDeepStrictEqual;
 
+export function nativeWorkspaceConfig(env) {
+  if (env.WORKAGENT_NATIVE_WORKSPACE === undefined) return null;
+  if (env.WORKAGENT_NATIVE_WORKSPACE !== 'synthetic-only') fail('explicit_native_workspace_required');
+  return { ...nativeQualificationConfig({ ...env, WORKAGENT_NATIVE_QUALIFICATION: 'synthetic-only' }), mode: 'workspace' };
+}
 export function nativeQualificationConfig(env) {
   const required = k => { if (typeof env[k] !== 'string' || !env[k]) fail(`${k}_required`); return env[k]; };
   if (env.WORKAGENT_NATIVE_QUALIFICATION !== 'synthetic-only') fail('explicit_native_qualification_required');
@@ -61,7 +66,7 @@ export async function inspectNativeStorage(config, databaseID, { io = fs, uid = 
     if (markerStat.size > 4096) fail('invalid_native_marker');
     const marker = JSON.parse(await io.readFile(markerPath, 'utf8'));
     const dbStat = await io.lstat(config.filename); privateEntry(dbStat, false, uid);
-    if (marker?.version !== 1 || marker.purpose !== 'workagent-native-synthetic' || !uuid(marker.pairID) || marker.owner !== config.owner || marker.unitID !== NATIVE_UNIT || marker.databaseID !== databaseID || marker.root !== config.root || marker.filename !== config.filename || !same(marker.rootIdentity, fileIdentity(rootStat)) || !same(marker.fileIdentity, fileIdentity(dbStat))) fail('native_storage_identity_mismatch');
+    if (marker?.version !== 1 || marker.purpose !== (config.mode === 'workspace' ? 'workagent-native-workspace' : 'workagent-native-synthetic') || !uuid(marker.pairID) || marker.owner !== config.owner || marker.unitID !== (config.mode === 'workspace' ? null : NATIVE_UNIT) || marker.databaseID !== databaseID || marker.root !== config.root || marker.filename !== config.filename || !same(marker.rootIdentity, fileIdentity(rootStat)) || !same(marker.fileIdentity, fileIdentity(dbStat))) fail('native_storage_identity_mismatch');
     const allowed = new Set(['qualification.json', 'content.sqlite', 'content.sqlite-wal', 'content.sqlite-shm', 'content.sqlite-journal']);
     for (const name of await io.readdir(config.root)) {
       if (!allowed.has(name)) fail('unmanaged_native_storage');
@@ -74,7 +79,16 @@ function freshWorkspace(s, config) {
   if (!same(s, initialState(config.owner))) fail('fresh_native_workspace_required');
 }
 function pairedWorkspace(s, config, marker) {
-  const pair = s.nativeQualification, w = s.works[NATIVE_UNIT], identity = w?.nativeIdentity;
+  const pair = s.nativeQualification;
+  if (config.mode === 'workspace') {
+    if (s.owner !== config.owner || !s.enabled || !object(pair) || !same(pair.storage, marker) || !['provisioned', 'ready'].includes(pair.phase)) fail('native_workspace_pair_mismatch');
+    for (const w of Object.values(s.works).filter(w => w.nativeCollaboration)) {
+      const i = w.nativeIdentity;
+      if (w.kind !== 'native-sheet' || i?.version !== 1 || i.workspace !== s.owner || i.unitID !== w.id || i.pairID !== marker.pairID || !object(i.owners)) fail('native_workspace_pair_mismatch');
+    }
+    return pair.phase;
+  }
+  const w = s.works[NATIVE_UNIT], identity = w?.nativeIdentity;
   if (s.owner !== config.owner || !s.enabled || !object(pair) || !same(pair.storage, marker) || !['provisioned', 'ready'].includes(pair.phase) || Object.keys(s.works).some(k => k !== NATIVE_UNIT) || Object.keys(s.jobs).length || Object.keys(s.sources).length || w?.nativeCollaboration !== true || w.kind !== 'native-sheet' || identity?.version !== 1 || identity.workspace !== config.owner || identity.unitID !== NATIVE_UNIT || identity.pairID !== marker.pairID || !object(identity.owners)) fail('native_workspace_pair_mismatch');
   return pair.phase;
 }
@@ -87,13 +101,13 @@ export async function provisionNativeStorage({ config, workspace, databaseID, io
   await workspace.store.read(s => freshWorkspace(s, config));
   await io.mkdir(config.root, { mode: 0o700 });
   const file = await io.open(config.filename, 'wx', 0o600); await file.close();
-  const marker = { version: 1, purpose: 'workagent-native-synthetic', pairID: newID(), owner: config.owner, unitID: NATIVE_UNIT, databaseID, root: config.root, filename: config.filename, rootIdentity: fileIdentity(await io.lstat(config.root)), fileIdentity: fileIdentity(await io.lstat(config.filename)) };
+  const marker = { version: 1, purpose: config.mode === 'workspace' ? 'workagent-native-workspace' : 'workagent-native-synthetic', pairID: newID(), owner: config.owner, unitID: config.mode === 'workspace' ? null : NATIVE_UNIT, databaseID, root: config.root, filename: config.filename, rootIdentity: fileIdentity(await io.lstat(config.root)), fileIdentity: fileIdentity(await io.lstat(config.filename)) };
   await io.writeFile(join(config.root, 'qualification.json'), JSON.stringify(marker), { flag: 'wx', mode: 0o600 });
   await inspectNativeStorage(config, databaseID, { io, uid });
   await workspace.store.transaction(s => {
     freshWorkspace(s, config);
     s.nativeQualification = { storage: marker, phase: 'provisioned' };
-    s.works[NATIVE_UNIT] = { id: NATIVE_UNIT, kind: 'native-sheet', nativeCollaboration: true, title: 'Synthetic native collaboration', accessRevision: 1, acl: { [config.accounts[0].id]: 'editor' }, proposals: [], intentRevision: 0, status: 'ready',
+    if (config.mode !== 'workspace') s.works[NATIVE_UNIT] = { id: NATIVE_UNIT, kind: 'native-sheet', nativeCollaboration: true, title: 'Synthetic native collaboration', accessRevision: 1, acl: { [config.accounts[0].id]: 'editor' }, proposals: [], intentRevision: 0, status: 'ready',
       nativeIdentity: { version: 1, workspace: config.owner, unitID: NATIVE_UNIT, pairID: marker.pairID, owners: {} } };
   });
   return marker.pairID;
@@ -108,7 +122,7 @@ export async function openNativeStorage({ config, workspace, databaseID, makeAda
   let native, adapter;
   try {
     adapter = makeAdapter({ filename: config.filename });
-    native = await createCollaboration({ dbAdapter: adapter, workspace, auth: config.auth, origin: config.origin, owner: config.owner, allowCreate: phase === 'provisioned' });
+    native = await createCollaboration({ dbAdapter: adapter, workspace, auth: config.auth, origin: config.origin, owner: config.owner, allowCreate: phase === 'provisioned', mode: config.mode });
     if (phase === 'provisioned') await workspace.store.transaction(s => { pairedWorkspace(s, config, marker); s.nativeQualification.phase = 'ready'; });
     return native;
   } catch (e) { if (native) await native.close(); else if (adapter) await adapter.dispose(); if (e.nativeCode) throw e; fail('native_storage_open_failed'); }

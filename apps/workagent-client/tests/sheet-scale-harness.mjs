@@ -268,7 +268,7 @@ export function memoryStorage() {
 }
 export function mountApp(storage, fetcher) {
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const NativeEditor = () => null;
+  const NativeEditor = () => null, NativeCollaborationEditor = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -281,6 +281,7 @@ export function mountApp(storage, fetcher) {
     if (name === 'react') return react;
     if (name === 'react-dom/client') return { createRoot: () => ({ render: element => { root = element.type; } }) };
     if (name === './NativeEditor') return { NativeEditor };
+    if (name === './NativeCollaborationEditor') return { NativeCollaborationEditor };
     if (/^\.\/(GoogleExchange|PdfExchange|PdfExport|DocxExchange|DocumentExchange|DocumentEditor|XlsxExchange|CsvExchange|MaintenancePanel)$/.test(name)) return { [name.slice(2)]: () => null };
     if (name === './drafts') return drafts;
     if (name === './resume') return resume;
@@ -291,7 +292,7 @@ export function mountApp(storage, fetcher) {
   }, module, module.exports, storage, { getElementById: () => ({}) }, { addEventListener() {}, removeEventListener() {} }, (path, options) => path === '/api/session' ? Promise.resolve({ ok: true, status: 200, json: async () => ({ principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner' }) }) : fetcher(path, options), { randomUUID }, () => 1, () => {});
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
   const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
-  function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
+  function render() { index = 0; dirty = false; tree = root(); assert.equal(nodes(tree).some(n => n.type === NativeCollaborationEditor), false, 'Unexpected collaboration editor in legacy fixture'); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
   return { flush, get tree() { return tree; }, native: () => nodes(tree).find(n => n.type === NativeEditor)?.props, text: () => text(tree),

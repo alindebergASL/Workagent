@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialState } from '../src/store.mjs';
 import { NATIVE_UNIT } from '../src/native-collaboration.mjs';
-import { nativeQualificationConfig, nativeDatabaseIdentity, inspectNativeStorage, provisionNativeStorage, openNativeStorage } from '../src/native-qualification-storage.mjs';
+import { nativeWorkspaceConfig, nativeQualificationConfig, nativeDatabaseIdentity, inspectNativeStorage, provisionNativeStorage, openNativeStorage } from '../src/native-qualification-storage.mjs';
 const env = { WORKAGENT_NATIVE_QUALIFICATION: 'synthetic-only', WORKAGENT_OWNER_ID: 'owner', WORKAGENT_AUTH_TOKEN: 'synthetic-owner-credential-at-least-32-characters', WORKAGENT_ORIGIN: 'http://127.0.0.1:8311', WORKAGENT_DATABASE_URL: 'postgresql://synthetic:DO-NOT-LOG@localhost/workagent_native_test', WORKAGENT_NATIVE_DATABASE_NAME: 'workagent_native_test', WORKAGENT_NATIVE_ROOT: '/private/native', WORKAGENT_NATIVE_SQLITE: '/private/native/content.sqlite', WORKAGENT_SYNTHETIC_ACCOUNTS_JSON: JSON.stringify([{ id: 'peer', name: 'Peer', token: 'synthetic-peer-credential-at-least-32-characters' }]) };
 const pairID = 'a6d06e79-29b6-4c02-abed-723fb0fe7dc2', databaseID = 'database-fingerprint';
 function fixture() {
@@ -85,4 +85,18 @@ test('database identity mismatch or query errors are read-only and redact driver
   const config = nativeQualificationConfig(env);
   await assert.rejects(nativeDatabaseIdentity({ query: async () => ({ rows: [{ name: 'installed', oid: '1' }] }) }, config), /mismatch/);
   await assert.rejects(nativeDatabaseIdentity({ query: async () => { throw Error('postgresql://DO-NOT-LOG'); } }, config), e => e.message === 'native_database_identity_unavailable');
+});
+
+test('normal workspace opt-in provisions a distinct empty pair; retains legacy work on restart and refuses qualification adoption', async () => {
+  assert.equal(nativeWorkspaceConfig({}), null);
+  assert.throws(() => nativeWorkspaceConfig({ ...env, WORKAGENT_NATIVE_WORKSPACE: 'yes' }));
+  const config = nativeWorkspaceConfig({ ...env, WORKAGENT_NATIVE_WORKSPACE: 'synthetic-only' });
+  const f = fixture(); Object.assign(f.config, config); await provisionNativeStorage(f.args);
+  assert.deepEqual(await f.workspace.store.read(s => s.works), {});
+  await f.open();
+  f.mutate(s => { s.works.legacy = { id: 'legacy', book: { human: 'kept' }, proposals: [{ status: 'pending' }] }; });
+  f.trace.length = 0; await f.open(); assert.deepEqual(f.trace, ['constructor', 'retained-only']);
+  assert.equal((await f.workspace.store.read(s => s.works.legacy.book)).human, 'kept');
+  const old = fixture(); await provisionNativeStorage(old.args); old.trace.length = 0; Object.assign(old.config, config);
+  await assert.rejects(old.open(), /identity_mismatch/); assert.deepEqual(old.trace, []);
 });

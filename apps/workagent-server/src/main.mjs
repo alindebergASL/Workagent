@@ -1,3 +1,5 @@
+import { nativeWorkspaceConfig, nativeDatabaseIdentity, openNativeStorage } from './native-qualification-storage.mjs';
+import { SQLiteDatabaseAdapter } from '@univerjs-pro/collaboration-database-sqlite';
 import { DocxExchange } from './docx-exchange.mjs';
 import { startGoogleSimulation } from './google-exchange.mjs';
 import { DocxWorker } from './docx-worker.mjs';
@@ -29,19 +31,28 @@ const accounts = configuredAccounts(owner, token, JSON.parse(process.env.WORKAGE
 const hostname = process.env.WORKAGENT_BIND ?? '127.0.0.1';
 if (hostname !== '127.0.0.1' && hostname !== '10.0.14.244') throw new Error('private_bind_required');
 if (!origin.startsWith('https://') && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin)) throw new Error('encrypted_remote_origin_required');
+const mode = process.env.WORKAGENT_ACCOUNTING_MODE ?? 'certificate';
+if (!['certificate', 'openrouter'].includes(mode)) throw new Error('invalid_accounting_mode');
+const maxOutputTokens = outputAllowance(process.env.WORKAGENT_MAX_OUTPUT_TOKENS);
+const requestTimeoutMs = requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS);
+const nativeConfig = nativeWorkspaceConfig(process.env);
+required('WORKAGENT_STATE_DIR');
 const pool = new pg.Pool({ connectionString: required('WORKAGENT_DATABASE_URL'), max: 3 });
 // One writer across processes, independently of HTTP clients. Never steal a lock.
 const leadership = await pool.connect();
 if (!(await leadership.query('SELECT pg_try_advisory_lock(721013001) AS acquired')).rows[0].acquired) throw new Error('runner_already_active');
-const workspace = new Workspace(new PostgresStore(pool, owner), { peers: accounts });
-const mode = process.env.WORKAGENT_ACCOUNTING_MODE ?? 'certificate';
-if (!['certificate', 'openrouter'].includes(mode)) throw new Error('invalid_accounting_mode');
-const maxOutputTokens = outputAllowance(process.env.WORKAGENT_MAX_OUTPUT_TOKENS);
+const workspace = new Workspace(new PostgresStore(pool, owner), { peers: accounts, nativeEnabled: !!nativeConfig });
+let native;
+if (nativeConfig) {
+  try { native = await openNativeStorage({ config: nativeConfig, workspace, databaseID: await nativeDatabaseIdentity(pool, nativeConfig), makeAdapter: options => new SQLiteDatabaseAdapter(options) }); }
+  catch { leadership.release(); await pool.end(); throw new Error('native_workspace_startup_refused'); }
+}
+
 const accounting = mode === 'openrouter'
   ? new OpenRouterAccounting({ journal: new PostgresProviderJournal(pool), apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL, maxOutputTokens })
   : process.env.WORKAGENT_ISSUER_SOCKET ? new IssuerSocketAccounting(process.env.WORKAGENT_ISSUER_SOCKET) : new DisabledAccounting();
 const host = await bootHost({ stateRoot: resolve(required('WORKAGENT_STATE_DIR')), workspace, principal: owner,
-  accounting, maxOutputTokens, requestTimeoutMs: requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS), reasoningEffort: process.env.WORKAGENT_REASONING_EFFORT,
+  accounting, maxOutputTokens, requestTimeoutMs, reasoningEffort: process.env.WORKAGENT_REASONING_EFFORT,
   apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL });
 await workspace.recover(owner, host.inspect);
 const maintenance = new Maintenance({ workspace, files: new OwnedFiles(resolve(required('WORKAGENT_STATE_DIR'))), budgetReference: mode === 'openrouter' ? 'openrouter:configured-provider-limits' : 'certificate:existing-accounting' });
@@ -53,7 +64,7 @@ const documents = new DocumentExchange({ workspace, files: maintenance.files });
 const pdf = new PdfExchange({ workspace, files: maintenance.files, worker: new PdfWorker({ venv: process.env.WORKAGENT_DOCX_VENV }) });
 // Exact opt-in only; no credentials/environment account discovery or live fallback.
 const googleSimulation = await startGoogleSimulation({ workspace, simulation: process.env.WORKAGENT_GOOGLE_SIMULATION === 'local-only' });
-const server = createServer({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, google: googleSimulation.exchange, owner, token, origin, accounts, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
+const server = createServer({ native, workspace, maintenance, exchange, xlsx, documents, docx, pdf, google: googleSimulation.exchange, owner, token, origin, accounts, accounting, clientRoot: resolve('apps/workagent-client/dist'), onCommand(workId, kind, intentRevision) {
   if (kind !== 'start') host.cancel(workId, intentRevision);
   dispatcher.wake();
 } });

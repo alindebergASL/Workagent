@@ -33,8 +33,8 @@ export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed')
   return { status: 'applied', expected: preconditions(s, w) };
 }
 export class Workspace {
-  constructor(store, { peers = [] } = {}) {
-    this.store = store;
+  constructor(store, { peers = [], nativeEnabled = false } = {}) {
+    this.store = store; this.nativeEnabled = nativeEnabled;
     this.peers = new Map(peers.map(p => [id(p.id), { id: p.id, name: p.name }]));
   }
   member(s, principal) { if (!s.enabled || (s.owner !== principal && !this.peers.has(principal))) throw new Fault('access_denied', 403); }
@@ -48,6 +48,7 @@ export class Workspace {
   }
   visible(s, principal, w) {
     const access = { role: this.role(s, principal, w), revision: w.accessRevision ?? 0 };
+    if (w.nativeCollaboration) return { id: w.id, kind: 'native-sheet', title: w.title, status: w.status, access };
     if (principal === s.owner) return { ...snapshot(s, w), access };
     // Sharing covers the artifact, not its creator's inputs, conversation or effects.
     return { id: w.id, ...(workKind(w) === 'document' ? { kind: 'document', document: structuredClone(w.document) } : { book: structuredClone(w.book), humanCells: structuredClone(w.humanCells) }),
@@ -89,15 +90,15 @@ export class Workspace {
   }
   // A fresh committed snapshot is sufficient for reads. Mutation preconditions
   // still run under the row lock in transaction; polling must not rewrite it.
-  async list(principal) { return this.store.read(s => { this.member(s, principal); return Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => this.role(s, principal, w)).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })); }); }
-  async get(principal, workId) { return this.store.read(s => { return this.visible(s, principal, this.access(s, principal, workId)); }); }
+  async list(principal) { return this.store.read(s => { this.member(s, principal); return Object.values(s.works).filter(w => (!w.nativeCollaboration || this.nativeEnabled)).filter(w => this.role(s, principal, w)).map(w => ({ id: w.id, kind: w.nativeCollaboration ? 'native-sheet' : workKind(w), title: w.nativeCollaboration ? w.title : workTitle(w), status: w.status })); }); }
+  async get(principal, workId, native = false) { return this.store.read(s => { return this.visible(s, principal, this.access(s, principal, workId, false, native && this.nativeEnabled)); }); }
   async events(principal, after) { return this.store.read(s => {
     this.member(s, principal);
     if (after !== undefined && (!Number.isSafeInteger(after) || after < 0)) throw new Fault('invalid_cursor', 400);
     // A bounded reset avoids leaking global sequence numbers or unrelated event gaps.
     if (principal !== s.owner) {
-      const visible = Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => this.role(s, principal, w));
-      return { kind: 'reset', cursor: 0, events: [], works: visible.map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })), snapshots: visible.map(w => this.visible(s, principal, w)) };
+      const visible = Object.values(s.works).filter(w => (!w.nativeCollaboration || this.nativeEnabled)).filter(w => this.role(s, principal, w));
+      return { kind: 'reset', cursor: 0, events: [], works: visible.map(w => ({ id: w.id, kind: w.nativeCollaboration ? 'native-sheet' : workKind(w), title: w.nativeCollaboration ? w.title : workTitle(w), status: w.status })), snapshots: visible.filter(w => !w.nativeCollaboration).map(w => this.visible(s, principal, w)) };
     }
     // Bound the replay response, without deleting retained events or contributions.
     const events = s.events.filter(e => e.eventId > (after ?? s.sequence));
@@ -105,7 +106,7 @@ export class Workspace {
       || events.length !== s.sequence - after || events.some((e, i) => e.eventId !== after + i + 1);
     const changed = new Set(events.map(e => e.workId));
     return { kind: reset ? 'reset' : 'events', cursor: s.sequence, events: reset ? [] : events,
-      works: Object.values(s.works).filter(w => !w.nativeCollaboration).map(w => ({ id: w.id, kind: workKind(w), title: workTitle(w), status: w.status })),
+      works: Object.values(s.works).filter(w => (!w.nativeCollaboration || this.nativeEnabled)).map(w => ({ id: w.id, kind: w.nativeCollaboration ? 'native-sheet' : workKind(w), title: w.nativeCollaboration ? w.title : workTitle(w), status: w.status })),
       snapshots: Object.values(s.works).filter(w => !w.nativeCollaboration).filter(w => reset || changed.has(w.id)).map(w => this.visible(s, principal, w)) };
   }); }
   async source(principal, input) {
@@ -123,6 +124,7 @@ export class Workspace {
     return this.store.transaction(s => {
       authorize(s, principal);
       for (const sourceId of input.sourceIds) if (s.sources[id(sourceId)]?.owner !== principal) throw new Fault('source_access_denied', 403);
+      if (input.workId && s.works[input.workId]?.nativeCollaboration) throw new Fault('native_collaboration_required', 409);
       const replay = !!s.commands[input.commandId];
       const result = dedup(s, input.commandId, input, () => {
         let w;

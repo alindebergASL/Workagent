@@ -1,3 +1,6 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { Fault, id, text } from '../../../packages/workagent-contract/index.mjs';
+import { authorize, dedup, event } from './workspace.mjs';
 import { createHash } from 'node:crypto';
 import { CollabError, UniverCollabService } from '@univerjs-pro/collaboration-service';
 import { UniverCollabEndpoint } from '@univerjs-pro/collaboration-endpoint';
@@ -15,13 +18,13 @@ export function allowedNativeAction(role, action) { return !!role && (action ===
 // dbAdapter.commitChangeset, and independently through each delivery enqueue.
 // No ACL copy, revision mirror, alternate operation ordering or snapshot writer.
 export class NativeAuthority {
-  constructor(workspace, unitID = NATIVE_UNIT) { this.workspace = workspace; this.unitID = unitID; this.sessions = new Map(); }
+  constructor(workspace, unitID = NATIVE_UNIT) { this.workspace = workspace; this.unitID = unitID; this.sessions = new Map(); this.scope = new AsyncLocalStorage(); }
   check(s, principal, unitID, edit = false, session) {
-    if (unitID !== this.unitID) deny();
+    if (this.unitID !== null && unitID !== this.unitID) deny();
     let w;
     try { w = this.workspace.access(s, principal, unitID, edit, true); } catch { deny(); }
-    if (w.nativeCollaboration !== true || w.kind !== 'native-sheet') deny();
-    if (session && (session.userID !== principal || session.revision !== w.accessRevision)) deny();
+    if (w.nativeCollaboration !== true || w.kind !== 'native-sheet' || w.status === 'creating') deny();
+    if (session && (session.userID !== principal || (session.unitID && session.unitID !== unitID) || session.revision !== w.accessRevision)) deny();
     return { role: this.workspace.role(s, principal, w), revision: w.accessRevision };
   }
   async checkNow(principal, unitID, edit = false, session) {
@@ -31,40 +34,44 @@ export class NativeAuthority {
     return this.workspace.store.transaction(async s => { const access = this.check(s, principal, unitID, edit, session); await effect(access); });
   }
   validateChangeset(c) {
-    if (c?.unitID !== this.unitID || c.type !== UniverType.UNIVER_SHEET || typeof c.sid !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(c.sid) || !Number.isSafeInteger(c.reqId) || c.reqId < 1 || !Array.isArray(c.mutations) || !c.mutations.length) deny();
+    if (!c || (this.unitID !== null && c.unitID !== this.unitID) || c.type !== UniverType.UNIVER_SHEET || typeof c.sid !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(c.sid) || !Number.isSafeInteger(c.reqId) || c.reqId < 1 || !Array.isArray(c.mutations) || !c.mutations.length) deny();
     for (const m of c.mutations) {
       if (!mutations.has(m.id)) deny();
       let p; try { p = JSON.parse(m.data); } catch { deny(); }
-      if (p?.unitId !== this.unitID || p.subUnitId !== NATIVE_TAB) deny();
+      if (p?.unitId !== c.unitID || p.subUnitId !== NATIVE_TAB) deny();
     }
   }
   submission(context) {
     this.validateChangeset(context.request.changeset);
     const session = this.sessions.get(context.memberID);
-    if (!session || session.userID !== context.userID) deny();
+    if (!session || session.userID !== context.userID || (session.unitID && session.unitID !== context.request.changeset.unitID) || (this.unitID === null && this.scope.getStore()?.unitID !== context.request.changeset.unitID)) deny();
     return session;
   }
   bindSubmission(s, c, claim = false) {
     // Authorization metadata only: the SDK still owns reqId dedup and outcomes.
     // Never expire or reassign a SID, including after revoke/regrant/reconnect.
-    const identity = s.works[this.unitID]?.nativeIdentity;
-    if (identity?.version !== 1 || identity.workspace !== s.owner || identity.unitID !== this.unitID || identity.pairID !== s.nativeQualification?.storage?.pairID || !identity.pairID || !identity.owners || typeof identity.owners !== 'object' || Array.isArray(identity.owners)) deny();
+    const unitID = c.request.changeset.unitID;
+    const identity = s.works[unitID]?.nativeIdentity;
+    if (identity?.version !== 1 || identity.workspace !== s.owner || identity.unitID !== unitID || identity.pairID !== s.nativeQualification?.storage?.pairID || !identity.pairID || !identity.owners || typeof identity.owners !== 'object' || Array.isArray(identity.owners)) deny();
     const key = createHash('sha256').update(c.request.changeset.sid).digest('hex');
     const owner = Object.hasOwn(identity.owners, key) ? identity.owners[key] : undefined;
-    if (owner !== undefined && owner !== c.userID) deny();
+    const scoped = s.nativeQualification.storage.purpose === 'workagent-native-workspace';
+    const epoch = s.works[unitID].accessRevision;
+    if (owner !== undefined && (scoped ? owner?.principal !== c.userID || owner?.epoch !== epoch : owner !== c.userID)) deny();
     if (owner === undefined) {
       // Bounded qualification metadata; exhaustion refuses new sessions, never
       // evicts old bindings and thereby makes historical identities stealable.
       if (!claim || Object.keys(identity.owners).length >= 4096) deny();
-      identity.owners[key] = c.userID;
+      identity.owners[key] = scoped ? { principal: c.userID, epoch } : c.userID;
     }
   }
   install(service, endpoint) {
     service.use('readUnitData', async (c, next) => {
-      if (c.request.type !== UniverType.UNIVER_SHEET) deny();
-      await this.fence(c.userID, c.request.unitID, false, next);
+      if (c.request.type !== UniverType.UNIVER_SHEET || (this.unitID === null && this.scope.getStore()?.unitID !== c.request.unitID)) deny();
+      await this.fence(c.userID, c.request.unitID, false, next, this.scope.getStore()?.session);
     });
-    for (const action of ['createUnit', 'deleteUnits', 'recoverUnits']) service.use(action, async () => deny());
+    service.use('createUnit', async (_c, next) => { if (!this.scope.getStore()?.creating) deny(); await next(); });
+    for (const action of ['deleteUnits', 'recoverUnits']) service.use(action, async () => deny());
     service.use('submitChangeset', async (c, next) => {
       const session = this.submission(c);
       await this.workspace.store.transaction(s => {
@@ -79,21 +86,22 @@ export class NativeAuthority {
       await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
         this.bindSubmission(s, c);
-        for (const p of c.requiredUnitPermissions) if (p.unitID !== this.unitID || !allowedNativeAction(access.role, p.action)) deny();
+        for (const p of c.requiredUnitPermissions) if (p.unitID !== c.changeset.unitID || !allowedNativeAction(access.role, p.action)) deny();
         await next(); // Actual native database CAS/commit, not just admission.
       });
     });
     endpoint.use('connect', async (c, next) => {
       if (c.session.userID !== c.connection.customData.workagentPrincipal) deny();
-      const access = await this.checkNow(c.session.userID, this.unitID);
-      const session = { userID: c.session.userID, revision: access.revision };
+      const unitID = this.unitID ?? c.connection.customData.workagentUnitID;
+      const access = await this.checkNow(c.session.userID, unitID, false, c.connection.customData.workagentAccess);
+      const session = { userID: c.session.userID, unitID, revision: access.revision };
       this.sessions.set(c.session.memberID, session);
       c.connection.customData.workagentSession = session;
       c.member.name = c.connection.customData.workagentName;
       await next();
     });
-    endpoint.use('joinUnit', async (c, next) => { await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
-    endpoint.use('receivePresence', async (c, next) => { await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
+    endpoint.use('joinUnit', async (c, next) => { if (!this.sessions.has(c.session.memberID)) deny(); await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
+    endpoint.use('receivePresence', async (c, next) => { if (!this.sessions.has(c.session.memberID)) deny(); await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
     endpoint.on('memberLeftUnit', c => { this.sessions.delete(c.session.memberID); });
   }
 }
@@ -110,10 +118,10 @@ export function validateNativeOrigin(req, origin, upgrade = false) {
 // @univerjs-pro/collaboration-transport-node 1.4.0 send calls socket.send
 // inside a synchronous Promise executor; its promise settles in the write callback.
 // This adapter is specific to that public transport, not arbitrary async enqueue.
-export async function fencedNativeSend({ authority, principal, session, original, data, authenticate, timeoutMs = 10000 }) {
+export async function fencedNativeSend({ authority, principal, session, original, data, authenticate, unitID = authority.unitID, timeoutMs = 10000 }) {
   let completion, timer;
   try {
-    await authority.fence(principal, authority.unitID, false, () => {
+    await authority.fence(principal, unitID, false, () => {
       authenticate();
       // Attach rejection handling immediately, but do not return/await the flush
       // promise from this callback: the Workspace lock covers enqueue only.
@@ -132,29 +140,29 @@ export function guardedEndpoint(endpoint, authority, auth, origin) {
       const headers = new Map(); let body;
       const response = { statusCode: 200, writableEnded: false, destroyed: false, setHeader: (k, v) => headers.set(k, v), end(value) { body = value; this.writableEnded = true; } };
       await handler({ ...c, response });
-      await authority.fence(c.userID, authority.unitID, false, () => {
+      await authority.fence(c.userID, authority.unitID ?? c.incomingMessage.nativeUnitID, false, () => {
         c.response.statusCode = response.statusCode;
         for (const [k, v] of headers) c.response.setHeader(k, v);
         c.response.setHeader('Cache-Control', 'no-store'); c.response.end(body);
-      });
+      }, c.incomingMessage.nativeAccess);
     });
     proxy.upgrade = (path, handler) => router.upgrade(path, async c => {
       validateNativeOrigin(c.incomingMessage, origin, true);
-      const principal = auth.authenticate(c.incomingMessage);
-      await authority.checkNow(principal, authority.unitID);
+      const principal = auth.authenticate(c.incomingMessage), unitID = authority.unitID ?? c.incomingMessage.nativeUnitID;
+      await authority.checkNow(principal, unitID, false, c.incomingMessage.nativeAccess);
       const wrapped = new Map();
       const connection = original => {
         if (wrapped.has(original.id)) return wrapped.get(original.id);
-        const customData = { ...original.customData, workagentPrincipal: principal, workagentName: auth.profile(principal).name };
+        const customData = { ...original.customData, workagentPrincipal: principal, workagentUnitID: unitID, workagentAccess: c.incomingMessage.nativeAccess, workagentName: auth.profile(principal).name };
         const result = { id: original.id, customData, close: (...args) => original.close(...args), async send(data) {
-          await fencedNativeSend({ authority, principal, session: customData.workagentSession, original, data,
+          await fencedNativeSend({ authority, principal, session: customData.workagentSession, unitID, original, data,
             authenticate: () => { if (auth.authenticate(c.incomingMessage) !== principal) deny(); } });
         } };
         wrapped.set(original.id, result); return result;
       };
       await handler({ ...c, accept(h) { c.accept({
         open: x => h.open?.({ ...x, connection: connection(x.connection) }),
-        message: async x => { try { await authority.checkNow(principal, authority.unitID, false, connection(x.connection).customData.workagentSession); if (auth.authenticate(c.incomingMessage) !== principal) deny(); await h.message?.({ ...x, connection: connection(x.connection) }); } catch { x.connection.close(1008, 'Access changed'); } },
+        message: async x => { try { await authority.checkNow(principal, unitID, false, connection(x.connection).customData.workagentSession); if (auth.authenticate(c.incomingMessage) !== principal) deny(); await h.message?.({ ...x, connection: connection(x.connection) }); } catch { x.connection.close(1008, 'Access changed'); } },
         close: x => h.close?.({ ...x, connection: connection(x.connection) }),
       }); } });
     });
@@ -162,11 +170,15 @@ export function guardedEndpoint(endpoint, authority, auth, origin) {
   } };
 }
 
-export async function createNativeCollaboration({ dbAdapter, workspace, auth, origin, owner, allowCreate = false }) {
-  const authority = new NativeAuthority(workspace);
+export async function createNativeCollaboration({ dbAdapter, workspace, auth, origin, owner, allowCreate = false, mode = 'qualification' }) {
+  const authority = new NativeAuthority(workspace, mode === 'workspace' ? null : NATIVE_UNIT);
   // Only startup can create. Native create is idempotent and never replaces head.
-  const existing = await dbAdapter.getUnit({ userID: owner, customData: {}, request: {} }, NATIVE_UNIT);
+  const existing = mode === 'workspace' ? true : await dbAdapter.getUnit({ userID: owner, customData: {}, request: {} }, NATIVE_UNIT);
   if (!existing && !allowCreate) throw new Error('native_retained_unit_missing');
+  if (mode === 'workspace') {
+    const units = await workspace.store.read(s => Object.values(s.works).filter(w => w.nativeCollaboration && w.status !== 'creating').map(w => w.id));
+    for (const unitID of units) if (!await dbAdapter.getUnit({ userID: owner, customData: {}, request: {} }, unitID)) throw new Error('native_retained_unit_missing');
+  }
   const service = new UniverCollabService({ dbAdapter, enableUnitPermissionAnalysis: true });
   try { if (!existing) await service.createUnitFromData({ type: UniverType.UNIVER_SHEET, data: {
     id: NATIVE_UNIT, rev: 1, name: 'Synthetic native collaboration', appVersion: '', locale: 'enUS',
@@ -179,11 +191,45 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
   transport.use(async (c, next) => {
     if (stopping) { c.response.statusCode = 503; c.response.end(); return; }
     let finish; const done = new Promise(resolve => { finish = resolve; }); pending.add(done);
-    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); await authority.checkNow(c.userID, NATIVE_UNIT); await next(); }
+    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); const unitID = authority.unitID ?? c.incomingMessage.nativeUnitID; await authority.checkNow(c.userID, unitID, false, c.incomingMessage.nativeAccess); await authority.scope.run({ unitID, session: c.incomingMessage.nativeAccess }, next); }
     catch { if (!c.response.writableEnded) { c.response.statusCode = 403; c.response.end(JSON.stringify({ error: 'native_access_denied' })); } }
     finally { pending.delete(done); finish(); }
   });
   transport.useUpgrade(async (c, next) => { try { validateNativeOrigin(c.incomingMessage, origin, true); auth.authenticate(c.incomingMessage); await next(); } catch { c.reject(403, 'Access denied'); } });
   transport.register(guardedEndpoint(endpoint, authority, auth, origin));
-  return { authority, service, endpoint, transport, async close() { stopping = true; await Promise.all([...pending]); await transport.dispose(); await endpoint.dispose(); await service.dispose(); await dbAdapter.dispose(); } };
+  const createWork = input => createNativeWork({ workspace, authority, dbAdapter, service, owner, input });
+  return { authority, service, endpoint, transport, createWork, async close() { stopping = true; await Promise.all([...pending]); await transport.dispose(); await endpoint.dispose(); await service.dispose(); await dbAdapter.dispose(); } };
+}
+
+// Reserve identity before touching native content. Explicit retries complete only
+// this reservation; a failed cross-store completion never invents a new unit.
+export async function createNativeWork({ workspace, authority, dbAdapter, service, owner, input }) {
+  if (!workspace.nativeEnabled) throw new Fault('native_collaboration_disabled', 409);
+  if (!input || Object.keys(input).some(k => !['commandId', 'title'].includes(k))) throw new Fault('invalid_command', 400);
+  id(input.commandId); text(input.title, 200);
+  const result = await workspace.store.transaction(s => {
+    authorize(s, owner);
+    if (s.nativeQualification?.storage?.purpose !== 'workagent-native-workspace') throw new Fault('native_workspace_pair_mismatch', 409);
+    return dedup(s, input.commandId, { operation: 'native-sheet', ...input }, () => {
+      const pairID = s.nativeQualification.storage.pairID;
+      const workId = 'native-' + createHash('sha256').update(JSON.stringify([s.owner, pairID, input.commandId])).digest('hex').slice(0, 40);
+      if (s.works[workId]) throw new Fault('native_identity_conflict', 409);
+      s.works[workId] = { id: workId, kind: 'native-sheet', nativeCollaboration: true, title: input.title.trim(), accessRevision: 1, acl: {}, status: 'creating',
+        nativeIdentity: { version: 1, workspace: s.owner, unitID: workId, pairID, owners: {} } };
+      event(s, s.works[workId], 'native_reserved');
+      return { workId };
+    });
+  });
+  await workspace.store.transaction(async s => {
+    authorize(s, owner); const w = s.works[result.workId];
+    if (!w?.nativeCollaboration) throw new Fault('native_identity_conflict', 409);
+    const existing = await dbAdapter.getUnit({ userID: owner, customData: {}, request: {} }, w.id);
+    if (w.status !== 'creating') { if (!existing) throw new Fault('native_retained_unit_missing', 409); return; }
+    if (!existing) await authority.scope.run({ creating: true }, () => service.createUnitFromData({ type: UniverType.UNIVER_SHEET, data: {
+      id: w.id, rev: 1, name: w.title, appVersion: '', locale: 'enUS', sheetOrder: [NATIVE_TAB],
+      sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
+    } }, { userID: owner }));
+    w.status = 'ready'; event(s, w, 'native_created');
+  });
+  return result;
 }

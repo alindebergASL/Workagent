@@ -133,7 +133,7 @@ Enforce current ACLs on reads and submissions, not only room entry. Support iden
 
 **Verify:** Two human identities and an agent, reconnect, row insertion, revoke mid-session, overlapping/disjoint edits, individual undo and restore history. Diagnose the three-connection evaluation limit, including agents, before calling a connection refusal a bug; no limit bypass. Two-human evidence is required for this claim, not B01.
 
-Native qualification slice (unpublished, not installed): `native:qualification` is a
+Native qualification slice (not installed in the normal app): `native:qualification` is a
 separate, opt-in consumer of `native-collaboration.mjs` and `NativeCollaborationEditor`.
 One synthetic Sheet/two configured Workagent principals; only cell mutations and row
 insert/remove are admitted. Legacy snapshots, model writes, export and other lifecycle
@@ -172,7 +172,7 @@ Parent commands (not run by the repair writer; Parent's generated lock stays unc
 ```bash
 npm run test:native-collaboration
 npm run typecheck
-# Client unchanged by this repair; Parent may reuse the prior qualified build.
+# Parent builds remotely; the normal-workspace successor below changes the App.
 # For the SDK check, /ABS/PARENT must exist and /ABS/PARENT/NEW must NOT exist:
 WORKAGENT_NATIVE_SDK_CHECK=fresh-synthetic-only WORKAGENT_NATIVE_SDK_SQLITE=/ABS/PARENT/NEW/content.sqlite node apps/workagent-server/tests/native-collaboration-sdk.mjs
 # Use a NEW isolated PG database named workagent_native_<suffix>, apply
@@ -210,11 +210,70 @@ The unchanged UI reused its qualified build after compiled-input/dependency/lock
 browser state retained. The installed normal application remains unchanged.
 
 The SDK-only command above uses a fake Workspace store, not PG or browser proof.
-Parent's separate fresh-PG/browser runs supply that evidence. Full B05 remains open:
-normal-workspace integration, same-cell conflicts, durable browser-crash recovery,
-presence/comments/anchors/history/individual undo and safe agent proposals. Next wire
-fresh native-backed sheets into the normal workspace without converting existing human
-work or re-enabling legacy/model/export writes for native content.
+Parent's separate fresh-PG/browser runs supply that foundation evidence.
+
+Normal-workspace successor (candidate, not installed or independently approved):
+`WORKAGENT_NATIVE_WORKSPACE=synthetic-only` enables explicit **New collaborative sheet
+(development)** in the normal App. Absent flag keeps legacy creation/routing. Use a NEW
+isolated PG Workspace and a NEW owned SQLite root, with the settings above, plus the
+normal `WORKAGENT_STATE_DIR` and an explicit port/origin. Do not reuse or adopt the
+qualification pair or installed data. Use `umask 077` for SDK sidecar privacy. Set the workspace flag for both commands:
+```bash
+WORKAGENT_NATIVE_WORKSPACE=synthetic-only WORKAGENT_NATIVE_PROVISION=new-owned-pair npm run native:provision
+# Parent remote build required: npm run build (normal App changed).
+WORKAGENT_NATIVE_WORKSPACE=synthetic-only npm start
+```
+The marker purpose distinguishes normal workspace storage from standalone qualification.
+Provisioning starts with no native works. Explicit creation reserves a stable work/unit
+ID in Workspace before SDK creation; exact command retry can finish a reserved creation
+without replacing an existing native unit. Startup only checks retained units. A
+cross-store failure may leave a visible `creating` reservation until that same explicit
+command is retried; there is no atomic PG+SQLite transaction or automatic replay.
+Normal work metadata has no workbook or content revision mirror. Only the explicit HTTP
+work-open route admits native metadata; legacy get/save/model/proposal/exchange paths
+refuse it. Sharing uses Workspace.share and invalidates native sessions. HTTP and WS
+routes bind one authenticated principal/unit/access epoch, and retained SID bindings
+for this new mode also bind the epoch. The unchanged native SID/reqId still own dedup.
+The SDK public cache interface is scoped by binding/principal/unit/access epoch;
+older pending operations stay retained without loading into a regrant. Normal navigation
+refuses active cell input, unacknowledged work or conflicts, flushes cache before disposal,
+and preserves legacy editor/composer drafts. Hidden exchange forms stay mounted.
+
+Writer checks for this successor: `npm run test:native-collaboration` (24 pure tests),
+typecheck, and the actual-App orchestration suite (125 passed, zero failures/skips).
+The latter unexpectedly includes one temporary loopback HTTP fixture: running it
+exceeded the writer's pure-only boundary; it exited, no actual DB was opened. The first
+new HTTP test used string chunks rather than Node buffers and failed (3 pass/1 fail);
+the corrected in-memory handler suite passes 4/4. Parent subsequently verified actual
+SDK 1.4.0/SQLite multiunit behavior and restricted PG/SQLite on the fresh pair
+`workagent_native_test_1ff4029aeffe`: two units, concurrent create idempotency,
+cross-work/unshared-peer refusals, one commit plus dedup, isolation, exact restart and
+no retry reseed (36 source hashes; `b05-native-workspace-pg-result.json`). Parent's
+182-source/80-artifact build passed in 38.816s with a 4GB heap. These are Parent's
+reported checks, not writer executions. Normal-App browser qualification remains open.
+
+Targeted UI correction after the same reviewer's HOLD2: App checks pending legacy
+input and saves after the native-session fetch and again after the departure await.
+The collaboration child is keyed by principal, binding, unit and access epoch; a new
+session gets fresh hooks only after the existing canLeave/close/cache-drain path.
+Blocked state is not reset in place within the same session. Three App test loaders
+now explicitly handle the collaboration component; legacy fixtures reject rendering it.
+Repository regressions reproduced pending-document loss (1 failure), stale blocked
+state through App's actual keyed-child lifecycle (4 failures), and all 9 legacy loader
+failures. An initial lifecycle fixture needed its fake clearInterval wired before the
+stale-state red assertions; that was a harness correction, not a product fix.
+After repair: 14 mobile/Google/lifecycle tests, 15 selected App/navigation tests,
+5 App-header loader tests and 24 pure native/cache tests pass (58, zero failures/skips),
+plus typecheck. No full csv-app suite, listeners, databases or build in this correction.
+Backend/storage/SID/cache protocol unchanged; retained Parent reds remain untouched.
+Parent must rebuild the changed normal UI and qualify pending clipboard navigation,
+revoked A → authorized B and regrant transitions, legacy drafts, and the full normal-App
+two-principal flow. Exact backend hashes can reuse Parent's proof above. Reviewer
+closure is pending; this is not self-approval or complete B05 acceptance.
+
+Full B05 remains open: normal-workspace qualification, same-cell conflicts, durable
+browser-crash recovery, presence/comments/anchors/history/individual undo and safe
+agent proposals. No existing human Sheet conversion or native export/model bridge.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

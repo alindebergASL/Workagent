@@ -13,13 +13,14 @@ import { FixtureArtifactStorage, draftRaw } from './artifact-storage-fixture.mjs
 import { blankWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
+import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
 const require = createRequire(import.meta.url);
 const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
 const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a;reject=b; }); return {promise,resolve,reject}; };
 const exchangeNames = ['GoogleExchange','CsvExchange','XlsxExchange','DocumentExchange','DocxExchange','PdfExchange','PdfExport'];
 const compiled = new Map();
-function fixture(handler = () => { throw new Error('Unexpected mutation'); }, googleEnabled = false) {
+function fixture(handler = () => { throw new Error('Unexpected mutation'); }, googleEnabled = false, collaboration) {
   const disk = new Map(), storage = {getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,v),removeItem:k=>disk.delete(k)};
   const works = Object.fromEntries(['sheet','doc','other'].map(id=>[id,{id,title:id,kind:id==='doc'?'document':'sheet', ...(id==='doc'?{document:blankDocument(id,'Document')}:{book:blankWorkbook(id,id)}),status:'working',messages:[],proposals:[],contentRevision:1,intentRevision:0,eventSequence:1,expected:{contentRevision:1,permissionRevision:1,intentRevision:0,cancellationEpoch:0}}]));
   const calls=[], native = new Map(), lifetimes=[];
@@ -40,7 +41,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
-    const value=path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:input?await handler(path,input,works):works[path.split('/').at(-1)];
+    const value=collaboration && path.endsWith('/native-session') ? collaboration.session(path) : path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:path.endsWith('/sharing')||input?await handler(path,input,works):works[path.split('/').at(-1)];
     return {ok:true,status:200,json:async()=>structuredClone(value)};
   };
   const modules=new Map();
@@ -48,7 +49,9 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
     if(modules.has(name))return modules.get(name);
     if(!compiled.has(name))compiled.set(name,ts.transpileModule(readFileSync(new URL(`../src/${name}.tsx`,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText);
     const m={exports:{}};
-    new Function('require','module','exports','localStorage','document','window','fetch','crypto','setTimeout','clearTimeout',compiled.get(name))(dependency=>{
+    new Function('require','module','exports','localStorage','document','window','fetch','crypto','setTimeout','clearTimeout','location','clearInterval',compiled.get(name))(dependency=>{
+      if(name==='NativeCollaborationEditor' && dependency.startsWith('@univerjs')) return collaboration.dependency(dependency);
+      if(dependency==='./NativeCollaborationEditor')return collaboration ? load('NativeCollaborationEditor') : { NativeCollaborationEditor() { assert.fail('Unexpected collaboration editor in legacy fixture'); } };
       if(dependency==='react-dom/client')return {createRoot:()=>({render:element=>{App=element.type;}})};
       if(dependency==='./NativeEditor')return {NativeEditor};
       if(dependency==='./DocumentEditor')return {DocumentEditor};
@@ -58,16 +61,16 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
       if(dependency.endsWith('.css'))return {};
       if(dependency.startsWith('./'))return require('../src/'+dependency.slice(2)+'.ts');
       return require(dependency);
-    },m,m.exports,storage,{getElementById:()=>({})},{addEventListener(){},removeEventListener(){}},fetcher,{randomUUID},()=>1,()=>{});
+    },m,m.exports,storage,{getElementById:()=>({})},collaboration?.window ?? {addEventListener(){},removeEventListener(){}},fetcher,{randomUUID},()=>1,collaboration?.clearInterval ?? (()=>{}),{origin:'http://fixture',host:'fixture',protocol:'http:'},collaboration?.clearInterval ?? (()=>{}));
     modules.set(name,m.exports);return m.exports;
   }
   load('main');
-  let panel=mountConditionalEditor(App,{},undefined,undefined,[...exchangeNames,'NativeEditor','DocumentEditor']);
+  let panel=mountConditionalEditor(App,{},undefined,collaboration?.attachHosts,[...exchangeNames,'NativeEditor','DocumentEditor','NativeCollaborationEditor']);
   const flush=async()=>{for(let i=0;i<12;i++){await new Promise(setImmediate);panel.flush();}};
   const find=predicate=>panel.find(predicate);
   const button=label=>find(n=>n.type==='button'&&text(n)===label);
   return {get panel(){return panel;},storage,calls,native,lifetimes,works,flush,find,button,
-    async remount(){panel.dispose();panel=mountConditionalEditor(App,{},undefined,undefined,[...exchangeNames,'NativeEditor','DocumentEditor']);await flush();},
+    async remount(){panel.dispose();panel=mountConditionalEditor(App,{},undefined,collaboration?.attachHosts,[...exchangeNames,'NativeEditor','DocumentEditor','NativeCollaborationEditor']);await flush();},
     async click(label){const b=button(label);assert.ok(!b.props.disabled,label);b.props.onClick();await flush();},
     async open(id){find(n=>n.props['aria-label']==='Saved work').props.onChange({target:{value:id}});await flush();},
     async message(value){find(n=>n.props.id==='prompt').props.onChange({target:{value}});await flush();},
@@ -283,3 +286,138 @@ test('Google App: newly returned unknown survives a different successful deliver
     assert.equal(f.calls.filter(c=>c.path.endsWith('/save')).length,0);
   } finally {f.dispose();}
 });
+
+// Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
+// interface fixtures. The existing reconciler honors the parent's React key.
+function nativeLifecycle() {
+  const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
+  let next = 0, active = 0, peak = 0;
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, sessionPath: `/api/work/${unitID}/native-session` });
+  const createUniver = options => {
+    assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
+    const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null }; instances.push(entry); active++; peak = Math.max(peak, active);
+    const cache = { loadOfflineData: async () => null, saveOfflineData: async () => true, clearOfflineData: async () => {}, updateOfflineData() {}, exhaustSavingTask: async () => { await entry.drain; } };
+    return { univer: { __getInjector: () => ({ get: key => key === 'user' ? { setCurrentUser() {} } : cache }), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; active--; } },
+      univerAPI: { Event: { CollaborationStatusChanged: 'status', CollaborationChangesetResend: 'resend', CollaborationConflict: 'conflict' },
+        addEvent(name, fn) { entry.events.set(name, fn); return { dispose: () => entry.events.delete(name) }; },
+        getActiveWorkbook: () => ({ isCellEditing: () => false }),
+        getCollaboration: () => ({ getCollaborationStatus: () => 'synced', hasWritePending: () => entry.pending,
+          loadSheetAsync: async unitID => { entry.unitID = unitID; return {}; } }) } };
+  };
+  return { instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
+    session: path => structuredClone(sessions.get(path.split('/')[3])),
+    window: { addEventListener(_name, fn){listeners.add(fn);}, removeEventListener(_name, fn){listeners.delete(fn);}, setInterval(fn){timers.set(++next, fn);return next;} },
+    clearInterval: id => timers.delete(id),
+    async poll(){for(const timer of [...timers.values()])await timer();},
+    attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
+    dependency(name){
+      if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user'};
+      if(name==='@univerjs/presets')return {createUniver,mergeLocales:()=>({})};
+      if(name==='@univerjs/preset-sheets-core')return {UniverSheetsCorePreset:()=>({})};
+      return {};
+    },
+  };
+}
+for (const changed of ['unit', 'principal', 'binding', 'epoch']) test(`native session lifecycle: fresh ${changed} remounts through App while revoked source remains fenced`, async () => {
+  const native = nativeLifecycle(), f = fixture(undefined, false, native);
+  for (const id of ['A', 'B']) f.works[id] = { id, kind: 'native-sheet', title: id, status: 'ready', access: { role: 'owner', revision: 1 } };
+  const recoveryKey = 'workagent:native-recovery:fixture-owner:A:1'; f.storage.setItem(recoveryKey, 'retained A operations');
+  try {
+    await f.flush(); await f.open('A'); assert.equal(native.instances.length, 1);
+    const old = native.instances[0]; assert.match(f.panel.text(), /Download retained recovery/);
+    native.sessions.get('A').access.revision = 2; await native.poll(); await f.flush();
+    assert.equal(f.find(n => n.props.ref).props.inert, true); assert.match(f.panel.text(), /Access changed/);
+    await f.click('Conversation'); await f.click('Work area'); old.events.get('status')(); await f.flush();
+    assert.equal(native.instances.length, 1); assert.equal(f.find(n => n.props.ref).props.inert, true, 'same session stays fenced');
+    const destination = changed === 'unit' ? 'B' : 'A';
+    const fresh = native.sessions.get(destination);
+    if (changed === 'principal') fresh.principal = 'peer';
+    if (changed === 'binding') fresh.binding = 'rotated-binding';
+    if (changed !== 'epoch') fresh.access.revision = 1;
+    const drain = deferred(); old.drain = drain.promise;
+    await f.open(destination); assert.equal(native.instances.length, 1, 'cache drain precedes next SDK construction');
+    drain.resolve(); await f.flush();
+    assert.equal(native.instances.length, 2); assert.equal(old.disposed, true); assert.equal(old.events.size, 0);
+    assert.equal(native.active, 1); assert.equal(native.peak, 1); assert.equal(native.timers.size, 1);
+    assert.equal(f.find(n => n.props.ref).props.inert, undefined, 'authorized destination must be editable');
+    assert.match(f.panel.text(), /synced/); assert.doesNotMatch(f.panel.text(), /Access changed/);
+    // A different principal/epoch/binding or unit must not inherit recovery state.
+    if (changed !== 'principal') assert.doesNotMatch(f.panel.text(), /Download retained recovery/);
+    assert.equal(f.storage.getItem(recoveryKey), 'retained A operations');
+    native.instances[1].pending = true; await f.open(changed === 'unit' ? 'A' : 'B');
+    assert.equal(native.instances.length, 2, 'pending work is not released by a new key');
+    assert.equal(native.instances[1].disposed, false);
+  } finally { f.dispose(); await new Promise(setImmediate); }
+  assert.equal(native.active, 0); assert.equal(native.timers.size, 0);
+});
+
+// Actual App handlers and React keys; uncontrolled <details>.open is a host
+// fixture here. Browser event/default-action behavior remains a Parent check.
+for (const [source, destination] of [['A', 'B'], ['A', 'doc'], ['doc', 'A'], ['sheet', 'doc']]) {
+  test(`sharing navigation ${source} → ${destination}: fresh panel, current peers and stable same-work edits`, async () => {
+    const native = nativeLifecycle(), attachHosts = native.attachHosts;
+    let panelHost = null;
+    native.attachHosts = tree => {
+      attachHosts(tree);
+      const bar = nodes(tree).find(n => n.props.className === 'sharing-bar');
+      const details = nodes(bar).find(n => n.type === 'details');
+      if (!details) panelHost = null;
+      else if (!panelHost || panelHost.key !== details.key) panelHost = { key: details.key, open: false };
+    };
+    const shares = Object.fromEntries([source, destination].map(id => [id, { revision: 1, peers: [{ id: `peer-${id}`, name: `Peer ${id}`, role: 'read' }] }]));
+    const held = new Map();
+    const f = fixture((path, input) => {
+      assert.match(path, /^\/api\/work\/[^/]+\/sharing$/);
+      const id = path.split('/')[3];
+      if (input) {
+        assert.equal(input.peer, `peer-${id}`);
+        assert.equal(input.accessRevision, shares[id].revision);
+        shares[id].revision++; shares[id].peers[0].role = input.role;
+      } else if (held.has(id)) return held.get(id).promise;
+      return structuredClone(shares[id]);
+    }, false, native);
+    for (const id of ['A', 'B']) f.works[id] = { id, kind: 'native-sheet', title: id, status: 'ready', access: { role: 'owner', revision: 1 } };
+    const selectors = () => nodes(f.panel.tree).filter(n => n.type === 'select' && n.props['aria-label']?.startsWith('Access for '));
+    const toggle = async () => {
+      panelHost.open = !panelHost.open;
+      f.find(n => n.type === 'summary' && text(n) === 'Share work').props.onClick();
+      await f.flush();
+    };
+    try {
+      await f.flush(); await f.message('retained root composer'); await f.open(source);
+      await f.message('retained source composer');
+      if (f.native.has(source)) f.native.get(source).edit('retained human draft');
+      const editorLifetimes = structuredClone(f.lifetimes), sdkInstances = native.instances.length;
+      assert.equal(panelHost.open, false); await toggle(); const originalPanel = panelHost;
+      assert.equal(selectors().length, 1); assert.equal(selectors()[0].props['aria-label'], `Access for Peer ${source}`);
+      selectors()[0].props.onChange({ target: { value: 'editor' } }); await f.flush();
+      assert.equal(panelHost, originalPanel, 'same-work role update retains panel identity');
+      assert.equal(panelHost.open, true); assert.equal(selectors()[0].props.value, 'editor');
+      assert.deepEqual(f.lifetimes, editorLifetimes); assert.equal(native.instances.length, sdkInstances, 'sharing does not remount editors');
+      assert.equal(f.messageValue(), 'retained source composer');
+      const writes = f.calls.filter(c => c.input); assert.equal(writes.length, 1);
+      assert.equal(writes[0].path, `/api/work/${source}/sharing`);
+      // Leave an open source panel with a refresh still in flight.
+      await toggle(); const lateSource = deferred(); held.set(source, lateSource); await toggle();
+      assert.equal(panelHost.open, true); await f.open(destination);
+      assert.notEqual(panelHost, originalPanel, 'work change must replace the uncontrolled sharing panel');
+      assert.equal(panelHost.open, false, 'destination starts closed and can load on a fresh open');
+      assert.equal(selectors().length, 0, 'source peers are not shown for the destination');
+      const lateDestination = deferred(); held.set(destination, lateDestination); await toggle();
+      assert.equal(panelHost.open, true); assert.equal(selectors().length, 0);
+      lateSource.resolve(structuredClone(shares[source])); await f.flush();
+      assert.equal(selectors().length, 0, 'late source response must not populate destination');
+      lateDestination.resolve(structuredClone(shares[destination])); await f.flush();
+      assert.equal(selectors().length, 1); assert.equal(selectors()[0].props['aria-label'], `Access for Peer ${destination}`);
+      held.clear(); const destinationPanel = panelHost;
+      await f.open(source); assert.notEqual(panelHost, destinationPanel); assert.notEqual(panelHost, originalPanel);
+      assert.equal(panelHost.open, false); assert.equal(selectors().length, 0); await toggle();
+      assert.equal(selectors()[0].props['aria-label'], `Access for Peer ${source}`); assert.equal(selectors()[0].props.value, 'editor');
+      assert.equal(f.messageValue(), 'retained source composer');
+      if (f.native.has(source)) assert.match(JSON.stringify(f.native.get(source).handle.save()), /retained human draft/);
+      await f.open(''); assert.equal(f.messageValue(), 'retained root composer');
+      assert.deepEqual(f.calls.filter(c => c.input), writes, 'toggle/navigation make no writes');
+      assert.ok(native.peak <= 1, 'sharing adds no hidden SDK connections');
+    } finally { f.dispose(); await new Promise(setImmediate); }
+  });
+}

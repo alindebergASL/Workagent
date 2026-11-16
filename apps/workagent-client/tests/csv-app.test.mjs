@@ -19,10 +19,10 @@ const code = ts.transpileModule(readFileSync(new URL('../src/main.tsx', import.m
 const disk = () => { const map = new Map(); return { getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, v), removeItem: k => map.delete(k) }; };
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
 const work = id => ({ id, book: blankWorkbook(id, id), expected: { contentRevision: 1, permissionRevision: 1, intentRevision: 0, cancellationEpoch: 0 }, contentRevision: 1, intentRevision: 0, eventSequence: 1, status: 'ready', messages: [], proposals: [] });
-function mount(storage, fetcher) {
+function mount(storage, fetcher, allowCollaboration = false) {
   const downloads = [], timers = new Map(); let timerId = 0;
   let root, index = 0, effects = [], tree, dirty = true, mounted = true; const hooks = [];
-  const GoogleExchange = () => null, PdfExchange = () => null, PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
+  const NativeCollaborationEditor = () => null, GoogleExchange = () => null, PdfExchange = () => null, PdfExport = () => null, DocxExchange = () => null, DocumentEditor = () => null, DocumentExchange = () => null, NativeEditor = () => null, CsvExchange = () => null, XlsxExchange = () => null;
   const react = {
     useState(initial) { const i = index++; hooks[i] ??= { value: typeof initial === 'function' ? initial() : initial }; return [hooks[i].value, value => { if (mounted) { hooks[i].value = typeof value === 'function' ? value(hooks[i].value) : value; dirty = true; } }]; },
     useRef(initial) { const i = index++; hooks[i] ??= { current: initial }; return hooks[i]; },
@@ -39,6 +39,7 @@ function mount(storage, fetcher) {
     if (name === './PdfExchange') return { PdfExchange };
     if (name === './DocumentExchange') return { DocumentExchange };
     if (name === './DocumentEditor') return { DocumentEditor };
+    if (name === './NativeCollaborationEditor') return { NativeCollaborationEditor };
     if (name === './NativeEditor') return { NativeEditor };
     if (name === './XlsxExchange') return { XlsxExchange };
     if (name === './CsvExchange') return { CsvExchange };
@@ -52,7 +53,7 @@ function mount(storage, fetcher) {
   }, module, module.exports, storage, { getElementById: () => ({}), createElement: () => ({ click() {} }) }, { addEventListener() {}, removeEventListener() {} }, fetcher, { randomUUID }, fn => { timers.set(++timerId, fn); return timerId; }, id => timers.delete(id), { createObjectURL: blob => { downloads.push(blob); return 'blob:fixture'; }, revokeObjectURL() {} });
   const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
   const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
-  function render() { index = 0; dirty = false; tree = root(); const pending = effects; effects = []; pending.forEach(f => f()); }
+  function render() { index = 0; dirty = false; tree = root(); if (!allowCollaboration) assert.equal(nodes(tree).some(n => n.type === NativeCollaborationEditor), false, 'Unexpected collaboration editor in legacy fixture'); const pending = effects; effects = []; pending.forEach(f => f()); }
   const flush = async () => { for (let i = 0; i < 10; i++) { if (dirty && mounted) render(); await new Promise(setImmediate); } };
   render();
   return { async poll() { assert.equal(timers.size, 1); const [id, fn] = timers.entries().next().value; timers.delete(id); await fn(); await flush(); }, elements: () => nodes(tree), downloads, async until(predicate) { for (let i = 0; i < 200; i++) { await flush(); if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); } assert.fail(text(tree)); }, google: () => nodes(tree).find(n => n.type === GoogleExchange)?.props, pdf: () => nodes(tree).find(n => n.type === PdfExchange).props, docx: () => nodes(tree).find(n => n.type === DocxExchange).props, doc: () => nodes(tree).find(n => n.type === DocumentEditor)?.props, documents: () => nodes(tree).find(n => n.type === DocumentExchange).props, flushSync: render, flush, text: () => text(tree), exchange: () => nodes(tree).find(n => n.type === CsvExchange).props, xlsx: () => nodes(tree).find(n => n.type === XlsxExchange).props,
@@ -60,6 +61,7 @@ function mount(storage, fetcher) {
     titleValue: () => nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.value,
     async title(value) { nodes(tree).find(n => n.props['aria-label'] === 'New work name').props.onChange({ target: { value } }); await flush(); },
     async open(id) { nodes(tree).find(n => n.type === 'select' && n.props['aria-label'] === 'Saved work').props.onChange({ target: { value: id } }); await flush(); },
+    collaboration: () => nodes(tree).find(n => n.type === NativeCollaborationEditor)?.props,
     native: () => nodes(tree).find(n => n.type === NativeEditor)?.props,
     messageValue: () => nodes(tree).find(n => n.props.id === 'prompt').props.value,
     async message(value) { nodes(tree).find(n => n.props.id === 'prompt').props.onChange({ target: { value } }); await flush(); },
@@ -1220,3 +1222,111 @@ for (const status of [401, 403]) test(`B05: HTTP ${status} access_denied keeps d
     if (status === 403) assert.doesNotMatch(view.text(), /Please sign in/);
   } finally { view.unmount(); }
 });
+
+test('native normal work routing preserves legacy draft and composer and guards pending navigation', async () => {
+  const f = server(() => assert.fail('no legacy mutation'));
+  f.works.native = { id: 'native', kind: 'native-sheet', title: 'Together', status: 'ready', access: { role: 'owner', revision: 1 } };
+  const view = mount(disk(), async (path, options) => path === '/api/work/native/native-session' ? { ok: true, status: 200, json: async () => ({ principal: 'owner', binding: 'owner', unitID: 'native', access: { role: 'owner', revision: 1 } }) } : f.fetch(path, options), true);
+  await view.flush(); await view.message('root draft'); await view.open('old');
+  const editor = attach(view); editor.edit('human draft'); await view.message('old composer'); await view.flush();
+  await view.open('native'); assert.ok(view.collaboration()); assert.equal(view.native(), undefined);
+  let pending = true, closed = 0;
+  view.collaboration().onReady({ canLeave: () => !pending, close: async () => { closed++; } });
+  await view.open('old'); assert.ok(view.collaboration()); assert.equal(closed, 0);
+  pending = false; await view.open('old'); assert.equal(closed, 1);
+  assert.equal(view.native().book.sheets.sheet1.cellData[0][0].v, 'human draft');
+  assert.equal(view.messageValue(), 'old composer');
+  await view.open(''); assert.equal(view.messageValue(), 'root draft'); view.unmount();
+});
+test('native creation is absent without opt-in and explicit creation uses its own endpoint', async () => {
+  const f = server(() => assert.fail('legacy create'));
+  const view = mount(disk(), f.fetch); await view.flush();
+  assert.equal(view.text().includes('New collaborative sheet'), false); view.unmount();
+  const calls = [], enabled = mount(disk(), async (path, options) => {
+    if (path === '/api/session') return { ok: true, status: 200, json: async () => ({ principal: 'owner', owner: true, binding: 'owner', nativeEnabled: true }) };
+    if (path === '/api/work/native') { calls.push(JSON.parse(options.body)); return { ok: true, status: 200, json: async () => ({ workId: 'new-native' }) }; }
+    return f.fetch(path, options);
+  });
+  await enabled.flush(); await enabled.click('New collaborative sheet (development)');
+  assert.equal(calls.length, 1); assert.ok(calls[0].commandId); assert.equal(enabled.collaboration(), undefined); enabled.unmount();
+});
+
+test('native destination refuses document clipboard input begun during session fetch and retains source drafts', async () => {
+  const f = server(() => assert.fail('unexpected write')), gate = deferred(), storage = disk();
+  f.works.old = { ...f.works.old, kind: 'document', document: blankDocument('old') }; delete f.works.old.book;
+  f.works.native = { id: 'native', kind: 'native-sheet', title: 'Native', status: 'ready', access: { role: 'owner', revision: 1 } };
+  let requested = false, pending = false, commits = 0, document = structuredClone(f.works.old.document);
+  const view = mount(storage, async (path, options) => {
+    if (path === '/api/work/native/native-session') { requested = true; return gate.promise; }
+    return f.fetch(path, options);
+  });
+  try {
+    await view.flush(); await view.message('root message'); await view.open('old'); await view.message('document message');
+    const source = view.doc(); source.onReady({ editorId: 'old', save: () => structuredClone(document), isEditing: () => pending,
+      commit: async () => { commits++; assert.equal(pending, false); return structuredClone(document); } });
+    document.body = blankDocument('old', 'Old', 'retained human edit').body; source.onEdit(document); await view.flush();
+    await view.open('native'); assert.equal(requested, true); const before = commits;
+    pending = true;
+    gate.resolve({ ok: true, status: 200, json: async () => ({ principal: 'owner', binding: 'owner', unitID: 'native', access: { role: 'owner', revision: 1 } }) });
+    await view.flush();
+    assert.ok(view.doc(), 'pending source document must remain mounted'); assert.equal(view.collaboration(), undefined);
+    assert.equal(view.messageValue(), 'document message'); assert.equal(commits, before, 'do not commit an unfinished clipboard operation');
+    assert.deepEqual(JSON.parse(await draftRaw(storage, 'old')).book, document);
+    assert.match(view.text(), /input is still finishing/);
+    pending = false; document.body = blankDocument('old', 'Old', 'clipboard completed').body; source.onEdit(document); await view.flush();
+    await view.open('imported'); await view.open('old');
+    assert.deepEqual(view.doc().document, document); assert.equal(view.messageValue(), 'document message');
+    await view.open(''); assert.equal(view.messageValue(), 'root message');
+  } finally { view.unmount(); }
+});
+
+// Actual App access/navigation state; native handles and HTTP replies are fixtures.
+for (const outcome of ['read', 'editor', 'denied', 'stale metadata', 'stale session', 'superseded', 'pending']) {
+  test(`native access label: ${outcome} reopen after observed revocation`, async () => {
+    const gate = deferred(), calls = [], storage = disk();
+    let listed = true, cursor = 0, hold = false, denied = false, pending = false, closes = 0;
+    let access = { role: 'editor', revision: 1 };
+    const response = value => ({ ok: true, status: 200, json: async () => structuredClone(value) });
+    const metadata = () => ({ id: 'native', kind: 'native-sheet', title: 'Together', status: 'ready', access: { ...access } });
+    const session = () => ({ principal: 'peer', name: 'Synthetic peer', owner: false, binding: 'fixture-peer', unitID: 'native', access: { ...access } });
+    const view = mount(storage, async (path, options) => {
+      assert.equal(options.body, undefined, 'opening never writes'); calls.push(path);
+      if (path === '/api/session') return response({ principal: 'peer', name: 'Synthetic peer', owner: false, binding: 'fixture-peer' });
+      if (path === '/api/work') return response([metadata()]);
+      if (path.startsWith('/api/events')) return response({ kind: 'reset', cursor: ++cursor, events: [], works: listed ? [metadata()] : [], snapshots: [] });
+      assert.ok(['/api/work/native', '/api/work/native/native-session'].includes(path));
+      if (path.endsWith('/native-session') && denied) return { ok: false, status: 403, json: async () => ({ error: 'work_access_revoked' }) };
+      if (hold && path === (outcome === 'stale metadata' ? '/api/work/native' : '/api/work/native/native-session')) return gate.promise;
+      return response(path.endsWith('/native-session') ? session() : metadata());
+    }, true);
+    const attachNative = () => view.collaboration().onReady({ canLeave: () => !pending, close: async () => { closes++; } });
+    try {
+      await view.flush(); await view.message('retained root draft'); await view.open('native'); attachNative();
+      await view.message('retained native-work composer');
+      const old = view.collaboration().session;
+      listed = false; await view.poll(); assert.match(view.text(), /Synthetic peer · Access revoked/);
+      access = { role: outcome === 'read' ? 'read' : 'editor', revision: 4 };
+      if (outcome === 'read' || outcome === 'editor') {
+        listed = true; await view.open(''); assert.equal(view.messageValue(), 'retained root draft');
+        await view.open('native');
+        assert.deepEqual(view.collaboration().session.access, access);
+        assert.match(view.text(), outcome === 'read' ? /Synthetic peer · Read-only native access/ : /Synthetic peer · Native editor access/);
+        assert.doesNotMatch(view.text(), /Access revoked|Access to this work was revoked/);
+        assert.equal(view.messageValue(), 'retained native-work composer'); assert.equal(closes, 1);
+      } else {
+        denied = outcome === 'denied'; pending = outcome === 'pending'; hold = outcome.startsWith('stale') || outcome === 'superseded';
+        await view.open('native');
+        if (hold) {
+          assert.match(view.text(), /Synthetic peer · Access revoked/, 'attempted reopen does not eagerly reset the label');
+          if (outcome === 'superseded') { denied = true; hold = false; await view.open('native'); }
+          else await view.poll(); // A later observed revoke invalidates this successful response.
+          gate.resolve(response(outcome === 'stale metadata' ? metadata() : session())); await view.flush();
+        }
+        assert.equal(view.collaboration().session, old, 'failed/stale/pending open retains the mounted session');
+        assert.match(view.text(), /Synthetic peer · Access revoked/); assert.equal(closes, 0);
+        assert.equal(view.messageValue(), 'retained native-work composer');
+        if (outcome === 'stale metadata') assert.equal(calls.filter(path => path.endsWith('/native-session')).length, 1, 'stale metadata cannot start a new native session');
+      }
+    } finally { gate.resolve(response(session())); view.unmount(); }
+  });
+}

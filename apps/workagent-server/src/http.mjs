@@ -1,3 +1,4 @@
+import { nativeRequest, nativeSession, nativeRoute } from './native-workspace.mjs';
 import http from 'node:http';
 import { configuredAccounts } from './accounts.mjs';
 import { createHmac, timingSafeEqual } from 'node:crypto';
@@ -58,15 +59,22 @@ export function createServer(options) {
     pending.add(task);
     void task.then(() => pending.delete(task), () => pending.delete(task));
   });
+  if (options.native) server.on('upgrade', (req, socket, head) => {
+    try { if (stopping) throw new Error('stopping'); nativeRoute(req, options.origin, identity(options)); options.native.transport.handleUpgrade(req, socket, head); }
+    catch { socket.destroy(); }
+  });
   server.drain = () => draining ??= (async () => {
     stopping = true;
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-    // A disconnected client can leave a transaction/callback still running.
+    const stopped = new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    // Finish creation/submission before closing the native service; closing its
+    // WebSockets then permits server.close to finish.
     await Promise.all([...pending]);
+    await options.native?.close();
+    await stopped;
   })();
   return server;
 }
-export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, google, owner, token, origin, accounts = [], clientRoot, accounting, onCommand = () => {} }) {
+export function createHandler({ workspace, maintenance, exchange, xlsx, documents, docx, pdf, google, owner, token, origin, accounts = [], clientRoot, accounting, onCommand = () => {}, native }) {
   const auth = identity({ token, origin, owner, accounts }), root = resolve(clientRoot);
   return async (req, res) => {
     responseHeaders(res);
@@ -89,7 +97,14 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       const principal = auth.authenticate(req);
       // Affinity is a refusal fence, never an authentication or identity source.
       if (req.headers['x-workagent-session-binding'] && !equal(req.headers['x-workagent-session-binding'], auth.profile(principal).binding)) throw new Fault('session_changed', 403);
-      if (path === '/api/session' && req.method === 'GET') { await workspace.list(principal); return send(200, auth.profile(principal)); }
+      if (path === '/api/session' && req.method === 'GET') { await workspace.list(principal); return send(200, { ...auth.profile(principal), nativeEnabled: !!native }); }
+      if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
+      const nativeWork = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-session$/.exec(path);
+      if (nativeWork && req.method === 'GET') { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeSession(native, auth, principal, nativeWork[1], send); }
+      if (path === '/api/work/native' && req.method === 'POST') {
+        if (!native) throw new Fault('native_collaboration_disabled', 409);
+        await workspace.ownerAccess(principal); return send(200, await native.createWork(await body(req)));
+      }
       if (path === '/api/accounting' && req.method === 'GET') {
         await workspace.ownerAccess(principal);
         return send(200, accounting?.status ? await accounting.status() : { mode: 'disabled' });
@@ -157,12 +172,12 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       }
       const sharing = /^\/api\/work\/([a-zA-Z0-9_-]+)\/sharing$/.exec(path);
       if (sharing && req.method === 'GET') return send(200, await workspace.sharing(principal, sharing[1]));
-      if (sharing && req.method === 'POST') return send(200, await workspace.share(principal, sharing[1], await body(req)));
+      if (sharing && req.method === 'POST') { const result = await workspace.share(principal, sharing[1], await body(req)); if (native) await native.endpoint.invalidateUnitSessions({ unitID: sharing[1] }); return send(200, result); }
       const m = /^\/api\/work\/([a-zA-Z0-9_-]+)(?:\/(save|proposals)(?:\/([a-zA-Z0-9_-]+))?)?$/.exec(path);
-      if (m && req.method === 'GET' && !m[2]) return send(200, await workspace.get(principal, m[1]));
+      if (m && req.method === 'GET' && !m[2]) return send(200, await workspace.get(principal, m[1], !!native));
       if (m && req.method === 'POST' && m[2] === 'save') return send(200, await workspace.save(principal, m[1], await body(req)));
       if (m && req.method === 'POST' && m[2] === 'proposals' && m[3]) return send(200, await workspace.decide(principal, m[1], m[3], await body(req)));
       throw new Fault('not_found', 404);
-    } catch (e) { if (!res.destroyed) send(e instanceof Fault ? e.status : e.code === 'ENOENT' ? 404 : 500, { error: e instanceof Fault ? e.code : 'service_unavailable' }); }
+    } catch (e) { if (!res.destroyed) send(e instanceof Fault ? e.status : e.code === 'PERMISSION_DENIED' ? 403 : e.code === 'ENOENT' ? 404 : 500, { error: e instanceof Fault ? e.code : 'service_unavailable' }); }
   };
 }

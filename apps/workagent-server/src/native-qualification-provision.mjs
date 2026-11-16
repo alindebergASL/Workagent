@@ -2,10 +2,10 @@
 import pg from 'pg';
 import { Workspace } from './workspace.mjs';
 import { PostgresStore } from './store.mjs';
-import { nativeQualificationConfig, nativeDatabaseIdentity, provisionNativeStorage } from './native-qualification-storage.mjs';
+import { nativeWorkspaceConfig, nativeQualificationConfig, nativeDatabaseIdentity, provisionNativeStorage } from './native-qualification-storage.mjs';
 let pool, leadership;
 try {
-  const config = nativeQualificationConfig(process.env);
+  const config = nativeWorkspaceConfig(process.env) ?? nativeQualificationConfig(process.env);
   if (process.env.WORKAGENT_NATIVE_PROVISION !== 'new-owned-pair') throw new Error('explicit_provision_required');
   pool = new pg.Pool({ connectionString: config.databaseURL, max: 2 });
   leadership = await pool.connect();
