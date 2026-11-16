@@ -101,6 +101,14 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
       const nativeWork = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-session$/.exec(path);
       if (nativeWork && req.method === 'GET') { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeSession(native, auth, principal, nativeWork[1], send); }
+      const nativeHistory = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-history\/([1-9][0-9]*)$/.exec(path);
+      if (nativeHistory) {
+        if (!native?.authority.history) throw new Fault('native_history_disabled', 409);
+        if (req.method !== 'GET') throw new Fault('native_history_read_only', 405);
+        const [, unitID, epoch] = nativeHistory;
+        if (!Number.isSafeInteger(Number(epoch))) throw new Fault('invalid_native_history_epoch', 400);
+        return await native.authority.history.read(principal, unitID, { userID: principal, unitID, revision: Number(epoch) }, new URL(req.url, origin).searchParams, value => send(200, value));
+      }
       const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)$/.exec(path);
       if (nativeComments) {
         if (!native?.authority.comments) throw new Fault('native_comments_disabled', 409);

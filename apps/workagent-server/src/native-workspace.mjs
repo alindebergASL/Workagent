@@ -14,7 +14,7 @@ export function nativeRoute(req, origin, auth) {
 }
 export async function nativeSession(native, auth, principal, unitID, send) {
   return native.authority.fence(principal, unitID, false, access => send(200, {
-    ...auth.profile(principal), unitID, access, comments: !!native.authority.comments,
+    ...auth.profile(principal), unitID, access, comments: !!native.authority.comments, history: !!native.authority.history,
     basePath: `/api/native/${unitID}/${access.revision}/universer-api`, sessionPath: `/api/work/${unitID}/native-session`,
   }));
 }

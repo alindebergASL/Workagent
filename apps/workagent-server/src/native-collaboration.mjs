@@ -1,3 +1,4 @@
+import { NativeHistory } from './native-history.mjs';
 import { NativeComments, ADD_COMMENT, DELETE_COMMENT, nativeCommentPolicy } from './native-comments.mjs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Fault, id, text } from '../../../packages/workagent-contract/index.mjs';
@@ -192,7 +193,7 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
-  if (mode === 'workspace') authority.comments = new NativeComments(authority, service, dbAdapter);
+  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); }
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });

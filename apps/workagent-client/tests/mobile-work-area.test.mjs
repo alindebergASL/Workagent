@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration && path.includes('/native-history/')) return collaboration.historyRequest(path,options);
     if (collaboration && path.includes('/native-comments/')) return collaboration.commentsRequest(path,options);
     const value=collaboration && path.endsWith('/native-session') ? collaboration.session(path) : path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:path.endsWith('/sharing')||input?await handler(path,input,works):works[path.split('/').at(-1)];
     return {ok:true,status:200,json:async()=>structuredClone(value)};
@@ -295,11 +296,11 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false, comments = false } = {}) {
+function nativeLifecycle({ offline = false, comments = false, history = false } = {}) {
   const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
-  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, sessionPath: `/api/work/${unitID}/native-session` });
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
@@ -332,14 +333,16 @@ function nativeLifecycle({ offline = false, comments = false } = {}) {
       if(key===DataLoaderService)return loader;
       if(key==='members')return membership;
       if(key==='collaboration-sessions')return {socket$:NEVER};
-      if(key==='instances')return {getUnit:()=>({getSheetBySheetId:id=>id==='s'?{getRowCount:()=>100,getColumnCount:()=>26}:null,getActiveSheet:()=>({getSheetId:()=> 's'})})};
+      if(key==='instances')return {getFocusedUnit:()=>({getUnitId:()=>entry.unitID}),getUnit:()=>({getSheetBySheetId:id=>id==='s'?{getRowCount:()=>100,getColumnCount:()=>26}:null,getActiveSheet:()=>({getSheetId:()=> 's'})})};
       if(key==='refs')return {watchRange(_unit,_sheet,_range,fn){entry.watches.add(fn);return {dispose(){entry.watches.delete(fn);}};}};
+      if(key==='undo')return {pitchTopUndoElement:()=>null,pitchTopRedoElement:()=>null};
       if(key==='commands')return entry.commands;
       assert.equal(key,'cache');return cache;
     }}), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; entry.status.complete();entityInit.complete(); active--; } },
       univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => entry.editing, getActiveSheet:()=>({getSheetId:()=> 'sheet-1'}),getActiveRange:()=>entry.anchor?{getRange:()=>({startRow:8,endRow:8,startColumn:7,endColumn:7}),getA1Notation:()=>entry.anchor}:null }),Event:{BeforeClipboardPaste:'beforePaste',ClipboardPasted:'pasted'},addEvent(name,fn){entry.facadeEvents.set(name,fn);return {dispose(){entry.facadeEvents.delete(name);}};}} };
   };
-  return { commentPosts,published,receipts,setCommentRefusal(value){refuseComment=value;},
+  return { historyRequest:async(path)=>({ok:true,json:async()=>path.includes('?revision=')?{revision:Number(path.split('?revision=')[1]),sheets:[{id:'sheet-1',name:'Historical '+path.split('/')[3],rows:30,columns:26,cells:[{cell:'A1',value:'historical value'}]}],limited:true}:{head:3,entries:[{revision:2,author:'Peer',operations:['sheet.mutation.set-range-values'],operationCount:1}]}}),
+    commentPosts,published,receipts,setCommentRefusal(value){refuseComment=value;},
     async commentsRequest(path,options){const unitID=path.split('/')[3];
       if(options.method==='POST'){const body=JSON.parse(options.body);commentPosts.push(body);if(refuseComment)return {ok:false,status:409};return {ok:true,json:async()=>({id:body.id,threadId:body.parentId??body.id,parentId:body.parentId,unitId:unitID,subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:body.ref,text:{dataStream:body.body+'\r\n'}})};}
       return {ok:true,json:async()=>({revision:3,comments:structuredClone(published.get(unitID)??[]),receipt:receipts.get(new URL(path,'http://fixture').searchParams.get('pending'))})};},
@@ -350,7 +353,7 @@ function nativeLifecycle({ offline = false, comments = false } = {}) {
     async poll(){for(const timer of [...timers.values()])await timer();},
     attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{events:new Map(),addEventListener(name,fn){this.events.set(name,fn);},removeEventListener(name){this.events.delete(name);}});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
     dependency(name){
-      if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands'};
+      if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands',IUndoRedoService:'undo'};
       if(name==='@univerjs/thread-comment')return {IThreadCommentDataSourceService:'comment-source'};
       if(name==='@univerjs/sheets')return {RefRangeService:'refs'};
       if(name==='@univerjs-pro/collaboration-client')return {CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
@@ -594,5 +597,32 @@ test('comments App: committed and removed before polling unlocks recovery, prese
     await f.open('B');assert.equal(native.instances.length,1,'draft remains protected until explicit action');
     await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'Published then removed; keep my text');assert.equal(native.commentPosts.length,1);
     await f.click('Clear unsent comment draft');await f.open('B');await f.open('');assert.equal(f.messageValue(),'root retained');assert.equal(native.commentPosts.length,1);
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('history App: read-only preview preserves active input, comment and composer drafts without replacing the live editor',async()=>{
+  const native=nativeLifecycle({comments:true,history:true}),f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  try{
+    await f.flush();await f.message('root history draft');await f.open('A');const entry=native.instances[0];
+    const textarea=f.find(n=>n.props['aria-label']==='Comment draft');textarea.props.onChange({target:{value:'unsent comment'}});await f.flush();entry.editing=true;entry.pending=true;
+    await f.click('Refresh history');assert.match(f.panel.text(),/Revision 2 · Peer/);await f.click('Preview revision 2');assert.match(f.panel.text(),/Historical A/);assert.match(f.panel.text(),/historical value/);
+    assert.equal(entry.editing,true);assert.equal(entry.pending,true);assert.equal(entry.disposed,false);assert.equal(native.instances.length,1);assert.equal(f.find(n=>n.props['aria-label']==='Comment draft').props.value,'unsent comment');
+    await f.open('');assert.equal(entry.disposed,false);assert.equal(native.instances.length,1);
+    assert.ok(f.calls.filter(c=>c.path.includes('/native-history/')).every(c=>!c.input));assert.equal(entry.nativeAdds.length,0);assert.equal(entry.scrolls.length,0);assert.match(f.panel.text(),/undo\/redo is unavailable/);
+    entry.pending=false;entry.editing=false;await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root history draft');assert.equal(entry.commentListeners.size,0);
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('history App: reader GET, obsolete unit response and epoch revocation cannot display stale preview',async()=>{
+  const native=nativeLifecycle({history:true}),f=fixture(undefined,false,native);
+  for(const id of ['A','B']){f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'read',revision:1}};native.sessions.get(id).access.role='read';}
+  try{
+    await f.flush();await f.open('A');await f.click('Refresh history');assert.match(f.panel.text(),/Revision 2 · Peer/);
+    const waiting=deferred(),normal=native.historyRequest;native.historyRequest=()=>waiting.promise;
+    f.button('Preview revision 2').props.onClick();await f.flush();await f.open('B');native.historyRequest=normal;
+    waiting.resolve({ok:true,json:async()=>({revision:2,sheets:[{id:'s',name:'STALE A SECRET',rows:1,columns:1,cells:[]}]})});await f.flush();assert.doesNotMatch(f.panel.text(),/STALE A SECRET/);
+    await f.click('Refresh history');await f.click('Preview revision 2');assert.match(f.panel.text(),/Historical B/);
+    native.sessions.get('B').access.revision=2;await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/Historical B/);assert.match(f.panel.text(),/History unavailable/);assert.equal(native.instances.length,2);assert.equal(native.peak,1);
+    assert.ok(f.calls.filter(c=>c.path.includes('/native-history/')).every(c=>!c.input));
   }finally{f.dispose();await new Promise(setImmediate);}
 });

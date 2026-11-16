@@ -398,10 +398,51 @@ automatic convergence without another comment POST: SDK exponential backoff exis
 but exact cause/latency bound is unqualified. 390px is not physical-phone proof.
 No product inference, default merge, main installation or public deployment.
 
+Native undo containment and read-only history are qualified on private QA
+93b0f49252a7, not installed in main. Actual SDK collaboration/service probes and
+SAME independent review found that owner11 → peer22 → owner Undo clears both
+clients and native head; Redo restores11. The intentional overlap RED stays outside
+ordinary green gates. Unrestricted native undo/redo remains HOLD. A scoped public
+before-command interceptor uses the actual undo/redo stack target to cancel native
+sheet undo before synchronous/asynchronous mutation, without clearing stacks or
+blocking embedded text/ordinary editors. This is client containment, not server
+security, a native SDK repair or completed safe individual undo.
+
+The consumed native-history panel uses existing authoritative changesets and
+historical native materialization, current ACL/epoch checks before reading and at
+synchronous response enqueue, bounded25-revision pages and read-only text previews
+(up to4 sheets/50 cells each/500 characters per value). It never replaces the live
+workbook, restores, creates revisions, invokes a model or reveals resources,
+comment bodies, private prewrites or native request identities. Initial revision1
+and committed revision previews are explicit. Late unit/epoch responses are fenced.
+
+Closure: SAME reviewer implementation PASS; Parent35 focused/318 serial tests all
+pass with no failures/skips, typecheck/diff; guarded204-source/80-artifact build.
+Actual restricted PostgreSQL + native SQLite verify historical11/22 values and
+exact history/preview after closed-pool/native reopen, reader GET-only, stale epoch
+and revoke-during-read403 without native revision changes. A stale pre-edit comments
+checkpoint in the first qualification harness was corrected; the failed log/pair
+remain, and the corrected run used a fresh pair rather than reseeding.
+
+Sixteen scoped browser stages pass on that build: native keyboard/toolbar Undo
+preserves newer peer22; embedded text alpha→undo-empty→redo-alpha; historical11
+preview while live22/head remain exact; comment draft/navigation,390px,cold reload,
+reader access, delayed real response after revoke, explicit regrant/read, work
+isolation, ordinary document/sheet typing/undo/redo/save/readback and retirement.
+Original C/B and old root drafts remain unchanged; all new native sockets end at0.
+Native redo has no available entry after blocked undo: active redo-stack refusal
+is actual SDK proof, not browser proof. Native composer is hidden; retained
+composer coverage is App tests only.390px is not a physical phone. Harness focus,
+access-epoch, fetch-capture/readiness corrections remain in evidence, not extra
+passes. No product inference, default merge, main installation or public deployment.
+
 Full B05 remains open: expanded native surface, same-cell conflicts, durable
 browser-crash recovery, richer comment editing/resolution and text/object anchors,
-history/individual undo, safe agent proposals and two-human usability. No existing
-human Sheet conversion or native export/model bridge.
+safe individual/account undo and restore-as-new-revision, safe agent proposals and
+two-human usability. Exact committed/batched request binding, commit-head/CAS
+fencing and recovery must be proved before undo is enabled. A restore mutation
+export alone is not proof of a new native revision. No existing human Sheet
+conversion or native export/model bridge.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

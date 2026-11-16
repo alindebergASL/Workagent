@@ -41,11 +41,12 @@
     "test:google:integration": "node apps/workagent-server/tests/google-exchange.test.mjs && node apps/workagent-client/tests/google-exchange.test.mjs && node apps/workagent-client/tests/mobile-work-area.test.mjs",
     "test:google:integration:http": "node apps/workagent-server/tests/google-exchange-http.test.mjs",
     "google:simulator": "node apps/workagent-server/src/google-simulation.mjs",
-    "test:native-collaboration": "node apps/workagent-server/tests/native-collaboration.test.mjs && node apps/workagent-server/tests/native-qualification-storage.test.mjs && node apps/workagent-server/tests/native-workspace.test.mjs && node apps/workagent-client/tests/native-cache.test.mjs && node apps/workagent-client/tests/native-cursor-session.test.mjs && node apps/workagent-client/tests/native-presence.test.mjs && node apps/workagent-client/tests/native-follow.test.mjs && node apps/workagent-client/tests/native-facade-isolation.test.mjs && npm run test:native-comments",
+    "test:native-collaboration": "node apps/workagent-server/tests/native-collaboration.test.mjs && node apps/workagent-server/tests/native-qualification-storage.test.mjs && node apps/workagent-server/tests/native-workspace.test.mjs && node apps/workagent-client/tests/native-cache.test.mjs && node apps/workagent-client/tests/native-cursor-session.test.mjs && node apps/workagent-client/tests/native-presence.test.mjs && node apps/workagent-client/tests/native-follow.test.mjs && node apps/workagent-client/tests/native-facade-isolation.test.mjs && npm run test:native-comments && npm run test:native-history",
     "native:provision": "node apps/workagent-server/src/native-qualification-provision.mjs",
     "native:qualification": "node apps/workagent-server/src/native-qualification.mjs",
     "build:native": "vite build --config apps/workagent-client/vite.native.config.ts",
-    "test:native-comments": "node apps/workagent-server/tests/native-comments.test.mjs && node apps/workagent-server/tests/native-comments-pipeline.test.mjs && node apps/workagent-client/tests/native-comments.test.mjs"
+    "test:native-comments": "node apps/workagent-server/tests/native-comments.test.mjs && node apps/workagent-server/tests/native-comments-pipeline.test.mjs && node apps/workagent-client/tests/native-comments.test.mjs",
+    "test:native-history": "node apps/workagent-server/tests/native-history-sdk.test.mjs && node apps/workagent-server/tests/native-history.test.mjs && node apps/workagent-client/tests/native-history.test.mjs"
   },
   "dependencies": {
     "@univerjs/core": "1.4.0",

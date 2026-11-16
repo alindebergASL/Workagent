@@ -1,3 +1,4 @@
+import { containNativeUndo, NATIVE_UNDO_UNAVAILABLE, nativeHistory, type NativeHistoryView } from './native-history';
 import { nativeComments } from './native-comments';
 import type { CommentView } from './native-comments';
 import { UniverThreadCommentPlugin, IThreadCommentDataSourceService } from '@univerjs/thread-comment';
@@ -10,7 +11,7 @@ import { nativeFollow, nativePasteActivity } from './native-follow';
 import type { NativeFollowState } from './native-follow';
 import type { NativePresence } from './native-presence';
 import { useEffect, useRef, useState } from 'react';
-import { ICommandService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
+import { ICommandService, IUndoRedoService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
 import type { Workbook } from '@univerjs/core';
 import { RefRangeService } from '@univerjs/sheets';
 import { UniverCollaborationPlugin } from '@univerjs-pro/collaboration';
@@ -26,7 +27,7 @@ import '@univerjs/sheets-ui/facade';
 import '@univerjs/preset-sheets-core/lib/index.css';
 import '@univerjs-pro/collaboration-client-ui/lib/index.css';
 
-export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string; comments?: boolean }
+export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string; comments?: boolean; history?: boolean }
 export interface NativeCollaborationHandle { canLeave(): boolean; close(): Promise<void> }
 // Native operations/cache are the only synchronization path. Never call legacy
 // save, create a local workbook, replace a snapshot or mint retry identities.
@@ -45,6 +46,9 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const submittedDraft = useRef<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [commentView, setCommentView] = useState<CommentView>({ comments: [], message: 'Loading comments', pending: false });
+  const history = useRef<ReturnType<typeof nativeHistory> | null>(null);
+  const [historyView, setHistoryView] = useState<NativeHistoryView>({ entries: [], message: 'History not loaded' });
+  const [undoNotice, setUndoNotice] = useState(NATIVE_UNDO_UNAVAILABLE);
   const [anchor, setAnchor] = useState('');
   const [commentAvailable, setCommentAvailable] = useState(false);
   const [reply, setReply] = useState<string | undefined>();
@@ -53,7 +57,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false;
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
@@ -72,6 +76,8 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         collabWebSocketUrl: `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${basePath}/comb/connect`,
       }], UniverCollaborationClientUIPlugin, ...(session.comments ? [UniverThreadCommentPlugin, UniverSheetsThreadCommentPlugin] : [])],
     });
+    const undoGuard = containNativeUndo(session.unitID, univer.__getInjector().get(ICommandService), univer.__getInjector().get(IUndoRedoService), () => { if (live) setUndoNotice(NATIVE_UNDO_UNAVAILABLE); });
+    if (session.history) history.current = nativeHistory(session, value => { if (live) setHistoryView(value); }, fetch);
     univer.__getInjector().get(UserManagerService).setCurrentUser({ userID: session.principal, name: session.name, avatar: '' });
     const cache = univer.__getInjector().get(ILocalCacheService);
     scopeNativeCache(cache, session.principal, session.binding, session.access.revision);
@@ -159,7 +165,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       if (host.current) host.current.inert = true;
       await cache.exhaustSavingTask();
       stopPresence();
-      univer.dispose();
+      undoGuard.dispose(); univer.dispose();
     })().catch(error => { closing = undefined; if (live && host.current) host.current.inert = blocked; throw error; });
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !comments.current?.pending(), close });
     return () => {
@@ -180,6 +186,15 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     const a = document.createElement('a'); a.href = url; a.download = 'native-operation-recovery.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return <><p role="status" data-native-status>{status}</p>
+    <p role="status" data-native-undo>{undoNotice}</p>
+    {session.history && <details onToggle={event => { if (event.currentTarget.open && !blocked) void history.current?.read(); }}><summary onPointerDown={e => e.preventDefault()}>Native history (read-only)</summary>
+      <p role="status">{historyView.message}</p>
+      {!blocked && <><button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read()}>Refresh history</button>
+      <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read('?revision=1')}>Preview initial revision 1</button>
+      {historyView.entries.map(entry => <p key={entry.revision}>Revision {entry.revision} · {entry.author} · {entry.operations.join(', ')} ({entry.operationCount}) <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read(`?revision=${entry.revision}`)}>Preview revision {entry.revision}</button></p>)}
+      {historyView.before && <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read(`?before=${historyView.before}`)}>Earlier history</button>}
+      {historyView.preview && <div aria-label="Historical sheet preview" style={{ overflowWrap: 'anywhere', maxHeight: '20rem', overflow: 'auto' }}><p>Revision {historyView.preview.revision} · values/formulas only · first 50 populated cells per sheet, at most 4 sheets; long values truncated. Comments and formatting are not shown.</p>{historyView.preview.sheets.map(sheet => <div key={sheet.id}><strong>{sheet.name}</strong> ({sheet.rows} × {sheet.columns})<ul>{sheet.cells.map(cell => <li key={cell.cell}>{cell.cell}: {cell.value}</li>)}</ul></div>)}</div>}</>}
+    </details>}
     <div aria-label="Sheet collaborators" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowWrap: 'anywhere', marginBottom: '0.5rem' }}>
       <span>{session.name} (you{session.access.role === 'read' ? ', read-only' : ''})</span>
       {presence.online ? presence.members.filter(m => !m.self).map(m => <span key={m.memberID}>{m.name || 'Unnamed collaborator'}{m.userID === session.principal ? ' (your other session)' : ''} <button onPointerDown={event => event.preventDefault()} onClick={() => follow.current?.follow(m.memberID)} aria-label={`Follow ${m.name || 'collaborator'}${m.userID === session.principal ? ' (your other session)' : ''}`}>Follow</button></span>) : <span>Live collaborators unavailable</span>}
