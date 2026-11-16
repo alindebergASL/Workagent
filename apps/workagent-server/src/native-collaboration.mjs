@@ -1,3 +1,4 @@
+import { NativeAgentAcceptance } from './native-agent-acceptance.mjs';
 import { NativeAgent } from './native-agent.mjs';
 import { NativeReversal } from './native-reversal.mjs';
 import { NativeHistory } from './native-history.mjs';
@@ -36,6 +37,17 @@ export class NativeAuthority {
   }
   async fence(principal, unitID, edit, effect, session) {
     return this.workspace.store.transaction(async s => { const access = this.check(s, principal, unitID, edit, session); await effect(access); });
+  }
+  actionService(action) {
+    if (action?.kind === 'agent-acceptance' && this.acceptance) return this.acceptance;
+    if (action && action.kind === undefined && this.reversal) return this.reversal;
+    deny();
+  }
+  async validateAction(s,c,session,commit=false) {
+    const reason=await this.acceptance?.validate(s,c,session,commit);
+    if(reason)return reason;
+    if(session.actionKind==='agent-acceptance'){if(!this.acceptance)return 'native_acceptance_disabled';return;}
+    return this.reversal?.validate(s,c,session,commit);
   }
   validateChangeset(c) {
     if (!c || (this.unitID !== null && c.unitID !== this.unitID) || c.type !== UniverType.UNIVER_SHEET || typeof c.sid !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(c.sid) || !Number.isSafeInteger(c.reqId) || c.reqId < 1 || !Array.isArray(c.mutations) || !c.mutations.length) deny();
@@ -80,7 +92,7 @@ export class NativeAuthority {
       const session = this.submission(c);
       const refusal = await this.workspace.store.transaction(async s => {
         this.check(s, c.userID, c.request.changeset.unitID, true, session);
-        const reason = await this.reversal?.validate(s,c,session); if (reason) return reason;
+        const reason = await this.validateAction(s,c,session); if (reason) return reason;
         this.bindSubmission(s, c, true);
         await nativeCommentPolicy(() => this.comments?.bind(s, c, session, true));
       });
@@ -93,7 +105,7 @@ export class NativeAuthority {
       const commentView = this.comments?.needs(c.changeset) ? await this.comments.prepare(c.userID, c.changeset.unitID, session) : null;
       const refusal = await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
-        const reason = await this.reversal?.validate(s,c,session,true); if (reason) return reason;
+        const reason = await this.validateAction(s,c,session,true); if (reason) return reason;
         this.bindSubmission(s, c);
         await nativeCommentPolicy(async () => {
           this.comments?.bind(s, c, session, false);
@@ -110,8 +122,8 @@ export class NativeAuthority {
       const access = await this.checkNow(c.session.userID, unitID, false, c.connection.customData.workagentAccess);
       const action=c.connection.customData.workagentAction, ticketAction=c.session.customData?.workagentAction;
       if (JSON.stringify(action)!==JSON.stringify(ticketAction)) deny();
-      const session = { userID: c.session.userID, unitID, revision: access.revision, binding:c.connection.customData.workagentBinding, ...(action?{action:action.id}:{}) };
-      if(action){if(!this.reversal)deny();await this.reversal.connect(c.session.userID,unitID,session,action,c.session.memberID);}
+      const session = { userID: c.session.userID, unitID, revision: access.revision, binding:c.connection.customData.workagentBinding, ...(action?{action:action.id,...(action.kind?{actionKind:action.kind}:{})}:{}) };
+      if(action)await this.actionService(action).connect(c.session.userID,unitID,session,action,c.session.memberID);
       this.sessions.set(c.session.memberID, session);
       c.connection.customData.workagentSession = session;
       c.member.name = c.connection.customData.workagentName;
@@ -119,7 +131,9 @@ export class NativeAuthority {
     });
     endpoint.use('joinUnit', async (c, next) => { if (!this.sessions.has(c.session.memberID)) deny(); await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
     endpoint.use('receivePresence', async (c, next) => { if (!this.sessions.has(c.session.memberID)) deny(); await this.checkNow(c.session.userID, c.unitID, false, this.sessions.get(c.session.memberID)); await next(); });
-    endpoint.on('memberLeftUnit', c => { this.sessions.delete(c.session.memberID); });
+    // Session departure and native commit share the Workspace linearization
+    // lock: a departure cannot invalidate an origin halfway through native CAS.
+    endpoint.on('memberLeftUnit', c => this.workspace.store.transaction(() => { this.sessions.delete(c.session.memberID); }));
   }
 }
 
@@ -167,7 +181,7 @@ export function guardedEndpoint(endpoint, authority, auth, origin) {
       validateNativeOrigin(c.incomingMessage, origin, true);
       const principal = auth.authenticate(c.incomingMessage), unitID = authority.unitID ?? c.incomingMessage.nativeUnitID;
       await authority.checkNow(principal, unitID, false, c.incomingMessage.nativeAccess);
-      if(c.incomingMessage.nativeAction){if(!authority.reversal)deny();await authority.reversal.action(principal,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);}
+      if(c.incomingMessage.nativeAction)await authority.actionService(c.incomingMessage.nativeAction).action(principal,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);
       const wrapped = new Map();
       const connection = original => {
         if (wrapped.has(original.id)) return wrapped.get(original.id);
@@ -203,14 +217,14 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
-  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); authority.agent = new NativeAgent(authority,service,dbAdapter); }
+  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); authority.agent = new NativeAgent(authority,service,dbAdapter); authority.acceptance = new NativeAgentAcceptance(authority,service,dbAdapter); }
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });
   transport.use(async (c, next) => {
     if (stopping) { c.response.statusCode = 503; c.response.end(); return; }
     let finish; const done = new Promise(resolve => { finish = resolve; }); pending.add(done);
-    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); const unitID = authority.unitID ?? c.incomingMessage.nativeUnitID; await authority.checkNow(c.userID, unitID, false, c.incomingMessage.nativeAccess); if(c.incomingMessage.nativeAction){if(!authority.reversal)deny();await authority.reversal.action(c.userID,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);}
+    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); const unitID = authority.unitID ?? c.incomingMessage.nativeUnitID; await authority.checkNow(c.userID, unitID, false, c.incomingMessage.nativeAccess); if(c.incomingMessage.nativeAction)await authority.actionService(c.incomingMessage.nativeAction).action(c.userID,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);
       c.customData={...c.customData,workagentAction:c.incomingMessage.nativeAction};
       await authority.scope.run({ unitID, session: c.incomingMessage.nativeAccess, action:c.incomingMessage.nativeAction }, next); }
     catch { if (!c.response.writableEnded) { c.response.statusCode = 403; c.response.end(JSON.stringify({ error: 'native_access_denied' })); } }

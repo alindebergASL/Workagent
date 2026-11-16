@@ -97,3 +97,10 @@ test('native agent capability is default-off and owner-only even for an editing 
  f.authority.agent={enabled:true};await nativeSession(f.native,auth,owner,workId,(_s,v)=>value=v);assert.equal(value.agent,true);
  await f.workspace.share(owner,workId,{commandId:'peer-agent',peer:'peer',role:'editor',accessRevision:1});await nativeSession(f.native,auth,'peer',workId,(_s,v)=>value=v);assert.equal(value.agent,false);
 });
+
+test('native acceptance capability is default-off and current-owner only',async()=>{
+ const f=fixture();const {workId}=await create(f,'acceptance-capability');const auth={profile:()=>({owner:true})};let value;
+ await nativeSession(f.native,auth,owner,workId,(_s,v)=>value=v);assert.equal(value.acceptance,false);
+ f.authority.acceptance={enabled:true};await nativeSession(f.native,auth,owner,workId,(_s,v)=>value=v);assert.equal(value.acceptance,true);
+ await f.workspace.share(owner,workId,{commandId:'acceptance-share',peer:'peer',role:'editor',accessRevision:1});await nativeSession(f.native,auth,'peer',workId,(_s,v)=>value=v);assert.equal(value.acceptance,false);
+});

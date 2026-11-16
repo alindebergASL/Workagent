@@ -125,3 +125,18 @@ test('identity appearing during reservation does not strand an eligible command 
   f.helper.edit('must wait now');await f.helper.send();assert.equal(f.calls.filter(c=>c.method==='POST').length,1);assert.equal(f.view().canSend,false,'next action sees retained unknown');
  }finally{f.helper.dispose();}
 });
+test('acceptance-enabled request status describes automatic behavior, not global proposal application',async()=>{
+ const f=fixture(new Map(),{...session,acceptance:true});
+ const historical='Proposals are not applied.';
+ const proposed={id:'p',review:'stale',basis:{nativeRevision:2},patch:{cells:[{sheetId:'sheet-1',row:0,column:0}]},before:{v:11},after:{v:33}};
+ try{
+  f.helper.edit('request draft remains exact\r\n');const disk=new Map(f.disk);
+  for(const state of ['running','ready']){
+   const result={...ownJob('known',state),nativeRevision:3,proposals:[proposed]};result.jobs[0].messages=[{text:historical}];f.data(result);await f.helper.check();
+   assert.match(f.view().message,/never apply.*automatically/i);assert.match(f.view().message,/acceptance status/i);assert.doesNotMatch(f.view().message,/proposals are not applied/i);
+   assert.equal(f.view().jobs[0].messages[0].text,historical);assert.equal(f.view().proposals[0].review,'stale');assert.equal(f.view().proposals[0].before,'11');assert.equal(f.view().proposals[0].after,'33');assert.equal(f.view().draft,'request draft remains exact\r\n');
+  }
+  assert.ok(f.calls.every(c=>c.method==='GET'));assert.deepEqual(f.disk,disk);
+ }finally{f.helper.dispose();}
+ const off=fixture();try{await off.helper.check();assert.match(off.view().message,/proposals are not applied/i);assert.doesNotMatch(off.view().message,/acceptance status/i);}finally{off.helper.dispose();}
+});

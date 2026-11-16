@@ -38,6 +38,8 @@ const requestTimeoutMs = requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS
 const nativeConfig = nativeWorkspaceConfig(process.env);
 const nativeAgentOptIn = process.env.WORKAGENT_NATIVE_AGENT_PROPOSALS;
 if (nativeAgentOptIn !== undefined && (nativeAgentOptIn !== 'development-only' || !nativeConfig)) throw new Error('native_agent_configuration_refused');
+const nativeAcceptanceOptIn = process.env.WORKAGENT_NATIVE_AGENT_ACCEPTANCE;
+if (nativeAcceptanceOptIn !== undefined && (nativeAcceptanceOptIn !== 'development-only' || !nativeConfig || !nativeAgentOptIn)) throw new Error('native_acceptance_configuration_refused');
 required('WORKAGENT_STATE_DIR');
 const pool = new pg.Pool({ connectionString: required('WORKAGENT_DATABASE_URL'), max: 3 });
 // One writer across processes, independently of HTTP clients. Never steal a lock.
@@ -50,6 +52,7 @@ if (nativeConfig) {
   catch { leadership.release(); await pool.end(); throw new Error('native_workspace_startup_refused'); }
 }
 
+if (nativeAcceptanceOptIn) native.authority.acceptance.enabled = true;
 const accounting = mode === 'openrouter'
   ? new OpenRouterAccounting({ journal: new PostgresProviderJournal(pool), apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL, maxOutputTokens })
   : process.env.WORKAGENT_ISSUER_SOCKET ? new IssuerSocketAccounting(process.env.WORKAGENT_ISSUER_SOCKET) : new DisabledAccounting();

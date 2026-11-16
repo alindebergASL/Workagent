@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration && path.includes('/native-agent-acceptance/')) return collaboration.acceptanceRequest(path,options);
     if (collaboration && path.includes('/native-agent/')) return collaboration.agentRequest(path,options);
     if (collaboration && path.includes('/native-reversal/')) return collaboration.reversalRequest(path,options);
     if (collaboration && path.includes('/native-history/')) return collaboration.historyRequest(path,options);
@@ -65,6 +66,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
       if(dependency==='./NativeEditor')return {NativeEditor};
       if(dependency==='./DocumentEditor')return {DocumentEditor};
       if(dependency==='./MaintenancePanel')return {MaintenancePanel:()=>null};
+      if(dependency==='./native-reversal-action' && collaboration)return {...require('../src/native-reversal-action.ts'),openAcceptanceAction:(...args)=>{assert.ok(collaboration.acceptanceOpen,'Unexpected acceptance action in fixture');return collaboration.acceptanceOpen(...args);}};
       if(dependency==='./artifact-storage')return {ArtifactStorage:FixtureArtifactStorage};
       if(exchangeNames.includes(dependency.slice(2)))return load(dependency.slice(2));
       if(dependency.endsWith('.css'))return {};
@@ -298,11 +300,11 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false, agent = false } = {}) {
+function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false, agent = false, acceptance = false } = {}) {
   const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
-  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, agent, sessionPath: `/api/work/${unitID}/native-session` });
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, agent, acceptance, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
@@ -708,4 +710,29 @@ test('native agent App sidebar follows current owner capability across enabled, 
  await f.open('A');native.sessions.get('B').agent=true;native.sessions.get('B').owner=false;native.sessions.get('B').access.role='editor';await f.open('B');assert.match(sidebar(),/Agent proposals, imports and exports are unavailable/);assert.doesNotMatch(sidebar(),/Requests, answers and proposed changes are in Work area/);assert.throws(()=>f.button('Send native agent request'),/control missing/);
  await f.open('');assert.equal(f.messageValue(),'root copy draft');assert.doesNotMatch(sidebar(),/Collaborative sheet\./);assert.equal(posts.length,0);
  }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+// Mounted App/real helper; transport interface remains an explicit fixture.
+test('acceptance App: owner preview/unused abandonment preserves cell/comment/root drafts, no automatic action',async()=>{
+ const native=nativeLifecycle({agent:true,acceptance:true,comments:true}),f=fixture(undefined,false,native);let receipt;const posts=[];
+ native.agentRequest=async()=>({ok:true,json:async()=>({unitID:'A',accessRevision:1,nativeRevision:2,expectedIntentRevision:0,jobs:[],proposals:[{id:'p',review:'pending',basis:{nativeRevision:2},patch:{cells:[{sheetId:'sheet-1',row:0,column:0}]},before:{v:11},after:{v:33}}]})});
+ native.acceptanceRequest=async(path,o)=>{if(o.method==='POST'){posts.push(path);if(path.endsWith('/abandon'))receipt={...receipt,phase:'abandoned',disposition:'rejected',reason:'native_acceptance_abandoned_unused'};else{const i=JSON.parse(o.body);receipt={id:i.commandId,proposalId:i.proposalId,phase:'prepared',disposition:'unknown',actionPath:`/api/native/A/1/agent-acceptance/${i.commandId}/universer-api`,preview:{sheetID:'sheet-1',row:0,column:0,nativeRevision:2,before:{v:11},after:{v:33,t:2},style:null}};}}return {ok:true,json:async()=>receipt};};
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.message('root acceptance keep');await f.open('A');await native.poll();await f.flush();const entry=native.instances[0],comment=()=>f.find(n=>n.props['aria-label']==='Comment draft');comment().props.onChange({target:{value:'comment acceptance keep'}});await f.flush();
+ assert.match(f.panel.text(),/Current scalar proposals require explicit Preview and Confirm/);await f.click('Preview proposed change');assert.match(f.panel.text(),/Canonical|Current value: 11/);assert.equal(f.button('Confirm proposed change').props.disabled,false);
+ entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm proposed change').props.disabled,true);await f.click('Abandon unused acceptance preview');assert.equal(entry.editing,true);assert.equal(comment().props.value,'comment acceptance keep');assert.equal(entry.nativeAdds.length,0);assert.equal(posts.length,2);
+ entry.editing=false;await native.poll();await f.flush();assert.equal(f.button('Preview proposed change').props.disabled,false);await f.click('Preview proposed change');assert.equal(posts.length,3);assert.equal(native.instances.length,1);
+ await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root acceptance keep');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('acceptance App: explicit confirm owns one action, holds navigation and preserves drafts through committed receipt',async()=>{
+ const native=nativeLifecycle({agent:true,acceptance:true,comments:true}),f=fixture(undefined,false,native);let receipt,submits=0,disposed=0;const gate=deferred();
+ native.agentRequest=async()=>({ok:true,json:async()=>({unitID:'A',accessRevision:1,nativeRevision:2,expectedIntentRevision:0,jobs:[],proposals:[{id:'p',review:'pending',basis:{nativeRevision:2},patch:{cells:[{sheetId:'sheet-1',row:0,column:0}]},before:{v:11},after:{v:33}}]})});
+ native.acceptanceRequest=async(path,o)=>{if(o.method==='POST'){if(path.endsWith('/confirm'))receipt={...receipt,phase:'confirmed'};else{const i=JSON.parse(o.body);receipt={id:i.commandId,proposalId:'p',phase:'prepared',disposition:'unknown',actionPath:`/api/native/A/1/agent-acceptance/${i.commandId}/universer-api`,preview:{sheetID:'sheet-1',row:0,column:0,nativeRevision:2,before:{v:11},after:{v:33,t:2},style:null}};}}return {ok:true,json:async()=>receipt};};
+ native.acceptanceOpen=async()=>{receipt={...receipt,phase:'executor-admitted',request:{unitID:'A',type:2,userID:'owner',memberID:'executor',baseRev:2,revision:3,sid:'acceptance_fixture',reqId:1,createTime:1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:'A',subUnitId:'sheet-1',cellValue:{0:{0:{v:33,t:2}}}})}]}};return {memberID:'executor',async submit(){submits++;await gate.promise;receipt={...receipt,disposition:'committed',revision:3};},dispose(){disposed++;}};};
+ for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.message('root confirm keep');await f.open('A');await native.poll();await f.flush();const entry=native.instances[0];f.find(n=>n.props['aria-label']==='Native agent request draft').props.onChange({target:{value:'agent draft keep'}});await f.flush();await f.click('Preview proposed change');f.button('Confirm proposed change').props.onClick();await f.flush();assert.equal(submits,1);assert.equal(f.find(n=>n.props.ref).props.inert,true);await f.open('B');assert.equal(native.instances.length,1);
+ gate.resolve();await f.flush();assert.match(f.panel.text(),/Recorded as native revision 3/);assert.equal(disposed,1);assert.equal(f.find(n=>n.props.ref).props.inert,undefined);assert.equal(f.find(n=>n.props['aria-label']==='Native agent request draft').props.value,'agent draft keep');assert.equal(entry.nativeAdds.length,0);await f.open('');assert.equal(f.messageValue(),'root confirm keep');
+ }finally{gate.resolve();f.dispose();await new Promise(setImmediate);}
 });

@@ -489,12 +489,42 @@ unchanged. Cancellation/unknown-reply proof uses HTTP/DSH fixtures, not a paid b
 cancellation. Phone, automatic reconnect latency and over-capacity refusal are not
 qualified. New scopes use explicit Check request status to load historical results.
 
+Explicit native scalar proposal acceptance is now qualified on private
+QA188831ef3711, not installed in main. The separate default-off acceptance gate
+requires read/propose opt-in. Canonical proposal bytes pass explicit owner Preview
+and Confirm through a legitimate licensed public native action connection. Current
+principal/session/ACL/intent/cancellation/head checks fence the actual commit;
+a native-history receipt, not optimistic UI/HTTP success, proves the outcome.
+Immutable per-command evidence survives tabs, lost replies and remounts. Explicit
+unused abandonment is available only before confirmation/executor admission,
+including an authoritative unused origin refusal; confirmed/admitted/unknown
+identities remain protected. Original proposal evidence is never rewritten.
+
+SAME Astra review closed backend/client unused-preview recovery and current-status
+wording findings. Prior backend45/45 and integrated80/80 passed; final affected
+68/68 plus typecheck/diff passed. Actual restricted PG/native SQLite TCP/HTTP/WS/
+helper/action qualification (d9c395c29543) reopened committed/unknown/abandoned
+receipts with no POST/provider replay. Its six DSH fixture calls are not paid
+inference. Exact225-source/80-artifact corrected build and served entries match.
+
+One real OpenRouter/typesafe/jev-router browser job77ec9841-b042-454f-a20b-6b41b7fb15b9
+completed with4 receipts/$0.0044754216/no unresolved. Explicit confirmation changed
+A1=11→33 once at native head4, preserving peer B2=71. The actual native commit reply
+was hidden; explicit GET recovered the receipt without resubmission. Fourteen
+scoped browser stages pass: two-person data, preview/remount/abandon/fresh confirm,
+390px apply, drafts, editor convergence, corrected-code/server restart, disconnect,
+editor/reader denial and revoke/reopen. Original job/proposal/paid receipts remain
+unchanged. Final epoch4/head4; old-scope acceptance identities remain retained but
+are not interpreted/replayed under a new scope. Own QA tabs were retired, keeping
+contexts/storage. Over-capacity refusal, automatic reconnect latency and physical
+phone remain unqualified. Main, prior QA, runtime.env, default and public unchanged.
+
 Full B05 remains open: expanded native surface and conflict coverage, durable
 browser-crash recovery, richer comment editing/resolution and text/object anchors,
-broader individual/account undo and whole-artifact restore-as-new-revision, safe
-agent acceptance/apply and two-human usability. Next is explicit proposal acceptance
-with stale/conflict, permission, identity and uncertain-effect protection. Existing
-human Sheet conversion and native export remain unclaimed.
+broader individual/account undo and whole-artifact restore-as-new-revision,
+broader-than-scalar agent acceptance and two-human usability. Next is two-human
+usability qualification and its concrete corrections. Existing human Sheet
+conversion and native export remain unclaimed.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

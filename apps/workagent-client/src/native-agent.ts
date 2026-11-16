@@ -134,7 +134,8 @@ export function nativeAgent(session: NativeSession, healthy: () => boolean, inpu
       reconcile();
       if(!failedStorage)for(const r of state.records)if(r.input.kind==='continue'){const j=snapshot.jobs.find(j=>j.id===r.input.commandId);if(j)try{evidence(key(session),r.input,storage,j.status);}catch{failStorage();}}
       needsCheck=false;reconcile();
-      if(!failedStorage)message=unknown()?'Outcome unknown for a retained command. An absent job or later intent does not prove failure or cancellation. Check status; do not resend.':snapshot.jobs.some(j=>j.status==='interrupted'||j.status==='failed'||j.errorCode)?'A job is interrupted, failed or refused. Inspect its status; no automatic retry or replay.':snapshot.jobs.some(j=>active(j.status))?'Request admitted; agent work is still in progress. Proposals are not applied.':'Status checked. Completed answers and proposals below; proposals are not applied.';
+      const proposalStatus=session.acceptance===true?'Requests never apply changes automatically. Check acceptance status for any explicit application.':'Proposals are not applied.';
+      if(!failedStorage)message=unknown()?'Outcome unknown for a retained command. An absent job or later intent does not prove failure or cancellation. Check status; do not resend.':snapshot.jobs.some(j=>j.status==='interrupted'||j.status==='failed'||j.errorCode)?'A job is interrupted, failed or refused. Inspect its status; no automatic retry or replay.':snapshot.jobs.some(j=>active(j.status))?`Request admitted; agent work is still in progress. ${proposalStatus}`:`Status checked. Completed answers and proposals below. ${proposalStatus}`;
     }catch(error){if(valid(n)){snapshot=undefined;message=error instanceof Error?error.message:'Request status unknown.';}}
     finally{clearTimeout(timer);if(live&&n===generation){busy=false;emit();}}
   }

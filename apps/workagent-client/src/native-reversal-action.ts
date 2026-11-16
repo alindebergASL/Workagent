@@ -9,10 +9,11 @@ export interface ReversalAction { memberID: string; submit(request: IChangeset):
 // One owned native action connection, with no workbook, reconnect, retry or replay.
 // Its isolated core instance supplies public MemberService DI and cannot clear the
 // human editor's membership/resources when it is disposed.
-export async function openReversalAction(unitID: string, path: string, binding: string, signal: AbortSignal,
-  fetcher: typeof fetch = fetch, socketFactory: (url: string) => WebSocket = url => new WebSocket(url), origin = location.origin): Promise<ReversalAction> {
+async function openAction(unitID: string, path: string, binding: string, signal: AbortSignal,
+  fetcher: typeof fetch = fetch, socketFactory: (url: string) => WebSocket = url => new WebSocket(url), origin = location.origin, purpose: 'reversal' | 'agent-acceptance' = 'reversal'): Promise<ReversalAction> {
   const base = new URL(path, origin);
-  if (base.origin !== origin || !/^\/api\/native\/[a-zA-Z0-9_-]+\/[1-9][0-9]*\/reversal\/[a-zA-Z0-9_-]+\/universer-api$/.test(base.pathname)) throw Error('Invalid action path');
+  const match = /^\/api\/native\/([a-zA-Z0-9_-]+)\/[1-9][0-9]*\/(reversal|agent-acceptance)\/[a-zA-Z0-9_-]+\/universer-api$/.exec(base.pathname);
+  if (base.origin !== origin || base.search || base.hash || !binding || !match || match[1] !== unitID || match[2] !== purpose) throw Error('Invalid action path');
   const headers = { 'X-Workagent-Session-Binding': binding };
   const ticketResponse = await fetcher(`${base}/user/session-ticket`, { signal, credentials: 'same-origin', headers });
   if (!ticketResponse.ok) throw Error('Action admission unavailable; identity retained.');
@@ -63,3 +64,7 @@ export async function openReversalAction(unitID: string, path: string, binding: 
     // HTTP success/ACK/idle are not publication proof. Caller reads native receipt.
   } };
 }
+
+export function openReversalAction(...args: Parameters<OmitPurpose>) { return openAction(...args); }
+type OmitPurpose = (unitID: string, path: string, binding: string, signal: AbortSignal, fetcher?: typeof fetch, socketFactory?: (url: string) => WebSocket, origin?: string) => Promise<ReversalAction>;
+export const openAcceptanceAction: OmitPurpose = (unitID, path, binding, signal, fetcher, socketFactory, origin) => openAction(unitID, path, binding, signal, fetcher, socketFactory, origin, 'agent-acceptance');
