@@ -16,6 +16,9 @@ import { MaintenanceActions } from '../src/maintenance-actions.ts';
 import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
 import { BehaviorSubject, Subject, NEVER } from 'rxjs';
 import { SessionStatus, CollaborationController, DataLoaderService } from '@univerjs-pro/collaboration-client';
+import { CollaborationEvent } from '@univerjs-pro/collaboration';
+import { serializeRangeWithSheet } from '@univerjs/engine-formula';
+import { SheetPasteShortKeyCommand } from '@univerjs/sheets-ui';
 const require = createRequire(import.meta.url);
 const text = n => Array.isArray(n) ? n.map(text).join('') : n?.props ? text(n.props.children) : String(n ?? '');
 const nodes = n => Array.isArray(n) ? n.flatMap(nodes) : n?.props ? [n, ...nodes(n.props.children)] : [];
@@ -298,7 +301,9 @@ function nativeLifecycle({ offline = false } = {}) {
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
-    const session = { get sessionStatus(){return entry.status.value;}, sessionStatus$: entry.status, getMemberID: () => 'self' };
+    entry.cursor = new Subject(); entry.scrolls = []; entry.watches = new Set(); entry.facadeEvents = new Map(); entry.editing = false;
+    entry.commands = options.override[0][1].useFactory({createInstance:()=>({executeCommand:()=>entry.pastePromise,syncExecuteCommand(...args){entry.scrolls.push(args);return true;}})});
+    const session = { get sessionStatus(){return entry.status.value;}, sessionStatus$: entry.status, event$:entry.cursor, getMemberID: () => 'self' };
     const entityInit = new Subject();
     const stream = name => ({subscribe(fn){entry.events.set(name,fn);return {unsubscribe(){entry.events.delete(name);}};}});
     const entity = {session,state:{status:'synced'},status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
@@ -316,18 +321,22 @@ function nativeLifecycle({ offline = false } = {}) {
       if(key===DataLoaderService)return loader;
       if(key==='members')return membership;
       if(key==='collaboration-sessions')return {socket$:NEVER};
+      if(key==='instances')return {getUnit:()=>({getSheetBySheetId:id=>id==='s'?{getRowCount:()=>100,getColumnCount:()=>26}:null,getActiveSheet:()=>({getSheetId:()=> 's'})})};
+      if(key==='refs')return {watchRange(_unit,_sheet,_range,fn){entry.watches.add(fn);return {dispose(){entry.watches.delete(fn);}};}};
+      if(key==='commands')return entry.commands;
       assert.equal(key,'cache');return cache;
     }}), dispose() { assert.equal(entry.disposed, false); entry.disposed = true; entry.status.complete();entityInit.complete(); active--; } },
-      univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => false })} };
+      univerAPI: {getActiveWorkbook: () => ({ isCellEditing: () => entry.editing }),Event:{BeforeClipboardPaste:'beforePaste',ClipboardPasted:'pasted'},addEvent(name,fn){entry.facadeEvents.set(name,fn);return {dispose(){entry.facadeEvents.delete(name);}};}} };
   };
   return { instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
     session: path => structuredClone(sessions.get(path.split('/')[3])),
     window: { addEventListener(_name, fn){listeners.add(fn);}, removeEventListener(_name, fn){listeners.delete(fn);}, setInterval(fn){timers.set(++next, fn);return next;} },
     clearInterval: id => timers.delete(id),
     async poll(){for(const timer of [...timers.values()])await timer();},
-    attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
+    attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{events:new Map(),addEventListener(name,fn){this.events.set(name,fn);},removeEventListener(name){this.events.delete(name);}});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
     dependency(name){
-      if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user'};
+      if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands'};
+      if(name==='@univerjs/sheets')return {RefRangeService:'refs'};
       if(name==='@univerjs-pro/collaboration-client')return {CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
       if(name==='@univerjs/presets')return {createUniver,mergeLocales:()=>({})};
       if(name==='@univerjs/preset-sheets-core')return {UniverSheetsCorePreset:()=>({})};
@@ -491,3 +500,34 @@ for (const [source, destination] of [['A', 'B'], ['A', 'doc'], ['doc', 'A'], ['s
     } finally { f.dispose(); await new Promise(setImmediate); }
   });
 }
+
+test('native follow controls: reader view only, local input/clipboard, disconnect, epoch and drafts',async()=>{
+  const native=nativeLifecycle(),f=fixture(undefined,false,native);
+  for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'read',revision:1}};
+  native.sessions.get('A').access.role='read';
+  const cursor=entry=>entry.cursor.next({eventID:CollaborationEvent.UPDATE_CURSOR,data:{unitID:entry.unitID,memberID:'peer',userID:'peer',selection:serializeRangeWithSheet('s',{startRow:8,endRow:8,startColumn:7,endColumn:7})}});
+  try{
+    await f.flush();await f.message('root keep');await f.open('A');await f.message('A keep');const a=native.instances[0];
+    const host=f.find(n=>n.props.ref).props.ref.current;
+    let prevented=false;f.button('Follow').props.onPointerDown({preventDefault(){prevented=true;}});assert.equal(prevented,true,'follow must not blur/commit an active editor');
+    await f.click('Follow');cursor(a);await f.flush();assert.equal(a.scrolls.length,1);assert.match(f.panel.text(),/Following Peer in A — view only/);assert.match(f.panel.text(),/read-only/);
+    await f.click('Stop following');cursor(a);assert.equal(a.scrolls.length,1);assert.equal(a.cursor.observers.length,0);assert.equal(a.watches.size,0);
+    // Worksheet-name paste is a DOM interaction, not a sheet ClipboardPasted lifecycle.
+    host.events.get('paste')();await f.click('Follow');cursor(a);await f.flush();
+    assert.equal(a.scrolls.length,2,'non-sheet paste must not latch following busy');
+    a.scrolls.pop();await f.click('Stop following');
+    a.editing=true;await f.click('Follow');cursor(a);await f.flush();assert.equal(a.scrolls.length,1);assert.match(f.panel.text(),/finish local input/);a.editing=false;
+    await f.click('Follow');host.events.get('compositionstart')();cursor(a);await f.flush();assert.equal(a.scrolls.length,1);await f.click('Follow');assert.match(f.panel.text(),/Paused/);host.events.get('compositionend')();
+    const clipboard=deferred();a.pastePromise=clipboard.promise;const pasting=a.commands.executeCommand(SheetPasteShortKeyCommand.id);
+    await f.click('Follow');cursor(a);assert.equal(a.scrolls.length,1);clipboard.resolve(true);await pasting;
+    a.pending=true;await f.click('Follow');cursor(a);assert.equal(a.scrolls.length,1);a.pending=false;
+    await f.click('Follow');cursor(a);assert.equal(a.scrolls.length,2);host.events.get('wheel')();cursor(a);assert.equal(a.scrolls.length,2);
+    await f.click('Follow');a.status.next(SessionStatus.OFFLINE);a.status.next(SessionStatus.ONLINE);a.join();cursor(a);await f.flush();assert.equal(a.scrolls.length,2);assert.doesNotMatch(f.panel.text(),/Following Peer in A/);
+    await f.click('Follow');native.sessions.get('A').access.revision=2;await native.poll();await f.flush();cursor(a);assert.equal(a.scrolls.length,2);assert.equal(a.cursor.observers.length,0);
+    await f.open('B');cursor(a);assert.equal(a.disposed,true);assert.equal(a.facadeEvents.size,0);assert.equal(host.events.size,0);assert.match(f.panel.text(),/Not following/);
+    await f.open('A');assert.equal(f.messageValue(),'A keep');assert.match(f.panel.text(),/Not following/);
+    await f.open('');assert.equal(f.messageValue(),'root keep');assert.equal(native.peak,1);
+    assert.ok(f.calls.every(c=>c.input===undefined),'following issues no writes');
+  }finally{f.dispose();await new Promise(setImmediate);}
+  assert.equal(native.active,0);
+});

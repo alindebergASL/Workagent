@@ -2,9 +2,13 @@ import { scopeNativeCache } from './native-cache';
 import { nativeCursorSessionOverride } from './native-cursor-session';
 import { observeNativePresence, observeNativeMembershipJoins } from './native-presence';
 import { nativeCollaborationClient } from './native-collaboration-client';
+import { nativeFollow, nativePasteActivity } from './native-follow';
+import type { NativeFollowState } from './native-follow';
 import type { NativePresence } from './native-presence';
 import { useEffect, useRef, useState } from 'react';
-import { LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
+import { ICommandService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
+import type { Workbook } from '@univerjs/core';
+import { RefRangeService } from '@univerjs/sheets';
 import { UniverCollaborationPlugin } from '@univerjs-pro/collaboration';
 import { UniverCollaborationClientPlugin, ILocalCacheService, CollaborationController, CollaborationSessionService, MemberService } from '@univerjs-pro/collaboration-client';
 import CollaborationEnUS from '@univerjs-pro/collaboration-client/locale/en-US';
@@ -30,16 +34,20 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const recovery = useRef<string | null>(null);
   const [hasRecovery, setHasRecovery] = useState(false);
   const [presence, setPresence] = useState<NativePresence>({ online: false, members: [] });
+  const follow = useRef<ReturnType<typeof nativeFollow> | null>(null);
+  const [following, setFollowing] = useState<NativeFollowState>({ message: 'Not following' });
   useEffect(() => {
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false;
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
     const base = `${location.origin}${basePath}`;
+    const paste = nativePasteActivity(() => follow.current?.localInteraction());
     const { univer, univerAPI } = createUniver({
+      override: paste.override,
       locale: LocaleType.EN_US, locales: { [LocaleType.EN_US]: mergeLocales(SheetsEnUS, CollaborationEnUS, CollaborationUIEnUS) },
       theme: defaultTheme, logLevel: LogLevel.WARN, collaboration: true,
       presets: [UniverSheetsCorePreset({ container: host.current, ribbonType: 'grid' })],
@@ -57,6 +65,15 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     joinsObserver = observeNativeMembershipJoins(session.unitID, session.principal,
       univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(MemberService));
     const collaboration = nativeCollaborationClient(univer.__getInjector(), session.unitID);
+    let composing = false;
+    const localInteraction = () => follow.current?.localInteraction();
+    const element = host.current;
+    const inputStart = () => { composing = true; localInteraction(); };
+    const inputEnd = () => { composing = false; };
+    const interactions = ['pointerdown', 'keydown', 'beforeinput', 'wheel'] as const;
+    interactions.forEach(name => element.addEventListener(name, localInteraction, true));
+    element.addEventListener('compositionstart', inputStart, true); element.addEventListener('compositionend', inputEnd, true);
+    element.addEventListener('paste', localInteraction, true);
     const report = () => {
       if (!live || conflict || revoked) return;
       const state = collaboration.getCollaborationStatus();
@@ -86,8 +103,15 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       loaded = true; report();
       if (revoked || conflict) return;
       const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID);
-      if (entity) presenceObserver = observeNativePresence(session.unitID, session.principal, entity.session, univer.__getInjector().get(MemberService),
-        value => { if (live && !revoked && !conflict) setPresence(value); });
+      if (entity) {
+        const injector = univer.__getInjector();
+        follow.current = nativeFollow(session.unitID, entity.session,
+          () => injector.get(IUniverInstanceService).getUnit<Workbook>(session.unitID) ?? null, injector.get(RefRangeService), injector.get(ICommandService),
+          () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || revoked || conflict,
+          value => { if (live) setFollowing(value); });
+        presenceObserver = observeNativePresence(session.unitID, session.principal, entity.session, injector.get(MemberService),
+          value => { if (live && !revoked && !conflict) { follow.current?.presence(value); setPresence(value); } });
+      }
     }).catch(() => { if (live) { setStatus('Connecting failed — retained operations have not been replaced.'); setBlocked(true); } });
     // Display only; server checks each commit/read/send under Workspace authority.
     let checking = false;
@@ -116,6 +140,9 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     return () => {
       ready.current?.(null);
       live = false; clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
+      interactions.forEach(name => element.removeEventListener(name, localInteraction, true));
+      element.removeEventListener('compositionstart', inputStart, true); element.removeEventListener('compositionend', inputEnd, true);
+      element.removeEventListener('paste', localInteraction, true);
       stopPresence();
       subscriptions.forEach(s => s.dispose());
       // Complete the native cache save before disposing its editor.
@@ -130,7 +157,8 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   return <><p role="status" data-native-status>{status}</p>
     <div aria-label="Sheet collaborators" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowWrap: 'anywhere', marginBottom: '0.5rem' }}>
       <span>{session.name} (you{session.access.role === 'read' ? ', read-only' : ''})</span>
-      {presence.online ? presence.members.filter(m => !m.self).map(m => <span key={m.memberID}>{m.name || 'Unnamed collaborator'}{m.userID === session.principal ? ' (your other session)' : ''}</span>) : <span>Live collaborators unavailable</span>}
+      {presence.online ? presence.members.filter(m => !m.self).map(m => <span key={m.memberID}>{m.name || 'Unnamed collaborator'}{m.userID === session.principal ? ' (your other session)' : ''} <button onPointerDown={event => event.preventDefault()} onClick={() => follow.current?.follow(m.memberID)} aria-label={`Follow ${m.name || 'collaborator'}${m.userID === session.principal ? ' (your other session)' : ''}`}>Follow</button></span>) : <span>Live collaborators unavailable</span>}
     </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowWrap: 'anywhere' }}><span role="status" data-native-follow>{following.message}</span>{following.memberID && <button onPointerDown={event => event.preventDefault()} onClick={() => follow.current?.stop()}>Stop following</button>}</div>
     {hasRecovery && <button onClick={download}>Download retained recovery operations</button>}<div style={{ position: 'relative' }}><div ref={host} style={{ height: '75vh' }} inert={blocked || undefined}/>{blocked && <p>Editing paused. Keep this tab open while resolving access or pending work.</p>}</div></>;
 }

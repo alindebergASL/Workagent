@@ -324,17 +324,46 @@ shutdown fixture twice hit its unchanged startup watchdog; isolated reruns and t
 complete serial gate passed. Main installation/default merge/public deployment remain
 separate; full B05 is not closed.
 
-Following is not implemented in this checkpoint. The same reviewer's public-API
-judgment supersedes the missing cursor-controller export blocker: native session
-UPDATE_CURSOR events, engine-formula serializeRangeWithSheet/deserializeRangeWithSheet,
-RefRangeService.watchRange and viewport-only ScrollToRangeOperation provide a supported
-route. The serialized sheetName is the worksheet ID. That route still needs implementation,
-input/permission/disconnect guards and browser proof; no private-hook workaround or SDK
-upgrade is required by the source judgment.
+Follow/unfollow qualified on private QA e091eac30eb7, not installed in main: each current non-self member (including another tab of
+the same account) has explicit Follow/Stop controls. The loaded session's public
+event$ supplies UPDATE_CURSOR; deserializeRangeWithSheet decodes the worksheet ID
+and bounded coordinates. RefRangeService.watchRange tracks native structure;
+ScrollToRangeOperation is the only movement command (viewport, never selection).
+Local input/scroll interaction stops intent. Active edits, pending operations,
+composition/clipboard input and a different worksheet pause instead of forcing
+commits or changing sheets. Disconnect, departure, revoke and full-session disposal
+clear intent; reconnect never restores it. A fresh Follow waits for a new cursor.
+Structural movement/deletion invalidates the position and requires explicit restart;
+cursors have no revision, so arbitrary reordered cursor/changeset correctness is not
+claimed. No transport, content writer, native session or global collaboration facade
+is added. Focused writer checks: six follow SDK tests and eight selected real-App
+component tests, plus eight presence, eight cursor and two facade-isolation
+regressions (32 passed, zero failures/skips), final typecheck and diff check;
+these use inert session/command/DOM fixtures, not browser transport proof. Clipboard correction: generic host paste
+only stops follow intent (including worksheet-name input). A native-instance public
+ICommandService DI facade counts PasteCommand/SheetPasteShortKeyCommand promises
+until settlement, including false, cancellation and rejection; overlapping pastes
+remain busy until all settle. Other commands delegate unchanged. No timer or forced
+input completion is used; clipboard facade reads/events are not needed for this guard.
+The App non-sheet paste regression reproduced RED, then passed; seven follow tests
+include real Injector/CommandService lifecycle checks with inert paste handlers.
+Parent closure: SAME reviewer PASS; 275 serial affected tests, zero failures/skips,
+typecheck/diff pass. Guarded build e091eac30eb7 verifies 190 source/80 artifact hashes.
+Eighteen browser stages pass, including live Name-box paste regression, reader and
+same-account following, explicit stop, active edit/browser IME preservation, actual sheet
+paste and held actual Clipboard.read, independent third-tab row insert/delete with
+conservative pause/restart, disconnect/departure/revocation without auto-resume,
+390px controls, cross-work isolation and ordinary-editor typing/draft retention.
+The previous clipboard defect and invalid out-of-bounds Name-box test are retained,
+not counted as passes. Only fresh synthetic fixtures changed; original native C/B and
+pending work are untouched. Final native connections zero; drafts preserved.
+Merge and additional worksheets remain disabled by current qualification permissions;
+no live proof for those paths is claimed. Full-row positions pause as unavailable.
+Browser IME uses CDP, not a physical keyboard. Revisionless ordering limits remain.
 
-Full B05 remains open: following, normal-workspace qualification, same-cell conflicts, durable
-browser-crash recovery, presence/comments/anchors/history/individual undo and safe
-agent proposals. No existing human Sheet conversion or native export/model bridge.
+Full B05 remains open: expanded native surface, same-cell conflicts, durable
+browser-crash recovery, comments/anchors/history/individual undo, safe agent proposals
+and two-human usability. No existing human Sheet conversion or native export/model bridge.
 
 ### B06 — Boards, editable decks and multilingual dictation
 
