@@ -593,11 +593,49 @@ Original paid job/proposal/receipts, runtime.env/main/default/public remain unch
 Own tabs retired with contexts, localStorage and unsent-draft evidence retained.
 No physical-phone, capacity-refusal or general reconnect-latency claim.
 
-Full B05 remains open: expanded native surface and conflict coverage, durable
-browser-crash recovery, manual comment deletion and text/object anchors,
-broader individual/account undo and whole-artifact restore-as-new-revision,
-broader-than-scalar agent acceptance and two-human usability. Next is manual comment
-deletion with retained evidence, then broader native conflict/recovery coverage.
+Explicit author-only manual comment removal is qualified on private QA26b92169d79e
+(port43088, fresh DB426c7b7c1969), not installed in main. Own replies and fully
+self-authored root subtrees can be previewed and confirmed. A root containing
+foreign-authored replies is refused with guidance; ownership of the work does not
+permit deleting a peer comment. This is a scoped policy, not shared-thread deletion
+completion. Native commit validates author/subtree/body version/anchor/member/ACL/
+epoch/head. Original claims, body versions and resolution evidence are retained.
+Exact receipts prove removal even after membership vanishes; absence alone does not.
+Unknown outcomes stay retained; unused abandonment fences late preparation.
+
+SAME review found and closed a pending-manual observer that interrupted structural
+row deletion after its first mutation and falsely marked same-target cleanup as a
+manual start. Exact public command invocation identity now distinguishes these
+operations. Parent unchanged real-SDK reproduction RED→GREEN;84 selected tests,
+types/diff pass. Unchanged SDK negative characterizations are not full-SDK green.
+Restricted PG/native SQLite/real cookie HTTP/licensed WS411be625be3c passed restart,
+3 committed manual deletions/1 unused abandon/11 native POST/head12, hidden native
+reply recovery after membership disappears, real row deletion during held manual
+preparation with no false start, lost abandonment GET-only recovery, delayed-input
+fencing and author/reader/epoch denial. Max2/final0 connections. Initial PG harness
+expected a transient success notice to survive remount; exact receipt/no replay is
+the corrected durable assertion, and the failed fixture remains retained.
+
+Fifteen browser stages pass: cancel/no effects, explicit self-authored subtree and
+peer-reply removal, retained history/draft baselines, genuine native row-context-menu
+deletion while preparation is held, active cell input cancellation, unused abandon
+with hidden reply/GET recovery, subsequent explicit deletion, offline and same-owner
+cold-tab recovery after membership disappears,390px, reader denial and revocation.
+Harness corrections cover committed UI readiness, a composer baseline not established
+before one earlier removal, and hidden rather than disabled non-author controls.
+Subsequent removals verified composer and edit drafts from asserted baselines; the
+earlier missing baseline is not claimed as preservation proof. Final epoch4/head13,
+one live peer-owned reader fixture,6 retained original claims,1 body edit,1 resolution,
+and4 deletion records(3 admitted/1 abandoned),0 jobs/provider journal.227 source/80
+artifact/served hashes verified. Actual process provider key and model gates absent.
+Prior paid receipts/runtime.env/main/default/public remain unchanged. Own tabs retired
+with contexts/storage/draft evidence retained; no physical-phone or latency claim.
+
+Full B05 remains open: richer native surfaces including merge/unmerge and multiple
+worksheets, conflict coverage, browser-crash recovery, shared-thread deletion policy,
+text/object anchors, broader individual/account undo, whole-artifact restore-as-new-
+revision, broader-than-scalar agent acceptance and two-human usability. Next is the
+bounded native merge/unmerge surface, without dropping the remaining scope.
 Existing human Sheet conversion and native export remain unclaimed.
 
 ### B06 — Boards, editable decks and multilingual dictation

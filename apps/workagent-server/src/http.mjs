@@ -154,10 +154,16 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
         if (!Number.isSafeInteger(Number(epoch))) throw new Fault('invalid_native_history_epoch', 400);
         return await native.authority.history.read(principal, unitID, { userID: principal, unitID, revision: Number(epoch) }, new URL(req.url, origin).searchParams, value => send(200, value));
       }
-      const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)(\/(?:actions|edits)(?:\/([a-zA-Z0-9_-]+)\/abandon)?)?$/.exec(path);
+      const nativeComments = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-comments\/([1-9][0-9]*)(\/(?:actions|edits|deletions)(?:\/([a-zA-Z0-9_-]+)\/abandon)?)?$/.exec(path);
       if (nativeComments) {
         if (!native?.authority.comments) throw new Fault('native_comments_disabled', 409);
         const [, unitID, epoch, actions, abandonID] = nativeComments, session = { userID: principal, unitID, revision: Number(epoch), binding: auth.sessionBinding(req) };
+        if (actions?.startsWith('/deletions')) {
+          if (req.method !== 'POST') throw new Fault('native_comment_operation_unavailable', 405);
+          const input = await body(req), deletion = native.authority.comments.deletion;
+          if (abandonID) { if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Fault('native_comment_refused', 409); return await deletion.abandon(principal, unitID, session, abandonID, value => send(200, value), Object.keys(input).length ? input : undefined); }
+          return await deletion.prepare(principal, unitID, session, input, value => send(200, value));
+        }
         if (actions?.startsWith('/edits')) {
           if (req.method !== 'POST') throw new Fault('native_comment_operation_unavailable', 405);
           const input = await body(req), editing = native.authority.comments.editing;

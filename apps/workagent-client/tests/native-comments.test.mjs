@@ -10,14 +10,14 @@ function fixture(role='owner') {
   const local=sdk(), source=local.univer.__getInjector().get(IThreadCommentDataSourceService), states=[],posts=[],signals=[];
   let editRefusal=false,published=[],refusal=false,busy=false,gate,receipt,actionReceipts=[],lostAction=false,actionGate,lostAbandon=false;const saved=new Map(),disk={getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v),key:i=>[...saved.keys()][i]??null,get length(){return saved.size;}};
   const session={unitID:local.unitID,principal:'owner',name:'Owner',binding:'synthetic',owner:role==='owner',access:{role,revision:1}};
-  const request=async(url,options)=>{assert.match(url,/native-comments\/1(?:\?|\/actions|\/edits|$)/);signals.push(options.signal);
+  const request=async(url,options)=>{assert.match(url,/native-comments\/1(?:\?|\/actions|\/edits|\/deletions|$)/);signals.push(options.signal);
     if(options.method==='POST'){
-      const body=JSON.parse(options.body);posts.push(body);if(url.endsWith('/abandon')){const id=url.split('/').at(-2);let r=actionReceipts.find(a=>a.id===id);if(!r&&url.includes('/edits/')){assert.equal(body.id,id);r={...body,head:3};actionReceipts.push(r);}Object.assign(r,{phase:'abandoned',status:'abandoned'});if(lostAbandon)throw Error('lost abandonment response');return {ok:true,json:async()=>structuredClone(r)};}if(url.endsWith('/actions')||url.endsWith('/edits')){if(url.endsWith('/edits')&&editRefusal)return {ok:false,status:409};if(actionGate)await actionGate.promise;if(lostAction)throw Error('lost preparation response');return {ok:true,json:async()=>({...body,status:'unknown',phase:'prepared',head:3})};}if(refusal)return {ok:false,status:409};
+      const body=JSON.parse(options.body);posts.push(body);if(url.endsWith('/abandon')){const id=url.split('/').at(-2);let r=actionReceipts.find(a=>a.id===id);if(!r&&(url.includes('/edits/')||url.includes('/deletions/'))){assert.equal(body.id,id);r={...body,head:3};actionReceipts.push(r);}Object.assign(r,{phase:'abandoned',status:'abandoned'});if(lostAbandon)throw Error('lost abandonment response');return {ok:true,json:async()=>structuredClone(r)};}if(url.endsWith('/actions')||url.endsWith('/edits')||url.endsWith('/deletions')){if(url.endsWith('/edits')&&editRefusal)return {ok:false,status:409};if(actionGate)await actionGate.promise;if(lostAction)throw Error('lost preparation response');return {ok:true,json:async()=>({...body,status:'unknown',phase:'prepared',head:3})};}if(refusal)return {ok:false,status:409};
       const canonical={id:body.id,threadId:body.parentId??body.id,unitId:local.unitID,subUnitId:'sheet-1',personId:'owner',authorName:'Owner',dT:'2026-11-16T00:00:00.000Z',ref:body.ref,text:{dataStream:body.body+'\r\n',paragraphs:[{startIndex:body.body.length}]},...(body.parentId?{parentId:body.parentId}:{})};
       return {ok:true,json:async()=>canonical};
     }
     if(gate)await gate.promise;
-    return {ok:true,json:async()=>({revision:3,comments:structuredClone(published),receipt,actions:actionReceipts,edits:actionReceipts})};
+    return {ok:true,json:async()=>({revision:3,comments:structuredClone(published),receipt,actions:actionReceipts,edits:actionReceipts,deletions:actionReceipts})};
   };
   const helper=nativeComments(session,source,local.commands,()=>!busy,v=>states.push(v),request,()=> 'member',disk);
   return {local,helper,source,states,posts,signals,saved,disk,session,request,setEditRefusal:v=>editRefusal=v,setLostAbandon:v=>lostAbandon=v,setActionGate:v=>actionGate=v,setActions:v=>actionReceipts=v,setLostAction:v=>lostAction=v,setRefusal:v=>refusal=v,setBusy:v=>busy=v,setPublished:v=>published=v,setGate:v=>gate=v,setReceipt:v=>receipt=v,
@@ -159,4 +159,65 @@ test('delayed preparation and lost response never auto release; native-started o
   f.setActions([{...a,status:'unknown',phase:'admitted',head:3}]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);await f.helper.editing.abandon(a.id);assert.equal(f.posts.length,count);
   const intentKey=[...f.saved.keys()].find(k=>k.endsWith('intent:'+a.id));assert.equal(f.saved.get(intentKey.replace('intent:','started:')),JSON.stringify(a));f.setActions([]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);f.setActions([{...a,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().abandonable,[]);assert.equal(f.helper.editing.canEdit(root),false);
  }finally{f.dispose();}
+});
+
+test('manual deletion public command: preview/cancel sends nothing; removed membership is not proof; cold receipt is GET-only',async()=>{
+ const {add}=await import('../../workagent-server/tests/native-comments-sdk.test.mjs');const f=fixture();let cold;try{
+  const source=f.source.dataSource;f.source.dataSource=null;await add(f.local,'root','owner');f.source.dataSource=source;const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1','root')),bodyVersion:'original'};f.setPublished([root]);await f.helper.refresh();const initial=new Map(f.saved);
+  f.helper.deletion.choose(root,'root');assert.equal(f.posts.length,0);f.helper.deletion.cancel();assert.deepEqual(f.saved,initial);assert.equal(f.posts.length,0);
+  f.helper.deletion.choose(root,'root');await f.helper.deletion.confirm();const a=f.posts.at(-1);assert.equal(f.posts.length,1);assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1','root'),undefined);assert.equal(a.targets[0].bodyVersion,'original');f.setPublished([]);await f.helper.refresh();assert.match(f.states.at(-1).deletion.message,/unknown|changed/);assert.equal(f.saved.size,2);await f.helper.deletion.confirm();assert.equal(f.posts.length,1);
+  f.helper.dispose();const states=[];cold=nativeComments(f.session,f.source,f.local.commands,()=>true,v=>states.push(v),f.request,()=> 'fresh',f.disk);await cold.refresh();assert.equal(f.posts.length,1);f.setActions([{...a,status:'committed',phase:'admitted',head:2,revision:3}]);await cold.refresh();assert.match(states.at(-1).deletion.message,/Removal recorded/);assert.equal(f.posts.length,1);assert.equal(states.at(-1).comments.length,0);
+ }finally{cold?.dispose();f.dispose();}
+});
+test('manual deletion refuses foreign subtree and reader; busy preparation can explicitly abandon without touching drafts or native membership',async()=>{
+ const {add}=await import('../../workagent-server/tests/native-comments-sdk.test.mjs');const f=fixture(),gate=deferred();try{
+  const source=f.source.dataSource;f.source.dataSource=null;await add(f.local,'root','owner');await add(f.local,'reply','peer','root');f.source.dataSource=source;let root=structuredClone(f.local.model.getThread(f.local.unitID,'sheet-1','root'));const published={...root.root,bodyVersion:'original',children:root.children.map(c=>({...c,bodyVersion:'original'}))};f.setPublished([published]);await f.helper.refresh();assert.equal(f.helper.deletion.canChoose(published,'root'),false);assert.equal(f.helper.deletion.canChoose(published,'reply'),false);assert.equal(f.posts.length,0);
+  const own={...published,children:[]};f.setPublished([own]);await f.helper.refresh();f.helper.deletion.choose(own,'root');f.setActionGate(gate);const pending=f.helper.deletion.confirm();await new Promise(setImmediate);assert.equal(await f.local.commands.executeCommand('thread-comment.mutation.delete-comment',{unitId:f.local.unitID,subUnitId:'sheet-1',commentId:'reply'},{fromCollab:true}),true);assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1','reply'),undefined);f.setBusy(true);gate.resolve();await pending;const a=f.posts.at(-1);assert.ok(f.local.model.getComment(f.local.unitID,'sheet-1','root'));f.setBusy(false);
+  f.setActions([{...a,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();assert.deepEqual(f.states.at(-1).deletion.abandonable,[a.id]);f.setLostAbandon(true);await f.helper.deletion.abandon(a.id);const count=f.posts.length;await f.helper.deletion.abandon(a.id);assert.equal(f.posts.length,count);await f.helper.refresh();assert.match(f.states.at(-1).deletion.message,/abandoned/);assert.ok(f.local.model.getComment(f.local.unitID,'sheet-1','root'));assert.equal(f.posts.length,count);assert.equal(f.helper.deletion.view().preview,undefined);
+ }finally{f.dispose();}
+ const reader=fixture('read');try{const root={id:'root',threadId:'root',personId:'owner',ref:'H9',bodyVersion:'original',text:{dataStream:'Original\r\n'}};reader.setPublished([root]);await reader.helper.refresh();reader.helper.deletion.choose(root,'root');await reader.helper.deletion.confirm();assert.equal(reader.posts.length,0);}finally{reader.dispose();}
+});
+
+for (const sameTarget of [false, true]) test(`held manual deletion does not intercept ${sameTarget ? 'same-target' : 'unrelated'} structural cleanup or forge start evidence`, async () => {
+ const { AddCommentCommand, DeleteCommentCommand, DeleteCommentMutation } = await import('@univerjs/thread-comment');
+ const { RemoveRowCommand, RemoveRowMutation } = await import('@univerjs/sheets');
+ const f=fixture(),gate=deferred();let pending,observer;
+ try {
+  const source=f.source.dataSource;f.source.dataSource=null;
+  const roots=[];
+  for(const [id,ref] of [['root','H9'],['other','H10']]) {
+   const c={id,threadId:id,unitId:f.local.unitID,subUnitId:'sheet-1',personId:'owner',authorName:'Owner',dT:'synthetic',ref,text:{dataStream:id+'\r\n',paragraphs:[{startIndex:id.length}]}};
+   assert.equal(await f.local.commands.executeCommand(AddCommentCommand.id,{unitId:f.local.unitID,subUnitId:'sheet-1',comment:c}),true);
+   roots.push({...structuredClone(c),bodyVersion:'original'});
+  }
+  f.source.dataSource=source;f.setPublished(roots);await f.helper.refresh();
+  const manualParams=[],deleteParams=[];
+  observer=f.local.commands.beforeCommandExecuted(c=>{if(c.id===DeleteCommentCommand.id)manualParams.push(c.params);if(c.id===DeleteCommentMutation.id)deleteParams.push(c.params);});
+  f.setActionGate(gate);f.helper.deletion.choose(roots[0],'root');pending=f.helper.deletion.confirm();await new Promise(setImmediate);
+  const intent=f.posts[0],retained=new Map(f.saved),start=f.local.emitted.length,row=sameTarget?8:9,target=sameTarget?'root':'other';
+  assert.equal(await f.local.commands.executeCommand(RemoveRowCommand.id,{unitId:f.local.unitID,subUnitId:'sheet-1',range:{startRow:row,endRow:row,startColumn:0,endColumn:25}}),true);
+  assert.equal(f.local.save().sheets['sheet-1'].rowCount,29);
+  assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1',target),undefined);
+  assert.deepEqual(f.local.emitted.slice(start).map(m=>m.id),[RemoveRowMutation.id,DeleteCommentMutation.id,...(sameTarget?['thread-comment.mutation.update-comment-ref']:[])]);
+  assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1',sameTarget?'other':'root').ref,'H9');
+  assert.equal(deleteParams.length,1);assert.notEqual(deleteParams[0],manualParams[0],'structural cleanup is not the explicit manual invocation');
+  assert.deepEqual(f.saved,retained,'no manual-start evidence while preparation is held');
+  assert.equal(f.posts.length,1);
+  if(sameTarget) {
+   // New local input/native work makes the pending preparation unusable. The
+   // complete row operation must not prevent explicit unused settlement.
+   f.setBusy(true);gate.resolve();await pending;f.setBusy(false);
+   f.setActions([{...intent,status:'unknown',phase:'prepared',head:3}]);await f.helper.refresh();
+   assert.deepEqual(f.helper.deletion.view().abandonable,[intent.id]);
+   await f.helper.deletion.abandon(intent.id);
+   assert.equal([...f.saved.keys()].filter(k=>k.includes('started:')).length,0);
+  } else {
+   gate.resolve();await pending;
+   assert.equal(deleteParams.length,2);assert.equal(deleteParams[1],manualParams[0],'public SDK forwards the exact manual params after preparation');
+   const started=[...f.saved.entries()].filter(([k])=>k.includes('started:'));
+   assert.equal(started.length,1);assert.equal(started[0][1],JSON.stringify(intent));
+   assert.equal(f.local.model.getComment(f.local.unitID,'sheet-1','root'),undefined);
+   assert.equal(f.posts.length,1);
+  }
+ } finally {f.setBusy(true);gate.resolve();await pending;observer?.dispose();f.dispose();}
 });

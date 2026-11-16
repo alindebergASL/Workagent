@@ -1,3 +1,4 @@
+import { NativeCommentDeletion } from './native-comment-deletion.mjs';
 import { NativeCommentEditing, UPDATE_COMMENT } from './native-comment-editing.mjs';
 // Immutable bodies belong to Workspace; membership/anchors belong only to Univer.
 import { createHash } from 'node:crypto';
@@ -36,7 +37,7 @@ export function nativeCommentView(data, revision) {
   return { revision, roots, sheet: data.sheets[TAB] };
 }
 export class NativeComments {
-  constructor(authority, service, dbAdapter) { Object.assign(this, { authority, service, dbAdapter }); this.editing = new NativeCommentEditing(this); }
+  constructor(authority, service, dbAdapter) { Object.assign(this, { authority, service, dbAdapter }); this.editing = new NativeCommentEditing(this); this.deletion = new NativeCommentDeletion(this); }
   async prepare(principal, unitID, session) {
     // This native read takes its OWN Workspace fence. Never call inside a store transaction.
     const loaded = await this.authority.scope.run({ unitID, session }, () => this.service.getUnitLoadDataWithBlocks({ unitID, type: UniverType.UNIVER_SHEET, revision: 0 }, { userID: principal }));
@@ -114,7 +115,10 @@ export class NativeComments {
       const edits = [];
       for (const a of Object.values(s.works[unitID].nativeCommentEdits ?? {}).filter(a => a.principal === principal && a.epoch === session.revision && a.binding === session.binding)) edits.push(await this.editing.receipt(principal, unitID, a));
       await this.current(principal, unitID, view);
-      send({ edits, actions, revision: view.revision, comments: view.roots.map(r => hydrate(r, r.ref)).filter(Boolean), ...(receipt ? { receipt } : {}) });
+      const deletions = [];
+      for (const a of Object.values(s.works[unitID].nativeCommentDeletions ?? {}).filter(a => a.principal === principal && a.epoch === session.revision && a.binding === session.binding)) deletions.push(await this.deletion.receipt(principal, unitID, a));
+      await this.current(principal, unitID, view);
+      send({ deletions, edits, actions, revision: view.revision, comments: view.roots.map(r => hydrate(r, r.ref)).filter(Boolean), ...(receipt ? { receipt } : {}) });
     });
   }
   // Called only under list's current ACL/epoch/head fence, never via a native
@@ -194,6 +198,7 @@ export class NativeComments {
   }
   bind(s, context, session, admission) {
     this.editing.bind(s, context, session, admission);
+    this.deletion.bind(s, context, session, admission);
     const action = this.resolution(s, context, session);
     if (action) {
       const c = context.request.changeset, attempt = { sid: c.sid, reqId: c.reqId, hash: createHash('sha256').update(JSON.stringify(c.mutations)).digest('hex') };
@@ -212,6 +217,7 @@ export class NativeComments {
   validate(s, context, view) {
     const c = context.changeset, original = context.request.changeset;
     const parsed = c.mutations.map(m => ({ id: m.id, p: JSON.parse(m.data) }));
+    if (this.deletion.isManual(c)) return this.deletion.validate(s, context, view);
     if (parsed.some(m => m.id === UPDATE_COMMENT)) return this.editing.validate(s, context, view);
     if (parsed.some(m => m.id === RESOLVE_COMMENT)) {
       const session = this.authority.sessions.get(context.memberID), action = this.resolution(s, context, session);

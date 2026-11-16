@@ -135,3 +135,17 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) test('public update root an
   const loaded=fixture(f.save());try{assert.equal(thread(loaded).root.text.dataStream,'Revised text\r\n');assert.equal(thread(loaded).children[0].text.dataStream,'Revised text\r\n');}finally{loaded.dispose();}
  }finally{f.dispose();}
 });
+
+if(process.argv[1]===fileURLToPath(import.meta.url)) test('public delete command awaits datasource and emits one root/reply mutation; root cascades only native membership',async()=>{
+ const {DeleteCommentCommand,IThreadCommentDataSourceService}=await import('@univerjs/thread-comment');
+ for(const target of ['reply','root']){const f=fixture();try{
+  await add(f,'root','owner');await add(f,'reply','owner','root');await insert(f);const calls=[],source=f.univer.__getInjector().get(IThreadCommentDataSourceService);let allow=false;
+  source.dataSource={saveCommentToSnapshot:c=>c,deleteComment:async(...args)=>{calls.push(args);return allow;}};source.syncUpdateMutationToColla=true;
+  const params={unitId:f.unitID,subUnitId:TAB,commentId:target},start=f.emitted.length;
+  assert.equal(await f.commands.executeCommand(DeleteCommentCommand.id,params),false);assert.equal(f.emitted.length,start);assert.ok(f.model.getComment(f.unitID,TAB,target));allow=true;
+  assert.equal(await f.commands.executeCommand(DeleteCommentCommand.id,params),true);
+  assert.deepEqual(calls.at(-1),[f.unitID,TAB,'root',target]);assert.deepEqual(f.emitted.slice(start).map(m=>[m.id,m.params,m.options.onlyLocal]),[[DeleteCommentMutation.id,{...params,trigger:DeleteCommentCommand.id},false]]);
+  assert.equal(f.model.getComment(f.unitID,TAB,'reply'),undefined);if(target==='root')assert.equal(thread(f),undefined);else {assert.equal(thread(f).root.ref,'H10');assert.equal(thread(f).root.text.dataStream,'Owner question\r\n');}
+  const loaded=fixture(f.save());try{assert.equal(loaded.model.getComment(loaded.unitID,TAB,target),undefined);}finally{loaded.dispose();}
+ }finally{f.dispose();}}
+});

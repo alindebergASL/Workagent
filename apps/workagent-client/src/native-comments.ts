@@ -1,14 +1,15 @@
-import { AddCommentCommand, AddCommentMutation, ResolveCommentCommand, ResolveCommentMutation, UpdateCommentCommand, UpdateCommentMutation } from '@univerjs/thread-comment';
+import { AddCommentCommand, AddCommentMutation, ResolveCommentCommand, ResolveCommentMutation, UpdateCommentCommand, UpdateCommentMutation, DeleteCommentCommand, DeleteCommentMutation } from '@univerjs/thread-comment';
 import type { IThreadComment, IThreadCommentDataSource, IThreadCommentDataSourceService } from '@univerjs/thread-comment';
 import type { ICommandService } from '@univerjs/core';
 import type { NativeSession } from './NativeCollaborationEditor';
 type CommentRoot = EditableComment & { resolutionUnknown?: boolean };
-export interface CommentView { comments: CommentRoot[]; message: string; pending: boolean; confirmed?: string; removed?: string; resolution?: string; resolutionBusy?: boolean; abandonable?: string[]; editing?: CommentEditView }
+export interface CommentView { comments: CommentRoot[]; message: string; pending: boolean; confirmed?: string; removed?: string; resolution?: string; resolutionBusy?: boolean; abandonable?: string[]; editing?: CommentEditView; deletion?: CommentDeleteView }
 // Scoped to the existing native instance. No facade side effects or extra session.
 export function nativeComments(session: NativeSession, source: IThreadCommentDataSourceService, commands: ICommandService,
   allowed: () => boolean, notify: (view: CommentView) => void, request: typeof fetch = fetch, memberID: () => string = () => '', disk?: Pick<Storage, 'getItem' | 'setItem' | 'key' | 'length'>) {
   let editing: ReturnType<typeof nativeCommentEditing> | undefined;
-  const update = (value: CommentView) => notify({ ...value, editing: editing?.view() });
+  let deletion: ReturnType<typeof nativeCommentDeletion> | undefined;
+  const update = (value: CommentView) => notify({ ...value, editing: editing?.view(), deletion: deletion?.view() });
   type Action = { id: string; commentId: string; memberID: string; resolved: boolean };
   const scope = `workagent:native-comment-resolution:${session.principal}:${session.unitID}:${session.binding}:${session.access.revision}:`;
   let receipts = new Map<string, { phase: string; status: string; head: number }>(), currentRevision = 0;
@@ -63,8 +64,9 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
     if (!response.ok) throw Error(`Comment request refused (${response.status}); draft retained`);
     const value = await response.json(); if (!live) throw Error('Comment session changed'); return value;
   };
-  editing = nativeCommentEditing(session, commands, () => allowed() && !pending && !resolutionBusy, () => update({ comments, pending: !!pending, message: notice || 'Published comments', resolution, resolutionBusy, abandonable: abandonable() }), request, memberID, disk);
-  const unavailable = async () => { throw Error('Comment editing and manual deletion are not enabled'); };
+  editing = nativeCommentEditing(session, commands, () => allowed() && !pending && !resolutionBusy && !deletion?.busy(), () => update({ comments, pending: !!pending, message: notice || 'Published comments', resolution, resolutionBusy, abandonable: abandonable() }), request, memberID, disk);
+  deletion = nativeCommentDeletion(session, commands, () => allowed() && !pending && !resolutionBusy && !editing?.busy(), () => update({ comments, pending: !!pending, message: notice || 'Published comments', resolution, resolutionBusy, abandonable: abandonable() }), request, memberID, disk);
+  const unavailable = async () => { throw Error('This comment operation is not enabled'); };
   const dataSource: IThreadCommentDataSource = {
     async addComment(comment) {
       assertScope(comment.unitId, comment.subUnitId);
@@ -81,7 +83,7 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
       const receipt = await response.json();
       if (!live || !allowed() || memberID() !== a.memberID || receipt.id !== a.id || receipt.commentId !== a.commentId || receipt.memberID !== a.memberID || receipt.resolved !== a.resolved || receipt.status !== 'unknown') throw Error('Resolution preparation changed; check status without retry');
       return true;
-    }, deleteComment: unavailable, deleteThread: unavailable,
+    }, deleteComment: (unit, sub, thread, id) => deletion!.deleteComment(unit, sub, thread, id), deleteThread: unavailable,
     async listComments(unit, sub, threads) { assertScope(unit, sub); const value = await call(); return value.comments.filter((c: IThreadComment) => threads.includes(c.threadId)); },
     saveCommentToSnapshot: comment => comment,
   };
@@ -89,7 +91,7 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
   const refresh = async () => {
     if (!live || checking) return; checking = true;
     try {
-      const value = await call(undefined, pending); comments = value.comments; editing!.observe(value); currentRevision = value.revision; receipts = new Map();
+      const value = await call(undefined, pending); comments = value.comments; editing!.observe(value); deletion!.observe(value); currentRevision = value.revision; receipts = new Map();
       reconcile();
       for (const a of actions) {
         const receipt = value.actions?.find((r: Action) => r.id === a.id);
@@ -116,9 +118,9 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
   };
   return {
     refresh,
-    editing,
-    pending: () => !!pending || resolutionBusy || !!editing?.busy(),
-    canResolve(root: CommentRoot) { return live && !editing?.busy() && reconcile() && !root.resolutionUnknown && !actions.some(a => a.commentId === root.id) && !retired.some(r => r.action.commentId === root.id && r.action.memberID === memberID() && r.head === currentRevision && r.action.resolved === (root.resolved !== true)) && !resolutionBusy && !pending && allowed() && !!memberID() && session.access.role !== 'read' && (session.owner || root.personId === session.principal); },
+    editing, deletion,
+    pending: () => !!pending || resolutionBusy || !!editing?.busy() || !!deletion?.busy(),
+    canResolve(root: CommentRoot) { return live && !deletion?.busy() && !editing?.busy() && reconcile() && !root.resolutionUnknown && !actions.some(a => a.commentId === root.id) && !retired.some(r => r.action.commentId === root.id && r.action.memberID === memberID() && r.head === currentRevision && r.action.resolved === (root.resolved !== true)) && !resolutionBusy && !pending && allowed() && !!memberID() && session.access.role !== 'read' && (session.owner || root.personId === session.principal); },
     async resolve(root: CommentRoot) {
       if (!this.canResolve(root)) return;
       const a: Action = { id: crypto.randomUUID(), commentId: root.id, memberID: memberID(), resolved: root.resolved !== true };
@@ -149,7 +151,7 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
       } catch (error) { if (live) resolution = String(error) + ' Identity retained; no automatic retry.'; }
       finally { resolutionBusy = false; if (live) update({ comments, pending: !!pending, message: notice || 'Published comments — bodies unchanged', resolution, resolutionBusy, abandonable: abandonable() }); }
     },
-    canAdd: () => live && !editing?.busy() && !pending && !resolutionBusy && !removed && allowed() && session.access.role !== 'read',
+    canAdd: () => live && !deletion?.busy() && !editing?.busy() && !pending && !resolutionBusy && !removed && allowed() && session.access.role !== 'read',
     explain(message: string) { notice = message; if (live) update({ comments, pending: !!pending, removed, message }); },
     newDraft() {
       if (!live || pending) return;
@@ -158,7 +160,7 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
     },
     async add(body: string, ref: string, parentId?: string) {
       if (!live) return;
-      if (editing?.busy() || pending || resolutionBusy || removed || !allowed() || session.access.role === 'read') {
+      if (deletion?.busy() || editing?.busy() || pending || resolutionBusy || removed || !allowed() || session.access.role === 'read') {
         update({ comments, pending: !!pending, removed, message: removed ? notice : session.access.role === 'read' ? 'Read-only — comments can be read' : 'Finish active cell input, paste or pending native edits before adding a comment. Draft retained.' }); return;
       }
       pending = crypto.randomUUID(); nativeAttempt = false; notice = '';
@@ -177,7 +179,7 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
         if (live) update({ comments, pending: !!pending, message: notice });
       }
     },
-    dispose() { live = false; editing?.dispose(); controller.abort(); mutationStart.dispose(); if (source.dataSource === dataSource) source.dataSource = null; },
+    dispose() { live = false; deletion?.dispose(); editing?.dispose(); controller.abort(); mutationStart.dispose(); if (source.dataSource === dataSource) source.dataSource = null; },
   };
 }
 
@@ -220,6 +222,72 @@ function nativeCommentEditing(session: NativeSession, commands: ICommandService,
    try{if(!await commands.executeCommand(UpdateCommentCommand.id,{unitId:session.unitID,subUnitId:'sheet-1',payload:{commentId:a.commentId,text:{dataStream:body+'\r\n',paragraphs:[{startIndex:body.length}]}}}))throw Error('Native edit did not complete');}catch(error){message=String(error)+' Draft and identity retained; no automatic retry.';}finally{busy=false;active=undefined;if(live)notify();}
   },
   async abandon(id:string){if(!allowed()||!abandonable().includes(id))return;const a=records.find(a=>a.id===id)!;try{append('abandon-request:'+id,a);}catch{failed=true;message='Cannot retain abandonment identity. No request sent.';notify();return;}busy=true;notify();try{const r=await call(url+'/'+id+'/abandon',a);if(!equal(a,r)||r.status!=='abandoned'||r.phase!=='abandoned'||!Number.isSafeInteger(r.head))throw Error('Abandonment evidence mismatch');append('terminal:'+id,r);reconcile();message='Unused edit abandoned; no native text changed. A new edit is explicit.';}catch(error){message=String(error)+' Check status (GET only).';}finally{busy=false;if(live)notify();}},
+  dispose(){live=false;controller.abort();observer.dispose();},
+ };
+}
+
+type DeleteTarget = { id: string; bodyVersion: string };
+type DeleteSelection = { commentId: string; rootId: string; ref: string; targets: DeleteTarget[] };
+type DeleteIntent = DeleteSelection & { id: string; memberID: string };
+type DeleteReceipt = DeleteIntent & { head: number; phase: string; status: string; revision?: number };
+export interface CommentDeleteView { message: string; busy: boolean; preview?: DeleteSelection; canConfirm: boolean; abandonable: string[] }
+function nativeCommentDeletion(session: NativeSession, commands: ICommandService, allowed: () => boolean, notify: () => void,
+ request: typeof fetch, memberID: () => string, disk?: Pick<Storage,'getItem'|'setItem'|'key'|'length'>) {
+ const prefix=`workagent:native-comment-delete:${session.principal}:${session.unitID}:${session.binding}:${session.access.revision}:`,url=`/api/work/${session.unitID}/native-comments/${session.access.revision}/deletions`,controller=new AbortController();
+ let live=true,busy=false,failed=false,message='',head=0,preview:DeleteSelection|undefined,active:DeleteIntent|undefined,roots:CommentRoot[]=[],records:DeleteIntent[]=[],retired:DeleteReceipt[]=[],receipts=new Map<string,DeleteReceipt>();
+ let invocation: { unitId: string; subUnitId: string; commentId: string } | undefined;
+ const selection=(a:DeleteSelection)=>({commentId:a.commentId,rootId:a.rootId,ref:a.ref,targets:a.targets});
+ const same=(a:DeleteIntent,b:DeleteIntent)=>a.id===b.id&&a.memberID===b.memberID&&JSON.stringify(selection(a))===JSON.stringify(selection(b));
+ const append=(key:string,value:unknown)=>{if(!disk)throw Error('Deletion recovery storage unavailable');const encoded=JSON.stringify(value),old=disk.getItem(prefix+key);if(old!==null&&old!==encoded)throw Error('Conflicting deletion evidence');if(old===null)disk.setItem(prefix+key,encoded);if(disk.getItem(prefix+key)!==encoded)throw Error('Deletion evidence not retained');};
+ const reconcile=()=>{try{
+  if(!disk||!Number.isSafeInteger(disk.length))throw Error();const pending:DeleteIntent[]=[],done:DeleteReceipt[]=[];
+  for(let n=0;n<disk.length;n++){const key=disk.key(n);if(key===null)throw Error();if(!key.startsWith(prefix+'intent:'))continue;const a=JSON.parse(disk.getItem(key)??'null');
+   if(!a||Object.keys(a).sort().join()!=='commentId,id,memberID,ref,rootId,targets'||![a.id,a.commentId,a.memberID,a.rootId].every(x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(x))||typeof a.ref!=='string'||!Array.isArray(a.targets)||!a.targets.length||a.targets.length>4096||a.targets.some((t:DeleteTarget)=>!t||Object.keys(t).sort().join()!=='bodyVersion,id'||![t.id,t.bodyVersion].every(x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(x)))||new Set(a.targets.map((t:DeleteTarget)=>t.id)).size!==a.targets.length||key!==prefix+'intent:'+a.id)throw Error();
+   const started=disk.getItem(prefix+'started:'+a.id),abandon=disk.getItem(prefix+'abandon-request:'+a.id);for(const marker of [started,abandon])if(marker!==null&&marker!==JSON.stringify(a))throw Error();
+   const terminal=disk.getItem(prefix+'terminal:'+a.id);if(terminal===null){pending.push(a);continue;}const r=JSON.parse(terminal);
+   if(!same(a,r)||!Number.isSafeInteger(r.head)||!['committed','abandoned'].includes(r.status)||r.status==='committed'&&r.revision!==r.head+1||r.status==='abandoned'&&(started!==null||r.phase!=='abandoned'))throw Error();done.push(r);
+  }records=pending;retired=done;return !failed;
+ }catch{failed=true;message='Deletion recovery evidence unavailable. Nothing will be sent.';return false;}};
+ const describe=(root:CommentRoot,commentId:string):DeleteSelection|undefined=>{
+  const target=root.id===commentId?root:root.children?.find(c=>c.id===commentId);if(!target)return;
+  const affected=(target===root?[root,...(root.children??[])]:[target]) as EditableComment[];
+  if(affected.some(c=>c.personId!==session.principal||c.bodyUnknown||!c.bodyVersion))return;
+  return {commentId,rootId:root.id,ref:root.ref,targets:affected.map(c=>({id:c.id,bodyVersion:c.bodyVersion!})).sort((a,b)=>a.id.localeCompare(b.id))};
+ };
+ const current=(p:DeleteSelection)=>{const root=roots.find(r=>r.id===p.rootId),now=root&&describe(root,p.commentId);return !!now&&JSON.stringify(now)===JSON.stringify(p);};
+ const safe=()=>live&&reconcile()&&!busy&&allowed()&&session.access.role!=='read'&&!!memberID();
+ const canConfirm=()=>safe()&&!!preview&&current(preview)&&!records.some(a=>a.rootId===preview!.rootId)&&!retired.some(r=>r.status==='abandoned'&&r.commentId===preview!.commentId&&r.memberID===memberID()&&r.head===head);
+ const abandonable=()=>live&&reconcile()&&!busy&&session.access.role!=='read'?records.filter(a=>(!receipts.has(a.id)||receipts.get(a.id)?.status==='unknown'&&receipts.get(a.id)?.phase==='prepared')&&disk!.getItem(prefix+'started:'+a.id)===null&&disk!.getItem(prefix+'abandon-request:'+a.id)===null).map(a=>a.id):[];
+ const call=async(path:string,input:object)=>{const r=await request(path,{method:'POST',signal:controller.signal,headers:{'X-Workagent-Session-Binding':session.binding,'Content-Type':'application/json'},body:JSON.stringify(input)});if(!live||!r.ok)throw Error('Deletion request unconfirmed. Identity retained; check status, no retry.');const value=await r.json();if(!live)throw Error('Comment session changed');return value as DeleteReceipt;};
+ const observer=commands.beforeCommandExecuted((command,options)=>{
+  // Pinned public DeleteCommentCommand forwards its params object unchanged to
+  // DeleteCommentMutation after the data-source await. Structural cleanup has
+  // its own params, even for the same comment. Do not use a concurrent command's
+  // trigger or a matching comment ID as evidence of this manual invocation.
+  if(options?.fromCollab||command.id!==DeleteCommentMutation.id||!active||command.params!==invocation)return;const p=invocation;
+  if(!live||!allowed()||memberID()!==active.memberID||p?.unitId!==session.unitID||p.subUnitId!=='sheet-1'||p.commentId!==active.commentId||!current(selection(active))||disk?.getItem(prefix+'abandon-request:'+active.id)!==null)throw Error('Deletion changed before native mutation; retained identity requires status check');append('started:'+active.id,active);
+ });
+ reconcile();
+ return {
+  view:():CommentDeleteView=>({message,busy,preview,canConfirm:canConfirm(),abandonable:abandonable()}),busy:()=>busy,
+  canChoose(root:CommentRoot,id:string){const p=describe(root,id);return safe()&&!!p&&current(p)&&!records.some(a=>a.rootId===root.id);},
+  choose(root:CommentRoot,id:string){if(!this.canChoose(root,id))return;preview=describe(root,id);message='Review the exact comment/subtree below. No request sent. Native removal retains private history.';notify();},
+  cancel(){if(busy)return;preview=undefined;notify();},
+  observe(value:{revision:number;comments:CommentRoot[];deletions?:DeleteReceipt[]}){
+   head=value.revision;roots=value.comments;reconcile();receipts=new Map();
+   for(const a of records){const r=value.deletions?.find(r=>r.id===a.id);if(!r||!same(a,r)||!Number.isSafeInteger(r.head))continue;receipts.set(a.id,r);
+    try{if(r.phase==='admitted')append('started:'+a.id,a);if(r.status==='committed'&&r.revision===r.head+1&&r.revision<=head||r.status==='abandoned'&&r.phase==='abandoned'){append('terminal:'+a.id,r);message=r.status==='committed'?`Removal recorded at native revision ${r.revision}. Prior bodies/history retained; restore is not enabled.`:'Unused deletion abandoned. A new request is explicit; this comment needs a newer native revision or reopened editor.';if(preview?.commentId===a.commentId)preview=undefined;}}
+    catch{failed=true;message='Conflicting deletion evidence; no new request enabled.';}
+   }
+   reconcile();if(records.length&&!failed)message='Deletion outcome unknown. GET status only; live absence is not proof. Explicit unused abandonment requires server proof.';
+   if(preview&&!current(preview))message='Comment, body or subtree changed. Cancel this preview and review the latest thread; no automatic deletion.';
+  },
+  async deleteComment(unit:string,sub:string,thread:string,id:string){const a=active;if(!a||!live||!allowed()||unit!==session.unitID||sub!=='sheet-1'||thread!==a.rootId||id!==a.commentId||memberID()!==a.memberID)throw Error('Manual deletion is not enabled outside an explicit confirmation');const r=await call(url,a);if(!same(a,r)||r.status!=='unknown'||r.phase!=='prepared'||!allowed()||memberID()!==a.memberID||!current(selection(a)))throw Error('Deletion preparation changed. Check status without retry.');return true;},
+  async confirm(){if(!canConfirm())return;const a:DeleteIntent={...preview!,id:crypto.randomUUID(),memberID:memberID()};try{append('intent:'+a.id,a);}catch{failed=true;message='Cannot retain deletion identity. No request sent.';notify();return;}active=a;busy=true;message='Deletion awaiting native evidence; not yet recorded.';notify();
+   invocation={unitId:session.unitID,subUnitId:'sheet-1',commentId:a.commentId};
+   try{if(!await commands.executeCommand(DeleteCommentCommand.id,invocation))throw Error('Native deletion did not complete');}catch(error){message=String(error)+' Identity retained; no automatic retry.';}finally{invocation=undefined;active=undefined;busy=false;if(live)notify();}
+  },
+  async abandon(id:string){if(!allowed()||!abandonable().includes(id))return;const a=records.find(a=>a.id===id)!;try{append('abandon-request:'+id,a);}catch{failed=true;message='Cannot retain abandonment evidence; no request sent.';notify();return;}busy=true;notify();try{const r=await call(url+'/'+id+'/abandon',a);if(!same(a,r)||r.status!=='abandoned'||r.phase!=='abandoned'||!Number.isSafeInteger(r.head))throw Error('Abandonment not proven');append('terminal:'+id,r);reconcile();preview=undefined;message='Unused deletion abandoned. No native removal. New requests require explicit review.';}catch(error){message=String(error)+' Check status (GET only).';}finally{busy=false;if(live)notify();}},
   dispose(){live=false;controller.abort();observer.dispose();},
  };
 }

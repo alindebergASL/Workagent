@@ -805,3 +805,18 @@ test('comments editing App: unchanged Save disabled; own confirmed edit advances
  }finally{f.dispose();await new Promise(setImmediate);}
  }
 });
+
+test('comments deletion App: explicit confirmation/cancel preserves separate drafts, author controls and GET-only evidence',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);let deletion,postCount=0,committed=false;
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const root={id:'root',threadId:'root',unitId:'A',subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'My original\r\n'},bodyVersion:'original'};native.published.set('A',[root]);
+ const request=native.commentsRequest;native.commentsRequest=async(path,options)=>{if(path.endsWith('/deletions')&&options.method==='POST'){postCount++;deletion=JSON.parse(options.body);return {ok:true,json:async()=>({...deletion,status:'unknown',phase:'prepared',head:2})};}const r=await request(path,options),v=await r.json();return {ok:true,json:async()=>({...v,deletions:deletion?[{...deletion,head:2,phase:'admitted',status:committed?'committed':'unknown',...(committed?{revision:3}:{})}]:[]})};};
+ try{await f.flush();await f.message('root keep');await f.open('A');await native.poll();await f.flush();const entry=native.instances[0];
+  const execute=entry.commands.executeCommand.bind(entry.commands);entry.commands.executeCommand=async(id,p)=>{if(id!=='thread-comment.command.delete-comment')return execute(id,p);await entry.commentSource.dataSource.deleteComment(p.unitId,p.subUnitId,'root',p.commentId);for(const fn of entry.commentListeners)fn({id:'thread-comment.mutation.delete-comment',params:p});return true;};
+  const comment=()=>f.find(n=>n.props['aria-label']==='Comment draft');comment().props.onChange({target:{value:'new comment keep'}});await f.flush();await f.click('Edit comment');const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');edit().props.onChange({target:{value:'edit draft keep'}});await f.flush();
+  await f.click('Delete comment');assert.equal(postCount,0);assert.match(f.panel.text(),/My original/);await f.click('Cancel removal');assert.equal(postCount,0);assert.equal(edit().props.value,'edit draft keep');
+  native.published.set('A',[{...root,children:[{id:'peer',personId:'peer',authorName:'Peer',bodyVersion:'original',text:{dataStream:'Peer keep\r\n'}}]}]);await native.poll();await f.flush();assert.equal(f.button('Delete comment').props.disabled,true);assert.match(f.panel.text(),/another author's replies/);assert.throws(()=>f.button('Delete reply'));
+  native.published.set('A',[root]);await native.poll();await f.flush();await f.click('Delete comment');entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm comment removal').props.disabled,true);entry.editing=false;await native.poll();await f.flush();await f.click('Confirm comment removal');assert.equal(postCount,1);native.published.set('A',[]);await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/Removal recorded/);
+  committed=true;await native.poll();await f.flush();assert.match(f.panel.text(),/Removal recorded at native revision 3/);assert.equal(edit().props.value,'edit draft keep');assert.equal(comment().props.value,'new comment keep');assert.equal(entry.anchor,'H9');assert.equal(postCount,1);await f.click('Cancel edit draft');await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root keep');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});

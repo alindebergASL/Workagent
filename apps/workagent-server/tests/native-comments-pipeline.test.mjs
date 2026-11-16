@@ -214,3 +214,43 @@ test('edit unused settlement serializes with preparation; head-read refusal sett
   const retained=await f.store.read(s=>s.works[UNIT].nativeCommentEdits);assert.deepEqual(retained[a.id].input,a);assert.equal(retained[raced.id].abandoned,true);assert.equal(retained.poison,undefined);
  }finally{await f.service.dispose();}
 });
+
+test('manual deletion: author-only reply and self-authored root subtree, exact native receipt survives membership removal',async()=>{
+ const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);const peer={...f.session,userID:'peer'};f.authority.sessions.set('peer',peer);let reply;
+  await f.comments.claim('peer','Peer',UNIT,peer,{id:'reply',parentId:'root',ref:'H9',body:'Peer body'},c=>reply=c);await f.submitAs('peer','peer',[[ADD_COMMENT,{comment:reply}]]);
+  const input=(id,commentId,memberID,targets)=>({id,commentId,memberID,rootId:'root',ref:'H9',targets:targets.map(id=>({id,bodyVersion:'original'}))});
+  await assert.rejects(f.comments.deletion.prepare('owner',UNIT,f.session,input('foreign-root','root','m',['reply','root']),()=>{}));
+  await assert.rejects(f.comments.deletion.prepare('owner',UNIT,f.session,input('foreign-reply','reply','m',['reply']),()=>{}));
+  const a=input('own-reply','reply','peer',['reply']);await f.comments.deletion.prepare('peer',UNIT,peer,a,()=>{});const before=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);
+  assert.equal((await f.submitAs('peer','peer',[[DELETE_COMMENT,{commentId:'reply',trigger:'thread-comment.command.delete-comment'}]])).status,'committed');
+  let list=await f.list(undefined,'peer');assert.equal(list.comments[0].children.length,0);assert.equal(list.deletions[0].status,'committed');assert.equal(list.deletions[0].revision,4);assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),before);
+  const own=input('own-root','root','m',['root']);await f.comments.deletion.prepare('owner',UNIT,f.session,own,()=>{});assert.equal((await f.submit([[DELETE_COMMENT,{commentId:'root'}]])).status,'committed');
+  list=await f.list();assert.equal(list.comments.length,0);assert.equal(list.deletions.find(r=>r.id===own.id).status,'committed');
+  await f.checkpoint(5000);assert.equal((await f.list()).deletions.find(r=>r.id===own.id).status,'committed');
+  const read=f.db.getChangesets;f.db.getChangesets=async(c,u,r)=>r.from===4?[]:read(c,u,r);assert.equal((await f.list()).deletions.find(r=>r.id===own.id).status,'unknown');assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),before);
+ }finally{await f.service.dispose();}
+});
+
+test('manual deletion commit fences foreign reply, body/head/anchor and ACL races without affecting structural removal',async()=>{
+ const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);const a={id:'root-delete',commentId:'root',rootId:'root',ref:'H9',memberID:'m',targets:[{id:'root',bodyVersion:'original'}]};await f.comments.deletion.prepare('owner',UNIT,f.session,a,()=>{});
+  const peer={...f.session,userID:'peer'};f.authority.sessions.set('peer',peer);let child;await f.comments.claim('peer','Peer',UNIT,peer,{id:'peer-reply',parentId:'root',ref:'H9',body:'Keep peer'},r=>child=r);await f.submitAs('peer','peer',[[ADD_COMMENT,{comment:child}]]);
+  const before=f.head;assert.equal((await f.submit([[DELETE_COMMENT,{commentId:'root'}]],2)).status,'rejected');assert.equal(f.head,before);assert.equal((await f.list()).comments[0].children[0].id,'peer-reply');await assert.rejects(f.comments.deletion.abandon('owner',UNIT,f.session,a.id,()=>{},a));
+  await assert.rejects(f.comments.deletion.prepare('owner',UNIT,f.session,{...a,id:'new-root-delete'},()=>{}));
+  const b={...a,id:'reply-delete',commentId:'peer-reply',memberID:'peer',targets:[{id:'peer-reply',bodyVersion:'original'}]};await f.comments.deletion.prepare('peer',UNIT,peer,b,()=>{});
+  await f.workspace.share('owner',UNIT,{commandId:'read-delete',peer:'peer',role:'read',accessRevision:1});assert.equal((await f.submitAs('peer','peer',[[DELETE_COMMENT,{commentId:'peer-reply'}]])).status,'rejected');assert.equal(f.head,before);
+  await assert.rejects(f.comments.deletion.prepare('peer',UNIT,{...peer,revision:2},{...b,id:'reader'},()=>{}));await assert.rejects(f.comments.deletion.prepare('owner',UNIT,{...f.session,revision:2},{...a,id:'wrong-body',targets:[{id:'root',bodyVersion:'fake'}]},()=>{}));
+  f.authority.sessions.set('after-regrant',{...f.session,revision:2});assert.equal((await f.submitAs('owner','after-regrant',[['sheet.mutation.remove-rows',{range:{startRow:8,endRow:8,startColumn:0,endColumn:25}}],[DELETE_COMMENT,{commentId:'root'}]])).status,'committed');assert.equal((await f.list(undefined,'owner',2)).comments.length,0);
+ }finally{await f.service.dispose();}
+});
+test('manual deletion unused abandon, lost-response receipt, immutable identities and stale tuple quarantine',async()=>{
+ const f=await fixture();try{
+  await f.submit([[ADD_COMMENT,{comment:await f.claim()}]]);const a={id:'unused-delete',commentId:'root',rootId:'root',ref:'H9',memberID:'m',targets:[{id:'root',bodyVersion:'original'}]};await f.comments.deletion.prepare('owner',UNIT,f.session,a,()=>{});const saved=await f.store.read(s=>s.works[UNIT].nativeCommentDeletions[a.id]);
+  await assert.rejects(f.comments.deletion.prepare('owner',UNIT,f.session,{...a,ref:'H10'},()=>{}));await assert.rejects(f.comments.deletion.abandon('owner',UNIT,{...f.session,binding:'wrong'},a.id,()=>{},a));
+  f.authority.sessions.delete('m');await f.comments.deletion.abandon('owner',UNIT,f.session,a.id,()=>{},a);await f.comments.deletion.abandon('owner',UNIT,f.session,a.id,()=>{},a);let r;await f.comments.deletion.prepare('owner',UNIT,f.session,a,v=>r=v);assert.equal(r.status,'abandoned');
+  const now=await f.store.read(s=>s.works[UNIT].nativeCommentDeletions[a.id]);assert.deepEqual({...now,abandoned:undefined},{...saved,abandoned:undefined});f.authority.sessions.set('m',f.session);assert.equal((await f.submit([[DELETE_COMMENT,{commentId:'root'}]])).status,'rejected');
+  await assert.rejects(f.comments.deletion.prepare('owner',UNIT,f.session,{...a,id:'same-tuple'},()=>{}));f.authority.sessions.set('fresh',f.session);await f.comments.deletion.prepare('owner',UNIT,f.session,{...a,id:'fresh-delete',memberID:'fresh'},()=>{});assert.equal((await f.submitAs('owner','fresh',[[DELETE_COMMENT,{commentId:'root'}]])).status,'committed');
+  const recovered=await f.list();assert.equal(recovered.comments.length,0);assert.equal(recovered.deletions.find(r=>r.id==='fresh-delete').status,'committed');await assert.rejects(f.comments.deletion.abandon('owner',UNIT,f.session,'fresh-delete',()=>{}));
+ }finally{await f.service.dispose();}
+});
