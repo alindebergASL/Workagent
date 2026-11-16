@@ -1,3 +1,5 @@
+import { nativeReversal, guardReversalInput, type ReversalView } from './native-reversal';
+import { openReversalAction } from './native-reversal-action';
 import { containNativeUndo, NATIVE_UNDO_UNAVAILABLE, nativeHistory, type NativeHistoryView } from './native-history';
 import { nativeComments } from './native-comments';
 import type { CommentView } from './native-comments';
@@ -14,7 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ICommandService, IUndoRedoService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
 import type { Workbook } from '@univerjs/core';
 import { RefRangeService } from '@univerjs/sheets';
-import { UniverCollaborationPlugin } from '@univerjs-pro/collaboration';
+import { UniverCollaborationPlugin, RevisionService } from '@univerjs-pro/collaboration';
 import { UniverCollaborationClientPlugin, ILocalCacheService, CollaborationController, CollaborationSessionService, MemberService } from '@univerjs-pro/collaboration-client';
 import CollaborationEnUS from '@univerjs-pro/collaboration-client/locale/en-US';
 import { BrowserCollaborationSocketService, UniverCollaborationClientUIPlugin } from '@univerjs-pro/collaboration-client-ui';
@@ -27,7 +29,7 @@ import '@univerjs/sheets-ui/facade';
 import '@univerjs/preset-sheets-core/lib/index.css';
 import '@univerjs-pro/collaboration-client-ui/lib/index.css';
 
-export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string; comments?: boolean; history?: boolean }
+export interface NativeSession { principal: string; name: string; binding: string; owner: boolean; unitID: string; access: { role: string; revision: number }; peer?: string; basePath?: string; sessionPath?: string; comments?: boolean; history?: boolean; reversal?: boolean }
 export interface NativeCollaborationHandle { canLeave(): boolean; close(): Promise<void> }
 // Native operations/cache are the only synchronization path. Never call legacy
 // save, create a local workbook, replace a snapshot or mint retry identities.
@@ -48,6 +50,8 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const [commentView, setCommentView] = useState<CommentView>({ comments: [], message: 'Loading comments', pending: false });
   const history = useRef<ReturnType<typeof nativeHistory> | null>(null);
   const [historyView, setHistoryView] = useState<NativeHistoryView>({ entries: [], message: 'History not loaded' });
+  const reversal = useRef<ReturnType<typeof nativeReversal> | null>(null);
+  const [reversalView, setReversalView] = useState<ReversalView>({ message: 'Waiting for your own native acknowledgement.', active: false, locked: false, canPreview: false, canConfirm: false });
   const [undoNotice, setUndoNotice] = useState(NATIVE_UNDO_UNAVAILABLE);
   const [anchor, setAnchor] = useState('');
   const [commentAvailable, setCommentAvailable] = useState(false);
@@ -57,7 +61,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false;
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
@@ -76,6 +80,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         collabWebSocketUrl: `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}${basePath}/comb/connect`,
       }], UniverCollaborationClientUIPlugin, ...(session.comments ? [UniverThreadCommentPlugin, UniverSheetsThreadCommentPlugin] : [])],
     });
+    const reversalGuard = guardReversalInput(univer.__getInjector().get(ICommandService), () => !!reversal.current?.locked());
     const undoGuard = containNativeUndo(session.unitID, univer.__getInjector().get(ICommandService), univer.__getInjector().get(IUndoRedoService), () => { if (live) setUndoNotice(NATIVE_UNDO_UNAVAILABLE); });
     if (session.history) history.current = nativeHistory(session, value => { if (live) setHistoryView(value); }, fetch);
     univer.__getInjector().get(UserManagerService).setCurrentUser({ userID: session.principal, name: session.name, avatar: '' });
@@ -103,6 +108,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     element.addEventListener('compositionstart', inputStart, true); element.addEventListener('compositionend', inputEnd, true);
     element.addEventListener('paste', localInteraction, true);
     const report = () => {
+      reversal.current?.refresh(collaboration.hasWritePending());
       if (live) setCommentAvailable(!!comments.current?.canAdd());
       if (!live || conflict || revoked) return;
       const state = collaboration.getCollaborationStatus();
@@ -124,7 +130,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         } catch { setStatus(`Conflict: ${event.reason}. Recovery is in memory only — download it before closing this tab.`); }
       } }),
     ];
-    const beforeUnload = (event: BeforeUnloadEvent) => { if (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending()) { event.preventDefault(); event.returnValue = ''; } };
+    const beforeUnload = (event: BeforeUnloadEvent) => { if (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending() || !!reversal.current?.active()) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', beforeUnload);
     void collaboration.loadSheetAsync().then(book => {
       if (!live) return;
@@ -134,6 +140,11 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID);
       if (entity) {
         const injector = univer.__getInjector();
+        if (session.reversal) reversal.current = nativeReversal(session, entity.session,
+          () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
+          () => !loaded || revoked || conflict || composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending(),
+          value => { if (live) setReversalView(value); }, fetch, localStorage,
+          (path, signal) => openReversalAction(session.unitID, path, session.binding, signal));
         follow.current = nativeFollow(session.unitID, entity.session,
           () => injector.get(IUniverInstanceService).getUnit<Workbook>(session.unitID) ?? null, injector.get(RefRangeService), injector.get(ICommandService),
           () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || revoked || conflict,
@@ -145,6 +156,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     // Display only; server checks each commit/read/send under Workspace authority.
     let checking = false;
     const timer = window.setInterval(async () => {
+      reversal.current?.refresh(collaboration.hasWritePending());
       if (checking || !live) return; checking = true;
       if (session.comments) { setAnchor(anchorRead.current()); setCommentAvailable(!!comments.current?.canAdd()); }
       if (!revoked && !conflict) void comments.current?.refresh();
@@ -161,13 +173,13 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     }, 1500);
     let closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => {
-      if (live && (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending())) { closing = undefined; throw new Error('Native edits are pending; keep this editor open.'); }
+      if (live && (univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || conflict || !!draft.current || !!comments.current?.pending() || !!reversal.current?.active())) { closing = undefined; throw new Error('Native edits are pending; keep this editor open.'); }
       if (host.current) host.current.inert = true;
       await cache.exhaustSavingTask();
       stopPresence();
-      undoGuard.dispose(); univer.dispose();
+      undoGuard.dispose(); reversalGuard.dispose(); univer.dispose();
     })().catch(error => { closing = undefined; if (live && host.current) host.current.inert = blocked; throw error; });
-    ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !comments.current?.pending(), close });
+    ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !comments.current?.pending() && !reversal.current?.active(), close });
     return () => {
       ready.current?.(null);
       live = false; clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
@@ -187,6 +199,17 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   };
   return <><p role="status" data-native-status>{status}</p>
     <p role="status" data-native-undo>{undoNotice}</p>
+    {session.reversal && <section aria-label="Explicit operation reversal" style={{ overflowWrap: 'anywhere' }}>
+      <p role="status" data-native-reversal>{reversalView.message}</p>
+      {session.access.role === 'read' ? <p>Read-only — reversal unavailable.</p> : <>
+        <button onPointerDown={e => e.preventDefault()} disabled={blocked || !reversalView.canPreview} onClick={() => void reversal.current?.preview()}>Preview reversal</button>
+        {!blocked && reversalView.preview && <div aria-label="Reversal preview"><p>Native operation revision {reversalView.targetRevision} · {reversalView.preview.sheetID}, row {reversalView.preview.row + 1}, column {reversalView.preview.col + 1}</p>
+          <p>Current value: {String(reversalView.preview.after?.v ?? '(empty)')} → Previous value: {String(reversalView.preview.before?.v ?? '(empty)')}</p>
+          <button onPointerDown={e => e.preventDefault()} disabled={!reversalView.canConfirm} onClick={() => void reversal.current?.confirm()}>Confirm reversal</button></div>}
+      </>}
+      {!blocked && reversalView.canAbandon && <button onPointerDown={e => e.preventDefault()} onClick={() => void reversal.current?.abandon()}>Abandon unused preview</button>}
+      {reversalView.retainedID && <><p>Retained reversal: {reversalView.retainedID}. Unknown outcomes are never retried automatically.</p><button onPointerDown={e => e.preventDefault()} disabled={blocked || reversalView.active} onClick={() => void reversal.current?.check()}>Check reversal status</button></>}
+    </section>}
     {session.history && <details onToggle={event => { if (event.currentTarget.open && !blocked) void history.current?.read(); }}><summary onPointerDown={e => e.preventDefault()}>Native history (read-only)</summary>
       <p role="status">{historyView.message}</p>
       {!blocked && <><button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read()}>Refresh history</button>
@@ -211,5 +234,5 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         <button disabled={commentView.pending} onClick={() => { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Clear unsent comment draft</button>
         <p>Pending or refused comments retain this draft; no automatic retry. Body editing, resolution and manual deletion are not enabled.</p></>}
     </details>}
-    {hasRecovery && <button onClick={download}>Download retained recovery operations</button>}<div style={{ position: 'relative' }}><div ref={host} style={{ height: '75vh' }} inert={blocked || undefined}/>{blocked && <p>Editing paused. Keep this tab open while resolving access or pending work.</p>}</div></>;
+    {hasRecovery && <button onClick={download}>Download retained recovery operations</button>}<div style={{ position: 'relative' }}><div ref={host} style={{ height: '75vh' }} inert={blocked || reversalView.locked || undefined}/>{blocked && <p>Editing paused. Keep this tab open while resolving access or pending work.</p>}</div></>;
 }

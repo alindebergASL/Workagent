@@ -1,3 +1,4 @@
+import { NativeReversal } from './native-reversal.mjs';
 import { NativeHistory } from './native-history.mjs';
 import { NativeComments, ADD_COMMENT, DELETE_COMMENT, nativeCommentPolicy } from './native-comments.mjs';
 import { AsyncLocalStorage } from 'node:async_hooks';
@@ -76,19 +77,22 @@ export class NativeAuthority {
     for (const action of ['deleteUnits', 'recoverUnits']) service.use(action, async () => deny());
     service.use('submitChangeset', async (c, next) => {
       const session = this.submission(c);
-      await this.workspace.store.transaction(async s => {
+      const refusal = await this.workspace.store.transaction(async s => {
         this.check(s, c.userID, c.request.changeset.unitID, true, session);
+        const reason = await this.reversal?.validate(s,c,session); if (reason) return reason;
         this.bindSubmission(s, c, true);
         await nativeCommentPolicy(() => this.comments?.bind(s, c, session, true));
       });
+      if (refusal) throw new CollabError('PERMISSION_DENIED',refusal,{retryable:false});
       await next();
     });
     service.use('commitChangeset', async (c, next) => {
       const session = this.submission(c);
       this.validateChangeset(c.changeset);
       const commentView = this.comments?.needs(c.changeset) ? await this.comments.prepare(c.userID, c.changeset.unitID, session) : null;
-      await this.workspace.store.transaction(async s => {
+      const refusal = await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
+        const reason = await this.reversal?.validate(s,c,session,true); if (reason) return reason;
         this.bindSubmission(s, c);
         await nativeCommentPolicy(async () => {
           this.comments?.bind(s, c, session, false);
@@ -97,12 +101,16 @@ export class NativeAuthority {
         for (const p of c.requiredUnitPermissions) if (p.unitID !== c.changeset.unitID || !allowedNativeAction(access.role, p.action, !!this.comments)) deny();
         await next(); // Actual native database CAS/commit, not just admission.
       });
+      if (refusal) throw new CollabError('PERMISSION_DENIED',refusal,{retryable:false});
     });
     endpoint.use('connect', async (c, next) => {
       if (c.session.userID !== c.connection.customData.workagentPrincipal) deny();
       const unitID = this.unitID ?? c.connection.customData.workagentUnitID;
       const access = await this.checkNow(c.session.userID, unitID, false, c.connection.customData.workagentAccess);
-      const session = { userID: c.session.userID, unitID, revision: access.revision };
+      const action=c.connection.customData.workagentAction, ticketAction=c.session.customData?.workagentAction;
+      if (JSON.stringify(action)!==JSON.stringify(ticketAction)) deny();
+      const session = { userID: c.session.userID, unitID, revision: access.revision, binding:c.connection.customData.workagentBinding, ...(action?{action:action.id}:{}) };
+      if(action){if(!this.reversal)deny();await this.reversal.connect(c.session.userID,unitID,session,action,c.session.memberID);}
       this.sessions.set(c.session.memberID, session);
       c.connection.customData.workagentSession = session;
       c.member.name = c.connection.customData.workagentName;
@@ -158,10 +166,11 @@ export function guardedEndpoint(endpoint, authority, auth, origin) {
       validateNativeOrigin(c.incomingMessage, origin, true);
       const principal = auth.authenticate(c.incomingMessage), unitID = authority.unitID ?? c.incomingMessage.nativeUnitID;
       await authority.checkNow(principal, unitID, false, c.incomingMessage.nativeAccess);
+      if(c.incomingMessage.nativeAction){if(!authority.reversal)deny();await authority.reversal.action(principal,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);}
       const wrapped = new Map();
       const connection = original => {
         if (wrapped.has(original.id)) return wrapped.get(original.id);
-        const customData = { ...original.customData, workagentPrincipal: principal, workagentUnitID: unitID, workagentAccess: c.incomingMessage.nativeAccess, workagentName: auth.profile(principal).name };
+        const customData = { ...original.customData, workagentPrincipal: principal, workagentUnitID: unitID, workagentAccess: c.incomingMessage.nativeAccess, workagentName: auth.profile(principal).name, workagentBinding: c.incomingMessage.nativeBinding ?? auth.sessionBinding?.(c.incomingMessage), workagentAction:c.incomingMessage.nativeAction };
         const result = { id: original.id, customData, close: (...args) => original.close(...args), async send(data) {
           await fencedNativeSend({ authority, principal, session: customData.workagentSession, unitID, original, data,
             authenticate: () => { if (auth.authenticate(c.incomingMessage) !== principal) deny(); } });
@@ -193,14 +202,16 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
-  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); }
+  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); }
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });
   transport.use(async (c, next) => {
     if (stopping) { c.response.statusCode = 503; c.response.end(); return; }
     let finish; const done = new Promise(resolve => { finish = resolve; }); pending.add(done);
-    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); const unitID = authority.unitID ?? c.incomingMessage.nativeUnitID; await authority.checkNow(c.userID, unitID, false, c.incomingMessage.nativeAccess); await authority.scope.run({ unitID, session: c.incomingMessage.nativeAccess }, next); }
+    try { validateNativeOrigin(c.incomingMessage, origin); c.userID = auth.authenticate(c.incomingMessage); const unitID = authority.unitID ?? c.incomingMessage.nativeUnitID; await authority.checkNow(c.userID, unitID, false, c.incomingMessage.nativeAccess); if(c.incomingMessage.nativeAction){if(!authority.reversal)deny();await authority.reversal.action(c.userID,unitID,c.incomingMessage.nativeAccess,c.incomingMessage.nativeAction);}
+      c.customData={...c.customData,workagentAction:c.incomingMessage.nativeAction};
+      await authority.scope.run({ unitID, session: c.incomingMessage.nativeAccess, action:c.incomingMessage.nativeAction }, next); }
     catch { if (!c.response.writableEnded) { c.response.statusCode = 403; c.response.end(JSON.stringify({ error: 'native_access_denied' })); } }
     finally { pending.delete(done); finish(); }
   });

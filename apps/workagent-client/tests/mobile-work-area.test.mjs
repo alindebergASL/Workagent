@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration && path.includes('/native-reversal/')) return collaboration.reversalRequest(path,options);
     if (collaboration && path.includes('/native-history/')) return collaboration.historyRequest(path,options);
     if (collaboration && path.includes('/native-comments/')) return collaboration.commentsRequest(path,options);
     const value=collaboration && path.endsWith('/native-session') ? collaboration.session(path) : path.startsWith('/api/exchange/google/')?(googleEnabled?await handler(path,input,works):{enabled:false,label:'Simulated Google — local only',connection:{generation:0,account:null},accounts:[],receipts:[]}):path==='/api/session'?{principal:'owner',name:'Owner',owner:true,binding:'fixture-owner'}:path==='/api/work'?Object.values(works).map(({id,title,status})=>({id,title,status})):path==='/api/events'?{kind:'reset',cursor:0,events:[],works:[],snapshots:[]}:path.endsWith('/sharing')||input?await handler(path,input,works):works[path.split('/').at(-1)];
@@ -296,11 +297,11 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false, comments = false, history = false } = {}) {
+function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false } = {}) {
   const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
-  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, sessionPath: `/api/work/${unitID}/native-session` });
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
@@ -327,6 +328,7 @@ function nativeLifecycle({ offline = false, comments = false, history = false } 
     const membership = {getRoom:()=>roomExists?room:undefined,removeMember(_unit,id){memberMap.delete(id);},waitForRoom$(){return {subscribe(fn){roomWaiters.add(fn);if(roomExists)fn(room);return {unsubscribe(){roomWaiters.delete(fn);}};}};}};
     const cache = { loadOfflineData: async () => null, saveOfflineData: async () => true, clearOfflineData: async () => {}, updateOfflineData() {}, exhaustSavingTask: async () => { await entry.drain; } };
     return { univer: { __getInjector: () => ({ get: key => {
+      if(key==='revision')return {getCurrentRevOfUnit:()=>entry.head??2};
       if(key==='comment-source')return entry.commentSource;
       if(key==='user')return {setCurrentUser(){}};
       if(key==='collaboration-controller'||key===CollaborationController)return controller;
@@ -353,6 +355,7 @@ function nativeLifecycle({ offline = false, comments = false, history = false } 
     async poll(){for(const timer of [...timers.values()])await timer();},
     attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{events:new Map(),addEventListener(name,fn){this.events.set(name,fn);},removeEventListener(name){this.events.delete(name);}});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
     dependency(name){
+      if(name==='@univerjs-pro/collaboration')return {RevisionService:'revision'};
       if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands',IUndoRedoService:'undo'};
       if(name==='@univerjs/thread-comment')return {IThreadCommentDataSourceService:'comment-source'};
       if(name==='@univerjs/sheets')return {RefRangeService:'refs'};
@@ -625,4 +628,47 @@ test('history App: reader GET, obsolete unit response and epoch revocation canno
     native.sessions.get('B').access.revision=2;await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/Historical B/);assert.match(f.panel.text(),/History unavailable/);assert.equal(native.instances.length,2);assert.equal(native.peak,1);
     assert.ok(f.calls.filter(c=>c.path.includes('/native-history/')).every(c=>!c.input));
   }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('reversal App: own ACK enables explicit preview; new cell input prevents confirm without clearing comment/composer drafts',async()=>{
+ const native=nativeLifecycle({comments:true,reversal:true}),f=fixture(undefined,false,native);let prepared;
+ native.reversalRequest=async(path,options)=>{assert.equal(options.method,'POST');const input=JSON.parse(options.body);prepared={id:input.commandId,disposition:'unknown',actionPath:`/api/native/A/1/reversal/${input.commandId}/universer-api`,preview:{sheetID:'sheet-1',row:0,col:0,before:{v:3},after:{v:11}}};return {ok:true,json:async()=>prepared};};
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.message('root reversal draft');await f.open('A');const entry=native.instances[0];
+  const textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');textarea().props.onChange({target:{value:'comment stays byte-exact'}});await f.flush();
+  assert.equal(f.button('Preview reversal').props.disabled,true);
+  entry.cursor.next({eventID:'changeset_ack',data:{unitID:'A',type:2,revision:2,baseRev:1,userID:'owner',memberID:'self',sid:'app-ack',reqId:1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:'A',subUnitId:'sheet-1',cellValue:{0:{0:{v:11}}}})}]}});
+  await f.flush();await f.click('Preview reversal');assert.match(f.panel.text(),/Current value: 11/);assert.match(f.panel.text(),/Previous value: 3/);
+  entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm reversal').props.disabled,true);
+  f.button('Confirm reversal').props.onClick();await f.flush();assert.equal(f.calls.filter(c=>c.path.includes('/native-reversal/')).length,1);assert.equal(entry.editing,true);assert.equal(textarea().props.value,'comment stays byte-exact');assert.equal(entry.disposed,false);
+  await f.open('');assert.equal(entry.disposed,false);entry.editing=false;await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root reversal draft');assert.equal(entry.disposed,true);assert.equal(entry.commentListeners.size,0);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('reversal App: reader has no action control; obsolete epoch clears preview while retaining identity',async()=>{
+ const native=nativeLifecycle({reversal:true}),f=fixture(undefined,false,native);let resolve;
+ native.reversalRequest=()=>new Promise(r=>resolve=r);
+ for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};native.sessions.get('B').access.role='read';
+ try{
+  await f.flush();await f.open('A');native.instances[0].cursor.next({eventID:'changeset_ack',data:{unitID:'A',type:2,revision:2,baseRev:1,userID:'owner',memberID:'self',sid:'app-ack',reqId:1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:'A',subUnitId:'sheet-1',cellValue:{0:{0:{v:11}}}})}]}});await f.flush();
+  f.button('Preview reversal').props.onClick();await f.flush();native.sessions.get('A').access.revision=2;await native.poll();await f.flush();
+  resolve({ok:true,json:async()=>({id:'late',disposition:'unknown',preview:{after:{v:'STALE PREVIEW'}}})});await f.flush();assert.doesNotMatch(f.panel.text(),/STALE PREVIEW/);
+  await f.open('B');assert.match(f.panel.text(),/Read-only — reversal unavailable/);assert.throws(()=>f.button('Preview reversal'),/control missing/);assert.equal(f.calls.filter(c=>c.path.includes('/native-reversal/')).length,1);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('reversal App: explicit unused abandonment enables a distinct new ACK without remount or changing drafts',async()=>{
+ const native=nativeLifecycle({comments:true,reversal:true}),f=fixture(undefined,false,native);let prepared;const posts=[];
+ native.reversalRequest=async(path,options)=>{if(options.method==='POST'){posts.push(path);if(path.endsWith('/abandon'))prepared={...prepared,disposition:'rejected',reason:'native_reversal_abandoned_unused'};else{const input=JSON.parse(options.body);prepared={id:input.commandId,disposition:'unknown',actionPath:`/api/native/A/1/reversal/${input.commandId}/universer-api`,preview:{sheetID:'sheet-1',row:0,col:0,before:null,after:{v:11}}};}}return {ok:true,json:async()=>prepared};};
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.message('root abandonment draft');await f.open('A');const entry=native.instances[0],textarea=()=>f.find(n=>n.props['aria-label']==='Comment draft');textarea().props.onChange({target:{value:'comment abandonment draft'}});await f.flush();
+  const ack=revision=>entry.cursor.next({eventID:'changeset_ack',data:{unitID:'A',type:2,revision,baseRev:revision-1,userID:'owner',memberID:'self',sid:'app-abandon',reqId:revision-1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:'A',subUnitId:'sheet-1',cellValue:{0:{0:{v:revision*11}}}})}]}});
+  ack(2);await f.flush();await f.click('Preview reversal');const old=prepared.id;
+  entry.pending=true;await native.poll();await f.flush();entry.pending=false;entry.head=3;ack(3);await native.poll();await f.flush();assert.equal(f.button('Preview reversal').props.disabled,true);
+  await f.click('Check reversal status');assert.equal(f.button('Preview reversal').props.disabled,true);
+  // Cancellation itself must not blur or settle fresh cell input.
+  entry.editing=true;await f.click('Abandon unused preview');assert.equal(entry.editing,true);assert.equal(f.button('Preview reversal').props.disabled,true);entry.editing=false;await native.poll();await f.flush();
+  assert.equal(f.button('Preview reversal').props.disabled,false);await f.click('Preview reversal');assert.notEqual(prepared.id,old);assert.equal(posts.length,3);assert.ok(posts[1].endsWith('/abandon'));assert.equal(native.instances.length,1);assert.equal(entry.disposed,false);assert.equal(textarea().props.value,'comment abandonment draft');assert.equal(entry.nativeAdds.length,0);
+  await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root abandonment draft');
+ }finally{f.dispose();await new Promise(setImmediate);}
 });

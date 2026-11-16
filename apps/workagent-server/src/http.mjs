@@ -34,6 +34,12 @@ export function identity({ token, origin, owner, accounts = [] }) {
       }
       throw new Fault('access_denied', 401);
     },
+    sessionBinding(req) {
+      const principal=this.authenticate(req);
+      const bearer=/^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1];
+      const cookie=/(?:^|;\s*)workagent_session=([^;]+)/.exec(req.headers.cookie ?? '')?.[1];
+      return sign(`native-action.${principal}.${bearer ? 'bearer:'+bearer : 'cookie:'+cookie}`);
+    },
     profile(principal) { const a = registry.find(a => a.id === principal); return { principal, name: a.name, owner: principal === owner, binding: sign(`client-session.${a.id}.${a.token}`) }; },
     origin(req) { if (req.method !== 'GET' && req.headers.origin !== origin) throw new Fault('origin_denied', 403); },
   };
@@ -101,6 +107,17 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
       const nativeWork = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-session$/.exec(path);
       if (nativeWork && req.method === 'GET') { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeSession(native, auth, principal, nativeWork[1], send); }
+      const reversal = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-reversal\/([1-9][0-9]*)(?:\/([a-zA-Z0-9_-]+)(\/abandon)?)?$/.exec(path);
+      if (reversal) {
+        if (!native?.authority.reversal) throw new Fault('native_reversal_disabled',409);
+        const [,unitID,epoch,intentID,abandon]=reversal, session={userID:principal,unitID,revision:Number(epoch)};
+        if (!Number.isSafeInteger(session.revision)) throw new Fault('invalid_native_reversal_epoch',400);
+        const binding=auth.sessionBinding(req);
+        if (req.method==='POST'&&!intentID) return await native.authority.reversal.prepare(principal,unitID,session,binding,await body(req),value=>send(200,value));
+        if (req.method==='POST'&&intentID&&abandon) return await native.authority.reversal.abandon(principal,unitID,session,binding,intentID,value=>send(200,value));
+        if (req.method==='GET'&&intentID&&!abandon) return await native.authority.reversal.receipt(principal,unitID,session,binding,intentID,value=>send(200,value));
+        throw new Fault('native_reversal_operation_unavailable',405);
+      }
       const nativeHistory = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-history\/([1-9][0-9]*)$/.exec(path);
       if (nativeHistory) {
         if (!native?.authority.history) throw new Fault('native_history_disabled', 409);

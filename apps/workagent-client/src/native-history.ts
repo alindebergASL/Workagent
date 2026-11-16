@@ -29,7 +29,7 @@ export function nativeHistory(session: { unitID: string; binding: string; access
       if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'History unavailable — access changed.' : 'History read failed. Try again explicitly.');
       const data = await response.json();
       if (disposed || current !== generation) return;
-      view = query.startsWith('?revision=') ? { ...view, preview: data, message: `Read-only preview of revision ${data.revision}. Live sheet unchanged.` } : { ...data, message: 'Native history · read-only. Undo and restore are not enabled.' };
+      view = query.startsWith('?revision=') ? { ...view, preview: data, message: `Read-only preview of revision ${data.revision}. Live sheet unchanged.` } : { ...data, message: 'Native history · read-only. Sheet Undo and whole-artifact restore remain unavailable; explicit operation reversal is separate.' };
       changed(view);
     } catch (error) {
       if (!disposed && current === generation) { view = { entries: [], message: error instanceof Error ? error.message : 'History unavailable.' }; changed(view); }

@@ -436,13 +436,42 @@ composer coverage is App tests only.390px is not a physical phone. Harness focus
 access-epoch, fetch-capture/readiness corrections remain in evidence, not extra
 passes. No product inference, default merge, main installation or public deployment.
 
-Full B05 remains open: expanded native surface, same-cell conflicts, durable
+Explicit scalar operation reversal is now qualified on private QA26f8d832e5a9,
+not installed in main. Preview/Confirm reverses only the current session's latest
+acknowledged one-cell scalar operation, using a distinct legitimate licensed action
+connection and server commit-time principal/intent/epoch/head fences. Standard
+native Undo/Redo remains contained. This is not general account undo, arbitrary
+batch/formula reversal or whole-artifact restore-as-new-revision. Retained unknown
+identities reserve their original target and recover by explicit GET only, never
+replay. Explicit abandonment applies only to an unused preview whose executor was
+never admitted; disconnected/admitted or uncertain submissions cannot be abandoned.
+
+SAME Astra review closed retained-target bypass and unused-preview lockout. Parent
+348/348 serial tests, typecheck, production cookie-authenticated HTTP/WS and actual
+client helper/action-adapter probes pass. Restricted PostgreSQL + native SQLite
+reopen preserved committed/unknown/abandoned receipts, identities and content with
+no resubmission. Exact-source build contains217 sources/80 artifacts. An unchanged
+shutdown watchdog failed once; isolated3/3 and the full unchanged rerun passed.
+Resource contention is a hypothesis, not an established root cause.
+
+Seventeen scoped browser stages pass: both humans/native head converge after
+reversal; cell input and comment drafts survive; abandon/new-operation recovery,
+hidden response/cold remount GET-only, peer revision invalidation/commit race,
+disconnect/server-restart receipt recovery, reader/revoke/regrant, contained native
+Undo/Redo,390px preview/confirm, ordinary sheet undo/redo/save and retirement.
+Protected C/B/root drafts and unknown identities remain; new native sockets end
+at0. At most3 editing connections were used; over-capacity refusal was not live
+exercised. Automatic human reconnect latency remains unbounded.390px emulation is
+not physical-phone evidence. No product inference, main installation, default
+merge or public deployment.
+
+Full B05 remains open: expanded native surface and conflict coverage, durable
 browser-crash recovery, richer comment editing/resolution and text/object anchors,
-safe individual/account undo and restore-as-new-revision, safe agent proposals and
-two-human usability. Exact committed/batched request binding, commit-head/CAS
-fencing and recovery must be proved before undo is enabled. A restore mutation
-export alone is not proof of a new native revision. No existing human Sheet
-conversion or native export/model bridge.
+broader individual/account undo and whole-artifact restore-as-new-revision, safe
+agent proposals and two-human usability. Next is the bounded agent proposal
+integration; native reversal does not by itself qualify agent authority or stale
+proposal protection. No existing human Sheet conversion or native export/model
+bridge is claimed.
 
 ### B06 — Boards, editable decks and multilingual dictation
 
