@@ -177,3 +177,67 @@ test('SDK compressed empty unmerge companion commits; unsafe style maps and comp
   const after=await nativeData(f),expected=structuredClone(before);expected.sheets['sheet-1'].mergeData=[];assert.deepEqual(after.sheets,expected.sheets);assert.deepEqual(after.resources,before.resources);assert.deepEqual(after.styles,before.styles);
  }finally{compressor.interceptor.dispose();await f.service.dispose();}
 });
+
+import {fixture as localFixture} from './native-comments-sdk.test.mjs';
+import {AddWorksheetMergeHorizontalCommand as Horizontal,AddWorksheetMergeVerticalCommand as Vertical,RemoveWorksheetMergeCommand,SheetsSelectionsService} from '@univerjs/sheets';
+import {IUniverInstanceService} from '@univerjs/core';
+import {guardNativeMerge} from '../../workagent-client/src/native-merge.ts';
+test('strip toolbar public SEND/service/APPLY roundtrip preserves per-strip anchors, resources and historical merges',async()=>{
+ for(const horizontal of [true,false]){
+  const f=await fixture(),compressor=new CompressMutationService();let a,b,g;
+  try{
+   await f.submit([['sheet.mutation.set-range-values',{cellValue:horizontal?{0:{0:{v:11}},1:{0:{v:22}}}:{0:{0:{v:11},1:{v:22},2:{v:33}}}}]]);
+   const comment=await f.claim();assert.equal((await f.submit([[ADD_COMMENT,{comment}]] )).status,'committed');
+   const before=await nativeData(f),claims=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);a=localFixture(before);b=localFixture(before);
+   const i=a.univer.__getInjector(),instances=i.get(IUniverInstanceService),selections=i.get(SheetsSelectionsService),r=deserializeRangeWithSheet('A1:C2').range;instances.focusUnit(UNIT);
+   const select=()=>selections.setSelections(UNIT,'sheet-1',[{range:r,primary:null,style:null}]);select();g=guardNativeMerge(UNIT,a.commands,a.save,()=>selections.getCurrentSelections().map(x=>x.range),()=>true,()=>{});
+   const roundtrip=async id=>{const start=a.emitted.length;assert.equal(await a.commands.executeCommand(id),true);const points=compressor.interceptor.getInterceptPoints(),send=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_SEND)(structuredClone(a.emitted.slice(start)),instances);
+    const result=await f.submit(send.map(m=>[m.id,m.params]));assert.equal(result.status,'committed',JSON.stringify(result));
+    const applied=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_APPLY)(result.changeset.mutations.map(m=>({id:m.id,params:JSON.parse(m.data)})),b.univer.__getInjector().get(IUniverInstanceService));
+    for(const m of applied)assert.equal(b.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+    assert.deepEqual(a.save().sheets,b.save().sheets);assert.deepEqual((await nativeData(f)).sheets,a.save().sheets);return f.head;};
+   const merged=await roundtrip((horizontal?Horizontal:Vertical).id);const ranges=a.save().sheets['sheet-1'].mergeData;assert.equal(ranges.length,horizontal?2:3);select();await roundtrip(RemoveWorksheetMergeCommand.id);
+   const after=await nativeData(f);assert.deepEqual(after.sheets,before.sheets);assert.deepEqual(after.resources,before.resources);assert.deepEqual(after.styles,before.styles);assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);
+   const load=await f.service.getUnitLoadDataWithBlocks({unitID:UNIT,type:2,revision:merged},{userID:'owner'}),m=new UnitSnapshotMaterializer({execution:{mode:'in-process'}});try{const x=await m.materializeSnapshot(load);assert.deepEqual((await transformSnapshotToWorkbookData(x.snapshot,[...x.sheetBlocks])).sheets['sheet-1'].mergeData,ranges);}finally{await m.dispose();}
+  }finally{g?.dispose();a?.dispose();b?.dispose();compressor.interceptor.dispose();await f.service.dispose();}
+ }
+});
+
+import {validateMerge} from '../src/native-merge.mjs';
+const strips=[{startRow:0,endRow:0,startColumn:0,endColumn:2},{startRow:1,endRow:1,startColumn:0,endColumn:2}];
+test('raw strip geometry/content bypasses refuse atomically and validation bounds full tiling and companions',async()=>{
+ const f=await fixture();try{const before=await nativeData(f),head=f.head;
+  const bad=[[],[strips[0],strips[0]],[strips[0],{...strips[1],startRow:2,endRow:2}],[strips[0],{...strips[1],endColumn:1}],[strips[0],{startRow:1,endRow:2,startColumn:0,endColumn:0}],[{...strips[0],endRow:1},strips[1]],[strips[0],{...strips[1],startAbsoluteRefType:99}]];
+  for(const ranges of bad){const result=await f.submit([[MERGE,{ranges}]]);assert.equal(result.status,'rejected',JSON.stringify(ranges));assert.equal(result.error.retryable,false);assert.equal(f.head,head);}
+  assert.deepEqual(await nativeData(f),before);
+  const large=structuredClone(before);large.sheets['sheet-1'].rowCount=200;large.sheets['sheet-1'].columnCount=200;
+  const mutations=(id,ranges,extra=[])=>[{id,data:JSON.stringify({unitId:UNIT,subUnitId:'sheet-1',ranges})},...extra];
+  const maximum=Array.from({length:64},(_,row)=>({startRow:row,endRow:row,startColumn:0,endColumn:63}));assert.doesNotThrow(()=>validateMerge(large,mutations(MERGE,maximum)));
+  assert.throws(()=>validateMerge(large,mutations(MERGE,[...maximum,{startRow:64,endRow:64,startColumn:0,endColumn:63}])));assert.throws(()=>validateMerge(large,mutations(MERGE,maximum.map(r=>({...r,endColumn:64})))));
+  for(const cell of [{v:0},{v:''},{f:'=1'},{p:{body:{dataStream:'Rich\r\n'}}},{si:'shared'},{ft:1},{fd:'source'}]){const data=structuredClone(before);data.sheets['sheet-1'].cellData={1:{1:cell}};assert.throws(()=>validateMerge(data,mutations(MERGE,strips)));}
+  // Formatting of merge anchors and covered empty cells is preserved by merge;
+  // unsafe unmerge companions cannot change it, even when called raw.
+  const styled=structuredClone(before);styled.sheets['sheet-1'].cellData={0:{0:{v:11,s:{bl:1}},1:{s:{bl:1}},2:{s:{bl:1}}},1:{0:{v:22,s:{it:1}},1:{s:{it:1}},2:{s:{it:1}}}};assert.doesNotThrow(()=>validateMerge(styled,mutations(MERGE,strips)));
+  assert.equal((await f.submit([[MERGE,{ranges:strips}]] )).status,'committed');const merged=await nativeData(f),mergedHead=f.head;
+  for(const ranges of [[{startRow:0,endRow:1,startColumn:0,endColumn:2}],[strips[0],strips[0]],[strips[0],{...strips[1],endColumn:3}]])assert.equal((await f.submit([[UNMERGE,{ranges}]])).status,'rejected');
+  for(const q of [{cellValue:{1:{1:{v:99}}}},{cellValue:{9:{9:{s:null}}}},{cellValue:{},styleRefMap:{'0':{bl:1}}}])assert.equal((await f.submit([[UNMERGE,{ranges:strips}],['sheet.mutation.set-range-values',q]])).status,'rejected');
+  assert.equal(f.head,mergedHead);assert.deepEqual(await nativeData(f),merged);
+ }finally{await f.service.dispose();}
+});
+test('strip actual commit fence rechecks peer content/overlap/head and reader epoch after admission',async()=>{
+ for(const change of ['content','overlap','disjoint','reader']){
+  const f=await fixture();let release,reached,held=false;const gate=new Promise(r=>release=r),entered=new Promise(r=>reached=r);f.authority.sessions.set('p',{userID:'peer',unitID:UNIT,revision:1,binding:'binding'});
+  f.service.use('submitChangeset',async(c,next)=>{if(!held&&c.request.changeset.memberID==='p'){held=true;reached();await gate;}await next();});
+  try{const pending=f.submitAs('peer','p',[[MERGE,{ranges:strips}]]);await entered;
+   if(change==='reader')await f.workspace.share('owner',UNIT,{commandId:'strip-reader',peer:'peer',role:'read',accessRevision:1});
+   else assert.equal((await f.submit(change==='overlap'?[[MERGE,{ranges:[strips[1]]}]]:[['sheet.mutation.set-range-values',{cellValue:{1:{[change==='disjoint'?9:1]:{v:99}}}}]])).status,'committed');
+   const before=await nativeData(f),head=f.head;release();const result=await pending;assert.equal(result.status,'rejected');assert.equal(result.error.retryable,false);assert.equal(f.head,head);assert.deepEqual(await nativeData(f),before);
+  }finally{release();await f.service.dispose();}
+ }
+});
+test('raw strips cannot cover committed comment anchors or mix unrelated changes',async()=>{
+ const f=await fixture();try{const comment=await f.claim();assert.equal((await f.submit([[ADD_COMMENT,{comment}]])).status,'committed');const before=await nativeData(f),head=f.head,claims=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);
+ const covered=[{startRow:7,endRow:7,startColumn:7,endColumn:8},{startRow:8,endRow:8,startColumn:7,endColumn:8}];
+ for(const batch of [[[MERGE,{ranges:covered}]],[[MERGE,{ranges:strips}],['sheet.mutation.set-range-values',{cellValue:{0:{9:{v:22}}}}]],[[MERGE,{ranges:strips}],[MERGE,{ranges:[{startRow:4,endRow:4,startColumn:0,endColumn:1}]}]]]){assert.equal((await f.submit(batch)).status,'rejected');assert.equal(f.head,head);assert.deepEqual(await nativeData(f),before);assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);}
+ }finally{await f.service.dispose();}
+});

@@ -60,3 +60,42 @@ test('public reference flag variants pass unchanged; malformed metadata refuses 
   }
  }finally{g.dispose();f.dispose();}
 });
+
+import {AddWorksheetMergeHorizontalCommand as Horizontal,AddWorksheetMergeVerticalCommand as Vertical} from '@univerjs/sheets';
+test('public horizontal/vertical toolbar preserves distinct strip anchors and unmerges exact rectangle atomically',async()=>{
+ for(const horizontal of [true,false]){
+  const data=blank(),r=deserializeRangeWithSheet('A1:C2').range;data.sheets['sheet-1'].cellData=horizontal?{0:{0:{v:11}},1:{0:{v:22}}}:{0:{0:{v:11},1:{v:22},2:{v:33}}};
+  const f=fixture(data),i=f.univer.__getInjector(),selections=i.get(SheetsSelectionsService);i.get(IUniverInstanceService).focusUnit(f.unitID);
+  const select=()=>selections.setSelections(f.unitID,'sheet-1',[{range:r,primary:{...r,actualRow:0,actualColumn:0,isMerged:false,isMergedMainCell:false},style:null}]);select();
+  const g=guardNativeMerge(f.unitID,f.commands,f.save,()=>selections.getCurrentSelections().map(s=>s.range),()=>true,()=>{});
+  try{const before=f.save().sheets['sheet-1'].cellData;assert.equal(await f.commands.executeCommand((horizontal?Horizontal:Vertical).id),true);
+   assert.equal(f.save().sheets['sheet-1'].mergeData.length,horizontal?2:3);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before);
+   select();assert.equal(await f.commands.executeCommand(Remove.id),true);assert.deepEqual(f.save().sheets['sheet-1'].mergeData,[]);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before);
+  }finally{g.dispose();f.dispose();}
+ }
+});
+
+import {Dimension} from '@univerjs/core';
+test('strip guard rejects lossy content, comments, overlap, unsupported geometry and formatting before primitive writes',async()=>{
+ for(const content of [{v:22},{v:''},{f:'=1'},{si:'shared'},{p:{body:{dataStream:'Text\r\n'}}},{ft:1},{fd:'formula'}]){
+  const data=blank();data.sheets['sheet-1'].cellData={1:{1:content}};const f=fixture(data),g=guardNativeMerge(f.unitID,f.commands,f.save,()=>[],()=>true,()=>{});
+  try{const before=f.save();assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[{startRow:0,endRow:1,startColumn:0,endColumn:2}],value:Dimension.ROWS,defaultMerge:true}),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,0);}finally{g.dispose();f.dispose();}
+ }
+ const data=blank();data.sheets['sheet-1'].rowCount=200;data.sheets['sheet-1'].columnCount=200;const f=fixture(data);await add(f,'root','owner');const g=guardNativeMerge(f.unitID,f.commands,f.save,()=>[],()=>true,()=>{});
+ try{const r={startRow:0,endRow:1,startColumn:0,endColumn:2};
+  const bad=[{selections:[r,r],value:Dimension.ROWS},{selections:[{...r,endRow:64}],value:Dimension.ROWS},{selections:[{...r,endColumn:64}],value:Dimension.COLUMNS},{selections:[{...r,endRow:63,endColumn:64}],value:Dimension.ROWS},{selections:[{...r,startRow:7,endRow:8,startColumn:7,endColumn:8}],value:Dimension.ROWS},{selections:[{...r,extra:1}],value:Dimension.ROWS},{selections:[r],value:'ROWS'},{selections:[{...r,endRow:0}],value:Dimension.COLUMNS}];
+  for(const params of bad){const before=f.save(),count=f.emitted.length;assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',...params,defaultMerge:true}),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,count);}
+  assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r],value:Dimension.ROWS}),true);const before=f.save(),count=f.emitted.length;
+  for(const ranges of [[{...r,endColumn:1}],[{...r,endRow:2}],[r,r]]){assert.equal(await f.commands.executeCommand(Remove.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges}),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,count);}
+  assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r],value:Dimension.COLUMNS}),false);assert.deepEqual(f.save(),before);
+ }finally{g.dispose();f.dispose();}
+ const styled=blank();styled.sheets['sheet-1'].mergeData=[{startRow:0,endRow:0,startColumn:0,endColumn:1},{startRow:1,endRow:1,startColumn:0,endColumn:1}];styled.sheets['sheet-1'].cellData={0:{0:{v:11,s:{bl:1}},1:{s:{bl:1}}},1:{0:{v:22,s:{it:1}},1:{s:{it:1}}}};
+ const s=fixture(styled),guard=guardNativeMerge(s.unitID,s.commands,s.save,()=>[],()=>true,()=>{});try{const before=s.save();assert.equal(await s.commands.executeCommand(Remove.id,{unitId:s.unitID,subUnitId:'sheet-1',ranges:[{startRow:0,endRow:1,startColumn:0,endColumn:1}]}),false);assert.deepEqual(s.save(),before);assert.equal(s.emitted.length,0);}finally{guard.dispose();s.dispose();}
+});
+test('strip merge retains anchor formula/rich text and all styles; current write/input gate still refuses variants',async()=>{
+ const data=blank();data.sheets['sheet-1'].cellData={0:{0:{v:11,f:'=1+10',s:{bl:1}},1:{s:{it:1}}},1:{0:{p:{body:{dataStream:'Rich\r\n'}},s:{bg:{rgb:'#abcdef'}}},1:{s:{bl:1}}}};
+ const f=fixture(data);let allowed=false;const g=guardNativeMerge(f.unitID,f.commands,f.save,()=>[],()=>allowed,()=>{});
+ try{const before=f.save(),params={unitId:f.unitID,subUnitId:'sheet-1',selections:[{startRow:0,endRow:1,startColumn:0,endColumn:1}],value:Dimension.ROWS};assert.equal(await f.commands.executeCommand(Add.id,params),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,0);allowed=true;
+ assert.equal(await f.commands.executeCommand(Add.id,params),true);assert.equal(f.emitted.length,1);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before.sheets['sheet-1'].cellData);assert.deepEqual(f.save().styles,before.styles);
+ }finally{g.dispose();f.dispose();}
+});

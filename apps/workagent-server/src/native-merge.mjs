@@ -18,22 +18,35 @@ const referenceTypes=[AbsoluteRefType.NONE,AbsoluteRefType.ROW,AbsoluteRefType.C
 // Public IRange metadata is preserved, including the name-box parser's flags.
 const rangeMetadata=r=>r&&typeof r==='object'&&!Array.isArray(r)&&Object.keys(r).every(k=>keys.includes(k)||k==='rangeType'||referenceKeys.includes(k))&&referenceKeys.every(k=>r[k]===undefined||referenceTypes.includes(r[k]));
 export function mergeRange(r,sheet){if(!rangeMetadata(r)||r.rangeType!==undefined&&r.rangeType!==0||keys.some(k=>!Number.isSafeInteger(r[k])||r[k]<0)||r.endRow<r.startRow||r.endColumn<r.startColumn||r.endRow>=sheet.rowCount||r.endColumn>=sheet.columnCount||(r.endRow-r.startRow+1)*(r.endColumn-r.startColumn+1)>4096||(r.startRow===r.endRow&&r.startColumn===r.endColumn))refuse();}
+// One rectangle, either merged whole or completely tiled by single-row/column
+// strips. Sorting is validation only; native payload/metadata is never rewritten.
+export function mergeRanges(ranges,sheet){
+ if(!Array.isArray(ranges)||!ranges.length||ranges.length>64)refuse();
+ for(const r of ranges)mergeRange(r,sheet);
+ if(ranges.length===1)return ranges[0];
+ const horizontal=ranges.every(r=>r.startRow===r.endRow),ordered=[...ranges].sort((a,b)=>horizontal?a.startRow-b.startRow:a.startColumn-b.startColumn),first=ordered[0];
+ if(!ordered.every((r,n)=>horizontal?r.startRow===first.startRow+n&&r.startColumn===first.startColumn&&r.endColumn===first.endColumn:r.startColumn===r.endColumn&&r.startColumn===first.startColumn+n&&r.startRow===first.startRow&&r.endRow===first.endRow))refuse();
+ const last=ordered.at(-1),bound={startRow:first.startRow,endRow:last.endRow,startColumn:first.startColumn,endColumn:last.endColumn};mergeRange(bound,sheet);return bound;
+}
 function roots(data){const resource=data.resources?.find(r=>r.name==='SHEET_UNIVER_THREAD_COMMENT_PLUGIN');return resource?JSON.parse(resource.data)['sheet-1']??[]:[];}
 export function validateMerge(data,mutations){
  const sheet=data.sheets['sheet-1'];if(!sheet)refuse();const list=mutations.map(m=>({id:m.id,p:JSON.parse(m.data)})),operations=list.filter(m=>[MERGE,UNMERGE].includes(m.id));
- if(operations.length!==1)refuse();const {id,p}=operations[0];if(Object.keys(p).some(k=>!['unitId','subUnitId','ranges','trigger'].includes(k))||p.unitId!==data.id||p.subUnitId!=='sheet-1'||!Array.isArray(p.ranges)||p.ranges.length!==1)refuse();const r=p.ranges[0];mergeRange(r,sheet);
+ if(operations.length!==1)refuse();const {id,p}=operations[0];if(Object.keys(p).some(k=>!['unitId','subUnitId','ranges','trigger'].includes(k))||p.unitId!==data.id||p.subUnitId!=='sheet-1'||!Array.isArray(p.ranges))refuse();const bound=mergeRanges(p.ranges,sheet);
  if(id===MERGE&&list.length!==1||id===UNMERGE&&(list[0].id!==UNMERGE||list.length>2||list[1]&&list[1].id!==VALUES))refuse();
- if(id===MERGE&&(sheet.mergeData??[]).some(m=>intersects(m,r)))refuse();if(id===UNMERGE&&!(sheet.mergeData??[]).some(m=>keys.every(k=>m[k]===r[k])))refuse();
- for(const root of roots(data)){const match=/^([A-Z]+)([1-9][0-9]*)$/.exec(root.ref);if(!match)refuse();let col=0;for(const c of match[1])col=col*26+c.charCodeAt(0)-64;if(contains(r,Number(match[2])-1,col-1))refuse();}
- const style=c=>typeof c?.s==='string'?data.styles?.[c.s]??null:c?.s??null,anchorStyle=style(sheet.cellData?.[r.startRow]?.[r.startColumn]);
+ if(id===MERGE&&(sheet.mergeData??[]).some(m=>intersects(m,bound)))refuse();
+ if(id===UNMERGE&&(p.ranges.some(r=>!(sheet.mergeData??[]).some(m=>keys.every(k=>m[k]===r[k])))||(sheet.mergeData??[]).some(m=>intersects(m,bound)&&!p.ranges.some(r=>keys.every(k=>m[k]===r[k])))))refuse();
+ for(const root of roots(data)){const match=/^([A-Z]+)([1-9][0-9]*)$/.exec(root.ref);if(!match)refuse();let col=0;for(const c of match[1])col=col*26+c.charCodeAt(0)-64;if(contains(bound,Number(match[2])-1,col-1))refuse();}
+ const style=c=>typeof c?.s==='string'?data.styles?.[c.s]??null:c?.s??null;
+ for(const r of p.ranges){const anchorStyle=style(sheet.cellData?.[r.startRow]?.[r.startColumn]);
  for(let row=r.startRow;row<=r.endRow;row++)for(let col=r.startColumn;col<=r.endColumn;col++){
   const cell=sheet.cellData?.[row]?.[col];if(row===r.startRow&&col===r.startColumn)continue;
   if(id===MERGE&&['v','f','si','p','ft','fd'].some(k=>cell?.[k]!=null))refuse();
   if(id===UNMERGE&&!isDeepStrictEqual(style(cell),anchorStyle))refuse();
  }
+ }
  // Native transport compression emits {} even for empty cellValue. Only this
  // no-op map is qualified; never resolve new style references here.
- if(list[1]){const q=list[1].p;if(q.unitId!==data.id||q.subUnitId!=='sheet-1'||Object.keys(q).some(k=>!['unitId','subUnitId','cellValue','trigger','styleRefMap'].includes(k))||('styleRefMap' in q&&(!plainObject(q.styleRefMap)||Object.keys(q.styleRefMap).length!==0))||!plainObject(q.cellValue))refuse();for(const [row,cols]of Object.entries(q.cellValue)){if(!/^(0|[1-9][0-9]*)$/.test(row)||!plainObject(cols))refuse();for(const [col,cell]of Object.entries(cols)){if(!/^(0|[1-9][0-9]*)$/.test(col)||!contains(r,+row,+col)||!plainObject(cell)||Object.keys(cell).some(k=>k!=='s')||!isDeepStrictEqual(style(cell),style(sheet.cellData?.[row]?.[col])))refuse();}}}
+ if(list[1]){const q=list[1].p;if(q.unitId!==data.id||q.subUnitId!=='sheet-1'||Object.keys(q).some(k=>!['unitId','subUnitId','cellValue','trigger','styleRefMap'].includes(k))||('styleRefMap' in q&&(!plainObject(q.styleRefMap)||Object.keys(q.styleRefMap).length!==0))||!plainObject(q.cellValue))refuse();for(const [row,cols]of Object.entries(q.cellValue)){if(!/^(0|[1-9][0-9]*)$/.test(row)||!plainObject(cols))refuse();for(const [col,cell]of Object.entries(cols)){if(!/^(0|[1-9][0-9]*)$/.test(col)||!contains(bound,+row,+col)||!plainObject(cell)||Object.keys(cell).some(k=>k!=='s')||!isDeepStrictEqual(style(cell),style(sheet.cellData?.[row]?.[col])))refuse();}}}
 }
 // Validation-only range projection uses the pinned public SDK transformation.
 // Nothing is written here; the native service alone transforms/commits content.
