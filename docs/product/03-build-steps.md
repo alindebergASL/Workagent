@@ -727,6 +727,38 @@ broader-than-scalar agent acceptance and physical-phone/two-human usability. Exi
 human Sheet conversion and native export remain unclaimed. Next is bounded
 restore-as-new-revision through public native mechanisms, preserving the full backlog.
 
+### B05 continuation — authority status and exhausted socket recovery
+
+Qualified on private QA `285a8eac51c5`, not installed in main (`0fd532a`).
+Authority reachability is separate from SDK connectivity: a healthy matching poll
+recomputes status but cannot clear loading, failure, pending, conflict or revocation.
+The public SDK reconnect method is invoked only after retry exhaustion, a loaded
+OFFLINE session and fresh matching authority. Recovery consumes each exhaustion
+once, with a 60-second minimum between cycles; the SDK retains its own backoff,
+session/cache, request identities, licensing and serialized connection creation.
+No app-level content replay, fabricated ONLINE state or editor replacement is used.
+
+SAME independent review passed. Parent93 focused tests/types/diff and the guarded
+242-source/80-artifact build passed. Inert public-SDK tests prove local API behavior,
+not licensed admission. Actual two-browser testing covered two service outages
+exceeding150 seconds: clean automatic reconnect with zero native writes, then
+pending-operation recovery preserving the original SID/reqId and exactly one ACK.
+Drafts survived both mounted-session outages. Native edits after reconnect,390px
+layout, old-epoch denial, cold reader refusal and revocation also passed. Final
+native head6/epoch4 contains five acknowledged operation identities; max2/final0
+open native connections,0 jobs/provider journal, actual process key/gates absent.
+The browser ledger retains10 PASS and1 harness correction: an old default epoch
+was used after sharing advanced authority. SAME reviewer approved current-epoch
+readback plus explicit old-epoch403; no action was replayed or failed row removed.
+
+Earlier stale-label and failed automatic-socket-recovery runs remain evidence.
+Build72423db3e45e hit the unchanged headroom guard; owned idle zero-job QA services
+43092/43093/43095 were paused with exact PostgreSQL state and SQLite files retained.
+The successful retry and later corrected build kept the same resource limits.
+Main/runtime.env/default/public remain unchanged. These tests do not establish all
+network-failure modes, crash/reload draft persistence, physical-phone behavior,
+capacity refusal or completion of the wider B05 backlog.
+
 ### B06 — Boards, editable decks and multilingual dictation
 
 **Scope:** P03/P04/P16. **Depends on:** native editor/asset/selection boundaries and B05 for collaborative claims. Dictation depends on a legitimate input engine and microphone permission, not narration or partner agreements.

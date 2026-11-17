@@ -15,7 +15,7 @@ import { blankDocument } from '../../../packages/workagent-contract/document.mjs
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
 import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
 import { BehaviorSubject, Subject, NEVER } from 'rxjs';
-import { SessionStatus, CollaborationController, DataLoaderService } from '@univerjs-pro/collaboration-client';
+import { SessionStatus, CollaborationController, DataLoaderService, CollaborationUIEventService, CollaborationUIEventId } from '@univerjs-pro/collaboration-client';
 import { CollaborationEvent } from '@univerjs-pro/collaboration';
 import { serializeRangeWithSheet } from '@univerjs/engine-formula';
 import { SheetPasteShortKeyCommand } from '@univerjs/sheets-ui';
@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration?.authorityRequest && path.endsWith('/native-session')) return collaboration.authorityRequest(path,options);
     if (collaboration && path.includes('/native-scalar-restore/')) return collaboration.restoreRequest(path,options);
     if (collaboration && path.includes('/native-agent-acceptance/')) return collaboration.acceptanceRequest(path,options);
     if (collaboration && path.includes('/native-agent/')) return collaboration.agentRequest(path,options);
@@ -301,7 +302,7 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false, agent = false, acceptance = false, restore = false } = {}) {
+function nativeLifecycle({ loadGate, offline = false, comments = false, history = false, reversal = false, agent = false, acceptance = false, restore = false } = {}) {
   const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
@@ -309,6 +310,8 @@ function nativeLifecycle({ offline = false, comments = false, history = false, r
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
+    entry.uiEvents = new CollaborationUIEventService(); entry.reconnects = 0;
+    entry.sessionService = {socket$:NEVER,reconnect(){entry.reconnects++;}};
     entry.cursor = new Subject(); entry.scrolls = []; entry.watches = new Set(); entry.facadeEvents = new Map(); entry.editing = false;
     entry.commentSource={dataSource:null,syncUpdateMutationToColla:true};entry.commentListeners=new Set();entry.nativeAdds=[];entry.anchor='H9';
     entry.commands = options.override[0][1].useFactory({createInstance:()=>({
@@ -324,7 +327,7 @@ function nativeLifecycle({ offline = false, comments = false, history = false, r
     const stream = name => ({subscribe(fn){entry.events.set(name,fn);return {unsubscribe(){entry.events.delete(name);}};}});
     const entity = {session,state:{status:'synced'},status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
     const controller = {getCollabEntity:id=>entry.unitID===id?entity:null,getCollabEntity$:()=>entityInit,hasWritePending:()=>entry.pending,readyForCollab:async id=>{assert.equal(id,entry.unitID);}};
-    const loader = {loadUnit:async unitID=>{entry.unitID=unitID;if(!offline)entry.join();entityInit.next(entity);return {};}};
+    const loader = {loadUnit:async unitID=>{entry.unitID=unitID;await loadGate;if(!offline)entry.join();entityInit.next(entity);return {};}};
     let roomExists = !offline;
     const roomWaiters = new Set(), memberMap = new Map();
     const room = {getAllMembers:()=>[...memberMap.values()],members$:{subscribe(callback){entry.members=list=>callback(new Map(list.map(m=>[m.memberID,m])));callback(new Map(memberMap));return {unsubscribe(){entry.members=null;entry.membershipDisposed++;}};}}};
@@ -338,7 +341,8 @@ function nativeLifecycle({ offline = false, comments = false, history = false, r
       if(key==='collaboration-controller'||key===CollaborationController)return controller;
       if(key===DataLoaderService)return loader;
       if(key==='members')return membership;
-      if(key==='collaboration-sessions')return {socket$:NEVER};
+      if(key==='collaboration-sessions')return entry.sessionService;
+      if(key==='collaboration-ui-events')return entry.uiEvents;
       if(key==='instances')return {getFocusedUnit:()=>({getUnitId:()=>entry.unitID}),getUnit:()=>({getSheetBySheetId:id=>id==='s'?{getRowCount:()=>100,getColumnCount:()=>26}:null,getActiveSheet:()=>({getSheetId:()=> 's'})})};
       if(key==='refs')return {watchRange(_unit,_sheet,_range,fn){entry.watches.add(fn);return {dispose(){entry.watches.delete(fn);}};}};
       if(key==='undo')return {pitchTopUndoElement:()=>null,pitchTopRedoElement:()=>null};
@@ -363,7 +367,7 @@ function nativeLifecycle({ offline = false, comments = false, history = false, r
       if(name==='@univerjs/core')return {LocaleType:{EN_US:'enUS'},LogLevel:{WARN:1},UserManagerService:'user',IUniverInstanceService:'instances',ICommandService:'commands',IUndoRedoService:'undo'};
       if(name==='@univerjs/thread-comment')return {IThreadCommentDataSourceService:'comment-source'};
       if(name==='@univerjs/sheets')return {RefRangeService:'refs'};
-      if(name==='@univerjs-pro/collaboration-client')return {SessionStatus,CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
+      if(name==='@univerjs-pro/collaboration-client')return {SessionStatus,CollaborationUIEventId,CollaborationUIEventService:'collaboration-ui-events',CollaborationController:'collaboration-controller',MemberService:'members',CollaborationSessionService:'collaboration-sessions',ILocalCacheService:'cache'};
       if(name==='@univerjs/presets')return {createUniver,mergeLocales:()=>({})};
       if(name==='@univerjs/preset-sheets-core')return {UniverSheetsCorePreset:()=>({})};
       return {};
@@ -398,11 +402,132 @@ test('native component attaches while loaded offline, then observes ONLINE befor
   f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
   try {
     await f.flush();await f.open('A');const entry=native.instances[0];
-    assert.match(f.panel.text(),/Live collaborators unavailable/);
-    entry.status.next(SessionStatus.ONLINE);await f.flush();assert.doesNotMatch(f.panel.text(),/Peer in A/);
+    assert.match(f.panel.text(),/Live collaborators unavailable/);assert.match(nativeStatus(f),/Disconnected/);
+    entry.status.next(SessionStatus.ONLINE);await f.flush();assert.doesNotMatch(f.panel.text(),/Peer in A/);assert.match(nativeStatus(f),/synced/);
     entry.join();await f.flush();assert.match(f.panel.text(),/Peer in A/);
   }finally{f.dispose();await new Promise(setImmediate);}
   assert.equal(native.active,0);
+});
+// These tests deliver the real TSX authority-poll callback with HTTP/SDK doubles.
+// They establish UI lifecycle behavior, not browser transport reconnection.
+const nativeStatus = f => text(f.find(n => 'data-native-status' in n.props));
+const authorityOK = native => ({ok:true,status:200,json:async()=>structuredClone(native.sessions.get('A'))});
+for (const mode of ['ready','pending','offline','loading','reader']) test(`native authority recovery: ${mode} recomputes current status without an SDK event`, async () => {
+  const load=deferred(), native=nativeLifecycle({offline:mode==='offline',loadGate:mode==='loading'?load.promise:undefined}), f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  if(mode==='reader')native.sessions.get('A').access.role='read';
+  try {
+    await f.flush();await f.message('root draft stays exact');await f.open('A');
+    const entry=native.instances[0];entry.pending=mode==='pending';
+    const beforeDisk=[...Array(f.storage.length)].map((_,i)=>{const k=f.storage.key(i);return [k,f.storage.getItem(k)];});
+    native.authorityRequest=async()=>{throw new Error('fixture authority unreachable');};
+    await native.poll();await f.flush();assert.doesNotMatch(nativeStatus(f),/synced/);
+    native.authorityRequest=async()=>authorityOK(native);
+    await native.poll();await f.flush(); // Deliberately no status.next / entity event.
+    const status=nativeStatus(f);
+    if(mode==='loading')assert.match(status,/Connecting.*not loaded/i);
+    else if(mode==='offline')assert.match(status,/Disconnected/);
+    else {assert.match(status,/synced/);assert.doesNotMatch(status,/Disconnected|authority.*unavailable/i);}
+    if(mode==='pending')assert.match(status,/not yet acknowledged/);
+    if(mode==='reader')assert.match(status,/Read-only/);
+    assert.equal(native.instances.length,1);assert.deepEqual(entry.scrolls,[]);assert.deepEqual(entry.nativeAdds,[]);
+    assert.equal(f.calls.filter(c=>c.input).length,0,'status recovery only reads');
+    assert.deepEqual([...Array(f.storage.length)].map((_,i)=>{const k=f.storage.key(i);return [k,f.storage.getItem(k)];}),beforeDisk);
+    load.resolve();await f.flush();
+    if(mode==='pending'){await f.open('');assert.equal(native.instances.length,1);assert.equal(entry.disposed,false);entry.pending=false;}
+    await f.open('');assert.equal(f.messageValue(),'root draft stays exact');
+  } finally {load.resolve();f.dispose();await new Promise(setImmediate);}
+});
+test('native authority recovery: healthy poll does not hide an authoritative load failure',async()=>{
+  const load=deferred(),native=nativeLifecycle({loadGate:load.promise}),f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  try{
+    await f.flush();await f.open('A');load.reject(new Error('fixture snapshot unavailable'));await f.flush();
+    assert.match(nativeStatus(f),/Connecting failed/);
+    await native.poll();await f.flush();assert.match(nativeStatus(f),/Connecting failed/);
+    assert.equal(f.find(n=>n.props.ref).props.inert,true);assert.equal(f.calls.filter(c=>c.input).length,0);
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('native authority recovery: SDK status/retry cannot hide failed authority and terminal fences survive late polls',async()=>{
+  for(const terminal of ['revoked','principal','epoch','conflict']){
+    const native=nativeLifecycle(),f=fixture(undefined,false,native);
+    f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+    try{
+      await f.flush();await f.open('A');const entry=native.instances[0];
+      native.authorityRequest=async()=>({ok:false,status:503});await native.poll();
+      entry.events.get('status')();entry.events.get('resend')({reqId:7,reason:'reconnect'});await f.flush();
+      assert.match(nativeStatus(f),/authority.*unavailable|authority check failed/i);assert.doesNotMatch(nativeStatus(f),/synced|SDK retry/);
+      if(terminal==='conflict')entry.events.get('conflict')({reason:'permission_rejected',localChanges:{sid:'retained',reqId:7}});
+      else {
+        native.authorityRequest=async()=>terminal==='revoked'?{ok:false,status:403}: {ok:true,status:200,json:async()=>({...native.sessions.get('A'),...(terminal==='principal'?{principal:'other'}:{access:{role:'owner',revision:2}})})};
+        await native.poll();
+      }
+      await f.flush();const fenced=nativeStatus(f);
+      native.authorityRequest=async()=>authorityOK(native);await native.poll();
+      entry.events.get('status')();entry.events.get('resend')({reqId:7,reason:'reconnect'});await f.flush();
+      assert.equal(nativeStatus(f),fenced);assert.equal(f.find(n=>n.props.ref).props.inert,true);
+      native.authorityRequest=async()=>{throw new Error('later network failure');};await native.poll();await f.flush();assert.equal(nativeStatus(f),fenced);
+    }finally{f.dispose();await new Promise(setImmediate);}
+  }
+});
+test('native authority recovery: late JSON after conflict or disposal cannot revive or fence another editor',async()=>{
+  for(const terminal of ['conflict','dispose']){
+    const native=nativeLifecycle(),f=fixture(undefined,false,native),body=deferred();
+    for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+    try{
+      await f.flush();await f.open('A');const entry=native.instances[0];
+      native.authorityRequest=async()=>({ok:true,status:200,json:()=>body.promise});
+      const polling=native.poll();await new Promise(setImmediate);
+      if(terminal==='conflict')entry.events.get('conflict')({reason:'permission_rejected',localChanges:{sid:'retained'}});
+      else {delete native.authorityRequest;await f.open('B');assert.equal(entry.disposed,true);}
+      await f.flush();const before=nativeStatus(f);
+      body.resolve({principal:'wrong',access:{revision:99}});await polling;await f.flush();
+      assert.equal(nativeStatus(f),before);
+      if(terminal==='dispose')assert.notEqual(f.find(n=>n.props.ref).props.inert,true);
+    }finally{body.resolve(native.sessions.get('A'));f.dispose();await new Promise(setImmediate);}
+  }
+});
+test('native socket recovery: exhausted offline session recovers only after healthy authority, without replay or draft loss',async()=>{
+  const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  try{
+    await f.flush();await f.message('root retained');await f.open('A');
+    f.find(n=>n.props['aria-label']==='Comment draft').props.onChange({target:{value:'unsent comment'}});await f.flush();
+    const entry=native.instances[0];entry.pending=true;
+    f.storage.setItem('workagent:native-recovery:fixture-owner:A:1',JSON.stringify({awaiting:{sid:'untouched',reqId:2}}));
+    const disk=[...Array(f.storage.length)].map((_,i)=>{const k=f.storage.key(i);return [k,f.storage.getItem(k)];});
+    entry.status.next(SessionStatus.OFFLINE);
+    entry.uiEvents.emitEvent({id:CollaborationUIEventId.SOCKET_FAILED});
+    native.authorityRequest=async()=>{throw new Error('service unavailable');};
+    await native.poll();assert.equal(entry.reconnects,0);
+    native.authorityRequest=async()=>authorityOK(native);
+    await native.poll();await f.flush();assert.equal(entry.reconnects,1,'public reconnect after exhausted retries and verified authority');
+    for(let i=0;i<10;i++)await native.poll();
+    assert.equal(entry.reconnects,1,'do not reset SDK backoff on each poll');
+    assert.match(nativeStatus(f),/Disconnected.*not yet acknowledged/);
+    assert.equal(entry.pending,true);assert.equal(native.instances.length,1);assert.deepEqual(entry.nativeAdds,[]);assert.deepEqual(entry.scrolls,[]);
+    assert.equal(f.calls.filter(c=>c.input).length,0);assert.deepEqual([...Array(f.storage.length)].map((_,i)=>{const k=f.storage.key(i);return [k,f.storage.getItem(k)];}),disk);
+    assert.equal(f.find(n=>n.props['aria-label']==='Comment draft').props.value,'unsent comment');
+    await f.open('');assert.equal(entry.disposed,false,'pending and draft leave guards survive recovery');
+    entry.status.next(SessionStatus.ONLINE);await f.flush();assert.match(nativeStatus(f),/not yet acknowledged/);
+  }finally{f.dispose();await new Promise(setImmediate);}
+});
+for(const fence of ['loading','online','joining','revoked','principal','epoch','conflict','disposed','license'])test(`native socket recovery: ${fence} cannot start recovery`,async()=>{
+  const load=deferred(),native=nativeLifecycle({loadGate:fence==='loading'?load.promise:undefined}),f=fixture(undefined,false,native);
+  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  try{
+    await f.flush();await f.open('A');const entry=native.instances[0];
+    if(fence!=='online')entry.status.next(fence==='joining'?SessionStatus.JOINING:SessionStatus.OFFLINE);
+    entry.uiEvents.emitEvent({id:CollaborationUIEventId.SOCKET_FAILED});
+    if(fence==='license')entry.uiEvents.emitEvent({id:CollaborationUIEventId.LICENSE_DOMAIN_REJECTED});
+    if(fence==='conflict')entry.events.get('conflict')({reason:'permission_rejected',localChanges:{sid:'retained'}});
+    native.authorityRequest=async()=>fence==='revoked'?{ok:false,status:403}: {ok:true,status:200,json:async()=>({...native.sessions.get('A'),...(fence==='principal'?{principal:'foreign'}:fence==='epoch'?{access:{role:'owner',revision:2}}:{})})};
+    if(fence==='disposed'){
+      const reply=deferred();native.authorityRequest=()=>reply.promise;
+      const poll=native.poll();await new Promise(setImmediate);f.dispose();reply.resolve(authorityOK(native));await poll;
+    }else await native.poll();
+    assert.equal(entry.reconnects,0);
+  }finally{load.resolve();f.dispose();await new Promise(setImmediate);}
 });
 test('scoped native streams retain retry feedback, pending leave guard and conflict recovery in the real component', async () => {
   const native=nativeLifecycle(),f=fixture(undefined,false,native);

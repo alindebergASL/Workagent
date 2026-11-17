@@ -14,6 +14,7 @@ import { scopeNativeCache } from './native-cache';
 import { nativeCursorSessionOverride } from './native-cursor-session';
 import { observeNativePresence, observeNativeMembershipJoins } from './native-presence';
 import { nativeCollaborationClient } from './native-collaboration-client';
+import { nativeSocketRecovery } from './native-socket-recovery';
 import { nativeFollow, nativePasteActivity } from './native-follow';
 import type { NativeFollowState } from './native-follow';
 import type { NativePresence } from './native-presence';
@@ -22,7 +23,7 @@ import { ICommandService, IResourceLoaderService, IUndoRedoService, IUniverInsta
 import type { Workbook } from '@univerjs/core';
 import { RefRangeService, SheetsSelectionsService } from '@univerjs/sheets';
 import { UniverCollaborationPlugin, RevisionService } from '@univerjs-pro/collaboration';
-import { UniverCollaborationClientPlugin, ILocalCacheService, CollaborationController, CollaborationSessionService, MemberService, SessionStatus } from '@univerjs-pro/collaboration-client';
+import { UniverCollaborationClientPlugin, ILocalCacheService, CollaborationController, CollaborationSessionService, CollaborationUIEventService, MemberService, SessionStatus } from '@univerjs-pro/collaboration-client';
 import CollaborationEnUS from '@univerjs-pro/collaboration-client/locale/en-US';
 import { BrowserCollaborationSocketService, UniverCollaborationClientUIPlugin } from '@univerjs-pro/collaboration-client-ui';
 import CollaborationUIEnUS from '@univerjs-pro/collaboration-client-ui/locale/en-US';
@@ -78,6 +79,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   useEffect(() => {
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false, authorityHealthy = true;
+    let loadFailure: string | undefined;
     let online = () => false;
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
     const stopPresence = () => { restore.current?.dispose(); restore.current = null; acceptance.current?.dispose(); acceptance.current = null; agentProposals.current = []; agent.current?.dispose(); agent.current = null; reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
@@ -108,6 +110,10 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     joinsObserver = observeNativeMembershipJoins(session.unitID, session.principal,
       univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(MemberService));
     const collaboration = nativeCollaborationClient(univer.__getInjector(), session.unitID);
+    const socketRecovery = nativeSocketRecovery(session.unitID,
+      univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(CollaborationUIEventService),
+      () => univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID)?.session,
+      () => live && loaded && !loadFailure && !revoked && !conflict && authorityHealthy);
     let composing = false;
     const firstSheet = () => univerAPI.getActiveWorkbook()?.getActiveSheet().getSheetId() === 'sheet-1';
     const worksheetGuard = guardNativeWorksheets(session.unitID, univer.__getInjector().get(ICommandService),
@@ -151,13 +157,20 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       reversal.current?.refresh(collaboration.hasWritePending());
       if (live) setCommentAvailable(!!comments.current?.canAdd());
       if (!live || conflict || revoked) return;
-      const state = collaboration.getCollaborationStatus();
-      const name = String(state);
-      setStatus(`${session.access.role === 'read' ? 'Read-only · ' : ''}${name ?? state}${collaboration.hasWritePending() ? ' — edits not yet acknowledged; keep this tab open' : ''}`);
+      // Authority reachability and native transport are independent. A healthy
+      // poll refreshes this view; it never marks the SDK online or loaded.
+      const name = !authorityHealthy ? 'Authority check unavailable — local work retained; keep this tab open'
+        : loadFailure ? loadFailure
+        : !loaded ? 'Connecting — authoritative sheet not loaded'
+        : !online() ? 'Disconnected — native SDK will reconnect; local work retained'
+        : String(collaboration.getCollaborationStatus());
+      setStatus(`${session.access.role === 'read' ? 'Read-only · ' : ''}${name}${collaboration.hasWritePending() ? ' — edits not yet acknowledged; keep this tab open' : ''}`);
     };
     const subscriptions = [
       collaboration.subscribe({ status: report, resend: event => {
-        if (live) setStatus(`Awaiting acknowledgement — SDK retry ${event.reqId}: ${event.reason}`);
+        if (!live || conflict || revoked) return;
+        if (!authorityHealthy || !loaded || !online()) { report(); return; }
+        setStatus(`Awaiting acknowledgement — SDK retry ${event.reqId}: ${event.reason}`);
       }, conflict: event => {
         conflict = true; stopPresence(); setBlocked(true);
         // Capture before any reload. Awaiting operations may have committed:
@@ -174,13 +187,15 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     window.addEventListener('beforeunload', beforeUnload);
     void collaboration.loadSheetAsync().then(book => {
       if (!live) return;
-      if (!book) { setStatus('Unable to load authoritative sheet. Retained operations have not been replaced.'); setBlocked(true); return; }
-      loaded = true; report(); void comments.current?.refresh();
+      if (!book) { loadFailure = 'Unable to load authoritative sheet. Retained operations have not been replaced.'; report(); setBlocked(true); return; }
+      loaded = true; void comments.current?.refresh();
       if (revoked || conflict) return;
       const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID);
       if (entity) {
         const injector = univer.__getInjector();
         online = () => entity.session.sessionStatus === SessionStatus.ONLINE;
+        const sessionStatus = entity.session.sessionStatus$.subscribe(report);
+        subscriptions.push({ dispose: () => sessionStatus.unsubscribe() });
         agent.current?.refresh(); void agent.current?.check();
         if (session.restore && session.owner && session.access.role === 'owner') restore.current = nativeScalarRestore(session, entity.session,
           () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
@@ -206,8 +221,10 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         presenceObserver = observeNativePresence(session.unitID, session.principal, entity.session, injector.get(MemberService),
           value => { if (live && !revoked && !conflict) { follow.current?.presence(value); setPresence(value); } });
       }
-    }).catch(() => { if (live) { setStatus('Connecting failed — retained operations have not been replaced.'); setBlocked(true); } });
-    // Display only; server checks each commit/read/send under Workspace authority.
+      report();
+    }).catch(() => { if (live && !revoked && !conflict) { loadFailure = 'Connecting failed — retained operations have not been replaced.'; report(); setBlocked(true); } });
+    // Authority also gates recovery of this instance's exhausted SDK socket.
+    // The server still checks each commit/read/send under Workspace authority.
     let checking = false;
     const timer = window.setInterval(async () => {
       reversal.current?.refresh(collaboration.hasWritePending());
@@ -218,14 +235,16 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       if (!revoked && !conflict) void comments.current?.refresh();
       try {
         const response = await fetch(session.sessionPath ?? '/api/native/session', { headers: { 'X-Workagent-Session-Binding': session.binding } });
-        if (!live) return;
+        if (!live || revoked || conflict) return;
         if (response.status === 401 || response.status === 403) { revoked = true; stopPresence(); setBlocked(true); setStatus('Access revoked or session expired — local work retained; no confirmed save claim.'); }
         else if (response.ok) {
           const current: NativeSession = await response.json();
+          if (!live || revoked || conflict) return;
           authorityHealthy = current.principal === session.principal && current.access.revision === session.access.revision;
           if (current.principal !== session.principal || current.access.revision !== session.access.revision) { revoked = true; stopPresence(); setBlocked(true); setStatus('Access changed — this session is fenced. Preserve pending work before reopening.'); }
-        } else { authorityHealthy = false; setStatus('Stale — authority check failed; keep this tab open.'); }
-      } catch { authorityHealthy = false; if (live) setStatus('Disconnected — local work may be pending; native SDK will reconnect.'); }
+          else { socketRecovery.authorityChecked(); report(); }
+        } else { authorityHealthy = false; report(); }
+      } catch { if (live && !revoked && !conflict) { authorityHealthy = false; report(); } }
       finally { checking = false; agent.current?.refresh(); }
     }, 1500);
     let closing: Promise<void> | undefined;
@@ -239,7 +258,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !editDraft.current && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active() && !restore.current?.active() && !agentUnsafe.current, close });
     return () => {
       ready.current?.(null);
-      live = false; clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
+      live = false; socketRecovery.dispose(); clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
       interactions.forEach(name => element.removeEventListener(name, localInteraction, true));
       element.removeEventListener('compositionstart', inputStart, true); element.removeEventListener('compositionend', inputEnd, true);
       element.removeEventListener('paste', localInteraction, true);

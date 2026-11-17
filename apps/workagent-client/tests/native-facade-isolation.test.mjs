@@ -76,3 +76,71 @@ test('scoped native public-service wiring preserves load/readiness, status, pend
     const failure=new Error('native cache load failed');loader.loadUnit=async()=>{throw failure;};await assert.rejects(client.loadSheetAsync(),e=>e===failure);
   }finally{injector.dispose();entities.complete();status.complete();resend.complete();conflict.complete();}
 });
+
+// Actual pinned public service + inert socket factory and virtual clock. No
+// listener/network, server, licensed admission or browser recovery proof.
+import { NEVER } from 'rxjs';
+import { Injector, ILogService, IConfigService } from '@univerjs/core';
+import { CollaborationSessionService, CollaborationUIEventService, CollaborationUIEventId,
+  ICollaborationSocketService, ICollaborationClientAdapterService, MemberService, CommentService,
+  SessionStatus } from '@univerjs-pro/collaboration-client';
+import { nativeSocketRecovery } from '../src/native-socket-recovery.ts';
+const flush=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
+
+test('public SDK exhausts socket retry; public reconnect restarts the same session once and serializes pending socket creation',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const events=new CollaborationUIEventService(),seen=[],log={debug(){},info(){},warn(){},error(){}},factoryCalls=[];
+  let release, hold=false;
+  const injector=new Injector([
+    [ILogService,{useValue:log}],
+    [IConfigService,{useValue:{getConfig(key){return key==='collaboration-client.config'?{collabWebSocketUrl:'ws://inert.invalid/comb/connect'}:undefined;}}}],
+    [ICollaborationSocketService,{useValue:{createSocket(){factoryCalls.push('create');return hold?new Promise(r=>{release=r;}):Promise.reject(new Error('inert unavailable'));}}}],
+    [CollaborationUIEventService,{useValue:events}],
+    [ICollaborationClientAdapterService,{useValue:{resolveUnit:({unitId,unitType})=>({target:{unitId,unitType}})}}],
+    [MemberService,{useValue:new MemberService({getUnit:()=>null,getTypeOfUnitDisposed$:()=>NEVER})}],
+    [CommentService,{useValue:new CommentService()}],
+    [CollaborationSessionService],
+  ]);
+  const observer=events.event$.subscribe(e=>seen.push(e.id));
+  let recovery;
+  try{
+    const service=injector.get(CollaborationSessionService);
+    const session=await service.requireSession('synthetic-unit',2);
+    let healthy=false,reconnectCalls=0;
+    recovery=nativeSocketRecovery('synthetic-unit',{reconnect(){reconnectCalls++;service.reconnect();}},events,()=>session,()=>healthy,()=>200000);
+    await flush();t.mock.timers.tick(0);await flush();t.mock.timers.tick(40000);await flush();t.mock.timers.tick(80000);await flush();
+    assert.equal(factoryCalls.length,4,'initial plus native 0/40/80-second retries');
+    assert.equal(seen.at(-1),CollaborationUIEventId.SOCKET_FAILED);
+    assert.equal(session.sessionStatus,SessionStatus.OFFLINE);
+    recovery.authorityChecked();assert.equal(factoryCalls.length,4,'authority unavailable cannot recover');
+    hold=true;healthy=true;recovery.authorityChecked();assert.equal(reconnectCalls,1);t.mock.timers.tick(0);await flush();assert.equal(factoryCalls.length,5);
+    for(let i=0;i<20;i++){recovery.authorityChecked();service.reconnect();}
+    await flush();assert.equal(factoryCalls.length,5,'public service ignores reconnect while connection attempt is outstanding');
+    assert.equal(await service.requireSession('synthetic-unit',2),session,'no new collaboration session');
+    assert.equal(session.sessionStatus,SessionStatus.OFFLINE,'attempt is not ONLINE/JOIN/ACK evidence');
+    recovery.dispose();service.dispose();release(null);await flush();t.mock.timers.tick(240000);await flush();assert.equal(factoryCalls.length,5);
+  }finally{recovery?.dispose();observer.unsubscribe();injector.dispose();t.mock.timers.reset();}
+});
+
+test('recovery consumes exhaustion once, bounds repeated cycles, ignores retry/license/foreign events and disposes',()=>{
+  const events=new CollaborationUIEventService();let status=SessionStatus.OFFLINE,eligible=true,time=0,calls=0;
+  const session={get sessionStatus(){return status;}};
+  const recovery=nativeSocketRecovery('A',{reconnect(){calls++;}},events,()=>session,()=>eligible,()=>time);
+  const emit=id=>events.emitEvent({id});
+  try{
+    recovery.authorityChecked();assert.equal(calls,0);
+    events.emitEvent({id:CollaborationUIEventId.SOCKET_FAILED,unitID:'B'});recovery.authorityChecked();assert.equal(calls,0);
+    emit(CollaborationUIEventId.SOCKET_FAILED_RETRY);recovery.authorityChecked();assert.equal(calls,0);
+    emit(CollaborationUIEventId.SOCKET_FAILED);eligible=false;recovery.authorityChecked();assert.equal(calls,0);
+    eligible=true;status=SessionStatus.JOINING;recovery.authorityChecked();assert.equal(calls,0);
+    status=SessionStatus.OFFLINE;recovery.authorityChecked();assert.equal(calls,1);
+    for(let i=0;i<10;i++)recovery.authorityChecked();assert.equal(calls,1);
+    emit(CollaborationUIEventId.SOCKET_FAILED);time=59999;recovery.authorityChecked();assert.equal(calls,1);
+    time=60000;recovery.authorityChecked();assert.equal(calls,2);
+    emit(CollaborationUIEventId.SOCKET_FAILED);status=SessionStatus.ONLINE;recovery.authorityChecked();
+    status=SessionStatus.OFFLINE;time=120000;recovery.authorityChecked();assert.equal(calls,2,'old exhaustion cannot carry into another outage');
+    emit(CollaborationUIEventId.SOCKET_FAILED);emit(CollaborationUIEventId.SOCKET_FAILED_RETRY);recovery.authorityChecked();assert.equal(calls,2,'native retry takes precedence');
+    emit(CollaborationUIEventId.SOCKET_FAILED);emit(CollaborationUIEventId.LICENSE_DOMAIN_REJECTED);recovery.authorityChecked();assert.equal(calls,2);
+    recovery.dispose();emit(CollaborationUIEventId.SOCKET_FAILED);time=240000;recovery.authorityChecked();assert.equal(calls,2);
+  }finally{recovery.dispose();}
+});
