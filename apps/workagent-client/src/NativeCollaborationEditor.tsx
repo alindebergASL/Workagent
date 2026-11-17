@@ -16,6 +16,7 @@ import { scopeNativeCache } from './native-cache';
 import { nativeCursorSessionOverride } from './native-cursor-session';
 import { observeNativePresence, observeNativeMembershipJoins } from './native-presence';
 import { nativeCollaborationClient } from './native-collaboration-client';
+import { nativeCapacityStatus } from './native-capacity-status';
 import { nativeSocketRecovery } from './native-socket-recovery';
 import { nativeFollow, nativePasteActivity } from './native-follow';
 import type { NativeFollowState } from './native-follow';
@@ -109,6 +110,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false, authorityHealthy = true;
     let loadFailure: string | undefined;
+    let capacity: ReturnType<typeof nativeCapacityStatus> | undefined;
     let freshAuthority = false;
     let online = () => false;
     const draftHelpers = new Map<string, ReturnType<typeof nativeCommentDrafts>>();
@@ -135,7 +137,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     const draftStorageChanged = refreshDrafts;
     window.addEventListener('storage', draftStorageChanged);
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { refreshDrafts(); restore.current?.dispose(); restore.current = null; acceptance.current?.dispose(); acceptance.current = null; agentProposals.current = []; agent.current?.dispose(); agent.current = null; reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { capacity?.dispose(); refreshDrafts(); restore.current?.dispose(); restore.current = null; acceptance.current?.dispose(); acceptance.current = null; agentProposals.current = []; agent.current?.dispose(); agent.current = null; reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
@@ -239,19 +241,18 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       if (!live || conflict || revoked) return;
       // Authority reachability and native transport are independent. A healthy
       // poll refreshes this view; it never marks the SDK online or loaded.
+      const capacityView = capacity?.view();
       const name = !authorityHealthy ? 'Authority check unavailable — local work retained; keep this tab open'
+        : capacityView?.domainRejected ? 'License domain rejected — local work retained; no confirmed save claim'
         : loadFailure ? loadFailure
         : !loaded ? 'Connecting — authoritative sheet not loaded'
         : !online() ? 'Disconnected — native SDK will reconnect; local work retained'
-        : String(collaboration.getCollaborationStatus());
+        : capacityView?.message ?? String(collaboration.getCollaborationStatus());
       setStatus(`${session.access.role === 'read' ? 'Read-only · ' : ''}${name}${collaboration.hasWritePending() ? ' — edits not yet acknowledged; keep this tab open' : ''}`);
     };
+    capacity = nativeCapacityStatus(session.unitID, univer.__getInjector().get(CollaborationController), univer.__getInjector().get(CollaborationUIEventService), () => collaboration.hasWritePending(), report);
     const subscriptions = [
-      collaboration.subscribe({ status: report, resend: event => {
-        if (!live || conflict || revoked) return;
-        if (!authorityHealthy || !loaded || !online()) { report(); return; }
-        setStatus(`Awaiting acknowledgement — SDK retry ${event.reqId}: ${event.reason}`);
-      }, conflict: event => {
+      collaboration.subscribe({ status: report, resend: report, conflict: event => {
         conflict = true; stopPresence(); setBlocked(true);
         // Capture before any reload. Awaiting operations may have committed:
         // recovery is retained for inspection, never resubmitted as a new edit.
@@ -338,7 +339,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !editDraft.current && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active() && !restore.current?.active() && !agentUnsafe.current, close });
     return () => {
       ready.current?.(null);
-      live = false; editDrafts?.dispose(); editRecovery.current=null; selectedEdit.current=null; editGeneration.current++; publishedEditTargets.current.clear(); draftHelpers.forEach(helper => helper.dispose()); localCommentDrafts.current = null; selectDraftMode.current = () => {}; publishedThreads.current.clear(); window.removeEventListener('storage', draftStorageChanged); socketRecovery.dispose(); clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
+      live = false; editDrafts?.dispose(); editRecovery.current=null; selectedEdit.current=null; editGeneration.current++; publishedEditTargets.current.clear(); draftHelpers.forEach(helper => helper.dispose()); localCommentDrafts.current = null; selectDraftMode.current = () => {}; publishedThreads.current.clear(); window.removeEventListener('storage', draftStorageChanged); socketRecovery.dispose(); capacity?.dispose(); clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
       interactions.forEach(name => element.removeEventListener(name, localInteraction, true));
       element.removeEventListener('compositionstart', inputStart, true); element.removeEventListener('compositionend', inputEnd, true);
       element.removeEventListener('paste', localInteraction, true);

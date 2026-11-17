@@ -327,7 +327,8 @@ function nativeLifecycle({ loadGate, offline = false, comments = false, history 
       },syncExecuteCommand(...args){entry.scrolls.push(args);return true;}})});
     const session = { get sessionStatus(){return entry.status.value;}, sessionStatus$: entry.status, event$:entry.cursor, getMemberID: () => 'self' };
     const entityInit = new Subject();
-    const stream = name => ({subscribe(fn){entry.events.set(name,fn);return {unsubscribe(){entry.events.delete(name);}};}});
+    const observers=new Map();
+    const stream = name => ({subscribe(fn){if(!observers.has(name))observers.set(name,new Set());const list=observers.get(name);list.add(fn);entry.events.set(name,(...args)=>{for(const f of [...list])f(...args);});return {unsubscribe(){list.delete(fn);if(!list.size)entry.events.delete(name);}};}});
     const entity = {session,state:{status:'synced'},status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
     const controller = {getCollabEntity:id=>entry.unitID===id?entity:null,getCollabEntity$:()=>entityInit,hasWritePending:()=>entry.pending,readyForCollab:async id=>{assert.equal(id,entry.unitID);}};
     const loader = {loadUnit:async unitID=>{entry.unitID=unitID;await loadGate;if(!offline)entry.join();entityInit.next(entity);return {};}};
@@ -537,8 +538,8 @@ test('scoped native streams retain retry feedback, pending leave guard and confl
   for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
   try {
     await f.flush();await f.open('A');const entry=native.instances[0];
-    entry.pending=true;entry.events.get('resend')({reqId:9,reason:'reconnect'});await f.flush();
-    assert.match(f.panel.text(),/SDK retry 9: reconnect/);
+    entry.pending=true;entry.events.get('resend')({unitID:'A',reqId:9,reason:'reconnect',attempt:1,elapsedMs:20000,unsyncedMutationCount:1,nextDelayMs:20000});await f.flush();
+    assert.match(nativeStatus(f),/Native connection resumed; waiting for acknowledgement/);assert.doesNotMatch(nativeStatus(f),/capacity/i);
     let prevented=0;const event={preventDefault(){prevented++;},returnValue:null};for(const fn of native.listeners)fn(event);
     assert.ok(prevented>0);assert.equal(event.returnValue,'');
     await f.open('B');assert.equal(native.instances.length,1);
@@ -663,9 +664,11 @@ test('native follow controls: reader view only, local input/clipboard, disconnec
   try{
     await f.flush();await f.message('root keep');await f.open('A');await f.message('A keep');const a=native.instances[0];
     const host=f.find(n=>n.props.ref).props.ref.current;
+    const independentObservers=[...a.cursor.observers];assert.equal(independentObservers.length,1,'capacity has its own read-only session observer before Follow');
     let prevented=false;f.button('Follow').props.onPointerDown({preventDefault(){prevented=true;}});assert.equal(prevented,true,'follow must not blur/commit an active editor');
     await f.click('Follow');cursor(a);await f.flush();assert.equal(a.scrolls.length,1);assert.match(f.panel.text(),/Following Peer in A — view only/);assert.match(f.panel.text(),/read-only/);
-    await f.click('Stop following');cursor(a);assert.equal(a.scrolls.length,1);assert.equal(a.cursor.observers.length,0);assert.equal(a.watches.size,0);
+    assert.equal(a.cursor.observers.length,independentObservers.length+1,'Follow adds one owned observer');
+    await f.click('Stop following');cursor(a);assert.equal(a.scrolls.length,1);assert.deepEqual(a.cursor.observers,independentObservers,'Stop removes only Follow, preserving independent capacity observation');assert.equal(a.watches.size,0);
     // Worksheet-name paste is a DOM interaction, not a sheet ClipboardPasted lifecycle.
     host.events.get('paste')();await f.click('Follow');cursor(a);await f.flush();
     assert.equal(a.scrolls.length,2,'non-sheet paste must not latch following busy');
@@ -678,7 +681,7 @@ test('native follow controls: reader view only, local input/clipboard, disconnec
     await f.click('Follow');cursor(a);assert.equal(a.scrolls.length,2);host.events.get('wheel')();cursor(a);assert.equal(a.scrolls.length,2);
     await f.click('Follow');a.status.next(SessionStatus.OFFLINE);a.status.next(SessionStatus.ONLINE);a.join();cursor(a);await f.flush();assert.equal(a.scrolls.length,2);assert.doesNotMatch(f.panel.text(),/Following Peer in A/);
     await f.click('Follow');native.sessions.get('A').access.revision=2;await native.poll();await f.flush();cursor(a);assert.equal(a.scrolls.length,2);assert.equal(a.cursor.observers.length,0);
-    await f.open('B');cursor(a);assert.equal(a.disposed,true);assert.equal(a.facadeEvents.size,0);assert.equal(host.events.size,0);assert.match(f.panel.text(),/Not following/);
+    await f.open('B');cursor(a);assert.equal(a.disposed,true);assert.equal(a.cursor.observers.length,0,'all session observers disposed with the instance');assert.equal(a.facadeEvents.size,0);assert.equal(host.events.size,0);assert.match(f.panel.text(),/Not following/);
     await f.open('A');assert.equal(f.messageValue(),'A keep');assert.match(f.panel.text(),/Not following/);
     await f.open('');assert.equal(f.messageValue(),'root keep');assert.equal(native.peak,1);
     assert.ok(f.calls.every(c=>c.input===undefined),'following issues no writes');
@@ -1108,4 +1111,47 @@ test('edit recovery enumeration App: transient storage event failure recovers ex
  else{for(let n=0;n<3;n++){storageHandlers.at(-1)();await f.flush();assert.match(f.panel.text(),/Local edit recovery unavailable or invalid/);assert.equal(f.button('Edit comment').props.disabled,true);assert.equal(f.storage.getItem(key),'{');}}
  assert.equal(native.commentPosts.length,0);assert.equal(native.instances.at(-1).nativeAdds.length,0);
  }finally{f.dispose();await new Promise(setImmediate);}}
+});
+
+test('native capacity status App: exact pending quota survives authority polls; ACK, priority and scope are truthful',async()=>{
+ const native=nativeLifecycle(),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const resend=(reqId,reason='license_editing_connections_exceeded')=>({unitID:'A',reqId,reason,attempt:1,elapsedMs:10,unsyncedMutationCount:1,nextDelayMs:1000});
+ const retry={unitID:'A',sid:'quota-synthetic',reqId:1,memberID:'self',userID:'owner'};
+ try{
+  await f.flush();await f.open('A');await native.poll();await f.flush();const e=native.instances[0];
+  const status=()=>nativeStatus(f);
+  e.pending=true;e.cursor.next({eventID:CollaborationEvent.CHANGESET_SHOULD_RETRY,data:retry,code:9016});e.events.get('resend')(resend(1));await f.flush();
+  assert.match(status(),/Editing capacity refused/);assert.match(status(),/keep this tab open/);
+  await native.poll();await f.flush();assert.match(status(),/Editing capacity refused/,'authority HTTP success is no native ACK');
+  e.events.get('resend')(resend(1,'ack_timeout'));await f.flush();assert.match(status(),/Editing capacity refused/);
+  e.status.next(SessionStatus.OFFLINE);await f.flush();assert.match(status(),/Disconnected/);assert.doesNotMatch(status(),/Editing capacity refused/);
+  e.status.next(SessionStatus.ONLINE);await f.flush();assert.match(status(),/Editing capacity refused/);
+  native.authorityRequest=async()=>({ok:false,status:503});await native.poll();await f.flush();assert.match(status(),/Authority check unavailable/);
+  native.authorityRequest=undefined;await native.poll();await f.flush();assert.match(status(),/Editing capacity refused/);
+  e.cursor.next({eventID:CollaborationEvent.CHANGESET_ACK,data:{...retry,revision:3}});await f.flush();assert.doesNotMatch(status(),/Editing capacity refused/);assert.match(status(),/not yet acknowledged/,'other pending work remains pending');
+  e.events.get('resend')(resend(1));await f.flush();assert.doesNotMatch(status(),/Editing capacity refused/,'late older request cannot re-arm capacity');
+  e.cursor.next({eventID:CollaborationEvent.CHANGESET_SHOULD_RETRY,data:{...retry,reqId:2}});e.events.get('resend')(resend(2));await f.flush();assert.match(status(),/Editing capacity refused/);
+  e.uiEvents.emitEvent({id:CollaborationUIEventId.LICENSE_DOMAIN_REJECTED,unitID:'A'});await f.flush();assert.match(status(),/License domain/);await native.poll();await f.flush();assert.match(status(),/License domain/);
+  assert.equal(e.reconnects,0);assert.equal(e.nativeAdds.length,0);e.pending=false;
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+for(const terminal of ['revoked','epoch','principal','conflict','disposed'])test(`native capacity App terminal ${terminal} wins and releases its independent observer`,async()=>{
+ const native=nativeLifecycle(),f=fixture(undefined,false,native);for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.open('A');await native.poll();await f.flush();const e=native.instances[0];e.pending=true;
+  const request={unitID:'A',sid:'terminal-synthetic',reqId:1};
+  const resend={unitID:'A',reqId:1,reason:'license_editing_connections_exceeded',attempt:1,elapsedMs:10,unsyncedMutationCount:1,nextDelayMs:1000};
+  e.cursor.next({eventID:CollaborationEvent.CHANGESET_SHOULD_RETRY,data:request,code:9016});e.events.get('resend')(resend);await f.flush();assert.match(nativeStatus(f),/Editing capacity refused/);
+  const oldResend=e.events.get('resend');
+  if(terminal==='disposed'){e.pending=false;e.events.get('status')();await f.flush();await f.open('B');assert.equal(e.disposed,true);assert.doesNotMatch(nativeStatus(f),/capacity/i);}
+  else if(terminal==='conflict'){e.events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges:{awaitingChangeset:request},cacheCleared:true});await f.flush();assert.match(nativeStatus(f),/Conflict/);}
+  else{native.authorityRequest=async()=>terminal==='revoked'?{ok:false,status:403}: {ok:true,status:200,json:async()=>({...native.sessions.get('A'),...(terminal==='principal'?{principal:'other'}:{access:{role:'owner',revision:2}})})};await native.poll();await f.flush();assert.match(nativeStatus(f),/Access revoked|Access changed/);}
+  assert.equal(e.cursor.observers.length,0,'terminal lifetime releases capacity and all other session observers');
+  const before=nativeStatus(f);
+  e.cursor.next({eventID:CollaborationEvent.CHANGESET_SHOULD_RETRY,data:{...request,reqId:2},code:9016});oldResend({...resend,reqId:2});await f.flush();
+  assert.equal(nativeStatus(f),before);assert.equal(e.reconnects,0);assert.equal(e.nativeAdds.length,0);e.pending=false;
+ }finally{f.dispose();await new Promise(setImmediate);}
+ assert.equal(native.active,0);for(const e of native.instances){assert.equal(e.cursor.observers.length,0);assert.equal(e.events.size,0);}
 });
