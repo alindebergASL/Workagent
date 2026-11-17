@@ -702,7 +702,7 @@ test('comments App: refused prewrite retains usable draft, explicit new intent c
     await f.open('B');assert.equal(native.instances.length,2);await f.open('');assert.equal(f.messageValue(),'root composer');
   }finally{f.dispose();await new Promise(setImmediate);}
 });
-test('comments App: deleted reply target retains text with explicit new-cell choice; busy and read role refuse creation',async()=>{
+test('comments App: deleted reply target retains text and refuses cross-mode conversion; busy and read role refuse creation',async()=>{
   const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
   for(const id of ['A','B'])f.works[id]={id,kind:'native-sheet',title:id,status:'ready',access:{role:'owner',revision:1}};
   native.sessions.get('B').access.role='read';
@@ -711,7 +711,7 @@ test('comments App: deleted reply target retains text with explicit new-cell cho
   try{
     await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');textarea().props.onChange({target:{value:'reply draft'}});await f.flush();
     native.published.set('A',[]);await native.poll();await f.flush();assert.match(f.panel.text(),/target is no longer published/);assert.equal(f.button('Add comment').props.disabled,true);
-    await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'reply draft');
+    await f.click('Use draft for a new cell comment');assert.equal(textarea().props.value,'reply draft');assert.match(f.panel.text(),/Reply text cannot be converted/);assert.equal(f.button('Add comment').props.disabled,true);
     native.instances[0].editing=true;await native.poll();await f.flush();assert.equal(f.button('Add comment').props.disabled,true);assert.match(f.panel.text(),/Finish active cell/);assert.equal(native.commentPosts.length,0);
     native.instances[0].editing=false;await f.click('Clear unsent comment draft');await f.open('B');assert.throws(()=>textarea(),/control missing/);assert.doesNotMatch(f.panel.text(),/Add comment/);assert.equal(native.commentPosts.length,0);
     assert.equal(native.instances[0].commentListeners.size,0);
@@ -1025,5 +1025,33 @@ test('root comment recovery App P2: delayed helper-to-component delivery preserv
  if(mode==='typing'){area().props.onChange({target:{value:'new composer value'}});await f.flush();}else{native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();}
  gate.resolve();await result;await f.flush();assert.equal(area().props.value,mode==='typing'?'new composer value':'');assert.equal(native.commentPosts.length,0);
  native.delayRecoveredText=undefined;native.authorityRequest=undefined;await f.remount();await f.open('A');await native.poll();await f.flush();assert.match(f.panel.text(),/saved delivery source/,'source is still available for a fresh explicit recovery');
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+
+const replyRecoveryRoot=(id='reply-root',ref='H9')=>({id,threadId:id,personId:'peer',authorName:'Peer',ref,text:{dataStream:'Published question\r\n'},children:[]});
+test('reply text recovery App: exact thread explicit reload, attempt sealing and matching publication preserve newer reply',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=replyRecoveryRoot();native.published.set('A',[root,replyRecoveryRoot('other-root','H10')]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const area=()=>f.find(n=>n.props['aria-label']==='Comment draft'),keys=()=>Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).filter(k=>k.startsWith('workagent:native-reply-text:'));
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');area().props.onChange({target:{value:'  Reply 雪\nline two  '}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/Reply 雪/);await f.click('Reply to H10');assert.throws(()=>f.button('Restore saved reply text 1'),/control missing/);await f.click('Reply to H9');await f.click('Restore saved reply text 1');assert.equal(area().props.value,'  Reply 雪\nline two  ');assert.match(f.panel.text(),/Reply to thread reply-root/);assert.equal(native.commentPosts.length,0);
+ await f.click('Add comment');assert.equal(native.commentPosts.length,1);assert.equal(native.commentPosts[0].parentId,root.id);assert.equal(keys().filter(k=>k.endsWith(':seal')).length,1);assert.equal(keys().filter(k=>k.endsWith(':complete')).length,0);
+ area().props.onChange({target:{value:'newer reply'}});await f.flush();const added=native.instances.at(-1).nativeAdds[0];native.published.set('A',[{...root,children:[added]}]);await native.poll();await f.flush();assert.equal(area().props.value,'newer reply');assert.equal(keys().filter(k=>k.endsWith(':complete')).length,1);
+ await f.remount();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');await f.click('Restore saved reply text 1');assert.equal(area().props.value,'newer reply');assert.throws(()=>f.button('Restore saved reply text 2'),/control missing/);assert.equal(native.commentPosts.length,1);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('reply text recovery App: delayed result after callback cannot overwrite typing, mode, deleted target or revoked authority',async()=>{
+ for(const mode of ['typing','mode','deleted','revoked']){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=replyRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');area().props.onChange({target:{value:'saved reply delivery'}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');
+ const gate=deferred(),delivered=deferred();native.delayRecoveredText=async()=>{delivered.resolve();await gate.promise;};const result=f.button('Restore saved reply text 1').props.onClick();await delivered.promise;
+ if(mode==='typing'){area().props.onChange({target:{value:'newer typing'}});await f.flush();}
+ if(mode==='mode')await f.click('Use draft for a new cell comment');
+ if(mode==='deleted'){native.published.set('A',[]);await native.poll();await f.flush();}
+ if(mode==='revoked'){native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();}
+ gate.resolve();await result;await f.flush();assert.equal(area().props.value,mode==='typing'?'newer typing':'');assert.equal(native.commentPosts.length,0);
+ native.delayRecoveredText=undefined;native.authorityRequest=undefined;native.published.set('A',[root]);await f.remount();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');assert.match(f.panel.text(),/saved reply delivery/,'late result retains exact source for another explicit choice');
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+test('reply text recovery App: unknown reply is not converted/reoffered; denied storage blocks publication',async()=>{
+ for(const deny of [false,true]){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=replyRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');if(deny){const put=f.storage.setItem;f.storage.setItem=(k,v)=>{if(k.startsWith('workagent:native-reply-text:'))throw Error('full');put(k,v);};}area().props.onChange({target:{value:'retained reply'}});await f.flush();await f.click('Use draft for a new cell comment');assert.equal(area().props.value,'retained reply');assert.match(f.panel.text(),/cannot be converted/);await f.click('Add comment');assert.equal(native.commentPosts.length,deny?0:1);assert.equal(area().props.value,'retained reply');if(!deny){await f.remount();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');assert.throws(()=>f.button('Restore saved reply text 1'),/control missing/);assert.match(f.panel.text(),/attempted text record/);assert.equal(native.commentPosts.length,1);}
  }finally{f.dispose();await new Promise(setImmediate);}}
 });

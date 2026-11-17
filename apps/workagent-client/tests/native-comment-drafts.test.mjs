@@ -59,3 +59,24 @@ test('completion retirement requires exact attempted text/principal proof; inter
 test('atomic transfer preserves a concurrently transferred newer version and stale source cannot submit',async()=>{
  const f=fixture(),a=f.make();await a.edit('one copy');const b=f.make(),r=b.view().drafts[0];assert.equal(await b.restore(r.id,r.version),'one copy');const transferred=f.make().view().drafts[0];assert.equal(transferred.id,r.id);assert.equal(transferred.version,r.version+1);assert.equal(await a.beforeAttempt(),undefined);assert.equal([...f.values.keys()].filter(k=>k.endsWith(':draft')).length,1);
 });
+
+test('reply recovery scopes exact thread separately from compatible root records and other authority scopes',async()=>{
+ const f=fixture(),s={...scope,threadID:'thread-one'},a=f.make(s);await a.edit('  reply 雪\nsecond line  ');a.dispose();
+ for(const other of [scope,{...s,threadID:'thread-two'},{...s,principal:'peer'},{...s,unitID:'other'},{...s,epoch:3}])assert.equal(f.make(other).view().drafts.length,0);
+ const b=f.make(s),saved=b.view().drafts[0];assert.equal(await b.restore(saved.id,saved.version),'  reply 雪\nsecond line  ');
+ const token=await b.beforeAttempt();assert.ok(token);assert.equal(f.make(s).view().drafts.length,0);
+ await b.complete(token,{...proof(token),threadID:'thread-two'});assert.equal([...f.values.keys()].some(k=>k.endsWith(':complete')),false);
+ await b.edit('new reply');await b.complete(token,{...proof(token),threadID:s.threadID});assert.equal(b.text(),'new reply');assert.equal(f.make(s).view().drafts[0].text,'new reply');
+});
+
+test('reply transfer after lock callback rechecks thread availability, newer input and two-tab ownership',async()=>{
+ const f=fixture(),s={...scope,threadID:'reply-target'},a=f.make(s);await a.edit('reply one\n雪');let available=true,release,ran;const done=new Promise(r=>ran=r),gate=new Promise(r=>release=r);let once=true;
+ const b=nativeCommentDrafts(s,()=>f.storage,()=>available,()=>{},{request:async(_k,fn)=>{const value=await fn();if(once){once=false;ran();await gate;}return value;}}),saved=b.view().drafts[0];const pending=b.restore(saved.id,saved.version);await done;available=false;release();assert.equal(await pending,undefined);assert.equal(b.view().drafts.length,0);assert.equal(await a.beforeAttempt(),undefined,'old owner cannot submit after ownership handoff');
+ available=true;const c=f.make(s),d=f.make(s),fresh=c.view().drafts[0];const results=await Promise.all([c.restore(fresh.id,fresh.version),d.restore(fresh.id,fresh.version)]);assert.equal(results.filter(Boolean).length,1);assert.equal(f.make(scope).view().drafts.length,0);
+});
+test('reply storage readback failure retains one recoverable version, attempts and completed/discard history stay isolated',async()=>{
+ const f=fixture(),s={...scope,threadID:'reply-target'},a=f.make(s);await a.edit('retained reply');const b=f.make(s),saved=b.view().drafts[0],put=f.storage.setItem,get=f.storage.getItem;let fail=true;
+ f.storage.setItem=(k,v)=>{put(k,v);if(fail){fail=false;f.storage.getItem=()=>{f.storage.getItem=get;throw Error('readback');};}};assert.equal(await b.restore(saved.id,saved.version),undefined);f.storage.setItem=put;f.storage.getItem=get;const c=f.make(s),again=c.view().drafts[0];assert.equal(again.text,'retained reply');assert.equal(await c.restore(again.id,again.version),again.text);const unknown=await c.beforeAttempt();const evidence=new Map(f.values);
+ for(let n=0;n<70;n++){await c.edit('completed reply '+n);const token=await c.beforeAttempt();assert.ok(token);await c.complete(token,{...proof(token),threadID:s.threadID});await c.edit('discarded reply '+n);await c.edit('');}
+ for(const [k,v]of evidence)assert.equal(f.values.get(k),v);assert.ok(unknown);await c.edit('still usable');assert.ok(await c.beforeAttempt());assert.equal(f.make().view().attempted,0);
+});
