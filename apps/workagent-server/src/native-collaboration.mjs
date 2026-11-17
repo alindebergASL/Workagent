@@ -1,5 +1,5 @@
 import {NativeScalarRestore} from './native-scalar-restore.mjs';
-import {NativeWorksheets, INSERT_SHEET, RENAME_SHEET, SHEET_VALUES} from './native-worksheets.mjs';
+import {NativeWorksheets, INSERT_SHEET, RENAME_SHEET, ORDER_SHEET, SHEET_VALUES} from './native-worksheets.mjs';
 import { NativeMerge, MERGE, UNMERGE } from './native-merge.mjs';
 import { UPDATE_COMMENT } from './native-comment-editing.mjs';
 import { NativeAgentAcceptance } from './native-agent-acceptance.mjs';
@@ -19,8 +19,8 @@ import { UniverType, UnitAction } from '@univerjs/protocol';
 export const NATIVE_UNIT = 'b05-native-synthetic-sheet';
 export const NATIVE_TAB = 'sheet-1';
 const deny = () => { throw new CollabError('PERMISSION_DENIED', 'Native qualification access denied'); };
-const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows', MERGE, UNMERGE, INSERT_SHEET, RENAME_SHEET]);
-const editActions = new Set([UnitAction.Edit, UnitAction.CreateSheet, UnitAction.RenameSheet, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
+const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows', MERGE, UNMERGE, INSERT_SHEET, RENAME_SHEET, ORDER_SHEET]);
+const editActions = new Set([UnitAction.Edit, UnitAction.CreateSheet, UnitAction.RenameSheet, UnitAction.MoveSheet, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
 export function allowedNativeAction(role, action, comments = false) { return !!role && (action === UnitAction.View || (role !== 'read' && (editActions.has(action) || (comments && action === UnitAction.Comment)))); }
 
 // The same Workspace row lock used by Workspace.share is held through native
@@ -62,7 +62,7 @@ export class NativeAuthority {
     for (const m of c.mutations) {
       if (!mutations.has(m.id) && !(this.comments && [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT, UPDATE_COMMENT].includes(m.id))) deny();
       let p; try { p = JSON.parse(m.data); } catch { deny(); }
-      if (p?.unitId !== c.unitID || (m.id !== INSERT_SHEET && (typeof p.subUnitId !== 'string' || !p.subUnitId)) || (![INSERT_SHEET, RENAME_SHEET, SHEET_VALUES].includes(m.id) && p.subUnitId !== NATIVE_TAB)) deny();
+      if (p?.unitId !== c.unitID || (m.id !== INSERT_SHEET && (typeof p.subUnitId !== 'string' || !p.subUnitId)) || (![INSERT_SHEET, RENAME_SHEET, ORDER_SHEET, SHEET_VALUES].includes(m.id) && p.subUnitId !== NATIVE_TAB)) deny();
     }
   }
   submission(context) {

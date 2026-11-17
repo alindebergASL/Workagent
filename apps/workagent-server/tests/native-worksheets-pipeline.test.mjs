@@ -142,3 +142,65 @@ test('captured own p undefined scalar typing compresses and commits with style; 
   const current=await data(f),cell=current.sheets[sid].cellData[1][1];assert.equal(cell.v,44);assert.deepEqual(typeof cell.s==='string'?current.styles[cell.s]:cell.s,{cl:{rgb:'#1B1C1F'}});assert.equal(current.sheets[sid].cellData[0][0].v,22);assert.deepEqual(current.sheets['sheet-1'],before.sheets['sheet-1']);
  }finally{g?.dispose();c?.dispose();await f.service.dispose();}
 });
+
+import {ORDER_SHEET} from '../src/native-worksheets.mjs';
+import {SetWorksheetOrderCommand} from '@univerjs/sheets';
+import {ADD_COMMENT} from '../src/native-comments.mjs';
+import {UnitAction} from '@univerjs/protocol';
+const resolvedSheets=d=>{const sheets=structuredClone(d.sheets);for(const tab of Object.values(sheets))for(const row of Object.values(tab.cellData??{}))for(const cell of Object.values(row))if(typeof cell.s==='string'){assert.ok(Object.hasOwn(d.styles,cell.s));cell.s=d.styles[cell.s];}return sheets;};
+async function reorderFixture(){const f=await serviceFixture();try{const second=await secondSheet(f),batch=await addition(f);assert.equal((await submit(f,batch)).status,'committed');return {f,second,third:batch[0][1].sheet.id};}catch(e){await f.service.dispose();throw e;}}
+const order=(id,fromOrder,toOrder)=>[ORDER_SHEET,{subUnitId:id,fromOrder,toOrder,trigger:SetWorksheetOrderCommand.id}];
+test('additional reorder public command SEND/service/APPLY preserves tab data, styles, comments and active identities',async()=>{
+ const {f,second,third}=await reorderFixture();let c,peer,g;const compressor=new CompressMutationService(),permissions=[];f.service.use('commitChangeset',async(ctx,next)=>{permissions.push(...ctx.requiredUnitPermissions.map(p=>p.action));await next();});
+ try{
+  const comment=await f.claim();assert.equal((await f.submit([[ADD_COMMENT,{comment}]])).status,'committed');
+  for(const [n,id]of ['sheet-1',second,third].entries())assert.equal((await submit(f,[[SHEET_VALUES,{subUnitId:id,cellValue:{0:{0:{v:(n+1)*11,s:'0'}}},styleRefMap:{'0':{bl:1,cl:{rgb:'#123456'}}}}]])).status,'committed');
+  const before=await data(f),claims=await f.store.read(s=>s.works[UNIT].nativeCommentClaims),base=f.head;
+  c=clientFixture(before);peer=clientFixture(before);const inst=x=>x.univer.__getInjector().get(IUniverInstanceService);inst(c).focusUnit(UNIT);inst(peer).focusUnit(UNIT);
+  await c.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:UNIT,subUnitId:second});await peer.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:UNIT,subUnitId:third});
+  const local=c.save(),peerBefore=peer.save();g=guardNativeWorksheets(UNIT,c.commands,c.save,()=>c.book.getActiveSheet().getSheetId(),()=>true,()=>false,()=>{});
+  for(const [target,expected]of [[2,['sheet-1',third,second]],[1,['sheet-1',second,third]]]){
+   const n=c.emitted.length;assert.equal(await c.commands.executeCommand(SetWorksheetOrderCommand.id,{order:target}),true);
+   const batch=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(c.emitted.slice(n)),inst(c));assert.equal(batch.length,1);
+   const result=await submit(f,batch.map(m=>[m.id,m.params]),target===2?'owner':'peer');assert.equal(result.status,'committed',JSON.stringify(result));
+   const applied=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_APPLY)(result.changeset.mutations.map(m=>({id:m.id,params:JSON.parse(m.data)})),inst(peer));for(const m of applied)assert.equal(peer.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+   const current=await data(f);assert.deepEqual(current.sheetOrder,expected);assert.deepEqual(c.save().sheetOrder,expected);assert.deepEqual(peer.save().sheetOrder,expected);
+   assert.deepEqual(resolvedSheets(current),resolvedSheets(before));assert.deepEqual(current.resources,before.resources);assert.deepEqual(Object.values(current.styles),Object.values(before.styles));
+   for(const [x,initial,active]of [[c,local,second],[peer,peerBefore,third]]){assert.equal(x.book.getActiveSheet().getSheetId(),active);for(const k of ['sheets','styles','resources'])assert.deepEqual(x.save()[k],initial[k]);}
+   assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);
+  }
+  assert.equal(f.head,base+2);assert.ok(permissions.includes(UnitAction.MoveSheet));
+  const historical=await new NativeMerge(f.authority,f.service).prepare('owner',UNIT,f.session,base+1);assert.deepEqual(historical.data.sheetOrder,['sheet-1',third,second]);
+  const reloaded=clientFixture(await data(f));try{assert.deepEqual(reloaded.save().sheetOrder,['sheet-1',second,third]);assert.deepEqual(resolvedSheets(reloaded.save()),resolvedSheets(c.save()));}finally{reloaded.dispose();}
+  const n=c.emitted.length,head=f.head;assert.equal(await c.commands.executeCommand(SetWorksheetOrderCommand.id,{order:1}),false);assert.equal(c.emitted.length,n);assert.equal(f.head,head);
+ }finally{g?.dispose();c?.dispose();peer?.dispose();compressor.interceptor.dispose();await f.service.dispose();}
+});
+
+test('raw reorder rejects forged indexes, membership, fields, batches and stale bases without changing native state',async()=>{
+ const {f,second,third}=await reorderFixture();try{
+  const head=f.head,before=await data(f),good=order(second,1,2),p=good[1];
+  const invalid=[order('sheet-1',0,2),order(second,1,0),order('missing',1,2),order(third,1,2),order(second,2,1),order(second,1,1),
+   ...[-1,3,1.5,'2',null].map(to=>order(second,1,to)),
+   ...[{unitId:'foreign'},{fromOrder:'1'},{fromOrder:null},{oldOrder:1},{newOrder:2},{sheetOrder:['sheet-1',third,second]},{trigger:'forged'},{toOrder:undefined},{subUnitId:undefined}].map(extra=>[ORDER_SHEET,{...p,...extra}])];
+  for(const batch of [...invalid.map(x=>[x]),[good,good],[good,scalar('sheet-1',0,0,99)]]){
+   const out=await submit(f,batch);assert.equal(out.status,'rejected',JSON.stringify({batch,out}));assert.equal(f.head,head);const after=await data(f);assert.deepEqual(after.sheetOrder,before.sheetOrder);assert.deepEqual(after.sheets,before.sheets);assert.deepEqual(after.resources,before.resources);
+  }
+  assert.equal((await submit(f,[good],'peer',head-1)).status,'rejected');assert.equal(f.head,head);
+  await f.workspace.share('owner',UNIT,{commandId:'reorder-read',peer:'peer',role:'read',accessRevision:1});
+  assert.equal((await submit(f,[good],'peer')).status,'rejected');f.authority.sessions.get('p').revision=2;assert.equal((await submit(f,[good],'peer')).status,'rejected');assert.equal(f.head,head);
+ }finally{await f.service.dispose();}
+});
+
+test('reorder actual commit fences concurrent scalar/reorder and reader or revoked epoch after admission',async()=>{
+ for(const race of ['scalar','reorder','reader','revoked']){
+  const {f,second,third}=await reorderFixture();let release,reached;const gate=new Promise(r=>release=r),ready=new Promise(r=>reached=r);let held=false;
+  try{
+   f.service.use('submitChangeset',async(c,next)=>{if(c.memberID==='p'&&!held){held=true;reached();await gate;}await next();});
+   const pending=submit(f,[order(second,1,2)],'peer');await Promise.race([ready,pending.then(x=>{throw new Error('refused before interleave '+JSON.stringify(x));})]);
+   if(race==='scalar')assert.equal((await submit(f,[scalar(third,0,0,77)])).status,'committed');
+   else if(race==='reorder')assert.equal((await submit(f,[order(third,2,1)])).status,'committed');
+   else{await f.workspace.share('owner',UNIT,{commandId:'reorder-'+race,peer:'peer',role:race==='reader'?'read':null,accessRevision:1});f.session.revision=2;}
+   const before=await data(f),head=f.head;release();const out=await pending;assert.equal(out.status,'rejected',JSON.stringify(out));assert.equal(f.head,head);const after=await data(f);assert.deepEqual(after.sheetOrder,before.sheetOrder);assert.deepEqual(after.sheets,before.sheets);assert.deepEqual(after.resources,before.resources);
+  }finally{release?.();await f.service.dispose();}
+ }
+});

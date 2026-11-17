@@ -85,3 +85,20 @@ test('captured scalar typing accepts only empty own p companion and leaves unsup
   assert.equal(await f.commands.executeCommand(SetRangeValuesCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',range,value:captured()}),true);assert.equal(f.save().sheets['sheet-1'].cellData[1][1].v,44);assert.deepEqual(f.save().sheets.second,before.sheets.second);
  }finally{g.dispose();f.dispose();}
 });
+
+import {SetWorksheetOrderCommand} from '@univerjs/sheets';
+test('extra-tab reorder native gesture preserves active sheet; invalid, no-op and busy orders never mutate',async()=>{
+ const source=blank();for(const id of ['second','third']){source.sheetOrder.push(id);source.sheets[id]=mergeWorksheetSnapshotWithDefault({id,name:id,cellData:{0:{0:{v:id,s:{bl:1}}}}});}
+ const f=fixture(source);f.univer.__getInjector().get(IUniverInstanceService).focusUnit(f.unitID);
+ let busy=false,write=true;const messages=[];const g=guardNativeWorksheets(f.unitID,f.commands,f.save,()=>f.book.getActiveSheet().getSheetId(),()=>write,()=>busy,x=>messages.push(x));
+ const refused=async p=>{const before=f.save(),n=f.emitted.length,active=f.book.getActiveSheet().getSheetId();if(p===null)await assert.rejects(f.commands.executeCommand(SetWorksheetOrderCommand.id,p),/params.*null/);else assert.equal(await f.commands.executeCommand(SetWorksheetOrderCommand.id,p),false,JSON.stringify(p));assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,n);assert.equal(f.book.getActiveSheet().getSheetId(),active);};
+ try{
+  await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'second'});const original=f.save();
+  assert.equal(await f.commands.executeCommand(SetWorksheetOrderCommand.id,{order:2}),true);assert.deepEqual(f.save().sheetOrder,['sheet-1','third','second']);assert.equal(f.book.getActiveSheet().getSheetId(),'second');
+  assert.equal(await f.commands.executeCommand(SetWorksheetOrderCommand.id,{unitId:f.unitID,subUnitId:'second',order:1}),true);assert.deepEqual(f.save(),original);
+  for(const p of [undefined,null,{},[],{order:0},{order:-1},{order:3},{order:1.5},{order:'2'},{order:NaN},{order:1},{order:2,subUnitId:'sheet-1'},{order:2,subUnitId:'missing'},{order:2,unitId:'foreign'},{order:2,unitId:null},{order:2,unitId:''},{order:2,subUnitId:null},{order:2,subUnitId:undefined},{order:2,fromOrder:1},{order:2,toOrder:1},{order:2,sheetOrder:['sheet-1','third','second']},{order:2,unknown:undefined}])await refused(p);
+  busy=true;await refused({order:2});busy=false;write=false;await refused({order:2});write=true;
+  // Other structural surfaces remain unavailable, without changing active tab.
+  await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'sheet-1'});await refused({order:2});
+ }finally{g.dispose();f.dispose();}
+});
