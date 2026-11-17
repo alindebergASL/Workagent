@@ -1,7 +1,7 @@
 // Browser-profile recovery for root/reply TEXT, never anchors or native requests.
 // Each mounted editor owns its draft ID. Recovery transfers and submission seals
 // serialize with Web Locks; localStorage alone is not a multi-tab transaction.
-type Scope = { principal: string; unitID: string; epoch: number; threadID?: string };
+type Scope = { principal: string; unitID: string; epoch: number; threadID?: string; editBasis?: { commentID: string; threadID: string; version: string; original: string } };
 type Disk = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 type Locks = { request<T>(name: string, callback: () => T | Promise<T>): Promise<T> };
 type Draft = { schema: 1; id: string; owner: string; version: number; text: string };
@@ -9,11 +9,13 @@ type Seal = Draft & { kind: 'attempt' | 'discard' | 'transfer' };
 type Completion = Draft & { kind: 'complete'; commentId: string };
 export type CommentPublication = { commentId: string; principal: string; text: string; threadID?: string };
 export type CommentDraftToken = Readonly<Draft>;
-export type CommentDraftRecoveryView = { drafts: Draft[]; attempted: number; message: string };
+export type CommentDraftRecoveryView = { drafts: Draft[]; attempted: number; message: string; valid?: boolean };
 export const emptyCommentDraftRecovery: CommentDraftRecoveryView = { drafts: [], attempted: 0, message: 'Local text recovery waits for a fresh authority check.' };
 export function nativeCommentDrafts(scope: Scope, storage: () => Disk, authorized: () => boolean,
   changed: (value: CommentDraftRecoveryView) => void, locks?: Locks) {
-  const prefix = scope.threadID === undefined
+  const prefix = scope.editBasis
+    ? `workagent:native-edit-text:v1:${encodeURIComponent(JSON.stringify([scope.principal, scope.unitID, scope.epoch]))}:${encodeURIComponent(JSON.stringify(scope.editBasis))}:`
+    : scope.threadID === undefined
     ? `workagent:native-root-text:v1:${encodeURIComponent(JSON.stringify([scope.principal, scope.unitID, scope.epoch]))}:`
     : `workagent:native-reply-text:v1:${encodeURIComponent(JSON.stringify([scope.principal, scope.unitID, scope.epoch, scope.threadID]))}:`;
   const owner = crypto.randomUUID();
@@ -22,8 +24,12 @@ export function nativeCommentDrafts(scope: Scope, storage: () => Disk, authorize
   const same = (a: Draft, b: Draft) => a.id === b.id && a.owner === b.owner && a.version === b.version && a.text === b.text;
   function read() {
     const disk = storage(), drafts = new Map<string, Draft>(), seals = new Map<string, Seal>(), completed = new Map<string, Completion>();
-    for (let i = 0; i < disk.length; i++) {
-      const k = disk.key(i); if (!k?.startsWith(prefix)) continue;
+    const length = disk.length, keys = new Set<string>();
+    if (!Number.isSafeInteger(length) || length < 0) throw Error('Incomplete recovery enumeration');
+    for (let i = 0; i < length; i++) {
+      const k = disk.key(i);
+      if (typeof k !== 'string' || keys.has(k)) throw Error('Incomplete recovery enumeration');
+      keys.add(k); if (!k.startsWith(prefix)) continue;
       const v = JSON.parse(disk.getItem(k) ?? 'null');
       if (!v || v.schema !== 1 || typeof v.id !== 'string' || v.id.length > 128 || !/^[a-zA-Z0-9-]+$/.test(v.id) || typeof v.owner !== 'string' || !v.owner || v.owner.length > 128 || !Number.isSafeInteger(v.version) || v.version < 1 || typeof v.text !== 'string' || v.text.length > 8000) throw Error('Invalid recovery record');
       if (k === prefix + v.id + ':complete') {
@@ -34,6 +40,7 @@ export function nativeCommentDrafts(scope: Scope, storage: () => Disk, authorize
       if (k !== key(v.id) && !seal || Object.keys(v).sort().join() !== (seal ? 'id,kind,owner,schema,text,version' : 'id,owner,schema,text,version') || seal && !['attempt','discard','transfer'].includes(v.kind)) throw Error('Invalid recovery record');
       if (seal) seals.set(v.id, v); else drafts.set(v.id, v);
     }
+    if (disk.length !== length) throw Error('Recovery enumeration changed');
     // Completion is a single retained record with the exact text/token/native
     // comment identity. It is written/read back BEFORE retiring the redundant
     // draft+attempt pair. A crash during retirement therefore stays sealed.
@@ -65,9 +72,9 @@ export function nativeCommentDrafts(scope: Scope, storage: () => Disk, authorize
     try {
       const { drafts, seals, completed } = read();
       const unsaved = memory && (!current || current.text !== memory);
-      return { drafts: [...drafts.values()].filter(d => d.id !== current?.id && d.text !== '' && !seals.has(d.id) && ![...seals.values(), ...completed.values()].some(s => (s.kind === 'attempt' || s.kind === 'complete') && s.text === d.text)), attempted: [...seals.values()].filter(s => s.kind === 'attempt').length + completed.size,
-        message: failure || (unsaved ? 'Current text is not saved locally. Keep this tab open.' : (scope.threadID === undefined ? 'Local browser text recovery only — not native publication or sync. Restore root text explicitly, then choose a current cell. Edit drafts are not saved here.' : 'Local browser reply text recovery only — not native publication or sync. Restore explicitly into this published thread. Edit drafts are not saved here.')) };
-    } catch { return { drafts: [], attempted: 0, message: 'Local recovery unavailable or invalid. Keep this tab open; text has not been safely saved.' }; }
+      return { valid: true, drafts: [...drafts.values()].filter(d => d.id !== current?.id && d.text !== '' && !seals.has(d.id) && ![...seals.values(), ...completed.values()].some(s => (s.kind === 'attempt' || s.kind === 'complete') && s.text === d.text)), attempted: [...seals.values()].filter(s => s.kind === 'attempt').length + completed.size,
+        message: failure || (unsaved ? 'Current text is not saved locally. Keep this tab open.' : (scope.editBasis ? 'Local edit text only — original body basis retained, not native publication or sync.' : scope.threadID === undefined ? 'Local browser text recovery only — not native publication or sync. Restore root text explicitly, then choose a current cell. Edit drafts are not saved here.' : 'Local browser reply text recovery only — not native publication or sync. Restore explicitly into this published thread. Edit drafts are not saved here.')) };
+    } catch { return { valid: false, drafts: [], attempted: 0, message: 'Local recovery unavailable or invalid. Keep this tab open; text has not been safely saved.' }; }
   }
   const emit = () => { if (live) changed(view()); };
   async function edit(text: string) {
@@ -108,6 +115,10 @@ export function nativeCommentDrafts(scope: Scope, storage: () => Disk, authorize
   }
   return {
     view, text: () => memory, refresh: emit, edit,
+    // Read-only validation is independent of the caller's recovery fence. It
+    // exposes no text and lets a scoped consumer lift that fence only after all
+    // retained records (including seals/archives) validate successfully.
+    validateStorage() { if (!live) return false; try { read(); return true; } catch { return false; } },
     async restore(id: string, version: number) {
       const start = generation;
       const next = await locked(() => {

@@ -116,9 +116,9 @@ test('text editing: actual public command retains identity; only committed recei
  const {UpdateCommentMutation}=await import('@univerjs/thread-comment');const f=fixture();try{
   await f.helper.add('Original','H9');const root=f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id);const published={...structuredClone(root),bodyVersion:'original'};f.setPublished([published]);await f.helper.refresh();
   assert.equal(f.helper.editing.canEdit({...published,personId:'peer'}),false);f.setBusy(true);await f.helper.editing.edit(published,'Changed');assert.equal(f.posts.length,1);f.setBusy(false);
-  await f.helper.editing.edit(published,'Changed');const a=f.posts.at(-1);assert.equal(a.body,'Changed');assert.equal(a.previousVersion,'original');assert.equal(root.text.dataStream,'Changed\r\n');assert.equal(f.local.emitted.at(-1).id,UpdateCommentMutation.id);assert.equal(f.helper.editing.canEdit(published),false);
+  let retainedID;await f.helper.editing.edit(published,'Changed',id=>{retainedID=id;assert.equal(f.posts.length,1,'identity exposed before HTTP/native effect');assert.equal(root.text.dataStream,'Original\r\n');assert.ok([...f.saved.keys()].some(k=>k.endsWith('intent:'+id)));});const a=f.posts.at(-1);assert.equal(retainedID,a.id);assert.equal(a.body,'Changed');assert.equal(a.previousVersion,'original');assert.equal(root.text.dataStream,'Changed\r\n');assert.equal(f.local.emitted.at(-1).id,UpdateCommentMutation.id);assert.equal(f.helper.editing.canEdit(published),false);
   await f.helper.refresh();assert.equal(f.states.at(-1).comments[0].text.dataStream,'Original\r\n');assert.match(f.states.at(-1).editing.message,/unknown/);const count=f.posts.length;
-  f.setActions([{...a,status:'committed',phase:'admitted',head:2,revision:3}]);f.setPublished([{...published,text:{dataStream:'Changed\r\n'},bodyVersion:a.id}]);await f.helper.refresh();assert.match(f.states.at(-1).editing.message,/recorded/);assert.equal(f.posts.length,count);
+  f.setActions([{...a,status:'committed',phase:'admitted',head:2,revision:3}]);f.setPublished([{...published,text:{dataStream:'Changed\r\n'},bodyVersion:a.id}]);await f.helper.refresh();assert.match(f.states.at(-1).editing.message,/recorded/);assert.equal(f.posts.length,count);assert.deepEqual(f.states.at(-1).editing.confirmed,{commentId:a.commentId,body:a.body,version:a.id,previousVersion:'original'});
   assert.equal(f.saved.get([...f.saved.keys()].find(k=>k.endsWith('intent:'+a.id))),JSON.stringify(a));
  }finally{f.dispose();}
 });
@@ -220,4 +220,59 @@ for (const sameTarget of [false, true]) test(`held manual deletion does not inte
    assert.equal(f.posts.length,1);
   }
  } finally {f.setBusy(true);gate.resolve();await pending;observer?.dispose();f.dispose();}
+});
+
+test('two live edit controllers: observer terminal cannot consume origin fresh native confirmation',async()=>{
+ for(const observerFirst of [true,false]){
+ const f=fixture();let observer,peer;
+ try{
+  await f.helper.add('Original','H9');const root={...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',f.posts[0].id)),bodyVersion:'original'};
+  f.setPublished([root]);await f.helper.refresh();
+  peer=sdk(f.local.save());const peerStates=[];
+  observer=nativeComments(f.session,peer.univer.__getInjector().get(IThreadCommentDataSourceService),peer.commands,()=>true,v=>peerStates.push(v),f.request,()=> 'observer-member',f.disk);
+  await observer.refresh();await f.helper.editing.edit(root,'Changed by origin');const a=f.posts.at(-1);
+  assert.equal(f.local.emitted.filter(m=>m.id==='thread-comment.mutation.update-comment').length,1);
+  await f.helper.refresh();assert.match(f.helper.editing.view().message,/unknown/);
+  const receipt={...a,status:'committed',phase:'admitted',head:2,revision:3};
+  const fresh={...root,bodyVersion:a.id,text:{dataStream:a.body+'\r\n'}};
+  f.setActions([receipt]);f.setPublished([fresh]);await (observerFirst?observer:f.helper).refresh();const retained=new Map(f.saved),postCount=f.posts.length;
+  assert.ok([...f.saved.keys()].some(k=>k.endsWith('terminal:'+a.id)));
+  const proof={commentId:a.commentId,body:a.body,version:a.id,previousVersion:a.previousVersion};
+  await f.helper.refresh();assert.deepEqual(f.helper.editing.view().confirmed,proof,'origin still needs fresh completion after another tab persisted terminal');
+  assert.doesNotMatch(f.helper.editing.view().message,/unknown/);
+  await observer.refresh();await f.helper.refresh();assert.deepEqual(f.helper.editing.view().confirmed,proof);assert.deepEqual(f.saved,retained);assert.equal(f.posts.length,postCount);
+  // Shared terminal alone, mismatched basis/body/member/target, stale version or
+  // foreign author are never native publication proof.
+  for(const receipts of [[],[{...receipt,previousVersion:'wrong'}],[{...receipt,body:'wrong'}],[{...receipt,memberID:'other'}],[{...receipt,commentId:'other'}],[{...receipt,phase:'prepared'}]]){
+   f.setActions(receipts);await f.helper.refresh();assert.equal(f.helper.editing.view().confirmed,undefined);
+  }
+  f.setActions([receipt]);for(const published of [{...fresh,bodyVersion:'newer'},{...fresh,bodyUnknown:true},{...fresh,personId:'peer'},{...fresh,text:{dataStream:'Other\r\n'}}]){
+   f.setPublished([published]);await f.helper.refresh();assert.equal(f.helper.editing.view().confirmed,undefined);
+  }
+  assert.deepEqual(f.saved,retained);assert.equal(f.posts.length,postCount);
+ }finally{observer?.dispose();peer?.dispose();f.dispose();}
+ }
+});
+
+test('fresh edit confirmations retain every exact identity regardless of receipt order and unrelated uncertainty',async()=>{
+ const {add}=await import('../../workagent-server/tests/native-comments-sdk.test.mjs');const f=fixture();let peer,observer;
+ try{
+  const source=f.source.dataSource;f.source.dataSource=null;
+  for(const id of ['first','second','unresolved'])await add(f.local,id,'owner');f.source.dataSource=source;
+  const roots=['first','second','unresolved'].map(id=>({...structuredClone(f.local.model.getComment(f.local.unitID,'sheet-1',id)),bodyVersion:'original'}));
+  f.setPublished(roots);await f.helper.refresh();
+  for(const root of roots)await f.helper.editing.edit(root,'New '+root.id);
+  assert.equal(f.local.emitted.filter(m=>m.id==='thread-comment.mutation.update-comment').length,3);
+  const [a,b,unknown]=f.posts;
+  const receipts=[{...a,status:'committed',phase:'admitted',head:1,revision:2},{...b,status:'committed',phase:'admitted',head:2,revision:3},{...unknown,status:'unknown',phase:'admitted',head:3}];
+  f.setPublished(roots.map((r,i)=>i<2?{...r,bodyVersion:f.posts[i].id,text:{dataStream:f.posts[i].body+'\r\n'}}:r));f.setActions(receipts);
+  peer=sdk(f.local.save());observer=nativeComments(f.session,peer.univer.__getInjector().get(IThreadCommentDataSourceService),peer.commands,()=>true,()=>{},f.request,()=> 'observer',f.disk);
+  await observer.refresh();const retained=new Map(f.saved);
+  for(const order of [receipts,[...receipts].reverse()]){
+   f.setActions(order);await f.helper.refresh();await observer.refresh();
+   const view=f.helper.editing.view();assert.deepEqual(view.confirmations.map(p=>p.version).sort(),[a.id,b.id].sort());assert.equal(view.confirmed,undefined,'no arbitrary last completion');
+   assert.match(view.message,/other text edit outcomes remain unknown/);assert.deepEqual(view.abandonable,[]);assert.deepEqual(f.saved,retained);assert.equal(f.posts.length,3);
+  }
+  f.setActions([receipts[0],{...receipts[0],body:'conflicting'},receipts[2]]);await f.helper.refresh();assert.deepEqual(f.helper.editing.view().confirmations,[],'duplicate/conflicting receipts and local terminal alone do not prove completion');
+ }finally{observer?.dispose();peer?.dispose();f.dispose();}
 });

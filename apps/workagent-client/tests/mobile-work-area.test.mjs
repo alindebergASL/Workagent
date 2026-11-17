@@ -13,6 +13,7 @@ import { FixtureArtifactStorage, draftRaw } from './artifact-storage-fixture.mjs
 import { blankWorkbook } from '../../../packages/workagent-contract/index.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { MaintenanceActions } from '../src/maintenance-actions.ts';
+import { nativeComments } from '../src/native-comments.ts';
 import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
 import { BehaviorSubject, Subject, NEVER } from 'rxjs';
 import { SessionStatus, CollaborationController, DataLoaderService, CollaborationUIEventService, CollaborationUIEventId } from '@univerjs-pro/collaboration-client';
@@ -69,6 +70,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
       if(dependency==='./DocumentEditor')return {DocumentEditor};
       if(dependency==='./MaintenancePanel')return {MaintenancePanel:()=>null};
       if(dependency==='./native-comment-drafts' && collaboration){const actual=require('../src/native-comment-drafts.ts');return {...actual,nativeCommentDrafts(...args){const helper=actual.nativeCommentDrafts(...args);return {...helper,async restore(...input){const body=await helper.restore(...input);if(collaboration.delayRecoveredText)await collaboration.delayRecoveredText(body);return body;}};}};}
+      if(dependency==='./native-edit-drafts' && collaboration){const actual=require('../src/native-edit-drafts.ts');return {...actual,nativeEditDrafts(...args){const helper=actual.nativeEditDrafts(...args);return {...helper,async restore(...input){const value=await helper.restore(...input);if(collaboration.delayRecoveredEdit)await collaboration.delayRecoveredEdit(value);return value;}};}};}
       if(dependency==='./native-reversal-action' && collaboration)return {...require('../src/native-reversal-action.ts'),openAcceptanceAction:(...args)=>{assert.ok(collaboration.acceptanceOpen,'Unexpected acceptance action in fixture');return collaboration.acceptanceOpen(...args);}};
       if(dependency==='./artifact-storage')return {ArtifactStorage:FixtureArtifactStorage};
       if(exchangeNames.includes(dependency.slice(2)))return load(dependency.slice(2));
@@ -908,9 +910,9 @@ test('comments editing App: author draft is separate, Cancel has no effect and a
  }finally{f.dispose();await new Promise(setImmediate);}
 });
 
-test('comments editing App: unchanged Save disabled; own confirmed edit advances only unchanged draft basis without replacing its textarea',async()=>{
+test('comments editing App: shared terminal still retires origin draft and advances only unchanged draft basis',async()=>{
  for(const newer of [false,true]){
- const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);let receipts=[],editPosts=[];
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);let receipts=[],editPosts=[],observer;
  f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
  const root={id:'root',threadId:'root',unitId:'A',subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'Original\r\n'},bodyVersion:'original'};native.published.set('A',[root]);
  const request=native.commentsRequest;native.commentsRequest=async(path,options)=>{
@@ -926,11 +928,23 @@ test('comments editing App: unchanged Save disabled; own confirmed edit advances
   const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');assert.equal(f.button('Save text revision').props.disabled,true);f.button('Save text revision').props.onClick();await f.flush();assert.equal(editPosts.length,0);
   edit().props.onChange({target:{value:'Second'}});await f.flush();await f.click('Save text revision');assert.equal(editPosts.length,1);const a=editPosts[0];
   if(newer){edit().props.onChange({target:{value:'newer unsent draft'}});await f.flush();}
-  receipts=[{...a,status:'committed',phase:'admitted',head:2,revision:3}];native.published.set('A',[{...root,text:{dataStream:'Second\r\n'},bodyVersion:a.id}]);await native.poll();await f.flush();
+  const fresh={...root,text:{dataStream:'Second\r\n'},bodyVersion:a.id};native.published.set('A',[fresh]);
+  receipts=[{...a,previousVersion:'wrong-basis',status:'committed',phase:'admitted',head:2,revision:3}];await native.poll();await f.flush();
+  assert.equal(Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).filter(k=>k.startsWith('workagent:native-edit-text:')&&k.endsWith(':complete')).length,0);
+  // Independent matching receipt in this DOM/API fixture must not replace the
+  // origin's proof. Real public command coverage for multiple edits is separate.
+  const other={...a,id:'other-edit',commentId:'other-root',body:'Other body',previousVersion:'other-original',memberID:'other-member'};
+  const intentKey=Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).find(k=>k.endsWith('intent:'+a.id));
+  f.storage.setItem(intentKey.slice(0,-a.id.length)+other.id,JSON.stringify(other));
+  receipts=[a,other].map(intent=>({...intent,status:'committed',phase:'admitted',head:2,revision:3}));
+  native.published.set('A',[fresh,{...root,id:other.commentId,threadId:other.commentId,text:{dataStream:other.body+'\r\n'},bodyVersion:other.id}]);
+  observer=nativeComments(native.sessions.get('A'),{dataSource:null},entry.commands,()=>true,()=>{},native.commentsRequest,()=> 'other-member',f.storage);
+  await observer.refresh();assert.ok(Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).some(k=>k.endsWith('terminal:'+a.id)));
+  await native.poll();await f.flush();assert.equal(Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).filter(k=>k.startsWith('workagent:native-edit-text:')&&k.endsWith(':complete')).length,1,'only matching native edit proof retires the local attempted record');
   if(newer){assert.equal(edit().props.value,'newer unsent draft');assert.equal(f.button('Save text revision').props.disabled,true);f.button('Save text revision').props.onClick();await f.flush();assert.equal(editPosts.length,1);await f.click('Cancel edit draft');}
   else { assert.equal(edit().props.value,'Second'); assert.equal(f.button('Save text revision').props.disabled,true); }
   if(newer)await f.click('Edit comment');assert.equal(edit().props.value,'Second');edit().props.onChange({target:{value:'Third'}});await f.flush();await f.click('Save text revision');assert.equal(editPosts.length,2);assert.equal(editPosts[1].previousVersion,a.id);assert.equal(comment().props.value,'comment text unchanged');assert.equal(entry.anchor,'H9');assert.equal(entry.editing,false);
- }finally{f.dispose();await new Promise(setImmediate);}
+ }finally{observer?.dispose();f.dispose();await new Promise(setImmediate);}
  }
 });
 
@@ -1053,5 +1067,45 @@ test('reply text recovery App: delayed result after callback cannot overwrite ty
 test('reply text recovery App: unknown reply is not converted/reoffered; denied storage blocks publication',async()=>{
  for(const deny of [false,true]){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=replyRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');
  try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');if(deny){const put=f.storage.setItem;f.storage.setItem=(k,v)=>{if(k.startsWith('workagent:native-reply-text:'))throw Error('full');put(k,v);};}area().props.onChange({target:{value:'retained reply'}});await f.flush();await f.click('Use draft for a new cell comment');assert.equal(area().props.value,'retained reply');assert.match(f.panel.text(),/cannot be converted/);await f.click('Add comment');assert.equal(native.commentPosts.length,deny?0:1);assert.equal(area().props.value,'retained reply');if(!deny){await f.remount();await f.open('A');await native.poll();await f.flush();await f.click('Reply to H9');assert.throws(()=>f.button('Restore saved reply text 1'),/control missing/);assert.match(f.panel.text(),/attempted text record/);assert.equal(native.commentPosts.length,1);}
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+
+const editRecoveryRoot=()=>({id:'edit-root',threadId:'edit-root',unitId:'A',subUnitId:'sheet-1',personId:'owner',authorName:'Owner',ref:'H9',text:{dataStream:'Original body\r\n'},bodyVersion:'original',children:[{id:'edit-reply',threadId:'edit-root',parentId:'edit-root',personId:'owner',authorName:'Owner',text:{dataStream:'Original reply\r\n'},bodyVersion:'reply-original'}]});
+test('edit text recovery App: explicit root/reply reload retains original basis and creation drafts stay separate',async()=>{
+ for(const kind of ['comment','reply']){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=editRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Edit '+kind);edit().props.onChange({target:{value:'  Saved edit 雪\nline two  '}});await f.flush();await f.remount();await f.open('A');assert.throws(()=>f.button('Restore saved edit text 1'),/control missing/);await native.poll();await f.flush();assert.equal(f.find(n=>n.props['aria-label']==='Comment draft').props.value,'');assert.throws(()=>f.button('Restore saved root text 1'),/control missing/);await f.click('Restore saved edit text 1');assert.equal(edit().props.value,'  Saved edit 雪\nline two  ');assert.equal(f.button('Save text revision').props.disabled,false);assert.equal(native.commentPosts.length,0);await f.click('Cancel edit draft');await f.remount();await f.open('A');await native.poll();await f.flush();assert.throws(()=>f.button('Restore saved edit text 1'),/control missing/);assert.equal(native.commentPosts.length,0);
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+test('edit text recovery App: basis drift after reload is read-only, never reopened against latest body',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=editRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Edit comment');f.find(n=>n.props['aria-label']==='Edited comment text').props.onChange({target:{value:'old basis draft'}});await f.flush();await f.remount();native.published.set('A',[{...root,bodyVersion:'peer-version',text:{dataStream:'Newer native body\r\n'}}]);await f.open('A');await native.poll();await f.flush();assert.match(f.panel.text(),/old basis draft/);assert.match(f.panel.text(),/Original basis changed/);assert.equal(f.button('Restore saved edit text 1').props.disabled,true);await f.button('Restore saved edit text 1').props.onClick();await f.flush();assert.throws(()=>f.find(n=>n.props['aria-label']==='Edited comment text'),/control missing/);assert.equal(native.commentPosts.length,0);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('edit text recovery App: delayed result after callback cannot overwrite typing or cross basis/deletion/revoke/cancel',async()=>{
+ for(const mode of ['typing','basis','delete','revoke','cancel']){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=editRecoveryRoot();native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Edit comment');edit().props.onChange({target:{value:'delayed original edit'}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();const gate=deferred(),ran=deferred();native.delayRecoveredEdit=async()=>{ran.resolve();await gate.promise;};const pending=f.button('Restore saved edit text 1').props.onClick();await ran.promise;
+ if(mode==='typing'||mode==='cancel'){await f.click('Edit reply');if(mode==='typing'){edit().props.onChange({target:{value:'new reply edit'}});await f.flush();}else await f.click('Cancel edit draft');}
+ if(mode==='basis'){native.published.set('A',[{...root,bodyVersion:'other',text:{dataStream:'Other\r\n'}}]);await native.poll();await f.flush();}
+ if(mode==='delete'){native.published.set('A',[]);await native.poll();await f.flush();}
+ if(mode==='revoke'){native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();}
+ gate.resolve();await pending;await f.flush();if(mode==='typing')assert.equal(edit().props.value,'new reply edit');else assert.throws(()=>edit(),/control missing/);assert.equal(native.commentPosts.length,0);
+ native.delayRecoveredEdit=undefined;native.authorityRequest=undefined;native.published.set('A',[root]);await f.remount();await f.open('A');await native.poll();await f.flush();assert.match(f.panel.text(),/delayed original edit/);
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+test('edit text recovery App: storage denial blocks Save; unknown submission stays sealed after Cancel/remount',async()=>{
+ for(const deny of [false,true]){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=editRecoveryRoot();let posts=0;native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};const request=native.commentsRequest;native.commentsRequest=async(path,options)=>{if(path.endsWith('/edits')&&options.method==='POST'){posts++;throw Error('response lost');}return request(path,options);};
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();const entry=native.instances[0],execute=entry.commands.executeCommand.bind(entry.commands);entry.commands.executeCommand=async(id,p)=>{if(id!=='thread-comment.command.update-comment')return execute(id,p);await entry.commentSource.dataSource.updateComment({...root,...p.payload});return true;};await f.click('Edit comment');if(deny){const put=f.storage.setItem;f.storage.setItem=(k,v)=>{if(k.startsWith('workagent:native-edit-text:'))throw Error('full');put(k,v);};}const edit=()=>f.find(n=>n.props['aria-label']==='Edited comment text');edit().props.onChange({target:{value:'Retain uncertain edit'}});await f.flush();await f.click('Save text revision');assert.equal(posts,deny?0:1);assert.equal(edit().props.value,'Retain uncertain edit');if(!deny){await f.click('Cancel edit draft');await f.remount();await f.open('A');await native.poll();await f.flush();assert.throws(()=>f.button('Restore saved edit text 1'),/control missing/);assert.match(f.panel.text(),/attempted edit text record/);assert.equal(posts,1);}
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+
+test('edit recovery enumeration App: transient storage event failure recovers explicitly without reload or replay; corrupt record stays fenced',async()=>{
+ for(const mode of ['transient','corrupt']){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native),root=editRecoveryRoot(),storageHandlers=[];const listen=native.window.addEventListener.bind(native.window);native.window.addEventListener=(name,fn)=>{if(name==='storage')storageHandlers.push(fn);listen(name,fn);};native.published.set('A',[root]);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();await f.click('Edit comment');f.find(n=>n.props['aria-label']==='Edited comment text').props.onChange({target:{value:'Retain unsent edit'}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();assert.equal(f.button('Restore saved edit text 1').props.disabled,false);
+ const key=Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).find(k=>k.startsWith('workagent:native-edit-text:')&&k.endsWith(':draft')),bytes=f.storage.getItem(key),get=f.storage.getItem;
+ if(mode==='transient'){let once=true;f.storage.getItem=k=>{if(k===key&&once){once=false;throw Error('one-shot read denied');}return get(k);};}else f.storage.setItem(key,'{');
+ storageHandlers.at(-1)();await f.flush();assert.match(f.panel.text(),/Local edit recovery unavailable or invalid/);assert.equal(f.button('Edit comment').props.disabled,true);assert.throws(()=>f.button('Restore saved edit text 1'),/control missing/);assert.equal(native.commentPosts.length,0);
+ if(mode==='transient'){f.storage.getItem=get;storageHandlers.at(-1)();await f.flush();assert.equal(f.button('Edit comment').props.disabled,false);assert.equal(f.button('Restore saved edit text 1').props.disabled,false);assert.match(f.panel.text(),/Retain unsent edit/);assert.equal(f.storage.getItem(key),bytes);assert.throws(()=>f.find(n=>n.props['aria-label']==='Edited comment text'),/control missing/);await f.click('Restore saved edit text 1');assert.equal(f.find(n=>n.props['aria-label']==='Edited comment text').props.value,'Retain unsent edit');}
+ else{for(let n=0;n<3;n++){storageHandlers.at(-1)();await f.flush();assert.match(f.panel.text(),/Local edit recovery unavailable or invalid/);assert.equal(f.button('Edit comment').props.disabled,true);assert.equal(f.storage.getItem(key),'{');}}
+ assert.equal(native.commentPosts.length,0);assert.equal(native.instances.at(-1).nativeAdds.length,0);
  }finally{f.dispose();await new Promise(setImmediate);}}
 });

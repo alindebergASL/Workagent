@@ -80,3 +80,9 @@ test('reply storage readback failure retains one recoverable version, attempts a
  for(let n=0;n<70;n++){await c.edit('completed reply '+n);const token=await c.beforeAttempt();assert.ok(token);await c.complete(token,{...proof(token),threadID:s.threadID});await c.edit('discarded reply '+n);await c.edit('');}
  for(const [k,v]of evidence)assert.equal(f.values.get(k),v);assert.ok(unknown);await c.edit('still usable');assert.ok(await c.beforeAttempt());assert.equal(f.make().view().attempted,0);
 });
+
+test('edit recovery keeps immutable original basis isolated from creation and other versions',async()=>{
+ const f=fixture(),basis={commentID:'comment',threadID:'thread',version:'v1',original:'Old\r\n'},s={...scope,editBasis:basis};const a=f.make(s);await a.edit('New 雪\nbody');
+ for(const other of [scope,{...scope,threadID:'thread'},{...s,editBasis:{...basis,version:'v2'}},{...s,editBasis:{...basis,commentID:'other'}}])assert.equal(f.make(other).view().drafts.length,0);
+ assert.equal(f.make(s).view().drafts[0].text,'New 雪\nbody');
+});

@@ -186,38 +186,70 @@ export function nativeComments(session: NativeSession, source: IThreadCommentDat
 type EditableComment = IThreadComment & { bodyVersion?: string; bodyUnknown?: boolean };
 type EditIntent = { id: string; commentId: string; memberID: string; body: string; previousVersion: string };
 type EditReceipt = EditIntent & { head: number; status: string; phase: string; revision?: number };
-export interface CommentEditView { message: string; busy: boolean; abandonable: string[]; confirmed?: { commentId: string; body: string; version: string } }
+type EditConfirmation = { commentId: string; body: string; version: string; previousVersion: string };
+export interface CommentEditView { message: string; busy: boolean; abandonable: string[]; confirmed?: EditConfirmation; confirmations: EditConfirmation[] }
 // Isolated immutable edit identities. Native command/ACK remains the only effect path.
 function nativeCommentEditing(session: NativeSession, commands: ICommandService, allowed: () => boolean, notify: () => void,
  request: typeof fetch, memberID: () => string, disk?: Pick<Storage,'getItem'|'setItem'|'key'|'length'>) {
  const prefix=`workagent:native-comment-edit:${session.principal}:${session.unitID}:${session.binding}:${session.access.revision}:`,url=`/api/work/${session.unitID}/native-comments/${session.access.revision}/edits`;
  const controller=new AbortController();let live=true,busy=false,failed=false,message='',active:EditIntent|undefined,records:EditIntent[]=[],retired:EditReceipt[]=[],head=0;
  let receipts=new Map<string,EditReceipt>(), published=new Map<string,EditableComment>();
- let confirmed: CommentEditView['confirmed'];
+ let confirmations: EditConfirmation[] = [], intents: EditIntent[] = [];
  const equal=(a:EditIntent,b:EditIntent)=>a.id===b.id&&a.commentId===b.commentId&&a.memberID===b.memberID&&a.body===b.body&&a.previousVersion===b.previousVersion;
  const append=(key:string,value:unknown)=>{if(!disk)throw Error('Edit recovery storage unavailable');const encoded=JSON.stringify(value),old=disk.getItem(prefix+key);if(old!==null&&old!==encoded)throw Error('Conflicting edit evidence');if(old===null)disk.setItem(prefix+key,encoded);if(disk.getItem(prefix+key)!==encoded)throw Error('Edit evidence not retained');};
  const reconcile=()=>{try{
-  if(!disk||!Number.isSafeInteger(disk.length))throw Error();const result:EditIntent[]=[],done:EditReceipt[]=[];
+  if(!disk||!Number.isSafeInteger(disk.length))throw Error();const result:EditIntent[]=[],done:EditReceipt[]=[],all:EditIntent[]=[];
   for(let n=0;n<disk.length;n++){const key=disk.key(n);if(key===null)throw Error();if(!key.startsWith(prefix+'intent:'))continue;const a=JSON.parse(disk.getItem(key)??'null');
    if(!a||Object.keys(a).sort().join()!=='body,commentId,id,memberID,previousVersion'||![a.id,a.commentId,a.memberID,a.previousVersion].every(x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(x))||typeof a.body!=='string'||!a.body.trim()||a.body.length>8000||key!==prefix+'intent:'+a.id)throw Error();
-   const start=disk.getItem(prefix+'started:'+a.id),abandon=disk.getItem(prefix+'abandon-request:'+a.id);
+   all.push(a);const start=disk.getItem(prefix+'started:'+a.id),abandon=disk.getItem(prefix+'abandon-request:'+a.id);
    for(const marker of [start,abandon])if(marker!==null&&marker!==JSON.stringify(a))throw Error();
    const terminal=disk.getItem(prefix+'terminal:'+a.id);
    if(terminal!==null){const r=JSON.parse(terminal);if(!equal(a,r)||!Number.isSafeInteger(r.head)||!['committed','abandoned'].includes(r.status)||r.status==='abandoned'&&(start!==null||r.phase!=='abandoned')||r.status==='committed'&&(!Number.isSafeInteger(r.revision)||r.revision!==r.head+1))throw Error();done.push(r);}else result.push(a);
-  }records=result;retired=done;return !failed;
+  }records=result;retired=done;intents=all;return !failed;
  }catch{failed=true;message='Edit recovery evidence unavailable. No text change will be sent.';return false;}};
  const abandonable=()=>live&&reconcile()&&!busy&&session.access.role!=='read'?records.filter(a=>(!receipts.has(a.id)||(receipts.get(a.id)?.phase==='prepared'&&receipts.get(a.id)?.status==='unknown'))&&disk!.getItem(prefix+'started:'+a.id)===null&&disk!.getItem(prefix+'abandon-request:'+a.id)===null).map(a=>a.id):[];
  const call=async(path:string,body:object)=>{const r=await request(path,{method:'POST',signal:controller.signal,headers:{'X-Workagent-Session-Binding':session.binding,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!live||!r.ok)throw Error('Edit request not confirmed; check status, no automatic retry');const value=await r.json();if(!live)throw Error('Edit session changed');return value as EditReceipt;};
  const observer=commands.beforeCommandExecuted(command=>{if(command.id!==UpdateCommentMutation.id||!active)return;const p=command.params as {unitId:string;subUnitId:string;payload:{commentId:string;text:unknown}};if(p?.unitId!==session.unitID||p.subUnitId!=='sheet-1'||p.payload.commentId!==active.commentId||!live||!allowed()||memberID()!==active.memberID||disk?.getItem(prefix+'abandon-request:'+active.id)!==null)throw Error('Edit input changed before native mutation');append('started:'+active.id,active);});
  reconcile();
  return {
-  view:():CommentEditView=>({message,busy,abandonable:abandonable(),confirmed}),busy:()=>busy,
-  observe(value:{revision:number;edits?:EditReceipt[];comments:EditableComment[]}){head=value.revision;published=new Map(value.comments.flatMap(root=>[root,...(root.children??[]).map(c=>({...c,ref:root.ref}))]).map(c=>[c.id,c]));confirmed=undefined;reconcile();receipts=new Map();for(const a of records){const r=value.edits?.find(r=>r.id===a.id);if(!r||!equal(a,r)||!Number.isSafeInteger(r.head))continue;receipts.set(a.id,r);if(r.phase==='admitted'){try{append('started:'+a.id,a);}catch{failed=true;message='Cannot retain native admission evidence; no new edit enabled.';}}if(r.status==='committed'&&r.revision===r.head+1&&r.revision<=head||r.status==='abandoned'&&r.phase==='abandoned'){try{append('terminal:'+a.id,r);if(r.status==='committed'&&published.get(a.commentId)?.bodyVersion===a.id&&published.get(a.commentId)?.text.dataStream===a.body+'\r\n')confirmed={commentId:a.commentId,body:a.body,version:a.id};message=r.status==='committed'?`Text revision recorded at native revision ${r.revision}. Prior bodies retained.`:'Unused edit abandoned. A new edit requires a separate action; the same text needs a newer native revision or reopened editor.';}catch{failed=true;message='Conflicting edit evidence; no new edit enabled.';}}}reconcile();if(records.length&&!failed)message='Text edit outcome unknown. Check status (GET only). Explicit unused abandonment asks the server to fence this identity; no release until proven.';},
+  view:():CommentEditView=>({message,busy,abandonable:abandonable(),confirmed:confirmations.length===1?confirmations[0]:undefined,confirmations:[...confirmations]}),busy:()=>busy,
+  observe(value:{revision:number;edits?:EditReceipt[];comments:EditableComment[]}){
+   head=value.revision;published=new Map(value.comments.flatMap(root=>[root,...(root.children??[]).map(c=>({...c,ref:root.ref}))]).map(c=>[c.id,c]));
+   confirmations=[];receipts=new Map();if(!live||!reconcile())return;
+   let outcome='';
+   // Terminal storage is shared between tabs; consuming it must not consume a
+   // different controller's completion. Every signal still requires this fresh
+   // authorized response and the exact original immutable intent/current body.
+   for(const a of intents){
+    const matches=value.edits?.filter(r=>r.id===a.id)??[];
+    if(matches.length!==1)continue;
+    const r=matches[0];if(!equal(a,r)||!Number.isSafeInteger(r.head)||r.head<0)continue;
+    const committed=r.status==='committed'&&r.phase==='admitted'&&Number.isSafeInteger(r.revision)&&r.revision===r.head+1&&r.revision<=head;
+    const abandoned=r.status==='abandoned'&&r.phase==='abandoned';
+    if(!committed&&!abandoned&&r.status!=='unknown')continue;
+    receipts.set(a.id,r);
+    try{
+     if(r.phase==='admitted')append('started:'+a.id,a);
+     if(committed||abandoned){
+      append('terminal:'+a.id,r);
+      const current=published.get(a.commentId);
+      if(committed&&current?.personId===session.principal&&!current.bodyUnknown&&current.bodyVersion===a.id&&current.text.dataStream===a.body+'\r\n')
+       confirmations.push({commentId:a.commentId,body:a.body,version:a.id,previousVersion:a.previousVersion});
+      outcome=committed?`Text revision recorded at native revision ${r.revision}. Prior bodies retained.`:'Unused edit abandoned. A new edit requires a separate action; the same text needs a newer native revision or reopened editor.';
+     }
+    }catch{failed=true;message='Conflicting edit evidence; no new edit enabled.';}
+   }
+   if(!reconcile()){confirmations=[];return;}
+   if(records.length)message=(confirmations.length?'Matching text revision recorded; other text edit outcomes remain unknown. ':'Text edit outcome unknown. ')+'Check status (GET only). Explicit unused abandonment asks the server to fence this identity; no release until proven.';
+   else if(outcome)message=outcome;
+   else if(retired.length)message='Retained edit outcome evidence. Check status (GET only) for current native publication.';
+  },
   canEdit(comment:EditableComment){return live&&reconcile()&&!busy&&allowed()&&session.access.role!=='read'&&comment.personId===session.principal&&!comment.bodyUnknown&&!!comment.bodyVersion&&published.get(comment.id)?.bodyVersion===comment.bodyVersion&&!published.get(comment.id)?.bodyUnknown&&!!memberID()&&!records.some(a=>a.commentId===comment.id);},
   canSave(comment:EditableComment,body:string){return this.canEdit(comment)&&!!body.trim()&&body.length<=8000&&!/[\u0000-\u0008\u000b-\u001f]/.test(body)&&comment.text.dataStream!==body+'\r\n';},
   async updateComment(comment:IThreadComment){const a=active;if(!a||!live||!allowed()||comment.id!==a.commentId||comment.unitId!==session.unitID||comment.subUnitId!=='sheet-1'||comment.text.dataStream!==a.body+'\r\n'||a.memberID!==memberID())throw Error('Comment editing not enabled outside an explicit retained edit');const r=await call(url,a);if(!equal(a,r)||r.status!=='unknown'||r.phase!=='prepared'||!allowed()||memberID()!==a.memberID)throw Error('Edit preparation changed; check status before any new action');return true;},
-  async edit(comment:EditableComment,body:string){if(!this.canSave(comment,body))return;if(retired.some(r=>r.status==='abandoned'&&r.commentId===comment.id&&r.memberID===memberID()&&r.head===head&&r.body===body)){message='This abandoned edit needs a newer revision or explicitly reopened editor.';notify();return;}
+  async edit(comment:EditableComment,body:string,onIdentity?:(id:string)=>void){if(!this.canSave(comment,body))return;if(retired.some(r=>r.status==='abandoned'&&r.commentId===comment.id&&r.memberID===memberID()&&r.head===head&&r.body===body)){message='This abandoned edit needs a newer revision or explicitly reopened editor.';notify();return;}
    const a:EditIntent={id:crypto.randomUUID(),commentId:comment.id,memberID:memberID(),body,previousVersion:comment.bodyVersion!};try{append('intent:'+a.id,a);}catch{failed=true;message='Cannot retain edit identity. No request sent.';notify();return;}
+   onIdentity?.(a.id);
    busy=true;active=a;message='Text edit awaiting native evidence; prior body remains published.';notify();
    try{if(!await commands.executeCommand(UpdateCommentCommand.id,{unitId:session.unitID,subUnitId:'sheet-1',payload:{commentId:a.commentId,text:{dataStream:body+'\r\n',paragraphs:[{startIndex:body.length}]}}}))throw Error('Native edit did not complete');}catch(error){message=String(error)+' Draft and identity retained; no automatic retry.';}finally{busy=false;active=undefined;if(live)notify();}
   },
