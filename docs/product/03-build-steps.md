@@ -759,6 +759,36 @@ Main/runtime.env/default/public remain unchanged. These tests do not establish a
 network-failure modes, crash/reload draft persistence, physical-phone behavior,
 capacity refusal or completion of the wider B05 backlog.
 
+### B05 continuation — native editing-capacity boundary
+
+Qualified against `a8bd78f` on fresh restricted PostgreSQL/native SQLite and real
+production-handler HTTP/WebSocket transport, retained fixture `3c7e4fcb2d8b`.
+The public SDK license API counts editing connections (a recent commit), not every
+open socket. Three editing slots were filled; a fourth nonediting session made
+one attempt and received identity-matched `changeset_should_retry` code9016.
+The complete authoritative state remained unchanged and no fourth editing slot
+was admitted. After closing the refused session and one editor, a fresh member
+and SID committed a different value. The refused request was never replayed.
+License limits, accounting and enforcement were not modified.
+
+Five unique one-shot submissions produced four ACKs and one quota refusal;
+peak3/final0 editing slots and final0 authority sessions. Independent retained
+SQLite readback confirms head5, revisions2–5 matching all four ACK identities,
+and no stored refused identity. Read-only PG confirms one work/zero jobs;
+55 source hashes remain exact and no fixture processes survive. Native values
+A1:D1 were verified as11/22/33/44 through the public materializer during the test.
+No product inference occurred; main/runtime.env/default/public are unchanged.
+
+The SAME reviewer approved after a fixture-only missing-await correction, then
+approved the narrow protected-file hash-check execution-context correction.
+The initial permission failure created no stage/database/connections. A later
+read-only verifier quoting error was corrected without repeating live effects.
+These failures remain retained, not silently counted as passing executions.
+Evidence: scratch `b05-native-capacity-{pg-result,final-readback}.json`, review
+results, and the retained stage's `qa/capacity-evidence.jsonl`.
+This is not browser quota UX, action-session/agent-capacity, reader-exemption,
+physical-phone or full B05 acceptance. Those separate qualifications remain open.
+
 ### B06 — Boards, editable decks and multilingual dictation
 
 **Scope:** P03/P04/P16. **Depends on:** native editor/asset/selection boundaries and B05 for collaborative claims. Dictation depends on a legitimate input engine and microphone permission, not narration or partner agreements.
