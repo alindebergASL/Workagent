@@ -89,7 +89,8 @@ test('strip guard rejects lossy content, comments, overlap, unsupported geometry
   for(const ranges of [[{...r,endColumn:1}],[{...r,endRow:2}],[r,r]]){assert.equal(await f.commands.executeCommand(Remove.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges}),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,count);}
   assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r],value:Dimension.COLUMNS}),false);assert.deepEqual(f.save(),before);
  }finally{g.dispose();f.dispose();}
- const styled=blank();styled.sheets['sheet-1'].mergeData=[{startRow:0,endRow:0,startColumn:0,endColumn:1},{startRow:1,endRow:1,startColumn:0,endColumn:1}];styled.sheets['sheet-1'].cellData={0:{0:{v:11,s:{bl:1}},1:{s:{bl:1}}},1:{0:{v:22,s:{it:1}},1:{s:{it:1}}}};
+ // Uniform styles are now qualified below; a genuinely different covered style still refuses.
+ const styled=blank();styled.sheets['sheet-1'].mergeData=[{startRow:0,endRow:0,startColumn:0,endColumn:1},{startRow:1,endRow:1,startColumn:0,endColumn:1}];styled.sheets['sheet-1'].cellData={0:{0:{v:11,s:{bl:1}},1:{s:{bl:0}}},1:{0:{v:22,s:{it:1}},1:{s:{it:1}}}};
  const s=fixture(styled),guard=guardNativeMerge(s.unitID,s.commands,s.save,()=>[],()=>true,()=>{});try{const before=s.save();assert.equal(await s.commands.executeCommand(Remove.id,{unitId:s.unitID,subUnitId:'sheet-1',ranges:[{startRow:0,endRow:1,startColumn:0,endColumn:1}]}),false);assert.deepEqual(s.save(),before);assert.equal(s.emitted.length,0);}finally{guard.dispose();s.dispose();}
 });
 test('strip merge retains anchor formula/rich text and all styles; current write/input gate still refuses variants',async()=>{
@@ -98,4 +99,25 @@ test('strip merge retains anchor formula/rich text and all styles; current write
  try{const before=f.save(),params={unitId:f.unitID,subUnitId:'sheet-1',selections:[{startRow:0,endRow:1,startColumn:0,endColumn:1}],value:Dimension.ROWS};assert.equal(await f.commands.executeCommand(Add.id,params),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,0);allowed=true;
  assert.equal(await f.commands.executeCommand(Add.id,params),true);assert.equal(f.emitted.length,1);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before.sheets['sheet-1'].cellData);assert.deepEqual(f.save().styles,before.styles);
  }finally{g.dispose();f.dispose();}
+});
+test('uniform styled single/horizontal/vertical unmerge preserves exact resolved formatting',async()=>{
+ for(const mode of [undefined,Dimension.ROWS,Dimension.COLUMNS]){
+  const data=blank(),r={startRow:0,endRow:1,startColumn:0,endColumn:1};data.styles={base:{bl:1,cl:{rgb:'#1B1C1F'}},other:{it:1,cl:{rgb:'#123456'}}};data.sheets['sheet-1'].cellData={};
+  for(let row=0;row<2;row++)for(let col=0;col<2;col++){const strip=mode===Dimension.ROWS?row:mode===Dimension.COLUMNS?col:0,anchor=mode===Dimension.ROWS?col===0:mode===Dimension.COLUMNS?row===0:row===0&&col===0;data.sheets['sheet-1'].cellData[row]??={};data.sheets['sheet-1'].cellData[row][col]={s:strip?'other':'base',...(anchor?{v:strip+11}:{})};}
+  const f=fixture(data),g=guardNativeMerge(f.unitID,f.commands,f.save,()=>[r],()=>true,()=>{});try{const before=f.save();assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r],...(mode===undefined?{}:{value:mode})}),true);assert.equal(await f.commands.executeCommand(Remove.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges:[r]}),true);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before.sheets['sheet-1'].cellData);assert.deepEqual(f.save().styles,before.styles);}finally{g.dispose();f.dispose();}
+ }
+});
+
+import {SetRangeValuesCommand,ClearSelectionContentCommand} from '@univerjs/sheets';
+test('public type-clear-merge-unmerge retains default style; unequal/default or unresolved styles refuse before mutation',async()=>{
+ const f=fixture(),style={cl:{rgb:'#1B1C1F'}},r={startRow:0,endRow:0,startColumn:0,endColumn:1};f.univer.__getInjector().get(IUniverInstanceService).focusUnit(f.unitID);const g=guardNativeMerge(f.unitID,f.commands,f.save,()=>[r],()=>true,()=>{});
+ try{for(const column of [0,1])assert.equal(await f.commands.executeCommand(SetRangeValuesCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',range:{...r,startColumn:column,endColumn:column},value:{v:column?22:11,t:2,s:style}}),true);
+ assert.equal(await f.commands.executeCommand(ClearSelectionContentCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges:[{...r,startColumn:1}]}),true);const before=f.save();assert.equal(await f.commands.executeCommand(Add.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r]}),true);f.univer.__getInjector().get(SheetsSelectionsService).setSelections(f.unitID,'sheet-1',[{range:r,primary:null,style:null}]);assert.equal(await f.commands.executeCommand(Remove.id),true);assert.deepEqual(f.save().sheets['sheet-1'].cellData,before.sheets['sheet-1'].cellData);assert.deepEqual(f.save().styles,before.styles);
+ }finally{g.dispose();f.dispose();}
+ for(const other of [undefined,null,{cl:{rgb:'#000000'}},{cl:{rgb:'#1B1C1F'},ff:'Arial'},{}]){
+  const data=blank();data.sheets['sheet-1'].mergeData=[r];data.sheets['sheet-1'].cellData={0:{0:{v:11,s:style},1:other===undefined?{}:{s:other}}};const c=fixture(data),guard=guardNativeMerge(c.unitID,c.commands,c.save,()=>[r],()=>true,()=>{});
+  try{const before=c.save();assert.equal(await c.commands.executeCommand(Remove.id,{unitId:c.unitID,subUnitId:'sheet-1',ranges:[r]}),false);assert.deepEqual(c.save(),before);assert.equal(c.emitted.length,0);}finally{guard.dispose();c.dispose();}
+ }
+ const data=blank();data.sheets['sheet-1'].mergeData=[r];const c=fixture(data),guard=guardNativeMerge(c.unitID,c.commands,()=>{const d=c.save();d.sheets['sheet-1'].cellData={0:{0:{s:'unresolved'},1:{s:'unresolved'}}};return d;},()=>[r],()=>true,()=>{});
+ try{const before=c.save();assert.equal(await c.commands.executeCommand(Remove.id,{unitId:c.unitID,subUnitId:'sheet-1',ranges:[r]}),false);assert.deepEqual(c.save(),before);assert.equal(c.emitted.length,0);}finally{guard.dispose();c.dispose();}
 });

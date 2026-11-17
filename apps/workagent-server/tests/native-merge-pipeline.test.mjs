@@ -241,3 +241,55 @@ test('raw strips cannot cover committed comment anchors or mix unrelated changes
  for(const batch of [[[MERGE,{ranges:covered}]],[[MERGE,{ranges:strips}],['sheet.mutation.set-range-values',{cellValue:{0:{9:{v:22}}}}]],[[MERGE,{ranges:strips}],[MERGE,{ranges:[{startRow:4,endRow:4,startColumn:0,endColumn:1}]}]]]){assert.equal((await f.submit(batch)).status,'rejected');assert.equal(f.head,head);assert.deepEqual(await nativeData(f),before);assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);}
  }finally{await f.service.dispose();}
 });
+
+import {Dimension} from '@univerjs/core';
+test('styled single and strip unmerge public SEND/service/APPLY preserves all resolved cells and existing style definitions',async()=>{
+ for(const mode of [undefined,Dimension.ROWS,Dimension.COLUMNS]){
+  const f=await fixture(),compressor=new CompressMutationService();let a,b,g;
+  try{
+   const cells={};for(let row=0;row<2;row++)for(let col=0;col<2;col++){const strip=mode===Dimension.ROWS?row:mode===Dimension.COLUMNS?col:0,anchor=mode===Dimension.ROWS?col===0:mode===Dimension.COLUMNS?row===0:row===0&&col===0;cells[row]??={};cells[row][col]={s:strip?{it:1,cl:{rgb:'#123456'}}:{bl:1,cl:{rgb:'#1B1C1F'}},...(anchor?{v:strip+11}:{})};}
+   assert.equal((await f.submit([['sheet.mutation.set-range-values',{cellValue:cells}]])).status,'committed');const comment=await f.claim();assert.equal((await f.submit([[ADD_COMMENT,{comment}]])).status,'committed');
+   const before=await nativeData(f),claims=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);a=localFixture(before);b=localFixture(before);
+   const i=a.univer.__getInjector(),instances=i.get(IUniverInstanceService),r={startRow:0,endRow:1,startColumn:0,endColumn:1};instances.focusUnit(UNIT);g=guardNativeMerge(UNIT,a.commands,a.save,()=>[r],()=>true,()=>{});
+   const resolved=d=>{const sheets=structuredClone(d.sheets);for(const sheet of Object.values(sheets))for(const cols of Object.values(sheet.cellData))for(const cell of Object.values(cols))if(typeof cell.s==='string'){assert.ok(Object.hasOwn(d.styles,cell.s));cell.s=d.styles[cell.s];}return sheets;};
+   for(const [id,params] of [[AddWorksheetMergeCommand.id,{unitId:UNIT,subUnitId:'sheet-1',selections:[r],...(mode===undefined?{}:{value:mode})}],[RemoveWorksheetMergeCommand.id,{unitId:UNIT,subUnitId:'sheet-1',ranges:[r]}]]){
+    const start=a.emitted.length;assert.equal(await a.commands.executeCommand(id,params),true);const points=compressor.interceptor.getInterceptPoints(),send=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_SEND)(structuredClone(a.emitted.slice(start)),instances);
+    if(id===RemoveWorksheetMergeCommand.id)assert.ok(Object.keys(send[1].params.styleRefMap).length>0);
+    const result=await f.submit(send.map(m=>[m.id,m.params]));assert.equal(result.status,'committed',JSON.stringify(result));const apply=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_APPLY)(result.changeset.mutations.map(m=>({id:m.id,params:JSON.parse(m.data)})),b.univer.__getInjector().get(IUniverInstanceService));for(const m of apply)assert.equal(b.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+    assert.deepEqual(resolved(a.save()),resolved(b.save()));assert.deepEqual(resolved(await nativeData(f)),resolved(a.save()));
+   }
+   const after=await nativeData(f);assert.deepEqual(resolved(after),resolved(before));
+   // Native materialization regenerates style IDs even on repeated reads at the
+   // SAME head (characterized separately below). Keep every definition, including
+   // multiplicity, and compare every cell's fully resolved style, not random IDs.
+   const definitions=d=>Object.values(d.styles??{}).map(x=>JSON.stringify(x,(_k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v)).sort();assert.deepEqual(definitions(after),definitions(before));assert.deepEqual(after.resources,before.resources);assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);
+  }finally{g?.dispose();a?.dispose();b?.dispose();compressor.interceptor.dispose();await f.service.dispose();}
+ }
+});
+
+test('public materializer repeated same-head styled reads preserve definitions and resolved cells despite generated style IDs',async()=>{
+ const f=await fixture();try{const style={bl:1,cl:{rgb:'#123456'}};assert.equal((await f.submit([['sheet.mutation.set-range-values',{cellValue:{0:{0:{v:11,s:style},1:{s:style}}}}]])).status,'committed');const head=f.head,a=await nativeData(f),b=await nativeData(f);assert.equal(f.head,head);for(const d of [a,b]){assert.deepEqual(Object.values(d.styles),[style]);for(const col of [0,1])assert.deepEqual(d.styles[d.sheets['sheet-1'].cellData[0][col].s],style);}assert.deepEqual(a.resources,b.resources);}finally{await f.service.dispose();}
+});
+
+test('styled unmerge rejects forged maps, content, coordinates, foreign identities and incomplete companions atomically',async()=>{
+ const f=await fixture(),compressor=new CompressMutationService();let local;
+ try{const style={bl:1,cl:{rgb:'#1B1C1F'}};assert.equal((await f.submit([['sheet.mutation.set-range-values',{cellValue:{0:{0:{v:11,s:style},1:{s:style}},1:{0:{v:22,s:style},1:{s:style}}}}]])).status,'committed');
+  const ranges=[{startRow:0,endRow:0,startColumn:0,endColumn:1},{startRow:1,endRow:1,startColumn:0,endColumn:1}];assert.equal((await f.submit([[MERGE,{ranges}]])).status,'committed');local=localFixture(await nativeData(f));await local.commands.executeCommand(RemoveWorksheetMergeCommand.id,{unitId:UNIT,subUnitId:'sheet-1',ranges:[{startRow:0,endRow:1,startColumn:0,endColumn:1}]});const sent=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(local.emitted),local.univer.__getInjector().get(IUniverInstanceService)),q=sent[1].params;assert.deepEqual(q.styleRefMap,{'0':style});
+  const changes=[x=>x.styleRefMap=null,x=>x.styleRefMap=[],x=>x.styleRefMap='bad',x=>x.styleRefMap[0]=null,x=>x.styleRefMap[0]=[],x=>x.styleRefMap[0]='foreign-style',x=>x.styleRefMap[0].bl=0,x=>x.styleRefMap[0].extra=true,x=>x.styleRefMap[1]={it:1},x=>{x.styleRefMap[1]=style;x.cellValue[1][1].s='1';},x=>delete x.styleRefMap[0],x=>delete x.styleRefMap,x=>x.cellValue[0][1].s='foreign-style',x=>x.cellValue[0][1].s=null,x=>x.cellValue[0][1].s=0,x=>x.cellValue[0][1]={s:'0',v:99},x=>x.cellValue[0][1]={s:'0',f:'=1'},x=>x.cellValue[0][1]={s:'0',p:{body:{dataStream:'Injected\r\n'}}},x=>x.cellValue[0][1].extra=true,x=>delete x.cellValue[0][1],x=>delete x.cellValue[0],x=>x.cellValue[0][0]={s:'0'},x=>x.cellValue[5]={5:{s:'0'}},x=>x.cellValue[0]=[],x=>x.cellValue=[],x=>x.subUnitId='foreign-sheet',x=>x.unitId='foreign-unit',x=>x.extra=true];
+  const head=f.head,history=structuredClone(f.changesets),load=()=>f.service.getUnitLoadDataWithBlocks({unitID:UNIT,type:2,revision:0},{userID:'owner'}),before=await load();
+  for(const change of changes){const bad=structuredClone(q);change(bad);const result=await f.submit([[UNMERGE,{ranges}],['sheet.mutation.set-range-values',bad]]);assert.equal(result.status,'rejected',JSON.stringify(bad));assert.equal(result.error.retryable,false);assert.equal(f.head,head);assert.deepEqual(f.changesets,history);}
+  assert.equal((await f.submit([[UNMERGE,{ranges}]])).status,'rejected');assert.deepEqual(await load(),before);
+  assert.equal((await f.submit(sent.map(m=>[m.id,m.params]))).status,'committed');assert.equal(f.head,head+1);
+ }finally{local?.dispose();compressor.interceptor.dispose();await f.service.dispose();}
+});
+test('styled unmerge current commit fence preserves peer style/content edits and revocation after admission',async()=>{
+ for(const change of ['style','disjoint','reader']){
+  const f=await fixture();let release,reached,held=false;const gate=new Promise(r=>release=r),entered=new Promise(r=>reached=r);
+  try{const style={cl:{rgb:'#1B1C1F'}};assert.equal((await f.submit([['sheet.mutation.set-range-values',{cellValue:{0:{0:{v:11,s:style},1:{s:style}}}}]])).status,'committed');assert.equal((await f.submit([[MERGE,{ranges:[range]}]])).status,'committed');
+   f.authority.sessions.set('p',{userID:'peer',unitID:UNIT,revision:1,binding:'binding'});f.service.use('submitChangeset',async(c,next)=>{if(!held&&c.memberID==='p'){held=true;reached();await gate;}await next();});
+   const pending=f.submitAs('peer','p',[[UNMERGE,{ranges:[range]}],['sheet.mutation.set-range-values',{cellValue:{0:{1:{s:'0'}}},styleRefMap:{'0':style}}]]);await entered;
+   if(change==='reader')await f.workspace.share('owner',UNIT,{commandId:'styled-reader',peer:'peer',role:'read',accessRevision:1});else assert.equal((await f.submit([['sheet.mutation.set-range-values',{cellValue:change==='style'?{0:{1:{s:{cl:{rgb:'#FF0000'}}}}}:{5:{5:{v:99}}}}]])).status,'committed');
+   const head=f.head,history=structuredClone(f.changesets);release();const result=await pending;assert.equal(result.status,'rejected');assert.equal(result.error.retryable,false);assert.equal(f.head,head);assert.deepEqual(f.changesets,history);assert.deepEqual((await nativeData(f)).sheets['sheet-1'].mergeData,[range]);
+  }finally{release?.();await f.service.dispose();}
+ }
+});

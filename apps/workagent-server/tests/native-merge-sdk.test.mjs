@@ -53,11 +53,28 @@ test('public strip toolbar emits one merge mutation and exact-set unmerge; SEND/
   }finally{compressor.interceptor.dispose();f.dispose();}
  }
  // Uniform non-null strip styles preserve values locally, but SEND introduces
- // a nonempty style map: this format variant remains outside the qualified map contract.
+ // a nonempty style map: the server must validate every reference and definition.
  const data=blank();data.sheets['sheet-1'].cellData={0:{0:{v:11,s:{bl:1}},1:{s:{bl:1}}},1:{0:{v:22,s:{it:1}},1:{s:{it:1}}}};
  const f=fixture(data),i=f.univer.__getInjector(),compressor=new CompressMutationService();try{
   await f.commands.executeCommand(AddWorksheetMergeCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[{startRow:0,endRow:1,startColumn:0,endColumn:1}],value:Dimension.ROWS});
   const start=f.emitted.length;await f.commands.executeCommand(RemoveWorksheetMergeCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges:[{startRow:0,endRow:1,startColumn:0,endColumn:1}]});
   const sent=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(f.emitted.slice(start)),i.get(IUniverInstanceService));assert.ok(Object.keys(sent[1].params.styleRefMap).length>0);
  }finally{compressor.interceptor.dispose();f.dispose();}
+});
+
+import {ClearSelectionContentCommand} from '@univerjs/sheets';
+test('styled unmerge public SEND/APPLY preserves uniform per-strip formatting and clear retains typed style',async t=>{
+ const data=blank();const f=fixture(data),i=f.univer.__getInjector(),instances=i.get(IUniverInstanceService),compressor=new CompressMutationService();let peer;
+ try{instances.focusUnit(f.unitID);const r={startRow:0,endRow:0,startColumn:0,endColumn:1},style={cl:{rgb:'#1B1C1F'},ff:'Arial',fs:11};
+  for(const column of [0,1])assert.equal(await f.commands.executeCommand(SetRangeValuesCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',range:{...r,startColumn:column,endColumn:column},value:{v:column?22:11,t:2,s:style}}),true);
+  assert.equal(await f.commands.executeCommand(ClearSelectionContentCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges:[{...r,startColumn:1}]}),true);
+  const cleared=f.save(),resolve=(d,c)=>typeof c?.s==='string'?d.styles[c.s]:c?.s;assert.deepEqual(resolve(cleared,cleared.sheets['sheet-1'].cellData[0][1]),style);assert.equal(cleared.sheets['sheet-1'].cellData[0][1].v,undefined);
+  await f.commands.executeCommand(AddWorksheetMergeCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',selections:[r]});const before=f.save();peer=fixture(before);const start=f.emitted.length;
+  assert.equal(await f.commands.executeCommand(RemoveWorksheetMergeCommand.id,{unitId:f.unitID,subUnitId:'sheet-1',ranges:[r]}),true);
+  const points=compressor.interceptor.getInterceptPoints(),send=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_SEND)(structuredClone(f.emitted.slice(start)),instances);
+  t.diagnostic(JSON.stringify({companion:send[1].params}));assert.deepEqual(send[1].params.cellValue,{0:{1:{s:'0'}}});assert.deepEqual(send[1].params.styleRefMap,{'0':style});
+  const apply=compressor.interceptor.fetchThroughInterceptors(points.COMPRESS_MUTATION_APPLY)(structuredClone(send),peer.univer.__getInjector().get(IUniverInstanceService));assert.deepEqual(apply[1].params.cellValue,{0:{1:{s:style}}});
+  for(const m of apply)assert.equal(peer.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+  for(const d of [f.save(),peer.save()]){assert.deepEqual(d.sheets['sheet-1'].mergeData,[]);for(const col of [0,1])assert.deepEqual(resolve(d,d.sheets['sheet-1'].cellData[0][col]),style);assert.deepEqual(d.styles,before.styles);}
+ }finally{peer?.dispose();compressor.interceptor.dispose();f.dispose();}
 });

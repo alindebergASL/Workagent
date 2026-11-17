@@ -1,7 +1,7 @@
 import { AbsoluteRefType } from '@univerjs/core';
 import { adjustRangeOnMutation } from '@univerjs/sheets';
 import { CollabError, UnitSnapshotMaterializer } from '@univerjs-pro/collaboration-service';
-import { transformSnapshotToWorkbookData } from '@univerjs-pro/collaboration';
+import { CompressMutationService, transformSnapshotToWorkbookData } from '@univerjs-pro/collaboration';
 import { isDeepStrictEqual } from 'node:util';
 export const MERGE='sheet.mutation.add-worksheet-merge',UNMERGE='sheet.mutation.remove-worksheet-merge';
 const VALUES='sheet.mutation.set-range-values',INSERT='sheet.mutation.insert-row',REMOVE='sheet.mutation.remove-rows';
@@ -36,17 +36,41 @@ export function validateMerge(data,mutations){
  if(id===MERGE&&(sheet.mergeData??[]).some(m=>intersects(m,bound)))refuse();
  if(id===UNMERGE&&(p.ranges.some(r=>!(sheet.mergeData??[]).some(m=>keys.every(k=>m[k]===r[k])))||(sheet.mergeData??[]).some(m=>intersects(m,bound)&&!p.ranges.some(r=>keys.every(k=>m[k]===r[k])))))refuse();
  for(const root of roots(data)){const match=/^([A-Z]+)([1-9][0-9]*)$/.exec(root.ref);if(!match)refuse();let col=0;for(const c of match[1])col=col*26+c.charCodeAt(0)-64;if(contains(bound,Number(match[2])-1,col-1))refuse();}
- const style=c=>typeof c?.s==='string'?data.styles?.[c.s]??null:c?.s??null;
+ const style=c=>{const value=c?.s;if(value==null)return null;const resolved=typeof value==='string'&&Object.hasOwn(data.styles??{},value)?data.styles[value]:value;if(!plainObject(resolved))refuse();return resolved;};
+ const expected={};
  for(const r of p.ranges){const anchorStyle=style(sheet.cellData?.[r.startRow]?.[r.startColumn]);
  for(let row=r.startRow;row<=r.endRow;row++)for(let col=r.startColumn;col<=r.endColumn;col++){
   const cell=sheet.cellData?.[row]?.[col];if(row===r.startRow&&col===r.startColumn)continue;
   if(id===MERGE&&['v','f','si','p','ft','fd'].some(k=>cell?.[k]!=null))refuse();
-  if(id===UNMERGE&&!isDeepStrictEqual(style(cell),anchorStyle))refuse();
+  if(id===UNMERGE){if(!isDeepStrictEqual(style(cell),anchorStyle))refuse();
+   if(anchorStyle!==null){expected[row]??={};expected[row][col]={s:anchorStyle};}
+  }
  }
  }
- // Native transport compression emits {} even for empty cellValue. Only this
- // no-op map is qualified; never resolve new style references here.
- if(list[1]){const q=list[1].p;if(q.unitId!==data.id||q.subUnitId!=='sheet-1'||Object.keys(q).some(k=>!['unitId','subUnitId','cellValue','trigger','styleRefMap'].includes(k))||('styleRefMap' in q&&(!plainObject(q.styleRefMap)||Object.keys(q.styleRefMap).length!==0))||!plainObject(q.cellValue))refuse();for(const [row,cols]of Object.entries(q.cellValue)){if(!/^(0|[1-9][0-9]*)$/.test(row)||!plainObject(cols))refuse();for(const [col,cell]of Object.entries(cols)){if(!/^(0|[1-9][0-9]*)$/.test(col)||!contains(bound,+row,+col)||!plainObject(cell)||Object.keys(cell).some(k=>k!=='s')||!isDeepStrictEqual(style(cell),style(sheet.cellData?.[row]?.[col])))refuse();}}}
+ // Only the public unmerge companion: every styled non-anchor coordinate,
+ // no content fields, and no formatting change. Numeric map keys are scoped to
+ // this compressed mutation, never interpreted as workbook style IDs.
+ if(!list[1]){if(Object.keys(expected).length)refuse();return;}
+ const q=list[1].p;
+ if(!plainObject(q)||q.unitId!==data.id||q.subUnitId!=='sheet-1'||Object.keys(q).some(k=>!['unitId','subUnitId','cellValue','trigger','styleRefMap'].includes(k))||!plainObject(q.cellValue)||('styleRefMap' in q&&!plainObject(q.styleRefMap)))refuse();
+ const map=q.styleRefMap??{},mapKeys=Object.keys(map),used=new Set();
+ if(mapKeys.length>64||mapKeys.some((k,n)=>k!==String(n)||!plainObject(map[k])||mapKeys.slice(0,n).some(prior=>isDeepStrictEqual(map[prior],map[k]))))refuse();
+ for(const [row,cols] of Object.entries(q.cellValue)){
+  if(!/^(0|[1-9][0-9]*)$/.test(row)||!plainObject(cols)||!Object.keys(cols).length)refuse();
+  for(const [col,cell] of Object.entries(cols)){
+   if(!/^(0|[1-9][0-9]*)$/.test(col)||!contains(bound,+row,+col)||!plainObject(cell)||Object.keys(cell).join()!=='s')refuse();
+   if(mapKeys.length){if(typeof cell.s!=='string'||!Object.hasOwn(map,cell.s))refuse();used.add(cell.s);}
+   else if(!plainObject(cell.s))refuse();
+  }
+ }
+ if(used.size!==mapKeys.length)refuse();
+ const compressor=new CompressMutationService();
+ try{
+  const point=compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_APPLY;
+  const applied=compressor.interceptor.fetchThroughInterceptors(point)([{id:VALUES,params:structuredClone(q)}],null);
+  if(!isDeepStrictEqual(applied[0]?.params.cellValue,expected))refuse();
+ }finally{compressor.interceptor.dispose();}
+
 }
 // Validation-only range projection uses the pinned public SDK transformation.
 // Nothing is written here; the native service alone transforms/commits content.

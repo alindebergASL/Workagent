@@ -7,7 +7,7 @@ const fields=['startRow','endRow','startColumn','endColumn'] as const;
 const referenceKeys=['startAbsoluteRefType','endAbsoluteRefType'] as const;
 const referenceTypes=[AbsoluteRefType.NONE,AbsoluteRefType.ROW,AbsoluteRefType.COLUMN,AbsoluteRefType.ALL];
 const rangeMetadata=(r:IRange)=>r&&typeof r==='object'&&!Array.isArray(r)&&Object.keys(r).every(k=>[...fields,'rangeType',...referenceKeys].includes(k))&&referenceKeys.every(k=>r[k]===undefined||referenceTypes.includes(r[k]!));
-export const MERGE_GUIDANCE='Use Merge all, horizontally or vertically on one rectangle (up to 4,096 cells and 64 strips). Non-anchor content, overlapping merges and comment anchors are not supported. Unmerge must preserve existing formatting and cannot introduce style references; it never restores discarded text.';
+export const MERGE_GUIDANCE='Use Merge all, horizontally or vertically on one rectangle (up to 4,096 cells and 64 strips). Non-anchor content, overlapping merges and comment anchors are not supported. Unmerge requires exactly matching formatting within each merge (including preexisting styles); it never restores discarded text.';
 export function guardNativeMerge(unitID:string,commands:Pick<ICommandService,'beforeCommandExecuted'>,read:()=>IWorkbookData|null,selection:()=>IRange[],allowed:()=>boolean,report:(message:string)=>void){
  return commands.beforeCommandExecuted((command,options)=>{
   if(options?.fromCollab)return;
@@ -50,12 +50,14 @@ export function guardNativeMerge(unitID:string,commands:Pick<ICommandService,'be
   }
   const resource=data.resources?.find(x=>x.name==='SHEET_UNIVER_THREAD_COMMENT_PLUGIN');
   if(resource)for(const root of JSON.parse(resource.data)['sheet-1']??[]){const m=/^([A-Z]+)([1-9][0-9]*)$/.exec(root.ref);if(!m)refuse(MERGE_GUIDANCE);let col=0;for(const c of m![1])col=col*26+c.charCodeAt(0)-64;if(contains(Number(m![2])-1,col-1))refuse('This range contains a comment anchor. Choose a range outside the thread.');}
-  const style=(row:number,col:number)=>{const s=sheet.cellData?.[row]?.[col]?.s;return typeof s==='string'?data.styles?.[s]??null:s??null;};
-  if(command.id===REMOVE&&strips.some(strip=>sheet.cellData?.[strip.startRow]?.[strip.startColumn]?.s!=null))refuse('Native unmerge would emit unqualified formatting references. This case is not yet supported.');
+  const style=(row:number,col:number)=>{const s=sheet.cellData?.[row]?.[col]?.s;if(s==null)return null;
+   const resolved=typeof s==='string'&&data.styles&&Object.hasOwn(data.styles,s)?data.styles[s]:s;
+   if(!resolved||typeof resolved!=='object'||Array.isArray(resolved))refuse('Unresolved cell formatting is not supported.');return resolved;};
+  const exactStyle=(s:unknown)=>JSON.stringify(s,(_k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
   for(const strip of strips)for(let row=strip.startRow;row<=strip.endRow;row++)for(let col=strip.startColumn;col<=strip.endColumn;col++){
    if(row===strip.startRow&&col===strip.startColumn)continue;const c=sheet.cellData?.[row]?.[col];
    if(command.id===ADD&&[c?.v,c?.f,c?.si,c?.p,c?.ft,c?.fd].some(v=>v!=null))refuse('Merge would discard non-anchor content. Move that content explicitly first. Unmerge does not restore it.');
-   if(command.id===REMOVE&&JSON.stringify(style(row,col))!==JSON.stringify(style(strip.startRow,strip.startColumn)))refuse('Native unmerge would replace cell formatting. This case is not yet supported.');
+   if(command.id===REMOVE&&exactStyle(style(row,col))!==exactStyle(style(strip.startRow,strip.startColumn)))refuse('Native unmerge would replace cell formatting. This case is not yet supported.');
   }
   report(MERGE_GUIDANCE);
  });
