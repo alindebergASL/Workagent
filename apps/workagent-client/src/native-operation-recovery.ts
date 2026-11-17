@@ -48,14 +48,10 @@ export function nativeOperationRecovery(scope: Scope, storage: () => Disk, autho
       message: [warning, memoryOnly ? 'Recovery is in memory only or storage readback is unverified — download before closing this tab.' : records.length ? 'Recovery evidence read back from this browser profile.' : '',
         'Inspection only: awaiting edits may already have committed. Never resubmit this JSON.'].filter(Boolean).join(' ') };
   }
-  return {
-    view,
-    capture(event: unknown) {
-      // Preservation belongs to the originating editor; authority gates disclosure,
-      // not retention of an already supplied public conflict event.
+  function retain(evidenceType: 'conflict' | 'outbound-observation', event: string) {
       if (disposed) return view();
       const id = crypto.randomUUID();
-      const serialized = JSON.stringify({ version: 1, scope, id, event: JSON.stringify(event) });
+      const serialized = JSON.stringify({ version: 1, scope, id, evidenceType, event });
       const record: Evidence = { id, format: 'v1', serialized, verified: false };
       memory.set(id, record);
       try {
@@ -66,6 +62,14 @@ export function nativeOperationRecovery(scope: Scope, storage: () => Disk, autho
         record.verified = true;
       } catch { /* Keep exact in-memory bytes; no overwrite, cleanup or retry. */ }
       return view();
+  }
+  return {
+    view,
+    capture(event: unknown) {
+      return disposed ? view() : retain('conflict', JSON.stringify(event));
+    },
+    retainOutbound(json: string) {
+      return allowed() ? retain('outbound-observation', json) : view();
     },
     exportJSON(currentScope: Scope = scope) {
       if (!matches(currentScope)) return null;

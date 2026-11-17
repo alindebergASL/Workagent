@@ -16,7 +16,7 @@ import { MaintenanceActions } from '../src/maintenance-actions.ts';
 import { nativeComments } from '../src/native-comments.ts';
 import { nativeCursorSessionOverride } from '../src/native-cursor-session.ts';
 import { BehaviorSubject, Subject, NEVER } from 'rxjs';
-import { SessionStatus, CollaborationController, DataLoaderService, CollaborationUIEventService, CollaborationUIEventId } from '@univerjs-pro/collaboration-client';
+import { SessionStatus, CollaborationController, DataLoaderService, CollaborationUIEventService, CollaborationUIEventId, ICollaborationClientAdapterService } from '@univerjs-pro/collaboration-client';
 import { CollaborationEvent } from '@univerjs-pro/collaboration';
 import { serializeRangeWithSheet } from '@univerjs/engine-formula';
 import { SheetPasteShortKeyCommand } from '@univerjs/sheets-ui';
@@ -311,7 +311,12 @@ function nativeLifecycle({ loadGate, offline = false, comments = false, history 
   let next = 0, active = 0, peak = 0;
   for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, agent, acceptance, restore, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
-    assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
+    const overrides = options.plugins.find(Array.isArray)[1].override;
+    assert.equal(overrides.length, nativeCursorSessionOverride.length + 1);
+    nativeCursorSessionOverride.forEach((original,index) => assert.equal(overrides[index], original));
+    const [service, provider] = overrides.at(-1);
+    assert.equal(service, ICollaborationClientAdapterService);
+    assert.equal(typeof provider.useValue.resolveUnit, 'function');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
     entry.uiEvents = new CollaborationUIEventService(); entry.reconnects = 0;
     entry.sessionService = {socket$:NEVER,reconnect(){entry.reconnects++;}};
@@ -329,7 +334,8 @@ function nativeLifecycle({ loadGate, offline = false, comments = false, history 
     const entityInit = new Subject();
     const observers=new Map();
     const stream = name => ({subscribe(fn){if(!observers.has(name))observers.set(name,new Set());const list=observers.get(name);list.add(fn);entry.events.set(name,(...args)=>{for(const f of [...list])f(...args);});return {unsubscribe(){list.delete(fn);if(!list.size)entry.events.delete(name);}};}});
-    const entity = {session,state:{status:'synced'},status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
+    const entity = {session,state:{status:'synced'},hasWritePending:()=>entry.pending,status$:stream('status'),changesetResend$:stream('resend'),conflict$:stream('conflict')};
+    entry.adapter = provider.useValue; entry.entity = entity;
     const controller = {getCollabEntity:id=>entry.unitID===id?entity:null,getCollabEntity$:()=>entityInit,hasWritePending:()=>entry.pending,readyForCollab:async id=>{assert.equal(id,entry.unitID);}};
     const loader = {loadUnit:async unitID=>{entry.unitID=unitID;await loadGate;if(!offline)entry.join();entityInit.next(entity);return {};}};
     let roomExists = !offline;
@@ -416,6 +422,83 @@ test('native component attaches while loaded offline, then observes ONLINE befor
 // They establish UI lifecycle behavior, not browser transport reconnection.
 const nativeStatus = f => text(f.find(n => 'data-native-status' in n.props));
 const authorityOK = native => ({ok:true,status:200,json:async()=>structuredClone(native.sessions.get('A'))});
+const inspectionLabel = 'Save inspection copy of awaiting cell edit';
+async function mountedInspection(t) {
+  const native = nativeLifecycle(), f = fixture(undefined, false, native);
+  let disposed = false;
+  function dispose() { if (!disposed) { disposed = true; f.dispose(); } }
+  t.after(async () => { dispose(); await new Promise(setImmediate); });
+  f.works.A = {id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+  await f.flush(); await f.open('A'); await native.poll(); await f.flush();
+  const entry = native.instances[0], unitID = entry.unitID, sid = randomUUID();
+  const {changeset,target} = await entry.adapter.resolveUnit({unitId:unitID,unitType:2});
+  const context = {localUnitId:unitID,unitType:2,target};
+  const visible = () => f.panel.text().includes(inspectionLabel);
+  const records = () => Array.from({length:f.storage.length}, (_,i)=>f.storage.key(i))
+    .filter(k=>k.startsWith('workagent:native-operation-evidence:')).map(k=>f.storage.getItem(k));
+  function notify(status) {
+    entry.pending = status !== 'synced'; entry.entity.state.status = status;
+    entry.events.get('status')(status);
+  }
+  let seq = 0;
+  const scalar = () => ({unitID,type:2,baseRev:entry.head??2,revision:0,userID:'owner',memberID:'self',sid,reqId:++seq,
+    mutations:[{id:'sheet.mutation.set-range-values',type:2,params:{unitId:unitID,subUnitId:'sheet-1',
+      trigger:'sheet.command.set-range-values',cellValue:{1:{2:{v:37,t:2}}},styleRefMap:{}}}]});
+  // Simulate the public pending -> toRemote -> awaiting sequence. No poll between send and render.
+  async function observe(cs, ctx=context, direction='toRemote') {
+    notify('pending'); await f.flush();
+    assert.equal(changeset[direction](cs,ctx),cs);
+    assert.equal(visible(),false);
+    notify('awaiting'); await f.flush();
+  }
+  return {native,f,entry,context,visible,records,scalar,observe,notify,dispose};
+}
+test('mounted outbound inspection: notification offers Save; sync alone writes nothing and explicit Save copies once', async t => {
+  const {f,entry,visible,records,scalar,observe,notify} = await mountedInspection(t);
+  const calls = f.calls.length;
+  await observe(scalar()); assert.equal(visible(),true); assert.deepEqual(records(),[]);
+  const old = f.button(inspectionLabel).props.onClick;
+  notify('synced'); await f.flush(); old(); await f.flush();
+  assert.equal(visible(),false); assert.deepEqual(records(),[]);
+  entry.head = 3;
+  const current = scalar(), bytes = JSON.stringify(current);
+  await observe(current); assert.equal(visible(),true);
+  old(); await f.flush(); assert.deepEqual(records(),[],'old button cannot save the next candidate');
+  const again = f.button(inspectionLabel).props.onClick;
+  const commands = t.mock.method(entry.commands,'executeCommand'), sends = t.mock.fn();
+  entry.entity.session.send = sends;
+  await f.click(inspectionLabel); again(); await f.flush();
+  assert.equal(records().length,1);
+  const saved = JSON.parse(records()[0]);
+  assert.deepEqual(saved.scope,{principal:'owner',unitID:'A',epoch:1});
+  assert.equal(saved.evidenceType,'outbound-observation'); assert.equal(saved.event,bytes);
+  assert.equal(visible(),false); assert.match(f.panel.text(),/Download retained recovery operations/);
+  assert.equal(f.calls.length,calls); assert.equal(commands.mock.callCount(),0); assert.equal(sends.mock.callCount(),0);
+});
+for (const fence of ['epoch','dispose']) test(`mounted outbound inspection: stale Save after ${fence} retains nothing`, async t => {
+  const {native,f,visible,records,scalar,observe,dispose} = await mountedInspection(t);
+  await observe(scalar()); assert.equal(visible(),true);
+  const stale = f.button(inspectionLabel).props.onClick;
+  if (fence==='dispose') dispose();
+  else {
+    native.sessions.get('A').access.revision++;
+    await native.poll(); await f.flush(); assert.equal(visible(),false);
+  }
+  const calls=f.calls.length;
+  stale(); assert.deepEqual(records(),[]); assert.equal(f.calls.length,calls);
+});
+test('mounted outbound inspection: unsupported and foreign observations cannot offer Save', async t => {
+  const {context,visible,records,scalar,observe,notify,f} = await mountedInspection(t);
+  const formula=scalar(); formula.mutations[0].params.cellValue[1][2].f='=1+2';
+  for(const [cs,ctx,direction] of [
+    [formula], [scalar(),{...context,target:{...context.target,unitId:'B'}}],
+    [{...scalar(),memberID:'another-member'}], [scalar(),context,'toLocal'],
+    [{...scalar(),sid:'acceptance_'+randomUUID()}],
+  ]) {
+    await observe(cs,ctx,direction); assert.equal(visible(),false); assert.deepEqual(records(),[]);
+    notify('synced'); await f.flush();
+  }
+});
 for (const mode of ['ready','pending','offline','loading','reader']) test(`native authority recovery: ${mode} recomputes current status without an SDK event`, async () => {
   const load=deferred(), native=nativeLifecycle({offline:mode==='offline',loadGate:mode==='loading'?load.promise:undefined}), f=fixture(undefined,false,native);
   f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
