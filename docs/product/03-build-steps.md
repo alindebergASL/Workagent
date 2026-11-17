@@ -789,6 +789,35 @@ results, and the retained stage's `qa/capacity-evidence.jsonl`.
 This is not browser quota UX, action-session/agent-capacity, reader-exemption,
 physical-phone or full B05 acceptance. Those separate qualifications remain open.
 
+### B05 continuation — scalar-restore action capacity
+
+Qualified on retained fresh fixture `a66f4b04adcf` against `1975a9d`, with no
+product-code change. Actual production openRestoreAction and native HTTP/WS
+transport used a separate scalar-restore action connection while three human
+editing slots were occupied. One native9016 refusal preserved the exact state
+and stored no edit. The receipt truthfully remained unknown, not committed.
+Neither the action nor its request identity was retried, rebound or abandoned.
+
+After closing that action and one human editor, a separate owner edit advanced
+the head. A distinct restore intent/target/member/SID then committed successfully;
+the old refused receipt was checked by GET only and remained unchanged. Seven
+unique submissions yielded six ACKs and one refusal, finalhead7, peak3/final0
+editing slots and final0 authority sessions. Independent retained SQLite readback
+matches revisions2–7 to ACK identities and excludes the refused SID. PG retains
+two distinct confirmed restore intents (one unknown, one committed), one work and
+zero jobs;56 source hashes remain exact, and no fixture process survives.
+The final native state has A1=44/B1=22/C1=33 with other values/styles/resources
+preserved by the test. Restore activation was confined to the fresh fixture;
+license enforcement/accounting, installed runtime and main/default/public were
+unchanged. No product inference occurred.
+
+The bounded writer timed out after saving both executable artifacts; Parent
+verified zero survivors, unchanged tracked files and passing syntax/inert checks.
+SAME independent four-file review passed before live execution. Evidence is in
+scratch `b05-native-action-capacity-{pg-result,final-readback}.json` and the retained
+stage's `qa/action-capacity-evidence.jsonl`. This proves scalar-restore capacity,
+not browser quota UX, agent-proposal capacity, reader exemptions or full B05.
+
 ### B06 — Boards, editable decks and multilingual dictation
 
 **Scope:** P03/P04/P16. **Depends on:** native editor/asset/selection boundaries and B05 for collaborative claims. Dictation depends on a legitimate input engine and microphone permission, not narration or partner agreements.
