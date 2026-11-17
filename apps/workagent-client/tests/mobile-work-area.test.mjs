@@ -46,6 +46,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
   let App;
   const fetcher=async(path,options={})=>{
     const input=options.body?JSON.parse(options.body):undefined;calls.push({path,input});
+    if (collaboration && path.includes('/native-scalar-restore/')) return collaboration.restoreRequest(path,options);
     if (collaboration && path.includes('/native-agent-acceptance/')) return collaboration.acceptanceRequest(path,options);
     if (collaboration && path.includes('/native-agent/')) return collaboration.agentRequest(path,options);
     if (collaboration && path.includes('/native-reversal/')) return collaboration.reversalRequest(path,options);
@@ -300,11 +301,11 @@ test('Google App: newly returned unknown survives a different successful deliver
 
 // Real App + real collaboration TSX. SDK, DOM hosts and timer delivery are
 // interface fixtures. The existing reconciler honors the parent's React key.
-function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false, agent = false, acceptance = false } = {}) {
+function nativeLifecycle({ offline = false, comments = false, history = false, reversal = false, agent = false, acceptance = false, restore = false } = {}) {
   const commentPosts=[], published=new Map(), receipts=new Map(); let refuseComment=false;
   const timers = new Map(), listeners = new Set(), hosts = new WeakMap(), instances = [], sessions = new Map();
   let next = 0, active = 0, peak = 0;
-  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, agent, acceptance, sessionPath: `/api/work/${unitID}/native-session` });
+  for (const unitID of ['A', 'B']) sessions.set(unitID, { principal: 'owner', name: 'Owner', owner: true, binding: 'fixture-owner', unitID, access: { role: 'owner', revision: 1 }, comments, history, reversal, agent, acceptance, restore, sessionPath: `/api/work/${unitID}/native-session` });
   const createUniver = options => {
     assert.equal(options.plugins.find(Array.isArray)[1].override, nativeCursorSessionOverride, 'production native editor supplies the cursor session override');
     const entry = { disposed: false, pending: false, events: new Map(), unitID: null, drain: null, members: null, membershipDisposed: 0, status: new BehaviorSubject(offline ? SessionStatus.OFFLINE : SessionStatus.ONLINE) }; instances.push(entry); active++; peak = Math.max(peak, active);
@@ -819,5 +820,16 @@ test('comments deletion App: explicit confirmation/cancel preserves separate dra
   native.published.set('A',[{...root,children:[{id:'peer',personId:'peer',authorName:'Peer',bodyVersion:'original',text:{dataStream:'Peer keep\r\n'}}]}]);await native.poll();await f.flush();assert.equal(f.button('Delete comment').props.disabled,true);assert.match(f.panel.text(),/another author's replies/);assert.throws(()=>f.button('Delete reply'));
   native.published.set('A',[root]);await native.poll();await f.flush();await f.click('Delete comment');entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm comment removal').props.disabled,true);entry.editing=false;await native.poll();await f.flush();await f.click('Confirm comment removal');assert.equal(postCount,1);native.published.set('A',[]);await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/Removal recorded/);
   committed=true;await native.poll();await f.flush();assert.match(f.panel.text(),/Removal recorded at native revision 3/);assert.equal(edit().props.value,'edit draft keep');assert.equal(comment().props.value,'new comment keep');assert.equal(entry.anchor,'H9');assert.equal(postCount,1);await f.click('Cancel edit draft');await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root keep');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('scalar restore App: selected historical revision preview and explicit unused abandonment preserve drafts and native instance',async()=>{
+ const native=nativeLifecycle({history:true,restore:true,comments:true}),f=fixture(undefined,false,native);let receipt;const posts=[];
+ native.restoreRequest=async(path,o)=>{if(o.method==='POST'){posts.push(path);if(path.endsWith('/abandon'))receipt={...receipt,phase:'abandoned',disposition:'rejected',reason:'native_restore_abandoned_unused'};else{const i=JSON.parse(o.body);receipt={id:i.commandId,sourceRevision:i.sourceRevision,phase:'prepared',disposition:'unknown',actionPath:`/api/native/A/1/scalar-restore/${i.commandId}/universer-api`,preview:{sheetID:'sheet-1',row:0,column:0,sourceRevision:1,nativeRevision:2,before:44,after:11}};}}return {ok:true,json:async()=>receipt};};
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.message('root restore draft');await f.open('A');await native.poll();await f.flush();const entry=native.instances[0],comment=()=>f.find(n=>n.props['aria-label']==='Comment draft');comment().props.onChange({target:{value:'comment restore draft'}});await f.flush();
+ await f.click('Preview initial revision 1');assert.equal(posts.length,0);await f.click('Preview scalar-value restore from selected history');assert.match(f.panel.text(),/44 → 11/);assert.equal(f.button('Confirm scalar-value restore as new revision').props.disabled,false);
+ entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm scalar-value restore as new revision').props.disabled,true);await f.click('Abandon unused restore preview');assert.equal(entry.editing,true);assert.equal(comment().props.value,'comment restore draft');assert.equal(entry.nativeAdds.length,0);assert.equal(posts.length,2);assert.equal(native.instances.length,1);
+ entry.editing=false;await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root restore draft');
  }finally{f.dispose();await new Promise(setImmediate);}
 });

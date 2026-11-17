@@ -18,7 +18,7 @@ import { server, client, UNIT, TAB } from './native-history-sdk.test.mjs';
 import { wait } from './native-undo-delivery-fixture.mjs';
 const origin='http://acceptance.invalid',ownerToken='synthetic-acceptance-owner-only-0123456789',peerToken='synthetic-acceptance-peer-only-0123456789';
 const normal=`/api/native/${UNIT}/1/universer-api`,apiPath=`/api/work/${UNIT}/native-agent-acceptance/1`;
-async function fixture(fn){
+export async function fixture(fn){
  const seed=await server();await seed.dispose();seed.db.dispose=async()=>{};
  const settings={owner:'owner',token:ownerToken,origin,accounts:[{id:'peer',name:'Peer',token:peerToken}]},auth=identity(settings);
  const native=await createNativeCollaboration({dbAdapter:seed.db,workspace:seed.workspace,auth,origin,owner:'owner',mode:'workspace'}),connections=[];

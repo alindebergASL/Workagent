@@ -38,6 +38,8 @@ const requestTimeoutMs = requestTimeout(process.env.WORKAGENT_REQUEST_TIMEOUT_MS
 const nativeConfig = nativeWorkspaceConfig(process.env);
 const nativeAgentOptIn = process.env.WORKAGENT_NATIVE_AGENT_PROPOSALS;
 if (nativeAgentOptIn !== undefined && (nativeAgentOptIn !== 'development-only' || !nativeConfig)) throw new Error('native_agent_configuration_refused');
+const nativeRestoreOptIn = process.env.WORKAGENT_NATIVE_SCALAR_RESTORE;
+if(nativeRestoreOptIn !== undefined && (nativeRestoreOptIn !== 'development-only' || !nativeConfig)) throw new Error('Invalid native scalar restore opt-in');
 const nativeAcceptanceOptIn = process.env.WORKAGENT_NATIVE_AGENT_ACCEPTANCE;
 if (nativeAcceptanceOptIn !== undefined && (nativeAcceptanceOptIn !== 'development-only' || !nativeConfig || !nativeAgentOptIn)) throw new Error('native_acceptance_configuration_refused');
 required('WORKAGENT_STATE_DIR');
@@ -53,6 +55,7 @@ if (nativeConfig) {
 }
 
 if (nativeAcceptanceOptIn) native.authority.acceptance.enabled = true;
+if(nativeRestoreOptIn){if(!native)throw new Error('Native workspace required for scalar restore');native.authority.restore.enabled=true;}
 const accounting = mode === 'openrouter'
   ? new OpenRouterAccounting({ journal: new PostgresProviderJournal(pool), apiKey: process.env.OPENROUTER_API_KEY, model: process.env.WORKAGENT_MODEL, maxOutputTokens })
   : process.env.WORKAGENT_ISSUER_SOCKET ? new IssuerSocketAccounting(process.env.WORKAGENT_ISSUER_SOCKET) : new DisabledAccounting();

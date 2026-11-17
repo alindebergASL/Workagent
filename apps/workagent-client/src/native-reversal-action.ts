@@ -10,9 +10,9 @@ export interface ReversalAction { memberID: string; submit(request: IChangeset):
 // Its isolated core instance supplies public MemberService DI and cannot clear the
 // human editor's membership/resources when it is disposed.
 async function openAction(unitID: string, path: string, binding: string, signal: AbortSignal,
-  fetcher: typeof fetch = fetch, socketFactory: (url: string) => WebSocket = url => new WebSocket(url), origin = location.origin, purpose: 'reversal' | 'agent-acceptance' = 'reversal'): Promise<ReversalAction> {
+  fetcher: typeof fetch = fetch, socketFactory: (url: string) => WebSocket = url => new WebSocket(url), origin = location.origin, purpose: 'reversal' | 'agent-acceptance' | 'scalar-restore' = 'reversal'): Promise<ReversalAction> {
   const base = new URL(path, origin);
-  const match = /^\/api\/native\/([a-zA-Z0-9_-]+)\/[1-9][0-9]*\/(reversal|agent-acceptance)\/[a-zA-Z0-9_-]+\/universer-api$/.exec(base.pathname);
+  const match = /^\/api\/native\/([a-zA-Z0-9_-]+)\/[1-9][0-9]*\/(reversal|agent-acceptance|scalar-restore)\/[a-zA-Z0-9_-]+\/universer-api$/.exec(base.pathname);
   if (base.origin !== origin || base.search || base.hash || !binding || !match || match[1] !== unitID || match[2] !== purpose) throw Error('Invalid action path');
   const headers = { 'X-Workagent-Session-Binding': binding };
   const ticketResponse = await fetcher(`${base}/user/session-ticket`, { signal, credentials: 'same-origin', headers });
@@ -68,3 +68,5 @@ async function openAction(unitID: string, path: string, binding: string, signal:
 export function openReversalAction(...args: Parameters<OmitPurpose>) { return openAction(...args); }
 type OmitPurpose = (unitID: string, path: string, binding: string, signal: AbortSignal, fetcher?: typeof fetch, socketFactory?: (url: string) => WebSocket, origin?: string) => Promise<ReversalAction>;
 export const openAcceptanceAction: OmitPurpose = (unitID, path, binding, signal, fetcher, socketFactory, origin) => openAction(unitID, path, binding, signal, fetcher, socketFactory, origin, 'agent-acceptance');
+
+export const openRestoreAction: OmitPurpose = (unitID, path, binding, signal, fetcher, socketFactory, origin) => openAction(unitID, path, binding, signal, fetcher, socketFactory, origin, 'scalar-restore');

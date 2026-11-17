@@ -1,3 +1,4 @@
+import {NativeScalarRestore} from './native-scalar-restore.mjs';
 import {NativeWorksheets, INSERT_SHEET, RENAME_SHEET, SHEET_VALUES} from './native-worksheets.mjs';
 import { NativeMerge, MERGE, UNMERGE } from './native-merge.mjs';
 import { UPDATE_COMMENT } from './native-comment-editing.mjs';
@@ -42,11 +43,15 @@ export class NativeAuthority {
     return this.workspace.store.transaction(async s => { const access = this.check(s, principal, unitID, edit, session); await effect(access); });
   }
   actionService(action) {
+    if (action?.kind === 'scalar-restore' && this.restore) return this.restore;
     if (action?.kind === 'agent-acceptance' && this.acceptance) return this.acceptance;
     if (action && action.kind === undefined && this.reversal) return this.reversal;
     deny();
   }
   async validateAction(s,c,session,commit=false) {
+    const restoreReason=await this.restore?.validate(s,c,session,commit);
+    if(restoreReason)return restoreReason;
+    if(session.actionKind==='scalar-restore'){if(!this.restore)return 'native_restore_disabled';return;}
     const reason=await this.acceptance?.validate(s,c,session,commit);
     if(reason)return reason;
     if(session.actionKind==='agent-acceptance'){if(!this.acceptance)return 'native_acceptance_disabled';return;}
@@ -229,7 +234,7 @@ export async function createNativeCollaboration({ dbAdapter, workspace, auth, or
     sheetOrder: [NATIVE_TAB], sheets: { [NATIVE_TAB]: { id: NATIVE_TAB, name: 'Sheet 1', rowCount: 100, columnCount: 26, cellData: {} } }, styles: {}, resources: [],
   } }, { userID: owner }); } catch (e) { await service.dispose(); throw e; }
   const endpoint = new UniverCollabEndpoint(service);
-  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); authority.agent = new NativeAgent(authority,service,dbAdapter); authority.acceptance = new NativeAgentAcceptance(authority,service,dbAdapter); }
+  if (mode === 'workspace') { authority.comments = new NativeComments(authority, service, dbAdapter); authority.history = new NativeHistory(authority, service, dbAdapter); authority.reversal = new NativeReversal(authority,service,dbAdapter); authority.agent = new NativeAgent(authority,service,dbAdapter); authority.acceptance = new NativeAgentAcceptance(authority,service,dbAdapter); authority.restore = new NativeScalarRestore(authority,service,dbAdapter); }
   authority.install(service, endpoint);
   let stopping = false; const pending = new Set();
   const transport = createNodeTransport({ maxRequestBodyBytes: 1_000_000, maxWebSocketMessageBytes: 1_000_000 });

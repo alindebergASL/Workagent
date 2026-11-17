@@ -105,6 +105,18 @@ export function createHandler({ workspace, maintenance, exchange, xlsx, document
       if (req.headers['x-workagent-session-binding'] && !equal(req.headers['x-workagent-session-binding'], auth.profile(principal).binding)) throw new Fault('session_changed', 403);
       if (path === '/api/session' && req.method === 'GET') { await workspace.list(principal); return send(200, { ...auth.profile(principal), nativeEnabled: !!native }); }
       if (path.startsWith('/api/native/')) { if (!native) throw new Fault('native_collaboration_disabled', 409); return await nativeRequest(native, auth, origin, req, res, body, send); }
+      const restore = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-scalar-restore\/([1-9][0-9]*)(?:\/([a-zA-Z0-9_-]+)(\/confirm|\/abandon)?)?$/.exec(path);
+      if (restore) {
+        const adapter=native?.authority.restore;
+        if(!adapter?.enabled)throw new Fault('native_restore_disabled',409);
+        const [,unitID,epoch,id,operation]=restore,session={userID:principal,unitID,revision:Number(epoch)},binding=auth.sessionBinding(req);
+        if(!Number.isSafeInteger(session.revision))throw new Fault('invalid_native_epoch',400);
+        if(req.method==='POST'&&!id)return await adapter.prepare(principal,unitID,session,binding,await body(req),value=>send(200,value));
+        if(req.method==='POST'&&id&&operation==='/confirm')return await adapter.confirm(principal,unitID,session,binding,id,await body(req),value=>send(200,value));
+        if(req.method==='POST'&&id&&operation==='/abandon')return await adapter.abandon(principal,unitID,session,binding,id,await body(req),value=>send(200,value));
+        if(req.method==='GET'&&id&&!operation)return await adapter.receipt(principal,unitID,session,binding,id,value=>send(200,value));
+        throw new Fault('native_restore_operation_unavailable',405);
+      }
       const acceptance = /^\/api\/work\/([a-zA-Z0-9_-]+)\/native-agent-acceptance\/([1-9][0-9]*)(?:\/([a-zA-Z0-9_-]+)(\/confirm|\/abandon)?)?$/.exec(path);
       if (acceptance) {
         const adapter=native?.authority.acceptance;

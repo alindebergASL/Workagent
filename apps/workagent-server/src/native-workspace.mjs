@@ -5,18 +5,18 @@ import { allowedNativeAction, validateNativeOrigin } from './native-collaboratio
 export function nativeRoute(req, origin, auth) {
   validateNativeOrigin(req, origin, req.headers.upgrade === 'websocket');
   const url = new URL(req.url, origin);
-  const match = /^\/api\/native\/([a-zA-Z0-9_-]+)\/([1-9][0-9]*)\/(?:(reversal|agent-acceptance)\/([a-zA-Z0-9_-]+)\/)?(universer-api\/.*)$/.exec(url.pathname);
+  const match = /^\/api\/native\/([a-zA-Z0-9_-]+)\/([1-9][0-9]*)\/(?:(reversal|agent-acceptance|scalar-restore)\/([a-zA-Z0-9_-]+)\/)?(universer-api\/.*)$/.exec(url.pathname);
   if (!match || !Number.isSafeInteger(Number(match[2]))) throw new Fault('native_route_invalid', 403);
   req.nativeUnitID = match[1];
   req.nativeAccess = { unitID: match[1], userID: auth.authenticate(req), revision: Number(match[2]) };
-  req.nativeAction = match[4] ? { id: match[4], binding: auth.sessionBinding(req), ...(match[3]==='agent-acceptance'?{kind:'agent-acceptance'}:{}) } : undefined;
+  req.nativeAction = match[4] ? { id: match[4], binding: auth.sessionBinding(req), ...(match[3]!=='reversal'?{kind:match[3]}:{}) } : undefined;
   req.nativeBinding = auth.sessionBinding?.(req);
   req.url = '/' + match[5] + url.search;
   return match[1];
 }
 export async function nativeSession(native, auth, principal, unitID, send) {
   return native.authority.fence(principal, unitID, false, access => send(200, {
-    ...auth.profile(principal), unitID, access, acceptance: access.role === 'owner' && !!native.authority.acceptance?.enabled, agent: access.role === 'owner' && !!native.authority.agent?.enabled, comments: !!native.authority.comments, history: !!native.authority.history, reversal: !!native.authority.reversal,
+    ...auth.profile(principal), unitID, access, restore: access.role === 'owner' && !!native.authority.restore?.enabled, acceptance: access.role === 'owner' && !!native.authority.acceptance?.enabled, agent: access.role === 'owner' && !!native.authority.agent?.enabled, comments: !!native.authority.comments, history: !!native.authority.history, reversal: !!native.authority.reversal,
     basePath: `/api/native/${unitID}/${access.revision}/universer-api`, sessionPath: `/api/work/${unitID}/native-session`,
   }));
 }
