@@ -68,6 +68,7 @@ function fixture(handler = () => { throw new Error('Unexpected mutation'); }, go
       if(dependency==='./NativeEditor')return {NativeEditor};
       if(dependency==='./DocumentEditor')return {DocumentEditor};
       if(dependency==='./MaintenancePanel')return {MaintenancePanel:()=>null};
+      if(dependency==='./native-comment-drafts' && collaboration){const actual=require('../src/native-comment-drafts.ts');return {...actual,nativeCommentDrafts(...args){const helper=actual.nativeCommentDrafts(...args);return {...helper,async restore(...input){const body=await helper.restore(...input);if(collaboration.delayRecoveredText)await collaboration.delayRecoveredText(body);return body;}};}};}
       if(dependency==='./native-reversal-action' && collaboration)return {...require('../src/native-reversal-action.ts'),openAcceptanceAction:(...args)=>{assert.ok(collaboration.acceptanceOpen,'Unexpected acceptance action in fixture');return collaboration.acceptanceOpen(...args);}};
       if(dependency==='./artifact-storage')return {ArtifactStorage:FixtureArtifactStorage};
       if(exchangeNames.includes(dependency.slice(2)))return load(dependency.slice(2));
@@ -358,7 +359,7 @@ function nativeLifecycle({ loadGate, offline = false, comments = false, history 
       return {ok:true,json:async()=>({revision:3,comments:structuredClone(published.get(unitID)??[]),receipt:receipts.get(new URL(path,'http://fixture').searchParams.get('pending'))})};},
     instances, sessions, listeners, timers, get active(){return active;}, get peak(){return peak;},
     session: path => structuredClone(sessions.get(path.split('/')[3])),
-    window: { addEventListener(_name, fn){listeners.add(fn);}, removeEventListener(_name, fn){listeners.delete(fn);}, setInterval(fn){timers.set(++next, fn);return next;} },
+    window: { navigator: { locks: { async request(_name, run) { return run(); } } }, addEventListener(_name, fn){listeners.add(fn);}, removeEventListener(_name, fn){listeners.delete(fn);}, setInterval(fn){timers.set(++next, fn);return next;} },
     clearInterval: id => timers.delete(id),
     async poll(){for(const timer of [...timers.values()])await timer();},
     attachHosts(tree){for(const node of nodes(tree))if(node.props.ref){const ref=node.props.ref;if(!hosts.has(ref))hosts.set(ref,{events:new Map(),addEventListener(name,fn){this.events.set(name,fn);},removeEventListener(name){this.events.delete(name);}});ref.current=hosts.get(ref);ref.current.inert=!!node.props.inert;}},
@@ -957,4 +958,72 @@ test('scalar restore App: selected historical revision preview and explicit unus
  entry.editing=true;await native.poll();await f.flush();assert.equal(f.button('Confirm scalar-value restore as new revision').props.disabled,true);await f.click('Abandon unused restore preview');assert.equal(entry.editing,true);assert.equal(comment().props.value,'comment restore draft');assert.equal(entry.nativeAdds.length,0);assert.equal(posts.length,2);assert.equal(native.instances.length,1);
  entry.editing=false;await f.click('Clear unsent comment draft');await f.open('');assert.equal(f.messageValue(),'root restore draft');
  }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+// Actual mounted App/editor; fixture SDK/HTTP and in-memory browser storage only.
+test('root comment recovery App: reload is text-only explicit fresh-authority recovery; attempt never reoffered',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');
+ try{
+  await f.flush();await f.message('root composer retained');await f.open('A');await native.poll();await f.flush();
+  area().props.onChange({target:{value:'  never submitted\nroot text  '}});await f.flush();assert.equal(native.commentPosts.length,0);
+  await f.remount();await f.open('A');assert.equal(area().props.value,'');assert.throws(()=>f.button('Restore saved root text 1'),/control missing/);
+  await native.poll();await f.flush();assert.equal(native.commentPosts.length,0);await f.click('Restore saved root text 1');
+  assert.equal(area().props.value,'  never submitted\nroot text  ');assert.equal(f.button('Add comment').props.disabled,true);assert.equal(native.commentPosts.length,0);
+  const entry=native.instances.at(-1);assert.equal(entry.anchor,'H9');assert.equal(entry.nativeAdds.length,0);
+  await f.click('Use current selected cell for recovered text');await f.click('Add comment');assert.equal(native.commentPosts.length,1);
+  await f.remount();await f.open('A');await native.poll();await f.flush();assert.equal(area().props.value,'');assert.throws(()=>f.button('Restore saved root text 1'),/control missing/);assert.match(f.panel.text(),/attempted text record/);assert.equal(native.commentPosts.length,1);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('root comment recovery App: authority failure/revoke hides saved text; separate reply and composer drafts stay separate',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.open('A');await native.poll();await f.flush();f.find(n=>n.props['aria-label']==='Comment draft').props.onChange({target:{value:'private root recovery'}});await f.flush();
+  await f.remount();await f.open('A');native.authorityRequest=async()=>({ok:false,status:503});await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/private root recovery/);
+  native.authorityRequest=undefined;await native.poll();await f.flush();assert.match(f.panel.text(),/private root recovery/);
+  native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();assert.doesNotMatch(f.panel.text(),/private root recovery/);assert.equal(native.commentPosts.length,0);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('root comment recovery App: storage write refusal never starts add and preserves live text',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.open('A');await native.poll();await f.flush();const put=f.storage.setItem;
+  f.storage.setItem=(key,value)=>{if(key.startsWith('workagent:native-root-text:'))throw Error('Storage full');return put(key,value);};
+  const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');area().props.onChange({target:{value:'memory stays exact'}});await f.flush();await f.click('Add comment');
+  assert.equal(native.commentPosts.length,0);assert.equal(area().props.value,'memory stays exact');assert.match(f.panel.text(),/not saved locally|unavailable/);assert.equal(native.instances[0].nativeAdds.length,0);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('root comment recovery App P2: post-callback delayed restore cannot overwrite newer textarea or expose after fencing',async()=>{
+ for(const mode of ['typing','revoke']){
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');area().props.onChange({target:{value:'saved before reload'}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();
+  const gate=deferred(),ran=deferred();let once=true;native.window.navigator.locks.request=async(_name,fn)=>{const result=await fn();if(once){once=false;ran.resolve();await gate.promise;}return result;};
+  const pending=f.button('Restore saved root text 1').props.onClick();await ran.promise;
+  if(mode==='typing'){area().props.onChange({target:{value:'newer textarea'}});await f.flush();}else{native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();}
+  gate.resolve();await pending;await f.flush();assert.equal(area().props.value,mode==='typing'?'newer textarea':'');assert.equal(native.commentPosts.length,0);
+ }finally{f.dispose();await new Promise(setImmediate);}}
+});
+
+test('root comment recovery App P2: only matching native publication retires old evidence, even after newer input',async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const records=()=>Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).filter(k=>k.startsWith('workagent:native-root-text:'));
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');area().props.onChange({target:{value:'old submitted body'}});await f.flush();await f.click('Add comment');assert.equal(records().filter(k=>k.endsWith(':complete')).length,0,'HTTP prewrite/local native command are not proof');
+  area().props.onChange({target:{value:'newer draft exact'}});await f.flush();native.published.set('A',native.instances[0].nativeAdds);await native.poll();await f.flush();assert.equal(area().props.value,'newer draft exact');assert.equal(records().filter(k=>k.endsWith(':complete')).length,1);assert.equal(records().filter(k=>k.endsWith(':seal')).length,0);assert.equal(native.commentPosts.length,1);
+  // The next ordinary poll refreshes canAdd after the prior async membership proof.
+  await native.poll();await f.flush();await f.click('Add comment');native.published.set('A',native.instances[0].nativeAdds);await native.poll();await f.flush();assert.equal(area().props.value,'');assert.equal(records().filter(k=>k.endsWith(':complete')).length,2);
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+
+test('root comment recovery App P2: delayed helper-to-component delivery preserves source text and newer composer generation',async()=>{
+ for(const mode of ['typing','revoke']){const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.open('A');await native.poll();await f.flush();const area=()=>f.find(n=>n.props['aria-label']==='Comment draft');area().props.onChange({target:{value:'saved delivery source'}});await f.flush();await f.remount();await f.open('A');await native.poll();await f.flush();
+ const gate=deferred(),delivered=deferred();native.delayRecoveredText=async body=>{assert.equal(body,'saved delivery source');delivered.resolve();await gate.promise;};const result=f.button('Restore saved root text 1').props.onClick();await delivered.promise;
+ if(mode==='typing'){area().props.onChange({target:{value:'new composer value'}});await f.flush();}else{native.authorityRequest=async()=>({ok:false,status:403});await native.poll();await f.flush();}
+ gate.resolve();await result;await f.flush();assert.equal(area().props.value,mode==='typing'?'new composer value':'');assert.equal(native.commentPosts.length,0);
+ native.delayRecoveredText=undefined;native.authorityRequest=undefined;await f.remount();await f.open('A');await native.poll();await f.flush();assert.match(f.panel.text(),/saved delivery source/,'source is still available for a fresh explicit recovery');
+ }finally{f.dispose();await new Promise(setImmediate);}}
 });

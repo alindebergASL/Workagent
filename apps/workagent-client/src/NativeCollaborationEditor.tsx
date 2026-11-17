@@ -1,3 +1,4 @@
+import { nativeCommentDrafts, emptyCommentDraftRecovery, type CommentDraftToken } from './native-comment-drafts';
 import {nativeScalarRestore,emptyRestoreView} from './native-scalar-restore';
 import {guardNativeWorksheets, WORKSHEET_GUIDANCE} from './native-worksheets';
 import { guardNativeMerge, MERGE_GUIDANCE } from './native-merge';
@@ -39,6 +40,15 @@ export interface NativeSession { principal: string; name: string; binding: strin
 export interface NativeCollaborationHandle { canLeave(): boolean; close(): Promise<void> }
 // Native operations/cache are the only synchronization path. Never call legacy
 // save, create a local workbook, replace a snapshot or mint retry identities.
+// Defer browser-storage access to each helper's guarded method calls. Some
+// browsers throw when merely obtaining localStorage, not just on setItem.
+const guardedLocalStorage = {
+  get length() { return localStorage.length; },
+  key: (index: number) => localStorage.key(index),
+  getItem: (key: string) => localStorage.getItem(key),
+  setItem: (key: string, value: string) => localStorage.setItem(key, value),
+  removeItem: (key: string) => localStorage.removeItem(key),
+};
 export function NativeCollaborationEditor({ session, onReady }: { session: NativeSession; onReady?: (handle: NativeCollaborationHandle | null) => void }) {
   const ready = useRef(onReady); ready.current = onReady;
   const host = useRef<HTMLDivElement>(null);
@@ -51,6 +61,12 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const [following, setFollowing] = useState<NativeFollowState>({ message: 'Not following' });
   const comments = useRef<ReturnType<typeof nativeComments> | null>(null);
   const draft = useRef('');
+  const commentComposerGeneration = useRef(0);
+  const localCommentDrafts = useRef<ReturnType<typeof nativeCommentDrafts> | null>(null);
+  const [localDraftView, setLocalDraftView] = useState(emptyCommentDraftRecovery);
+  const submittedLocalDraft = useRef<CommentDraftToken | undefined>(undefined);
+  const [chooseRecoveredAnchor, setChooseRecoveredAnchor] = useState(false);
+  const submittingComment = useRef(false);
   const submittedDraft = useRef<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const editDraft = useRef('');
@@ -69,7 +85,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const agentProposals = useRef<ReturnType<typeof initialNativeAgentView>['proposals']>([]);
   const agentUnsafe = useRef(false);
   const agent = useRef<ReturnType<typeof nativeAgent> | null>(null);
-  const [agentView, setAgentView] = useState(() => initialNativeAgentView(session, localStorage));
+  const [agentView, setAgentView] = useState(() => initialNativeAgentView(session, guardedLocalStorage));
   const [mergeNotice, setMergeNotice] = useState(MERGE_GUIDANCE);
   const [undoNotice, setUndoNotice] = useState(NATIVE_UNDO_UNAVAILABLE);
   const [anchor, setAnchor] = useState('');
@@ -80,9 +96,16 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     if (!host.current) return;
     let live = true, revoked = false, conflict = false, loaded = false, authorityHealthy = true;
     let loadFailure: string | undefined;
+    let freshAuthority = false;
     let online = () => false;
+    const localDrafts = session.comments ? nativeCommentDrafts({ principal: session.principal, unitID: session.unitID, epoch: session.access.revision },
+      () => localStorage, () => live && freshAuthority && authorityHealthy && loaded && !loadFailure && online() && !revoked && !conflict && session.access.role !== 'read',
+      value => { if (live) setLocalDraftView(value); }, window.navigator?.locks) : null;
+    localCommentDrafts.current = localDrafts;
+    const draftStorageChanged = () => localDrafts?.refresh();
+    window.addEventListener('storage', draftStorageChanged);
     let presenceObserver: { dispose(): void } | undefined, joinsObserver: { dispose(): void } | undefined;
-    const stopPresence = () => { restore.current?.dispose(); restore.current = null; acceptance.current?.dispose(); acceptance.current = null; agentProposals.current = []; agent.current?.dispose(); agent.current = null; reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
+    const stopPresence = () => { localDrafts?.refresh(); restore.current?.dispose(); restore.current = null; acceptance.current?.dispose(); acceptance.current = null; agentProposals.current = []; agent.current?.dispose(); agent.current = null; reversal.current?.dispose(); reversal.current = null; history.current?.dispose(); history.current = null; comments.current?.dispose(); comments.current = null; follow.current?.dispose(); follow.current = null; presenceObserver?.dispose(); joinsObserver?.dispose(); presenceObserver = joinsObserver = undefined; if (live) setPresence({ online: false, members: [] }); };
     const recoveryKey = `workagent:native-recovery:${session.binding}:${session.unitID}:${session.access.revision}`;
     try { recovery.current = localStorage.getItem(recoveryKey); setHasRecovery(!!recovery.current); } catch { /* SDK cache remains independent. */ }
     const basePath = session.basePath ?? '/universer-api';
@@ -132,7 +155,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       () => firstSheet() && live && loaded && !revoked && !conflict && authorityHealthy && online(),
       () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!reversal.current?.active() || !!acceptance.current?.active() || !!restore.current?.active(),
       () => univer.__getInjector().get(RevisionService).getCurrentRevOfUnit(session.unitID),
-      value => { agentProposals.current = value.proposals; agentUnsafe.current = value.unsaved; if (live) setAgentView(value); }, fetch, localStorage);
+      value => { agentProposals.current = value.proposals; agentUnsafe.current = value.unsaved; if (live) setAgentView(value); }, fetch, guardedLocalStorage);
 
     anchorRead.current = () => {
       const book = univerAPI.getActiveWorkbook(), range = book?.getActiveRange();
@@ -142,7 +165,16 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     };
     if (session.comments) comments.current = nativeComments(session, univer.__getInjector().get(IThreadCommentDataSourceService), univer.__getInjector().get(ICommandService),
       () => firstSheet() && loaded && !revoked && !conflict && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !reversal.current?.active() && !acceptance.current?.active() && !restore.current?.active(),
-      value => { if (live && !revoked && !conflict) { setCommentView(value); const editProof = value.editing?.confirmed; if (editProof && submittedEdit.current?.commentId === editProof.commentId && submittedEdit.current.body === editProof.body && editDraft.current === editProof.body) { const published = value.comments.flatMap(root => [root, ...(root.children ?? []).map(child => ({ ...child, ref: root.ref }))]).find(comment => comment.id === editProof.commentId); if (published) setEditingComment(published); submittedEdit.current = null; } if (value.confirmed && draft.current === submittedDraft.current) { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; } } }, fetch, () => { const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID); return entity?.session.sessionStatus === SessionStatus.ONLINE ? (entity.session.getMemberID() ?? '') : ''; }, localStorage);
+      value => { if (live && !revoked && !conflict) { setCommentView(value); const editProof = value.editing?.confirmed; if (editProof && submittedEdit.current?.commentId === editProof.commentId && submittedEdit.current.body === editProof.body && editDraft.current === editProof.body) { const published = value.comments.flatMap(root => [root, ...(root.children ?? []).map(child => ({ ...child, ref: root.ref }))]).find(comment => comment.id === editProof.commentId); if (published) setEditingComment(published); submittedEdit.current = null; } if (value.confirmed) {
+        const token = submittedLocalDraft.current;
+        const published = token && value.comments.find(root => root.id === value.confirmed && root.personId === session.principal && root.text.dataStream === token.text + '\r\n');
+        // Retire an older completed token even when the user has already typed
+        // a newer draft. Only matching native publication supplies completion.
+        const clearPublishedDraft = (!token || published) && draft.current === submittedDraft.current && (!token || localDrafts?.matches(token));
+        if (token && published) void localDrafts?.complete(token, { commentId: published.id, principal: session.principal, text: token.text });
+        if (clearPublishedDraft) { commentComposerGeneration.current++; draft.current = ''; setCommentDraft(''); setReply(undefined); }
+        if (!token || published) { submittedLocalDraft.current = undefined; submittedDraft.current = null; }
+      } } }, fetch, () => { const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID); return entity?.session.sessionStatus === SessionStatus.ONLINE ? (entity.session.getMemberID() ?? '') : ''; }, guardedLocalStorage);
     const localInteraction = () => follow.current?.localInteraction();
     const element = host.current;
     const inputStart = () => { composing = true; localInteraction(); };
@@ -152,6 +184,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     element.addEventListener('compositionstart', inputStart, true); element.addEventListener('compositionend', inputEnd, true);
     element.addEventListener('paste', localInteraction, true);
     const report = () => {
+      localDrafts?.refresh();
       agent.current?.refresh();
       acceptance.current?.refresh(); restore.current?.refresh();
       reversal.current?.refresh(collaboration.hasWritePending());
@@ -201,18 +234,18 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
           () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
           () => firstSheet() && live && loaded && !revoked && !conflict && authorityHealthy && online(),
           () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!reversal.current?.active() || !!acceptance.current?.active(),
-          value => { if(live)setRestoreView(value); }, fetch, localStorage,
+          value => { if(live)setRestoreView(value); }, fetch, guardedLocalStorage,
           (path,signal) => openRestoreAction(session.unitID,path,session.binding,signal), () => { void history.current?.read(); });
         if (session.acceptance && session.owner && session.access.role === 'owner') acceptance.current = nativeAgentAcceptance(session, entity.session,
           () => agentProposals.current, () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
           () => firstSheet() && live && loaded && !revoked && !conflict && authorityHealthy && online(),
           () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!reversal.current?.active() || !!restore.current?.active(),
-          value => { if (live) setAcceptanceView(value); }, fetch, localStorage,
+          value => { if (live) setAcceptanceView(value); }, fetch, guardedLocalStorage,
           (path, signal) => openAcceptanceAction(session.unitID, path, session.binding, signal), () => { void agent.current?.check(); });
         if (session.reversal) reversal.current = nativeReversal(session, entity.session,
           () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
           () => !firstSheet() || !loaded || revoked || conflict || composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!acceptance.current?.active() || !!restore.current?.active(),
-          value => { if (live) setReversalView(value); }, fetch, localStorage,
+          value => { if (live) setReversalView(value); }, fetch, guardedLocalStorage,
           (path, signal) => openReversalAction(session.unitID, path, session.binding, signal));
         follow.current = nativeFollow(session.unitID, entity.session,
           () => injector.get(IUniverInstanceService).getUnit<Workbook>(session.unitID) ?? null, injector.get(RefRangeService), injector.get(ICommandService),
@@ -242,7 +275,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
           if (!live || revoked || conflict) return;
           authorityHealthy = current.principal === session.principal && current.access.revision === session.access.revision;
           if (current.principal !== session.principal || current.access.revision !== session.access.revision) { revoked = true; stopPresence(); setBlocked(true); setStatus('Access changed — this session is fenced. Preserve pending work before reopening.'); }
-          else { socketRecovery.authorityChecked(); report(); }
+          else { freshAuthority = current.unitID === session.unitID && current.access.role === session.access.role; socketRecovery.authorityChecked(); report(); }
         } else { authorityHealthy = false; report(); }
       } catch { if (live && !revoked && !conflict) { authorityHealthy = false; report(); } }
       finally { checking = false; agent.current?.refresh(); }
@@ -258,7 +291,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !editDraft.current && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active() && !restore.current?.active() && !agentUnsafe.current, close });
     return () => {
       ready.current?.(null);
-      live = false; socketRecovery.dispose(); clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
+      live = false; localDrafts?.dispose(); if (localCommentDrafts.current === localDrafts) localCommentDrafts.current = null; window.removeEventListener('storage', draftStorageChanged); socketRecovery.dispose(); clearInterval(timer); window.removeEventListener('beforeunload', beforeUnload);
       interactions.forEach(name => element.removeEventListener(name, localInteraction, true));
       element.removeEventListener('compositionstart', inputStart, true); element.removeEventListener('compositionend', inputEnd, true);
       element.removeEventListener('paste', localInteraction, true);
@@ -344,13 +377,27 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       {editingComment && <div><label>Edited comment text<textarea aria-label="Edited comment text" value={editText} maxLength={8000} disabled={blocked || commentView.editing?.busy} onChange={event => { editDraft.current = event.target.value; setEditText(event.target.value); }}/></label><button disabled={blocked || !editText.trim() || !comments.current?.editing?.canSave(editingComment, editText)} onMouseDown={event => event.preventDefault()} onClick={() => { if (comments.current?.editing?.canSave(editingComment, editDraft.current)) { submittedEdit.current = { commentId: editingComment.id, body: editDraft.current }; void comments.current.editing.edit(editingComment, editDraft.current); } }}>Save text revision</button><button disabled={commentView.editing?.busy} onMouseDown={event => event.preventDefault()} onClick={() => { editDraft.current = ''; submittedEdit.current = null; setEditText(''); setEditingComment(null); }}>Cancel edit draft</button><p>If the published version changes, this draft stays on its original basis; Cancel and reopen to edit the latest text. Saving retains the prior body. Only native commit evidence publishes the revision; cancelling this draft never cancels a submitted edit.</p></div>}
       <p>{commentView.resolution}</p>{commentView.abandonable?.map(id => <button key={id} disabled={blocked || commentView.resolutionBusy} onMouseDown={event => event.preventDefault()} onClick={() => { void comments.current?.abandon(id); }}>Abandon unused thread action</button>)}<button disabled={blocked || commentView.resolutionBusy} onMouseDown={event => event.preventDefault()} onClick={() => { void comments.current?.refresh(); }}>Check comment status</button>
       <p role="status">{blocked ? 'Comments unavailable — access or native state changed. Draft retained.' : commentView.message}</p>
-      {!blocked && commentView.comments.map(root => <div key={root.id}><p><strong>{root.authorName}</strong> · {root.ref} · {root.resolutionUnknown ? 'Resolution status uncertain' : root.resolved ? 'Resolved' : 'Open'}: {root.bodyUnknown ? 'Current text uncertain — native receipt unavailable' : root.text.dataStream}</p>{[root, ...(root.children ?? []).map(child => ({ ...child, ref: root.ref }))].map(comment => <div key={comment.id}>{comment.id !== root.id && <p>{comment.authorName}: {('bodyUnknown' in comment && comment.bodyUnknown) ? 'Current text uncertain — native receipt unavailable' : comment.text.dataStream}</p>}{comment.personId === session.principal && session.access.role !== 'read' && <button disabled={blocked || !!editingComment || !comments.current?.editing?.canEdit(comment)} onMouseDown={event => event.preventDefault()} onClick={() => { const value = comment.text.dataStream.slice(0, -2); editDraft.current = value; setEditText(value); setEditingComment(comment); }}>Edit {comment.id === root.id ? 'comment' : 'reply'}</button>}{comment.personId === session.principal && session.access.role !== 'read' && <button disabled={blocked || !comments.current?.deletion?.canChoose(root, comment.id)} onMouseDown={event => event.preventDefault()} onClick={() => comments.current?.deletion?.choose(root, comment.id)}>Delete {comment.id === root.id ? 'comment' : 'reply'}</button>}{comment.id === root.id && root.personId === session.principal && root.children?.some(c => c.personId !== session.principal) && <p>This thread has another author's replies. Manual root deletion is unavailable; each author may remove their own reply.</p>}</div>)}{session.access.role !== 'read' && <button disabled={commentView.pending || !!commentDraft} onClick={() => { setReply(root.id); setAnchor(root.ref); }}>Reply to {root.ref}</button>}{session.access.role !== 'read' && (session.owner || root.personId === session.principal) && <button disabled={blocked || !commentAvailable || !comments.current?.canResolve(root)} onMouseDown={event => event.preventDefault()} onClick={() => { void comments.current?.resolve(root); }}>{root.resolved ? 'Reopen thread' : 'Resolve thread'}</button>}</div>)}
+      {!blocked && commentView.comments.map(root => <div key={root.id}><p><strong>{root.authorName}</strong> · {root.ref} · {root.resolutionUnknown ? 'Resolution status uncertain' : root.resolved ? 'Resolved' : 'Open'}: {root.bodyUnknown ? 'Current text uncertain — native receipt unavailable' : root.text.dataStream}</p>{[root, ...(root.children ?? []).map(child => ({ ...child, ref: root.ref }))].map(comment => <div key={comment.id}>{comment.id !== root.id && <p>{comment.authorName}: {('bodyUnknown' in comment && comment.bodyUnknown) ? 'Current text uncertain — native receipt unavailable' : comment.text.dataStream}</p>}{comment.personId === session.principal && session.access.role !== 'read' && <button disabled={blocked || !!editingComment || !comments.current?.editing?.canEdit(comment)} onMouseDown={event => event.preventDefault()} onClick={() => { const value = comment.text.dataStream.slice(0, -2); editDraft.current = value; setEditText(value); setEditingComment(comment); }}>Edit {comment.id === root.id ? 'comment' : 'reply'}</button>}{comment.personId === session.principal && session.access.role !== 'read' && <button disabled={blocked || !comments.current?.deletion?.canChoose(root, comment.id)} onMouseDown={event => event.preventDefault()} onClick={() => comments.current?.deletion?.choose(root, comment.id)}>Delete {comment.id === root.id ? 'comment' : 'reply'}</button>}{comment.id === root.id && root.personId === session.principal && root.children?.some(c => c.personId !== session.principal) && <p>This thread has another author's replies. Manual root deletion is unavailable; each author may remove their own reply.</p>}</div>)}{session.access.role !== 'read' && <button disabled={commentView.pending || !!commentDraft} onClick={() => { commentComposerGeneration.current++; setReply(root.id); setAnchor(root.ref); }}>Reply to {root.ref}</button>}{session.access.role !== 'read' && (session.owner || root.personId === session.principal) && <button disabled={blocked || !commentAvailable || !comments.current?.canResolve(root)} onMouseDown={event => event.preventDefault()} onClick={() => { void comments.current?.resolve(root); }}>{root.resolved ? 'Reopen thread' : 'Resolve thread'}</button>}</div>)}
       {session.access.role !== 'read' && <><p>{reply ? (commentView.comments.some(c => c.id === reply) ? `Reply to thread ${reply}` : 'Reply target is no longer published. Choose a new cell comment to keep using this draft.') : `Selected cell: ${anchor || 'select a single cell'}`} </p>
-        <textarea aria-label="Comment draft" value={commentDraft} maxLength={8000} disabled={blocked || commentView.pending} onChange={event => { draft.current = event.target.value; setCommentDraft(event.target.value); }}/>
-        <button disabled={blocked || commentView.pending || !!commentView.removed || !commentAvailable || !commentDraft.trim() || (reply ? !commentView.comments.some(c => c.id === reply) : !anchor)} onClick={() => { const ref = reply ? commentView.comments.find(c => c.id === reply)?.ref : anchorRead.current(); if (ref) { if (comments.current?.canAdd()) submittedDraft.current = draft.current; void comments.current?.add(draft.current, ref, reply); } else comments.current?.explain('The selected cell or reply target is unavailable. Choose a current cell; draft retained.'); }}>Add comment</button>
+        <section aria-label="Local root-comment text recovery"><p role="status">{localDraftView.message}</p><p>Saved only in this browser profile; private mode, browser cleanup or device loss may remove it. Attempted text is never offered for reposting.</p>{localDraftView.attempted > 0 && <p>{localDraftView.attempted} attempted text record(s) retained for evidence. Use native comment status checks; recovery never resubmits them.</p>}{localDraftView.drafts.map((saved, index) => <div key={saved.id}><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{saved.text}</pre><button disabled={blocked || !!commentDraft || !!reply || commentView.pending || !commentAvailable} onPointerDown={e => e.preventDefault()} onClick={async () => { if (draft.current || reply || comments.current?.pending() || !comments.current?.canAdd()) return; const helper = localCommentDrafts.current, generation = commentComposerGeneration.current; const body = await helper?.restore(saved.id, saved.version); if (body !== undefined && helper === localCommentDrafts.current && helper?.canRecover() && generation === commentComposerGeneration.current && !draft.current && !comments.current?.pending() && comments.current?.canAdd() && helper.acceptRestore(body)) { commentComposerGeneration.current++; draft.current = body; setCommentDraft(body); setReply(undefined); setAnchor(''); setChooseRecoveredAnchor(true); } else if (body !== undefined) helper?.releaseRestore(body); }}>Restore saved root text {index + 1}</button><button disabled={blocked} onPointerDown={e => e.preventDefault()} onClick={() => void localCommentDrafts.current?.discard(saved.id, saved.version)}>Discard saved root text {index + 1}</button></div>)}</section>
+        {chooseRecoveredAnchor && <p>Recovered text has no restored anchor. <button disabled={blocked || !commentAvailable} onPointerDown={e => e.preventDefault()} onClick={() => { const selected = anchorRead.current(); if (selected && comments.current?.canAdd()) { setAnchor(selected); setChooseRecoveredAnchor(false); } }}>Use current selected cell for recovered text</button></p>}
+        <textarea aria-label="Comment draft" value={commentDraft} maxLength={8000} disabled={blocked || commentView.pending} onChange={event => { commentComposerGeneration.current++; draft.current = event.target.value; setCommentDraft(event.target.value); if (!reply) void localCommentDrafts.current?.edit(event.target.value); }}/>
+        <button disabled={blocked || chooseRecoveredAnchor || commentView.pending || !!commentView.removed || !commentAvailable || !commentDraft.trim() || (reply ? !commentView.comments.some(c => c.id === reply) : !anchor)} onClick={async () => {
+          if (submittingComment.current || chooseRecoveredAnchor || !comments.current?.canAdd()) return;
+          const body = draft.current; submittingComment.current = true;
+          try {
+            const token = !reply ? await localCommentDrafts.current?.beforeAttempt() : undefined;
+            if (!reply && !token) return;
+            if (body !== draft.current || !comments.current?.canAdd()) return;
+            const ref = reply ? commentView.comments.find(c => c.id === reply)?.ref : anchorRead.current();
+            if (!ref) { comments.current?.explain('The selected cell or reply target is unavailable. Choose a current cell; draft retained.'); return; }
+            submittedDraft.current = body; submittedLocalDraft.current = token;
+            await comments.current.add(body, ref, reply);
+          } finally { submittingComment.current = false; }
+        }}>Add comment</button>
         {!commentAvailable && !blocked && !commentView.pending && <p>Finish active cell input, paste or pending native edits before adding.</p>}
-        {(reply || commentView.removed) && <button disabled={commentView.pending} onClick={() => { setReply(undefined); setAnchor(anchorRead.current()); comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Use draft for a new cell comment</button>}
-        <button disabled={commentView.pending} onClick={() => { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Clear unsent comment draft</button>
+        {(reply || commentView.removed) && <button disabled={commentView.pending} onClick={() => { commentComposerGeneration.current++; setReply(undefined); setAnchor(anchorRead.current()); if (draft.current) void localCommentDrafts.current?.edit(draft.current); comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Use draft for a new cell comment</button>}
+        <button disabled={commentView.pending} onClick={() => { commentComposerGeneration.current++; draft.current = ''; setCommentDraft(''); setReply(undefined); setChooseRecoveredAnchor(false); submittedDraft.current = null; submittedLocalDraft.current = undefined; void localCommentDrafts.current?.edit(''); comments.current?.newDraft(); setCommentAvailable(!!comments.current?.canAdd()); }}>Clear unsent comment draft</button>
         <p>Pending or refused comments retain this draft; no automatic retry. Authors can remove their own replies or wholly self-authored threads from live visibility. Prior bodies remain retained; restore is not enabled.</p></>}
     </details>}
     {hasRecovery && <button onClick={download}>Download retained recovery operations</button>}<div style={{ position: 'relative' }}><div ref={host} style={{ height: '75vh' }} inert={blocked || reversalView.locked || acceptanceView.locked || restoreView.locked || undefined}/>{blocked && <p>Editing paused. Keep this tab open while resolving access or pending work.</p>}</div></>;
