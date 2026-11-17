@@ -85,7 +85,7 @@ export class NativeAgent {
       let patch;try{patch=JSON.parse(raw);}catch{fail('native_agent_patch_invalid',400);}
       if(!patch||Object.keys(patch).join()!=='cells'||!Array.isArray(patch.cells)||patch.cells.length!==1)fail('native_agent_scalar_only',400);
       const cell=patch.cells[0];if(!cell||Object.keys(cell).some(k=>!['sheetId','row','column','value'].includes(k))||!Number.isSafeInteger(cell.row)||!Number.isSafeInteger(cell.column)||cell.row<0||cell.column<0||!['string','number','boolean'].includes(typeof cell.value)&&cell.value!==null||typeof cell.value==='number'&&!Number.isFinite(cell.value)||typeof cell.value==='string'&&(cell.value.length>20000||cell.value.startsWith('=')))fail('native_agent_scalar_only',400);
-      if(typeof cell.sheetId!=='string'||!evidence.data.sheetOrder.includes(cell.sheetId)||!Object.hasOwn(evidence.data.sheets,cell.sheetId))fail('native_agent_cell_invalid',400);
+      if(cell.sheetId!=='sheet-1'||typeof cell.sheetId!=='string'||!evidence.data.sheetOrder.includes(cell.sheetId)||!Object.hasOwn(evidence.data.sheets,cell.sheetId))fail('native_agent_cell_invalid',400);
       const sheet=evidence.data.sheets[cell.sheetId];if(!sheet||cell.row>=sheet.rowCount||cell.column>=sheet.columnCount)fail('native_agent_cell_invalid',400);
       if(mergedTarget(sheet,cell.row,cell.column))fail('native_agent_merged_target');
       const before=structuredClone(sheet.cellData?.[cell.row]?.[cell.column]??null);

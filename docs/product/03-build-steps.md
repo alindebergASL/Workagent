@@ -669,12 +669,53 @@ browser head/readback proves committed-state continuity, not native POST attempt
 232 source/80 artifact/served hashes match, actual process key/model gates are absent,
 and prior paid result/receipts/runtime.env/main/default/public remain unchanged.
 
-Full B05 remains open: multiple worksheets and richer merge variants, conflict
-coverage, browser-crash draft recovery, shared-thread deletion policy, text/object
-anchors, broader individual/account undo, restore-as-new-revision, broader-than-scalar
-agent acceptance and physical-phone/two-human usability. Existing human Sheet
-conversion and native export remain unclaimed. Next is bounded multiple-worksheet
-support through the public SDK, without dropping the remaining scope.
+Bounded multiple-worksheet foundation is qualified on private QA2c35ba536bbd
+(port43090, retained DB6653ac6bdfab), not installed in main. Public native commands
+add up to four append-only blank default-size tabs, rename uniquely, select without
+mutation, and independently edit/clear scalar cells. Original-sheet comments, merges,
+row tools, reversal and agent proposals stay sheet-1 scoped; other-sheet use fails
+closed. Delete/reorder/duplicate/import and formula-bearing rename remain unsupported.
+
+SAME review closed historical-base scalar admission before native OT and the public
+ClearSelectionContent mutation path. Real browser testing then found the native '+'
+default-size envelope and ordinary typing's own p:undefined companion were refused.
+Both received narrow fixes, Parent RED-to-GREEN probes and SAME delta rereview PASS;
+actual rich text, unknown undefined fields, arbitrary sheet data and unsafe clears
+remain refused. Parent final worksheet22 registrations (13 worksheet-specific plus9
+imported merge checks), typing1/toolbar1/clear2/OT1 probes, types/diff pass. Additional
+public SDK copy/reorder refusal checks pass2 with unguarded positive controls; browser
+reorder drag did not exercise that command, so it is NOT browser refusal proof.
+
+Corrected restricted PG/native SQLite/cookie HTTP/licensed WS/restart659a1d3bc886
+passes: public native SEND and receive APPLY, head13/four tabs,11 public POST and11
+raw attempts including10 refusals, retained original comment, max2/final0 connections,
+zero product calls. Failed fixtures remain retained without replay. Reviewer-approved
+HARNESS_CORRECTIONs distinguish HTTP transport acceptance from identity-matched native
+ACK/REJ and add the public APPLY step missing from the headless receiver; an isolated
+SDK positive/negative control proved style loss without APPLY and exact equality with
+it. Full sheet/style/head/refusal/restart assertions were not weakened.
+
+Final-build browser proof includes fresh owner E5=77 and peer F6=88 on the added tab,
+peer convergence, native single-cell clear, independent original-sheet E5=99, native
+add/rename/max-four, duplicate-name/copy/delete/multi-cell-clear boundaries, 390px tab
+selection without document overflow, reader-disabled add, editor fencing, revocation,
+and cold-owner reload. Final epoch4/head15 retains four named tabs, original A1=11,
+D1=22,E5=99 and G4:H5 merge, added-tab F6=88, one immutable H9 comment and both old
+comment drafts. Browser targets were replaced after reload inspection timeouts of
+unknown cause; drafts were explicitly restored from exports, NOT crash-persistence
+proof. Duplicate-name dialog recovery required waiting for its close animation and
+restored focus; a fresh valid rename then committed. Earlier refused typing was never
+replayed. Browser proof is committed-state/readback, not native POST attempt counts.
+237 source/80 artifact hashes and keyless running process verified;0 jobs/provider
+journal. Installed main0fd532a/runtime.env remain untouched. Completed QA43088/43089
+services are parked with all data retained.
+
+Full B05 remains open: broader worksheet operations and richer merge variants,
+conflict coverage, browser-crash draft recovery, shared-thread deletion policy,
+text/object anchors, broader individual/account undo, restore-as-new-revision,
+broader-than-scalar agent acceptance and physical-phone/two-human usability. Existing
+human Sheet conversion and native export remain unclaimed. Next is bounded
+restore-as-new-revision through public native mechanisms, preserving the full backlog.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

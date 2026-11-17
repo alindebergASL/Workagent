@@ -162,3 +162,12 @@ test('merged native target cannot become scalar proposal; unrelated target remai
  const j=await job(s),read=await s.agent.read('owner',j),head=s.head;await assert.rejects(s.agent.propose('owner',j,'merged',patch(33),read.basis),/native_agent_merged_target/);
  const good=await s.agent.propose('owner',j,'outside',JSON.stringify({cells:[{sheetId:TAB,row:0,column:2,value:44}]}),read.basis);assert.equal(good.status,'proposed');assert.equal(s.head,head);
 }));
+
+test('additional worksheet reads stay identified; proposal writes remain explicitly original-sheet scoped',()=>fixture(async s=>{
+ const {mergeWorksheetSnapshotWithDefault}=await import('@univerjs/core');
+ const sheet=mergeWorksheetSnapshotWithDefault({id:'second',name:'Second'});
+ const added=await s.service.submitChangeset({changeset:{unitID:UNIT,type:2,userID:'owner',memberID:'owner',sid:'agent-tabs-fixture',reqId:1,baseRev:s.head,revision:s.head+1,mutations:[{id:'sheet.mutation.insert-sheet',data:JSON.stringify({unitId:UNIT,index:1,sheet})}]}},{userID:'owner',memberID:'owner'});assert.equal(added.status,'committed');
+ const j=await job(s),read=await s.agent.read('owner',j);assert.equal(JSON.parse(read.result).book.sheets.second.name,'Second');
+ const head=s.head;await assert.rejects(s.agent.propose('owner',j,'wrong-tab',JSON.stringify({cells:[{sheetId:'second',row:0,column:0,value:99}]}),read.basis),/native_agent_cell_invalid/);assert.equal(s.head,head);assert.equal((await inspect(s)).proposals.length,0);
+ assert.equal((await s.agent.propose('owner',j,'original-tab',patch(33),read.basis)).status,'proposed');assert.equal(s.head,head);
+}));

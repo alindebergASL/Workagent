@@ -1,3 +1,4 @@
+import {guardNativeWorksheets, WORKSHEET_GUIDANCE} from './native-worksheets';
 import { guardNativeMerge, MERGE_GUIDANCE } from './native-merge';
 import { nativeAgentAcceptance, emptyAcceptanceView } from './native-agent-acceptance';
 import { nativeAgent, initialNativeAgentView } from './native-agent';
@@ -18,7 +19,7 @@ import type { NativePresence } from './native-presence';
 import { useEffect, useRef, useState } from 'react';
 import { ICommandService, IResourceLoaderService, IUndoRedoService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
 import type { Workbook } from '@univerjs/core';
-import { RefRangeService } from '@univerjs/sheets';
+import { RefRangeService, SheetsSelectionsService } from '@univerjs/sheets';
 import { UniverCollaborationPlugin, RevisionService } from '@univerjs-pro/collaboration';
 import { UniverCollaborationClientPlugin, ILocalCacheService, CollaborationController, CollaborationSessionService, MemberService, SessionStatus } from '@univerjs-pro/collaboration-client';
 import CollaborationEnUS from '@univerjs-pro/collaboration-client/locale/en-US';
@@ -105,13 +106,21 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(MemberService));
     const collaboration = nativeCollaborationClient(univer.__getInjector(), session.unitID);
     let composing = false;
+    const firstSheet = () => univerAPI.getActiveWorkbook()?.getActiveSheet().getSheetId() === 'sheet-1';
+    const worksheetGuard = guardNativeWorksheets(session.unitID, univer.__getInjector().get(ICommandService),
+      () => univer.__getInjector().get(IResourceLoaderService).saveUnit(session.unitID),
+      () => univerAPI.getActiveWorkbook()?.getActiveSheet().getSheetId(),
+      () => live && loaded && !revoked && !conflict && authorityHealthy && online() && session.access.role !== 'read',
+      () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!reversal.current?.active() || !!acceptance.current?.active(),
+      message => { if (live) setMergeNotice(message); },
+      () => univer.__getInjector().get(SheetsSelectionsService).getCurrentSelections()?.map(selection => selection.range) ?? []);
     const mergeGuard = guardNativeMerge(session.unitID, univer.__getInjector().get(ICommandService),
       () => univer.__getInjector().get(IResourceLoaderService).saveUnit(session.unitID),
       () => { const range = univerAPI.getActiveWorkbook()?.getActiveRange()?.getRange(); return range ? [range] : []; },
       () => live && loaded && !revoked && !conflict && authorityHealthy && online() && session.access.role !== 'read' && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active(),
       message => { if (live) setMergeNotice(message); });
     if (session.agent && session.owner && session.access.role === 'owner') agent.current = nativeAgent(session,
-      () => live && loaded && !revoked && !conflict && authorityHealthy && online(),
+      () => firstSheet() && live && loaded && !revoked && !conflict && authorityHealthy && online(),
       () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!reversal.current?.active() || !!acceptance.current?.active(),
       () => univer.__getInjector().get(RevisionService).getCurrentRevOfUnit(session.unitID),
       value => { agentProposals.current = value.proposals; agentUnsafe.current = value.unsaved; if (live) setAgentView(value); }, fetch, localStorage);
@@ -123,7 +132,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       return r.startRow === r.endRow && r.startColumn === r.endColumn ? range.getA1Notation() : '';
     };
     if (session.comments) comments.current = nativeComments(session, univer.__getInjector().get(IThreadCommentDataSourceService), univer.__getInjector().get(ICommandService),
-      () => loaded && !revoked && !conflict && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !reversal.current?.active() && !acceptance.current?.active(),
+      () => firstSheet() && loaded && !revoked && !conflict && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !reversal.current?.active() && !acceptance.current?.active(),
       value => { if (live && !revoked && !conflict) { setCommentView(value); const editProof = value.editing?.confirmed; if (editProof && submittedEdit.current?.commentId === editProof.commentId && submittedEdit.current.body === editProof.body && editDraft.current === editProof.body) { const published = value.comments.flatMap(root => [root, ...(root.children ?? []).map(child => ({ ...child, ref: root.ref }))]).find(comment => comment.id === editProof.commentId); if (published) setEditingComment(published); submittedEdit.current = null; } if (value.confirmed && draft.current === submittedDraft.current) { draft.current = ''; setCommentDraft(''); setReply(undefined); submittedDraft.current = null; } } }, fetch, () => { const entity = univer.__getInjector().get(CollaborationController).getCollabEntity(session.unitID); return entity?.session.sessionStatus === SessionStatus.ONLINE ? (entity.session.getMemberID() ?? '') : ''; }, localStorage);
     const localInteraction = () => follow.current?.localInteraction();
     const element = host.current;
@@ -172,13 +181,13 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
         agent.current?.refresh(); void agent.current?.check();
         if (session.acceptance && session.owner && session.access.role === 'owner') acceptance.current = nativeAgentAcceptance(session, entity.session,
           () => agentProposals.current, () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
-          () => live && loaded && !revoked && !conflict && authorityHealthy && online(),
+          () => firstSheet() && live && loaded && !revoked && !conflict && authorityHealthy && online(),
           () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!reversal.current?.active(),
           value => { if (live) setAcceptanceView(value); }, fetch, localStorage,
           (path, signal) => openAcceptanceAction(session.unitID, path, session.binding, signal), () => { void agent.current?.check(); });
         if (session.reversal) reversal.current = nativeReversal(session, entity.session,
           () => injector.get(RevisionService).getCurrentRevOfUnit(session.unitID),
-          () => !loaded || revoked || conflict || composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!acceptance.current?.active(),
+          () => !firstSheet() || !loaded || revoked || conflict || composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!comments.current?.pending() || !!acceptance.current?.active(),
           value => { if (live) setReversalView(value); }, fetch, localStorage,
           (path, signal) => openReversalAction(session.unitID, path, session.binding, signal));
         follow.current = nativeFollow(session.unitID, entity.session,
@@ -216,7 +225,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       if (host.current) host.current.inert = true;
       await cache.exhaustSavingTask();
       stopPresence();
-      mergeGuard.dispose(); undoGuard.dispose(); reversalGuard.dispose(); univer.dispose();
+      worksheetGuard.dispose(); mergeGuard.dispose(); undoGuard.dispose(); reversalGuard.dispose(); univer.dispose();
     })().catch(error => { closing = undefined; if (live && host.current) host.current.inert = blocked; throw error; });
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !editDraft.current && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active() && !agentUnsafe.current, close });
     return () => {
@@ -237,7 +246,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     const a = document.createElement('a'); a.href = url; a.download = 'native-operation-recovery.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return <><p role="status" data-native-status>{status}</p>
-    <p role="status" data-native-undo>{undoNotice}</p><p data-native-merge role="status">{mergeNotice}</p>
+    <p role="status" data-native-undo>{undoNotice}</p><p data-native-merge role="status">{mergeNotice}</p><p data-native-worksheets>{WORKSHEET_GUIDANCE}</p>
     {session.agent && session.owner && session.access.role === 'owner' && <details aria-label="Native agent requests" style={{ maxWidth: '100%', overflowWrap: 'anywhere' }} onToggle={e => { if (e.currentTarget.open) void agent.current?.check(); }}>
       <summary>Ask about this collaborative Sheet</summary>
       <p>{session.acceptance ? 'Requests only read and propose. Apply a current scalar proposal only through explicit Preview and Confirm below.' : 'Read and propose only. Proposed changes are not applied; acceptance comes next.'}</p>

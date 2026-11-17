@@ -1,3 +1,4 @@
+import {NativeWorksheets, INSERT_SHEET, RENAME_SHEET, SHEET_VALUES} from './native-worksheets.mjs';
 import { NativeMerge, MERGE, UNMERGE } from './native-merge.mjs';
 import { UPDATE_COMMENT } from './native-comment-editing.mjs';
 import { NativeAgentAcceptance } from './native-agent-acceptance.mjs';
@@ -17,8 +18,8 @@ import { UniverType, UnitAction } from '@univerjs/protocol';
 export const NATIVE_UNIT = 'b05-native-synthetic-sheet';
 export const NATIVE_TAB = 'sheet-1';
 const deny = () => { throw new CollabError('PERMISSION_DENIED', 'Native qualification access denied'); };
-const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows', MERGE, UNMERGE]);
-const editActions = new Set([UnitAction.Edit, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
+const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows', MERGE, UNMERGE, INSERT_SHEET, RENAME_SHEET]);
+const editActions = new Set([UnitAction.Edit, UnitAction.CreateSheet, UnitAction.RenameSheet, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
 export function allowedNativeAction(role, action, comments = false) { return !!role && (action === UnitAction.View || (role !== 'read' && (editActions.has(action) || (comments && action === UnitAction.Comment)))); }
 
 // The same Workspace row lock used by Workspace.share is held through native
@@ -56,7 +57,7 @@ export class NativeAuthority {
     for (const m of c.mutations) {
       if (!mutations.has(m.id) && !(this.comments && [ADD_COMMENT, DELETE_COMMENT, RESOLVE_COMMENT, UPDATE_COMMENT].includes(m.id))) deny();
       let p; try { p = JSON.parse(m.data); } catch { deny(); }
-      if (p?.unitId !== c.unitID || p.subUnitId !== NATIVE_TAB) deny();
+      if (p?.unitId !== c.unitID || (m.id !== INSERT_SHEET && (typeof p.subUnitId !== 'string' || !p.subUnitId)) || (![INSERT_SHEET, RENAME_SHEET, SHEET_VALUES].includes(m.id) && p.subUnitId !== NATIVE_TAB)) deny();
     }
   }
   submission(context) {
@@ -84,7 +85,7 @@ export class NativeAuthority {
     }
   }
   install(service, endpoint) {
-    const merge = new NativeMerge(this, service);
+    const merge = new NativeMerge(this, service), worksheets = new NativeWorksheets(this, service);
     service.use('readUnitData', async (c, next) => {
       if (c.request.type !== UniverType.UNIVER_SHEET || (this.unitID === null && this.scope.getStore()?.unitID !== c.request.unitID)) deny();
       await this.fence(c.userID, c.request.unitID, false, next, this.scope.getStore()?.session);
@@ -94,10 +95,12 @@ export class NativeAuthority {
     service.use('submitChangeset', async (c, next) => {
       const session = this.submission(c);
       const mergeView = merge.needs(c.request.changeset) ? await merge.prepare(c.userID, c.request.changeset.unitID, session, merge.admissionRevision(c.request.changeset)) : null;
+      const worksheetView = worksheets.needs(c.request.changeset) ? await worksheets.prepare(c.userID, c.request.changeset.unitID, session, worksheets.admissionRevision(c.request.changeset)) : null;
       const refusal = await this.workspace.store.transaction(async s => {
         this.check(s, c.userID, c.request.changeset.unitID, true, session);
         const reason = await this.validateAction(s,c,session); if (reason) return reason;
         if (mergeView) merge.validate({ ...c, changeset: c.request.changeset }, mergeView);
+        if (worksheetView) worksheets.validate({...c, changeset:c.request.changeset},worksheetView);
         this.bindSubmission(s, c, true);
         await nativeCommentPolicy(() => this.comments?.bind(s, c, session, true));
       });
@@ -108,12 +111,14 @@ export class NativeAuthority {
       const session = this.submission(c);
       this.validateChangeset(c.changeset);
       const mergeView = merge.needs(c.changeset) ? await merge.prepare(c.userID, c.changeset.unitID, session) : null;
+      const worksheetView = worksheets.needs(c.changeset) ? await worksheets.prepare(c.userID,c.changeset.unitID,session) : null;
       const commentView = this.comments?.needs(c.changeset) ? await this.comments.prepare(c.userID, c.changeset.unitID, session) : null;
       const refusal = await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
         const reason = await this.validateAction(s,c,session,true); if (reason) return reason;
         this.bindSubmission(s, c);
         if (mergeView) merge.validate(c, mergeView);
+        if (worksheetView) worksheets.validate(c,worksheetView);
         await nativeCommentPolicy(async () => {
           this.comments?.bind(s, c, session, false);
           if (commentView) { await this.comments.current(c.userID, c.changeset.unitID, commentView); this.comments.validate(s, c, commentView); }
