@@ -1,8 +1,9 @@
+import { guardNativeMerge, MERGE_GUIDANCE } from './native-merge';
 import { nativeAgentAcceptance, emptyAcceptanceView } from './native-agent-acceptance';
 import { nativeAgent, initialNativeAgentView } from './native-agent';
 import { nativeReversal, guardReversalInput, type ReversalView } from './native-reversal';
 import { openReversalAction, openAcceptanceAction } from './native-reversal-action';
-import { containNativeUndo, NATIVE_UNDO_UNAVAILABLE, nativeHistory, type NativeHistoryView } from './native-history';
+import { historyMergeRange, containNativeUndo, NATIVE_UNDO_UNAVAILABLE, nativeHistory, type NativeHistoryView } from './native-history';
 import { nativeComments } from './native-comments';
 import type { CommentView } from './native-comments';
 import { UniverThreadCommentPlugin, IThreadCommentDataSourceService } from '@univerjs/thread-comment';
@@ -15,7 +16,7 @@ import { nativeFollow, nativePasteActivity } from './native-follow';
 import type { NativeFollowState } from './native-follow';
 import type { NativePresence } from './native-presence';
 import { useEffect, useRef, useState } from 'react';
-import { ICommandService, IUndoRedoService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
+import { ICommandService, IResourceLoaderService, IUndoRedoService, IUniverInstanceService, LocaleType, LogLevel, UserManagerService } from '@univerjs/core';
 import type { Workbook } from '@univerjs/core';
 import { RefRangeService } from '@univerjs/sheets';
 import { UniverCollaborationPlugin, RevisionService } from '@univerjs-pro/collaboration';
@@ -64,6 +65,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
   const agentUnsafe = useRef(false);
   const agent = useRef<ReturnType<typeof nativeAgent> | null>(null);
   const [agentView, setAgentView] = useState(() => initialNativeAgentView(session, localStorage));
+  const [mergeNotice, setMergeNotice] = useState(MERGE_GUIDANCE);
   const [undoNotice, setUndoNotice] = useState(NATIVE_UNDO_UNAVAILABLE);
   const [anchor, setAnchor] = useState('');
   const [commentAvailable, setCommentAvailable] = useState(false);
@@ -103,6 +105,11 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       univer.__getInjector().get(CollaborationSessionService), univer.__getInjector().get(MemberService));
     const collaboration = nativeCollaborationClient(univer.__getInjector(), session.unitID);
     let composing = false;
+    const mergeGuard = guardNativeMerge(session.unitID, univer.__getInjector().get(ICommandService),
+      () => univer.__getInjector().get(IResourceLoaderService).saveUnit(session.unitID),
+      () => { const range = univerAPI.getActiveWorkbook()?.getActiveRange()?.getRange(); return range ? [range] : []; },
+      () => live && loaded && !revoked && !conflict && authorityHealthy && online() && session.access.role !== 'read' && !composing && !paste.busy() && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active(),
+      message => { if (live) setMergeNotice(message); });
     if (session.agent && session.owner && session.access.role === 'owner') agent.current = nativeAgent(session,
       () => live && loaded && !revoked && !conflict && authorityHealthy && online(),
       () => composing || paste.busy() || !!univerAPI.getActiveWorkbook()?.isCellEditing() || collaboration.hasWritePending() || !!reversal.current?.active() || !!acceptance.current?.active(),
@@ -209,7 +216,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       if (host.current) host.current.inert = true;
       await cache.exhaustSavingTask();
       stopPresence();
-      undoGuard.dispose(); reversalGuard.dispose(); univer.dispose();
+      mergeGuard.dispose(); undoGuard.dispose(); reversalGuard.dispose(); univer.dispose();
     })().catch(error => { closing = undefined; if (live && host.current) host.current.inert = blocked; throw error; });
     ready.current?.({ canLeave: () => loaded && !univerAPI.getActiveWorkbook()?.isCellEditing() && !collaboration.hasWritePending() && !conflict && !draft.current && !editDraft.current && !comments.current?.pending() && !reversal.current?.active() && !acceptance.current?.active() && !agentUnsafe.current, close });
     return () => {
@@ -230,7 +237,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
     const a = document.createElement('a'); a.href = url; a.download = 'native-operation-recovery.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return <><p role="status" data-native-status>{status}</p>
-    <p role="status" data-native-undo>{undoNotice}</p>
+    <p role="status" data-native-undo>{undoNotice}</p><p data-native-merge role="status">{mergeNotice}</p>
     {session.agent && session.owner && session.access.role === 'owner' && <details aria-label="Native agent requests" style={{ maxWidth: '100%', overflowWrap: 'anywhere' }} onToggle={e => { if (e.currentTarget.open) void agent.current?.check(); }}>
       <summary>Ask about this collaborative Sheet</summary>
       <p>{session.acceptance ? 'Requests only read and propose. Apply a current scalar proposal only through explicit Preview and Confirm below.' : 'Read and propose only. Proposed changes are not applied; acceptance comes next.'}</p>
@@ -277,7 +284,7 @@ export function NativeCollaborationEditor({ session, onReady }: { session: Nativ
       <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read('?revision=1')}>Preview initial revision 1</button>
       {historyView.entries.map(entry => <p key={entry.revision}>Revision {entry.revision} · {entry.author} · {entry.operations.join(', ')} ({entry.operationCount}) <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read(`?revision=${entry.revision}`)}>Preview revision {entry.revision}</button></p>)}
       {historyView.before && <button onPointerDown={e => e.preventDefault()} onClick={() => void history.current?.read(`?before=${historyView.before}`)}>Earlier history</button>}
-      {historyView.preview && <div aria-label="Historical sheet preview" style={{ overflowWrap: 'anywhere', maxHeight: '20rem', overflow: 'auto' }}><p>Revision {historyView.preview.revision} · values/formulas only · first 50 populated cells per sheet, at most 4 sheets; long values truncated. Comments and formatting are not shown.</p>{historyView.preview.sheets.map(sheet => <div key={sheet.id}><strong>{sheet.name}</strong> ({sheet.rows} × {sheet.columns})<ul>{sheet.cells.map(cell => <li key={cell.cell}>{cell.cell}: {cell.value}</li>)}</ul></div>)}</div>}</>}
+      {historyView.preview && <div aria-label="Historical sheet preview" style={{ overflowWrap: 'anywhere', maxHeight: '20rem', overflow: 'auto' }}><p>Revision {historyView.preview.revision} · values/formulas and merged ranges · first 50 populated cells per sheet, at most 4 sheets; long values truncated. Comments and other formatting are not shown.</p>{historyView.preview.sheets.map(sheet => <div key={sheet.id}><strong>{sheet.name}</strong> ({sheet.rows} × {sheet.columns})<p>Merged ranges: {sheet.merges?.length ? sheet.merges.map(historyMergeRange).join(', ') : 'None'}.{sheet.mergesTruncated ? ` Showing first 50 of ${sheet.mergeCount} ranges.` : ''}</p><ul>{sheet.cells.map(cell => <li key={cell.cell}>{cell.cell}: {cell.value}</li>)}</ul></div>)}</div>}</>}
     </details>}
     <div aria-label="Sheet collaborators" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowWrap: 'anywhere', marginBottom: '0.5rem' }}>
       <span>{session.name} (you{session.access.role === 'read' ? ', read-only' : ''})</span>

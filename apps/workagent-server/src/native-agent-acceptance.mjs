@@ -1,3 +1,4 @@
+import { mergedTarget } from './native-merge.mjs';
 // Explicit human acceptance only. Canonical proposals are immutable; native
 // changesets/history/CAS remain the only content and receipt authority.
 import { randomUUID } from 'node:crypto';
@@ -62,6 +63,7 @@ export class NativeAgentAcceptance {
       const patch=p.patch,c=patch?.cells?.[0];
       if(!patch||Object.keys(patch).join()!=='cells'||patch.cells.length!==1||!c||Object.keys(c).some(k=>!['sheetId','row','column','value'].includes(k))||c.sheetId!=='sheet-1'||!Number.isSafeInteger(c.row)||!Number.isSafeInteger(c.column)||c.row<0||c.column<0||!scalar(c.value)||typeof c.value==='string'&&(c.value.length>20000||c.value.startsWith('=')))fail('native_acceptance_scalar_only');
       const sheet=data.sheets[c.sheetId];if(!sheet||c.row>=sheet.rowCount||c.column>=sheet.columnCount)fail('native_acceptance_cell');
+      if(mergedTarget(sheet,c.row,c.column))fail('native_acceptance_merged_target');
       const before=sheet.cellData?.[c.row]?.[c.column]??null,style=typeof before?.s==='string'?data.styles?.[before.s]:before?.s;
       if(before&&(Object.keys(before).some(k=>!['v','t','f','si','s','ft','fd'].includes(k))||['f','si','ft','fd'].some(k=>before[k]!=null)||before.v!==undefined&&!scalar(before.v)))fail('native_acceptance_scalar_only');
       if(typeof before?.s==='string'&&style===undefined)fail('native_acceptance_style');

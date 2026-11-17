@@ -1,3 +1,4 @@
+import { mergedTarget } from './native-merge.mjs';
 // Read/propose only. Native service history is the sole content authority.
 import { Fault, revision } from '../../../packages/workagent-contract/index.mjs';
 import { authorize, digest, event, intentConditions, same } from './workspace.mjs';
@@ -86,6 +87,7 @@ export class NativeAgent {
       const cell=patch.cells[0];if(!cell||Object.keys(cell).some(k=>!['sheetId','row','column','value'].includes(k))||!Number.isSafeInteger(cell.row)||!Number.isSafeInteger(cell.column)||cell.row<0||cell.column<0||!['string','number','boolean'].includes(typeof cell.value)&&cell.value!==null||typeof cell.value==='number'&&!Number.isFinite(cell.value)||typeof cell.value==='string'&&(cell.value.length>20000||cell.value.startsWith('=')))fail('native_agent_scalar_only',400);
       if(typeof cell.sheetId!=='string'||!evidence.data.sheetOrder.includes(cell.sheetId)||!Object.hasOwn(evidence.data.sheets,cell.sheetId))fail('native_agent_cell_invalid',400);
       const sheet=evidence.data.sheets[cell.sheetId];if(!sheet||cell.row>=sheet.rowCount||cell.column>=sheet.columnCount)fail('native_agent_cell_invalid',400);
+      if(mergedTarget(sheet,cell.row,cell.column))fail('native_agent_merged_target');
       const before=structuredClone(sheet.cellData?.[cell.row]?.[cell.column]??null);
       if(before&&(Object.keys(before).some(k=>!['v','t','f','si','s','ft','fd'].includes(k))||['f','si','ft','fd'].some(k=>before[k]!=null)))fail('native_agent_scalar_only',400);
       const style=typeof before?.s==='string'?evidence.data.styles?.[before.s]:before?.s;

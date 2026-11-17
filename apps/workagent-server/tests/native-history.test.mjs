@@ -33,3 +33,12 @@ test('reader can inspect history; stale epoch and revoke during read prevent res
   const pending=request('','peer',2);await waiting;await s.workspace.share('owner',UNIT,{commandId:'revoke',peer:'peer',role:null,accessRevision:2});release();
   const refused=await pending;assert.equal(refused.status,403);assert.equal(refused.data.entries,undefined);assert.equal((await request('?revision=2','peer',3)).status,403);
 }));
+
+import {AddWorksheetMergeCommand,RemoveWorksheetMergeCommand} from '@univerjs/sheets';
+test('history previews distinguish premerge, merged and unmerged native revisions without changing live state',async()=>pair(async(s,a,b)=>{
+ const request=api(s),range={startRow:0,endRow:0,startColumn:0,endColumn:1};
+ await relay(await a.run(s,AddWorksheetMergeCommand.id,{unitId:UNIT,subUnitId:'sheet-1',selections:[range]}),b);
+ await relay(await a.run(s,RemoveWorksheetMergeCommand.id,{unitId:UNIT,subUnitId:'sheet-1',ranges:[range]}),b);
+ for(const [revision,expected] of [[1,[]],[2,[range]],[3,[]]]){const p=await request(`?revision=${revision}`);assert.equal(p.status,200);assert.deepEqual(p.data.sheets[0].merges,expected);assert.equal(p.data.sheets[0].mergeCount,expected.length);assert.equal(p.data.sheets[0].mergesTruncated,false);}
+ assert.equal(s.head,3);assert.deepEqual(a.book.getActiveSheet().getMergeData(),[]);
+}));

@@ -631,12 +631,50 @@ artifact/served hashes verified. Actual process provider key and model gates abs
 Prior paid receipts/runtime.env/main/default/public remain unchanged. Own tabs retired
 with contexts/storage/draft evidence retained; no physical-phone or latency claim.
 
-Full B05 remains open: richer native surfaces including merge/unmerge and multiple
-worksheets, conflict coverage, browser-crash recovery, shared-thread deletion policy,
-text/object anchors, broader individual/account undo, whole-artifact restore-as-new-
-revision, broader-than-scalar agent acceptance and two-human usability. Next is the
-bounded native merge/unmerge surface, without dropping the remaining scope.
-Existing human Sheet conversion and native export remain unclaimed.
+Bounded single-worksheet native merge/unmerge is qualified on private QA097114425fd4
+(port43089, retained DB953a089e8571), not installed in main. One lossless range of at
+most4096 cells uses pinned public commands and the existing licensed native transport.
+Content loss, overlaps, comment anchors and format-changing unmerge are refused;
+merged targets remain fenced from scalar agent acceptance/reversal. Native SDK OT,
+materialization and history remain authoritative. Raw row crossings are checked both
+at admission and against the current merge view at commit; no parallel editor engine.
+
+SAME review closed raw-row bypass/test-gate wiring and two real-browser findings:
+valid optional reference flags were refused, and public transport compression adds an
+empty styleRefMap to the unmerge companion. Only known flags and an empty plain-object
+map are accepted; arbitrary style maps/content/identity/bounds bypasses remain refused.
+Parent final40 selected checks plus types/diff pass. Corrected restricted PG/native
+SQLite/cookie HTTP/licensed WS/restartafefeaa8662c passed with actual public compressor:
+10 native POST/head11,6 raw refusals,1 retained claim,max2/final0 connections,0 model calls.
+A failed PG exact-row-roundtrip assertion is retained: isolated pinned SDK tests prove
+row operations rebuild merges without reference flags. SAME review approved removing
+only the expected NONE=0 fields for that comparison, retaining full sheet/resources
+and peer convergence; no product normalization or blanket snapshot filtering.
+
+The browser ledger retains27 distinct rows:22 passing stages across builds,2 product
+findings subsequently corrected,2 harness corrections and1 interruption. Final-build
+proof includes fresh merge/peer unmerge,2106-cell roundtrip, content/overlap/comment/
+variant/style refusals, offline refusal and automatic catch-up followed by peer unmerge,
+390px native overflow controls, visible historical merged ranges, reader-disabled
+controls, old-epoch denial and revocation. The100x26 fixture cannot exercise an
+in-bounds >4096 selection; that ceiling has local test evidence, not that browser claim.
+Final epoch4/head14 retains A1=11/D1=22, A1:B2 and G4:H5, one immutable H9 comment and
+zero jobs/provider journal. Original refused unmerge recovery was exported and never
+replayed; fresh proof used a different range. Original browser targets disappeared
+for unknown reason; saved recovery/draft evidence was retained and new isolated
+contexts did not import pending operations. Draft baselines were explicitly restored
+after hard reload/new contexts, not passed off as crash/reload persistence. Offline
+in-session draft preservation passed. Page fetch hooks do not see native SDK traffic;
+browser head/readback proves committed-state continuity, not native POST attempt counts.
+232 source/80 artifact/served hashes match, actual process key/model gates are absent,
+and prior paid result/receipts/runtime.env/main/default/public remain unchanged.
+
+Full B05 remains open: multiple worksheets and richer merge variants, conflict
+coverage, browser-crash draft recovery, shared-thread deletion policy, text/object
+anchors, broader individual/account undo, restore-as-new-revision, broader-than-scalar
+agent acceptance and physical-phone/two-human usability. Existing human Sheet
+conversion and native export remain unclaimed. Next is bounded multiple-worksheet
+support through the public SDK, without dropping the remaining scope.
 
 ### B06 — Boards, editable decks and multilingual dictation
 

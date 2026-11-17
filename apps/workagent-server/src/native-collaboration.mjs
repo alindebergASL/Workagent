@@ -1,3 +1,4 @@
+import { NativeMerge, MERGE, UNMERGE } from './native-merge.mjs';
 import { UPDATE_COMMENT } from './native-comment-editing.mjs';
 import { NativeAgentAcceptance } from './native-agent-acceptance.mjs';
 import { NativeAgent } from './native-agent.mjs';
@@ -16,7 +17,7 @@ import { UniverType, UnitAction } from '@univerjs/protocol';
 export const NATIVE_UNIT = 'b05-native-synthetic-sheet';
 export const NATIVE_TAB = 'sheet-1';
 const deny = () => { throw new CollabError('PERMISSION_DENIED', 'Native qualification access denied'); };
-const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows']);
+const mutations = new Set(['sheet.mutation.set-range-values', 'sheet.mutation.insert-row', 'sheet.mutation.remove-rows', MERGE, UNMERGE]);
 const editActions = new Set([UnitAction.Edit, UnitAction.SetCellValue, UnitAction.SetCellStyle, UnitAction.InsertRow, UnitAction.DeleteRow, UnitAction.SelectProtectedCells, UnitAction.SelectUnProtectedCells]);
 export function allowedNativeAction(role, action, comments = false) { return !!role && (action === UnitAction.View || (role !== 'read' && (editActions.has(action) || (comments && action === UnitAction.Comment)))); }
 
@@ -83,6 +84,7 @@ export class NativeAuthority {
     }
   }
   install(service, endpoint) {
+    const merge = new NativeMerge(this, service);
     service.use('readUnitData', async (c, next) => {
       if (c.request.type !== UniverType.UNIVER_SHEET || (this.unitID === null && this.scope.getStore()?.unitID !== c.request.unitID)) deny();
       await this.fence(c.userID, c.request.unitID, false, next, this.scope.getStore()?.session);
@@ -91,9 +93,11 @@ export class NativeAuthority {
     for (const action of ['deleteUnits', 'recoverUnits']) service.use(action, async () => deny());
     service.use('submitChangeset', async (c, next) => {
       const session = this.submission(c);
+      const mergeView = merge.needs(c.request.changeset) ? await merge.prepare(c.userID, c.request.changeset.unitID, session, merge.admissionRevision(c.request.changeset)) : null;
       const refusal = await this.workspace.store.transaction(async s => {
         this.check(s, c.userID, c.request.changeset.unitID, true, session);
         const reason = await this.validateAction(s,c,session); if (reason) return reason;
+        if (mergeView) merge.validate({ ...c, changeset: c.request.changeset }, mergeView);
         this.bindSubmission(s, c, true);
         await nativeCommentPolicy(() => this.comments?.bind(s, c, session, true));
       });
@@ -103,11 +107,13 @@ export class NativeAuthority {
     service.use('commitChangeset', async (c, next) => {
       const session = this.submission(c);
       this.validateChangeset(c.changeset);
+      const mergeView = merge.needs(c.changeset) ? await merge.prepare(c.userID, c.changeset.unitID, session) : null;
       const commentView = this.comments?.needs(c.changeset) ? await this.comments.prepare(c.userID, c.changeset.unitID, session) : null;
       const refusal = await this.workspace.store.transaction(async s => {
         const access = this.check(s, c.userID, c.changeset.unitID, true, session);
         const reason = await this.validateAction(s,c,session,true); if (reason) return reason;
         this.bindSubmission(s, c);
+        if (mergeView) merge.validate(c, mergeView);
         await nativeCommentPolicy(async () => {
           this.comments?.bind(s, c, session, false);
           if (commentView) { await this.comments.current(c.userID, c.changeset.unitID, commentView); this.comments.validate(s, c, commentView); }

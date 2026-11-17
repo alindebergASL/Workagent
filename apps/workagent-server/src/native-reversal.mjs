@@ -1,3 +1,4 @@
+import { mergedTarget } from './native-merge.mjs';
 // Explicit single-operation reversal. Native history/CAS remain content authority.
 import { randomUUID, createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
@@ -52,6 +53,7 @@ export class NativeReversal {
     try {
       const snapshot=await materializer.materializeSnapshot(load),data=await transformSnapshotToWorkbookData(snapshot.snapshot,[...snapshot.sheetBlocks]);
       const sheet=data.sheets[p.subUnitId];if(!sheet||position.row>=sheet.rowCount||position.col>=sheet.columnCount) fail();
+      if(mergedTarget(sheet,position.row,position.col))fail('native_reversal_merged_target');
       const before=sheet.cellData?.[position.row]?.[position.col]??null;
       // Restoring formulas/rich text is outside this first scalar intent.
       if(before&&(before.f||before.si||before.p)) fail('native_reversal_unsupported');

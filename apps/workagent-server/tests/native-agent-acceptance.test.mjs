@@ -27,8 +27,10 @@ async function fixture(fn){
  const headers=who=>({authorization:`Bearer ${who==='owner'?ownerToken:peerToken}`,origin,'content-type':'application/json'});
  async function http(path,input,who='owner',extraHeaders={}){
   const req=Readable.from(input===undefined?[]:[Buffer.from(JSON.stringify(input))]);Object.assign(req,{method:input===undefined?'GET':'POST',url:path,headers:{...headers(who),...extraHeaders}});
-  let result,ended;const finished=new Promise(r=>ended=r);const res={statusCode:200,writableEnded:false,setHeader(){},writeHead(n){this.statusCode=n;},end(v){this.writableEnded=true;result=v?JSON.parse(v):null;ended();}};
-  await handler(req,res);let timer;try{await Promise.race([finished,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('HTTP fixture completion timeout')),5000))]);}finally{clearTimeout(timer);}return {status:res.statusCode,data:result};
+  const trace=phase=>{if(process.env.WORKAGENT_TEST_HTTP_TRACE==='1')console.error(JSON.stringify({method:req.method,path:new URL(path,origin).pathname,phase}));};trace('start');if(process.env.WORKAGENT_TEST_HTTP_TRACE==='1'){req.on('end',()=>trace('request-end'));req.on('close',()=>trace('request-close'));req.on('error',()=>trace('request-error'));
+  req.on('aborted',()=>trace('request-aborted'));}
+  let result,ended;const finished=new Promise(r=>ended=r);const res={statusCode:200,writableEnded:false,setHeader(){},writeHead(n){this.statusCode=n;},end(v){trace('response-end');this.writableEnded=true;result=v?JSON.parse(v):null;ended();}};
+  await handler(req,res);trace('handler-returned');let timer;try{await Promise.race([finished,new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('HTTP fixture completion timeout')),5000))]);}finally{clearTimeout(timer);}return {status:res.statusCode,data:result};
  }
  async function open(who='owner',path=normal){
   const ticket=await http(path+'/user/session-ticket',undefined,who);assert.equal(ticket.status,200);assert.ok(ticket.data.ticket);
@@ -188,3 +190,17 @@ test('unused acceptance abandonment releases only reservation; fresh preparation
  const before=await s.store.read(x=>x.works[UNIT].nativeAgentAcceptances);await s.edit(b,'peer',88,1);
  const attempt=await prepare(s,proposalId,a,'fresh-after-edit');assert.equal(attempt.status,409);assert.equal(attempt.data.error,'native_acceptance_head_changed');assert.deepEqual(await s.store.read(x=>x.works[UNIT].nativeAgentAcceptances),before);assert.equal(s.head,4);
 }));
+
+test('native merge invalidates scalar acceptance at prepare, confirm and actual commit without overwriting either human',async()=>{
+ for(const phase of ['prepare','confirm','commit'])await fixture(async s=>{
+  const {a,b,proposalId}=await ready(s);let active;
+  if(phase==='commit')active=await confirmed(s,a,proposalId);
+  else if(phase==='confirm')assert.equal((await prepare(s,proposalId,a)).status,200);
+  const request={unitID:UNIT,type:2,userID:'peer',memberID:b.memberID,baseRev:s.head,revision:s.head+1,sid:'merge_'+randomUUID(),reqId:1,mutations:[{id:'sheet.mutation.add-worksheet-merge',data:JSON.stringify({unitId:UNIT,subUnitId:TAB,ranges:[{startRow:0,endRow:1,startColumn:0,endColumn:0}]})}]};
+  await s.http(normal+`/comb/2/unit/${UNIT}/new_changes`,{unitID:UNIT,type:2,memberID:b.memberID,changeset:request},'peer');await wait(()=>b.events.some(e=>e.eventID===CollaborationEvent.CHANGESET_ACK&&e.data.sid===request.sid));
+  if(phase==='prepare'){const out=await prepare(s,proposalId,a);assert.equal(out.status,409);assert.equal(out.data.error,'native_acceptance_head_changed');}
+  else if(phase==='confirm'){const out=await s.http(apiPath+'/accept-one/confirm',{});assert.equal(out.data.disposition,'rejected');assert.equal(out.data.reason,'native_acceptance_head_changed');}
+  else{await s.submit(active.executor,active.receipt);await wait(()=>active.executor.events.some(e=>e.eventID===CollaborationEvent.PERMISSION_REJ));assert.equal((await s.http(apiPath+'/accept-one')).data.reason,'native_acceptance_head_changed');}
+  const data=await s.data();assert.equal(s.head,4);assert.equal(data.sheets[TAB].cellData[0][0].v,11);assert.equal(data.sheets[TAB].cellData[0][1].v,71);assert.equal(data.sheets[TAB].mergeData.length,1);
+ });
+});

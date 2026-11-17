@@ -156,3 +156,9 @@ test('inspection rechecks owner and epoch after async head read before enqueue (
   await assert.rejects(s.agent.inspect('owner',UNIT,1,()=>{sent=true;}));assert.equal(sent,false);assert.deepEqual(await s.store.read(x=>x),before);assert.equal(s.head,head);
  });
 });
+
+test('merged native target cannot become scalar proposal; unrelated target remains reviewable without native writes',()=>fixture(async s=>{
+ const merged=await s.service.submitChangeset({changeset:{unitID:UNIT,type:2,userID:'owner',memberID:'owner',sid:'merge-agent-proof',reqId:1,baseRev:s.head,revision:s.head+1,mutations:[{id:'sheet.mutation.add-worksheet-merge',data:JSON.stringify({unitId:UNIT,subUnitId:TAB,ranges:[{startRow:0,endRow:0,startColumn:0,endColumn:1}]})}]}},{userID:'owner',memberID:'owner'});assert.equal(merged.status,'committed');
+ const j=await job(s),read=await s.agent.read('owner',j),head=s.head;await assert.rejects(s.agent.propose('owner',j,'merged',patch(33),read.basis),/native_agent_merged_target/);
+ const good=await s.agent.propose('owner',j,'outside',JSON.stringify({cells:[{sheetId:TAB,row:0,column:2,value:44}]}),read.basis);assert.equal(good.status,'proposed');assert.equal(s.head,head);
+}));

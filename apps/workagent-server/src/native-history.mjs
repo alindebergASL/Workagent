@@ -41,7 +41,7 @@ export class NativeHistory {
           cells.push({ cell: `${columnName(Number(col))}${Number(row) + 1}`, value: String(cell.f ?? cell.v ?? cell.p?.body?.dataStream ?? '').slice(0, 500) });
           if (cells.length === 50) break outer;
         }
-        return { id, name: String(sheet.name).slice(0, 200), rows: sheet.rowCount, columns: sheet.columnCount, cells };
+        return { id, name: String(sheet.name).slice(0, 200), rows: sheet.rowCount, columns: sheet.columnCount, merges: (sheet.mergeData ?? []).slice(0, 50), mergeCount: (sheet.mergeData ?? []).length, mergesTruncated: (sheet.mergeData ?? []).length > 50, cells };
       }) };
     } else {
       const to = Math.min(head, before === undefined ? head : before - 1), from = Math.max(1, to - PAGE);

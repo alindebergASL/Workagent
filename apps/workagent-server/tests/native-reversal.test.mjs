@@ -231,3 +231,9 @@ test('abandonment obeys current ACL and epoch, never confirms an absent preparat
  assert.notEqual((await s.api({},'access-abandon/abandon','owner',2)).status,200);
  assert.deepEqual(await s.store.read(x=>x.works[UNIT].nativeReversals),before);
 }));
+
+test('reversal refuses original cell inside native merge; unrelated scalar reversal remains available',()=>withFixture(async s=>{
+ const a=await s.open();await protocolEdit(s,a,[{id:'sheet.mutation.add-worksheet-merge',data:JSON.stringify({unitId:UNIT,subUnitId:TAB,ranges:[{startRow:0,endRow:0,startColumn:0,endColumn:1}]})}]);
+ const inside=await protocolEdit(s,a,[mutation({v:11})]);const denied=await s.api(target(inside,'inside'));assert.equal(denied.status,409);assert.equal(denied.data.error,'native_reversal_merged_target');
+ const outside=await protocolEdit(s,a,[mutation({v:22},2)]);assert.equal((await s.api(target(outside,'outside'))).status,200);assert.equal((await s.data()).sheets[TAB].cellData[0][0].v,11);
+}));

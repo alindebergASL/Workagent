@@ -15,7 +15,7 @@ export function containNativeUndo(unitID: string, commands: Pick<ICommandService
   });
 }
 export interface NativeHistoryEntry { revision: number; author: string; operations: string[]; operationCount: number }
-export interface NativeHistoryPreview { revision: number; sheets: { id: string; name: string; rows: number; columns: number; cells: { cell: string; value: string }[] }[]; limited: boolean }
+export interface NativeHistoryPreview { revision: number; sheets: { id: string; name: string; rows: number; columns: number; cells: { cell: string; value: string }[]; merges?: { startRow: number; endRow: number; startColumn: number; endColumn: number }[]; mergeCount?: number; mergesTruncated?: boolean }[]; limited: boolean }
 export interface NativeHistoryView { message: string; head?: number; entries: NativeHistoryEntry[]; before?: number; preview?: NativeHistoryPreview }
 export function nativeHistory(session: { unitID: string; binding: string; access: { revision: number } }, changed: (view: NativeHistoryView) => void, fetcher: typeof fetch) {
   let disposed = false, generation = 0, abort: AbortController | undefined;
@@ -36,4 +36,9 @@ export function nativeHistory(session: { unitID: string; binding: string; access
     }
   }
   return { read, dispose() { disposed = true; generation++; abort?.abort(); changed({ entries: [], message: 'History unavailable — session closed or access changed.' }); } };
+}
+
+export function historyMergeRange(range: { startRow: number; endRow: number; startColumn: number; endColumn: number }) {
+  const cell = (row: number, column: number) => { let name = ''; for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) name = String.fromCharCode(65 + (n - 1) % 26) + name; return `${name}${row + 1}`; };
+  return `${cell(range.startRow, range.startColumn)}:${cell(range.endRow, range.endColumn)}`;
 }

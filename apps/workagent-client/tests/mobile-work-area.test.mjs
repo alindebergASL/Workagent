@@ -610,9 +610,10 @@ test('history App: read-only preview preserves active input, comment and compose
   const native=nativeLifecycle({comments:true,history:true}),f=fixture(undefined,false,native);
   f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
   try{
+    const originalHistory=native.historyRequest;native.historyRequest=async(path)=>{const response=await originalHistory(path),data=await response.json();if(data.sheets)Object.assign(data.sheets[0],{merges:[{startRow:0,endRow:1,startColumn:0,endColumn:2}],mergeCount:51,mergesTruncated:true});return {ok:true,json:async()=>data};};
     await f.flush();await f.message('root history draft');await f.open('A');const entry=native.instances[0];
     const textarea=f.find(n=>n.props['aria-label']==='Comment draft');textarea.props.onChange({target:{value:'unsent comment'}});await f.flush();entry.editing=true;entry.pending=true;
-    await f.click('Refresh history');assert.match(f.panel.text(),/Revision 2 · Peer/);await f.click('Preview revision 2');assert.match(f.panel.text(),/Historical A/);assert.match(f.panel.text(),/historical value/);
+    await f.click('Refresh history');assert.match(f.panel.text(),/Revision 2 · Peer/);await f.click('Preview revision 2');assert.match(f.panel.text(),/Historical A/);assert.match(f.panel.text(),/historical value/);assert.match(f.panel.text(),/Merged ranges: A1:C2/);assert.match(f.panel.text(),/Showing first 50 of 51 ranges/);
     assert.equal(entry.editing,true);assert.equal(entry.pending,true);assert.equal(entry.disposed,false);assert.equal(native.instances.length,1);assert.equal(f.find(n=>n.props['aria-label']==='Comment draft').props.value,'unsent comment');
     await f.open('');assert.equal(entry.disposed,false);assert.equal(native.instances.length,1);
     assert.ok(f.calls.filter(c=>c.path.includes('/native-history/')).every(c=>!c.input));assert.equal(entry.nativeAdds.length,0);assert.equal(entry.scrolls.length,0);assert.match(f.panel.text(),/undo\/redo is unavailable/);
