@@ -34,3 +34,20 @@ if(process.argv[1]===new URL(import.meta.url).pathname)test('public reorder uses
   const count=f.emitted.length;assert.equal(await f.commands.executeCommand(SetWorksheetOrderCommand.id,{order:1}),true);assert.equal(f.emitted.length,count+1,'SDK no-op needs early app containment');assert.deepEqual(f.save(),before);
  }finally{peer?.dispose();compressor.interceptor.dispose();f.dispose();}
 });
+
+import {CopySheetCommand} from '@univerjs/sheets';
+import {cloneWorksheetData} from '@univerjs/core';
+if(process.argv[1]===new URL(import.meta.url).pathname)test('public additional sheet copy characterizes one bounded insert and SEND/APPLY style contract',async t=>{
+ const source=blank();source.sheetOrder.push('second');source.styles={bold:{bl:1,cl:{rgb:'#123456'}}};source.sheets.second=mergeWorksheetSnapshotWithDefault({id:'second',name:'Second',cellData:{0:{0:{v:22,t:2,s:'bold'},1:{v:'text',s:'bold'}}}});
+ const f=fixture(source),compressor=new CompressMutationService();let peer;try{
+  f.univer.__getInjector().get(IUniverInstanceService).focusUnit(f.unitID);await add(f,'root','owner');await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'second'});
+  const before=f.save();peer=fixture(before);const peerBefore=peer.save(),n=f.emitted.length;
+  assert.equal(await f.commands.executeCommand(CopySheetCommand.id),true);
+  const batch=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(f.emitted.slice(n)),f.univer.__getInjector().get(IUniverInstanceService));
+  t.diagnostic(JSON.stringify({batch,source:before.sheets.second,resources:before.resources}));assert.equal(batch.length,1);assert.equal(batch[0].id,'sheet.mutation.insert-sheet');const p=batch[0].params;
+  assert.equal(p.index,2);assert.notEqual(p.sheet.id,'second');assert.deepEqual(f.save().sheetOrder,['sheet-1','second',p.sheet.id]);assert.equal(f.book.getActiveSheet().getSheetId(),p.sheet.id,'unmodified SDK auto-selects local copy');
+  const applied=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_APPLY)(structuredClone(batch),peer.univer.__getInjector().get(IUniverInstanceService));for(const m of applied)assert.equal(peer.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+  for(const [x,b]of [[f,before],[peer,peerBefore]]){assert.deepEqual(x.save().sheets.second,b.sheets.second);assert.deepEqual(x.save().sheets['sheet-1'],b.sheets['sheet-1']);assert.deepEqual(x.save().resources,b.resources);assert.deepEqual(x.save().styles,b.styles);}
+  assert.deepEqual(f.save().sheets[p.sheet.id],{...cloneWorksheetData(before.sheets.second),id:p.sheet.id,name:p.sheet.name});assert.deepEqual(peer.save().sheets[p.sheet.id],f.save().sheets[p.sheet.id]);
+ }finally{peer?.dispose();compressor.interceptor.dispose();f.dispose();}
+});

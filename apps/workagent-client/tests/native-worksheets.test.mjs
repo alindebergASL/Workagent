@@ -102,3 +102,44 @@ test('extra-tab reorder native gesture preserves active sheet; invalid, no-op an
   await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'sheet-1'});await refused({order:2});
  }finally{g.dispose();f.dispose();}
 });
+
+import {CopySheetCommand} from '@univerjs/sheets';
+import {cloneWorksheetData} from '@univerjs/core';
+test('bounded additional copy preserves source, active identity and drafts; unsupported sources never mutate',async()=>{
+ const source=blank();source.styles={bold:{bl:1}};source.sheetOrder.push('second');source.sheets.second=mergeWorksheetSnapshotWithDefault({id:'second',name:'Second',cellData:{0:{0:{v:22,s:'bold'}}}});
+ const f=fixture(source);f.univer.__getInjector().get(IUniverInstanceService).focusUnit(f.unitID);await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'second'});
+ let busy=false,write=true,override;const g=guardNativeWorksheets(f.unitID,f.commands,()=>override??f.save(),()=>f.book.getActiveSheet().getSheetId(),()=>write,()=>busy,()=>{});
+ const refused=async params=>{const before=f.save(),n=f.emitted.length;assert.equal(await f.commands.executeCommand(CopySheetCommand.id,params),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,n);assert.equal(f.book.getActiveSheet().getSheetId(),'second');};
+ try{
+  for(const params of [{subUnitId:'sheet-1'},{subUnitId:'missing'},{unitId:'foreign'},{index:0},{sheet:{}},{sourceId:'second'}])await refused(params);
+  busy=true;await refused();busy=false;write=false;await refused();write=true;
+  for(const change of [s=>s.sheets.second.cellData[0][0].f='=1',s=>s.sheets.second.cellData[0][0].p={body:{}},s=>s.sheets.second.cellData[0][0].custom={},s=>s.sheets.second.mergeData=[{startRow:0,endRow:0,startColumn:0,endColumn:1}],s=>s.sheets.second.rowData={0:{h:55}},s=>s.sheets.second.cellData[0][0].s='missing',s=>s.sheets.second.custom={},s=>s.resources.push({name:'SHEET_UNIVER_THREAD_COMMENT_PLUGIN',data:JSON.stringify({second:[{id:'peer'}]})}),s=>s.resources.push({name:'unknown',data:'{}'}),s=>s.sheets.second.cellData=Object.fromEntries(Array.from({length:410},(_,r)=>[r,Object.fromEntries(Array.from({length:10},(_,c)=>[c,{v:1}]))]))]){override=structuredClone(f.save());change(override);await refused();}override=undefined;
+  const before=f.save();assert.equal(await f.commands.executeCommand(CopySheetCommand.id),true);const saved=f.save(),id=saved.sheetOrder[2];assert.ok(id);assert.equal(f.book.getActiveSheet().getSheetId(),'second');assert.deepEqual(saved.sheets.second,before.sheets.second);assert.deepEqual(saved.sheets['sheet-1'],before.sheets['sheet-1']);assert.deepEqual(saved.resources,before.resources);assert.deepEqual(saved.styles,before.styles);assert.deepEqual(saved.sheets[id],{...cloneWorksheetData(before.sheets.second),id,name:saved.sheets[id].name});
+  assert.equal(await f.commands.executeCommand(SetRangeValuesCommand.id,{unitId:f.unitID,subUnitId:id,range:{startRow:0,endRow:0,startColumn:0,endColumn:0},value:{v:44}}),true);assert.equal(f.save().sheets.second.cellData[0][0].v,22);
+  override=structuredClone(f.save());override.sheetOrder.push('fourth');override.sheets.fourth=mergeWorksheetSnapshotWithDefault({id:'fourth',name:'Fourth'});await refused();
+ }finally{g.dispose();f.dispose();}
+});
+
+import {CompressMutationService} from '@univerjs-pro/collaboration';
+test('native Copy menu own value undefined reaches public SEND/APPLY; other values and unknown keys refuse',async()=>{
+ const source=blank();source.styles={bold:{bl:1}};source.sheetOrder.push('second');source.sheets.second=mergeWorksheetSnapshotWithDefault({id:'second',name:'Second',cellData:{0:{0:{v:22,s:'bold'}}}});
+ const f=fixture(source),peer=fixture(source),compressor=new CompressMutationService();let write=true,busy=false;
+ const instances=f.univer.__getInjector().get(IUniverInstanceService);instances.focusUnit(f.unitID);await f.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:f.unitID,subUnitId:'second'});
+ const g=guardNativeWorksheets(f.unitID,f.commands,f.save,()=>f.book.getActiveSheet().getSheetId(),()=>write,()=>busy,()=>{});
+ const menu=()=>({value:undefined,subUnitId:'second'});
+ const refused=async params=>{const before=f.save(),n=f.emitted.length;assert.equal(await f.commands.executeCommand(CopySheetCommand.id,params),false);assert.deepEqual(f.save(),before);assert.equal(f.emitted.length,n);assert.equal(f.book.getActiveSheet().getSheetId(),'second');};
+ try{
+  for(const value of [null,false,0,'','copy',{},[]])await refused({...menu(),value});
+  await refused({...menu(),unknown:undefined});await refused({...menu(),unitId:'foreign'});await refused({...menu(),subUnitId:'sheet-1'});await refused({...menu(),subUnitId:'missing'});
+  busy=true;await refused(menu());busy=false;write=false;await refused(menu());write=true;
+  const params=menu();assert.deepEqual(Object.keys(params),['value','subUnitId']);assert.ok(Object.hasOwn(params,'value'));assert.equal(typeof params.value,'undefined');
+  const before=f.save(),peerBefore=peer.save(),n=f.emitted.length;
+  assert.equal(await f.commands.executeCommand(CopySheetCommand.id,params),true);
+  const batch=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(f.emitted.slice(n)),instances);
+  assert.equal(batch.length,1);assert.equal(batch[0].id,'sheet.mutation.insert-sheet');const p=batch[0].params;assert.equal(p.trigger,CopySheetCommand.id);assert.equal(p.index,2);assert.notEqual(p.sheet.id,'second');assert.equal(Object.hasOwn(p,'value'),false);
+  const applied=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_APPLY)(structuredClone(batch),peer.univer.__getInjector().get(IUniverInstanceService));
+  for(const m of applied)assert.equal(peer.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+  assert.equal(f.book.getActiveSheet().getSheetId(),'second');assert.equal(peer.book.getActiveSheet().getSheetId(),'sheet-1');
+  for(const [c,b]of [[f,before],[peer,peerBefore]]){assert.deepEqual(c.save().sheetOrder,['sheet-1','second',p.sheet.id]);assert.deepEqual(c.save().sheets.second,b.sheets.second);assert.deepEqual(c.save().sheets['sheet-1'],b.sheets['sheet-1']);assert.deepEqual(c.save().resources,b.resources);assert.deepEqual(c.save().styles,b.styles);assert.deepEqual(c.save().sheets[p.sheet.id],{...cloneWorksheetData(b.sheets.second),id:p.sheet.id,name:p.sheet.name});}
+ }finally{g.dispose();compressor.interceptor.dispose();peer.dispose();f.dispose();}
+});

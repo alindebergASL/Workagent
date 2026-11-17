@@ -204,3 +204,42 @@ test('reorder actual commit fences concurrent scalar/reorder and reader or revok
   }finally{release?.();await f.service.dispose();}
  }
 });
+
+import {CopySheetCommand} from '@univerjs/sheets';
+import {cloneWorksheetData} from '@univerjs/core';
+async function copyBatch(f,id,guard=true){const c=clientFixture(await data(f)),compressor=new CompressMutationService();let g;try{const instances=c.univer.__getInjector().get(IUniverInstanceService);instances.focusUnit(UNIT);await c.commands.executeCommand(SetWorksheetActiveOperation.id,{unitId:UNIT,subUnitId:id});if(guard)g=guardNativeWorksheets(UNIT,c.commands,c.save,()=>c.book.getActiveSheet().getSheetId(),()=>true,()=>false,()=>{});const n=c.emitted.length;assert.equal(await c.commands.executeCommand(CopySheetCommand.id),true);if(guard)assert.equal(c.book.getActiveSheet().getSheetId(),id);return compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_SEND)(structuredClone(c.emitted.slice(n)),instances).map(m=>[m.id,m.params]);}finally{g?.dispose();compressor.interceptor.dispose();c.dispose();}}
+test('bounded copy public SEND/service/APPLY preserves source resources/styles and independent copied values',async t=>{
+ const f=await serviceFixture();let peer;const compressor=new CompressMutationService();try{
+  const sid=await secondSheet(f),comment=await f.claim();assert.equal((await f.submit([[ADD_COMMENT,{comment}]])).status,'committed');
+  assert.equal((await submit(f,[[SHEET_VALUES,{subUnitId:sid,cellValue:{0:{0:{v:22,t:2,s:'bold',f:null,si:null}}},styleRefMap:{bold:{bl:1,cl:{rgb:'#123456'}}}}]])).status,'committed');
+  const before=await data(f),claims=await f.store.read(s=>s.works[UNIT].nativeCommentClaims);t.diagnostic(JSON.stringify({resources:before.resources}));const batch=await copyBatch(f,sid),p=batch[0][1],head=f.head;
+  assert.equal(batch.length,1);assert.equal(p.index,2);assert.equal(p.trigger,CopySheetCommand.id);assert.ok(p.styles);
+  peer=clientFixture(before);const peerBefore=peer.save(),active=peer.book.getActiveSheet().getSheetId();
+  const result=await submit(f,batch,'peer');assert.equal(result.status,'committed',JSON.stringify(result));assert.equal(f.head,head+1);
+  const applied=compressor.interceptor.fetchThroughInterceptors(compressor.interceptor.getInterceptPoints().COMPRESS_MUTATION_APPLY)(result.changeset.mutations.map(m=>({id:m.id,params:JSON.parse(m.data)})),peer.univer.__getInjector().get(IUniverInstanceService));for(const m of applied)assert.equal(peer.commands.syncExecuteCommand(m.id,m.params,{fromCollab:true}),true);
+  const current=await data(f);assert.deepEqual(current.sheetOrder,['sheet-1',sid,p.sheet.id]);assert.equal(peer.book.getActiveSheet().getSheetId(),active);assert.deepEqual(current.resources,before.resources);assert.deepEqual(Object.values(current.styles),[...Object.values(before.styles),...Object.values(p.styles)],'native materializer appends exactly the transported source definitions; retain multiplicity');assert.deepEqual(await f.store.read(s=>s.works[UNIT].nativeCommentClaims),claims);
+  const a=resolvedSheets(current),b=resolvedSheets(before);for(const id of before.sheetOrder){assert.deepEqual(a[id],b[id]);assert.deepEqual(peer.save().sheets[id],peerBefore.sheets[id]);}assert.deepEqual(a[p.sheet.id],{...b[sid],id:p.sheet.id,name:p.sheet.name});assert.deepEqual(resolvedSheets(peer.save())[p.sheet.id],cloneWorksheetData(a[p.sheet.id]),'public clone adds only its declared backgroundImage:undefined slot');
+  assert.equal((await submit(f,[scalar(p.sheet.id,0,0,44)])).status,'committed');const edited=await data(f);assert.equal(edited.sheets[sid].cellData[0][0].v,22);assert.equal(edited.sheets[p.sheet.id].cellData[0][0].v,44);assert.deepEqual(edited.resources,before.resources);
+  const reloaded=clientFixture(edited);try{assert.deepEqual(resolvedSheets(reloaded.save()),resolvedSheets(edited));}finally{reloaded.dispose();}
+ }finally{peer?.dispose();compressor.interceptor.dispose();await f.service.dispose();}
+});
+
+test('copy rejects import, original source, forged style/name/id/index and batches atomically',async()=>{
+ const f=await serviceFixture();try{
+  const sid=await secondSheet(f);assert.equal((await submit(f,[[SHEET_VALUES,{subUnitId:sid,cellValue:{0:{0:{v:22,s:'bold'}}},styleRefMap:{bold:{bl:1}}}]])).status,'committed');
+  const batch=await copyBatch(f,sid),p=batch[0][1],before=await data(f),head=f.head;
+  const cases=[{...p,index:0},{...p,index:1},{...p,index:3},{...p,index:2.5},{...p,unitId:'foreign'},{...p,sourceId:sid},{...p,sheet:{...p.sheet,id:sid}},{...p,sheet:{...p.sheet,name:before.sheets[sid].name}},{...p,sheet:{...p.sheet,name:'bad/name'}},{...p,sheet:{...p.sheet,custom:{}}},{...p,sheet:{...p.sheet,cellData:{0:{0:{v:99}}}}},{...p,sheet:{...p.sheet,cellData:{0:{0:{f:'=1'}}}}},{...p,styles:{...p.styles,unused:{bl:1}}},{...p,styles:Object.fromEntries(Object.keys(p.styles).map(k=>[k,{bl:0}]))},{...p,styles:{}},{...p,trigger:'sheet.command.insert-sheet'}];
+  for(const x of cases){const result=await submit(f,[[INSERT_SHEET,x]]);assert.equal(result.status,'rejected',JSON.stringify(x));assert.equal(f.head,head);assert.deepEqual((await data(f)).sheetOrder,before.sheetOrder);assert.deepEqual(resolvedSheets(await data(f)),resolvedSheets(before));}
+  for(const b of [[...batch,...batch],[...batch,scalar(sid,0,0,99)]]){assert.equal((await submit(f,b)).status,'rejected');assert.equal(f.head,head);}
+  assert.equal((await submit(f,batch,'owner',head-1)).status,'rejected');
+ }finally{await f.service.dispose();}
+});
+
+test('copy actual commit refuses changed source/head or revoked reader after admission',async()=>{
+ for(const race of ['source','head','reader']){const f=await serviceFixture();let release,reached;const gate=new Promise(r=>release=r),ready=new Promise(r=>reached=r);let held=false;try{
+  const sid=await secondSheet(f);assert.equal((await submit(f,[scalar(sid,0,0,22)])).status,'committed');const batch=await copyBatch(f,sid);
+  f.service.use('submitChangeset',async(c,next)=>{if(c.memberID==='p'&&!held){held=true;reached();await gate;}await next();});const pending=submit(f,batch,'peer');await Promise.race([ready,pending.then(x=>{throw Error('early refusal '+JSON.stringify(x));})]);
+  if(race==='reader'){await f.workspace.share('owner',UNIT,{commandId:'copy-read',peer:'peer',role:'read',accessRevision:1});f.session.revision=2;}else assert.equal((await submit(f,[scalar(race==='source'?sid:'sheet-1',0,0,77)])).status,'committed');
+  const head=f.head,before=await data(f);release();assert.equal((await pending).status,'rejected');assert.equal(f.head,head);assert.deepEqual((await data(f)).sheetOrder,before.sheetOrder);assert.deepEqual((await data(f)).sheets,before.sheets);
+ }finally{release?.();await f.service.dispose();}}
+});
