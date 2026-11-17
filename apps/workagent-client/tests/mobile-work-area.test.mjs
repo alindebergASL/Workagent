@@ -543,19 +543,88 @@ test('scoped native streams retain retry feedback, pending leave guard and confl
     let prevented=0;const event={preventDefault(){prevented++;},returnValue:null};for(const fn of native.listeners)fn(event);
     assert.ok(prevented>0);assert.equal(event.returnValue,'');
     await f.open('B');assert.equal(native.instances.length,1);
+    const legacyKey='workagent:native-recovery:fixture-owner:A:1';
+    const legacy=JSON.stringify({principal:'owner',unitID:'A',reason:'prior',localChanges:{sid:'old-unknown'}});f.storage.setItem(legacyKey,legacy);
     const localChanges={awaitingChangeset:{sid:'retained-native',reqId:9}};
     entry.events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges,cacheCleared:true});await f.flush();
     assert.match(f.panel.text(),/Conflict: permission_rejected/);assert.match(f.panel.text(),/Download retained recovery/);
-    assert.deepEqual(JSON.parse(f.storage.getItem('workagent:native-recovery:fixture-owner:A:1')).localChanges,localChanges);
+    assert.equal(f.storage.getItem(legacyKey),legacy,'new conflict must not overwrite prior unknown evidence');
+    entry.events.get('conflict')({unitID:'A',reason:'second',localChanges:{sid:'second-unknown'}});await f.flush();
+    assert.equal(f.storage.getItem(legacyKey),legacy);
+    assert.match(f.panel.text(),/inspection only/i);
     assert.equal(entry.members,null);entry.pending=false;entry.events.get('status')();await f.flush();
-    assert.match(f.panel.text(),/Conflict: permission_rejected/);await f.open('B');assert.equal(native.instances.length,1);
+    assert.match(f.panel.text(),/Conflict: second/);await f.open('B');assert.equal(native.instances.length,1);
   }finally{f.dispose();await new Promise(setImmediate);}
   assert.equal(native.active,0);assert.equal(native.instances[0].events.size,0);
+});
+for(const fault of ['401','403','principal','unit','epoch','role','503','throw']) test(`native conflict recovery disclosure follows later authority ${fault} without reviving editing`,async()=>{
+ const native=nativeLifecycle({comments:true}),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{
+  await f.flush();await f.open('A');const entry=native.instances[0];
+  entry.events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges:{sid:'conflict-first',reqId:1}});await f.flush();
+  assert.match(f.panel.text(),/Download retained recovery/);const conflictStatus=nativeStatus(f);
+  const disk=()=>Array.from({length:f.storage.length},(_,i)=>{const k=f.storage.key(i);return[k,f.storage.getItem(k)];});const before=disk();const calls=f.calls.length;
+  native.authorityRequest=async()=>{
+   if(fault==='throw')throw Error('unavailable');
+   if(['401','403','503'].includes(fault))return {ok:false,status:Number(fault)};
+   const current=structuredClone(native.sessions.get('A'));
+   if(fault==='principal')current.principal='foreign';if(fault==='unit')current.unitID='B';
+   if(fault==='epoch')current.access.revision++;if(fault==='role')current.access.role='read';
+   return {ok:true,status:200,json:async()=>current};
+  };
+  await native.poll();await f.flush();
+  assert.doesNotMatch(f.panel.text(),/Download retained recovery/);assert.match(f.panel.text(),/hidden until current authority/);
+  assert.equal(nativeStatus(f),conflictStatus);assert.equal(f.find(n=>n.props.ref).props.inert,true);assert.deepEqual(disk(),before);
+  entry.status.next(SessionStatus.OFFLINE);entry.uiEvents.emitEvent({id:CollaborationUIEventId.SOCKET_FAILED});
+  native.authorityRequest=async()=>authorityOK(native);await native.poll();await f.flush();
+  if(['503','throw'].includes(fault))assert.match(f.panel.text(),/Download retained recovery/);
+  else assert.doesNotMatch(f.panel.text(),/Download retained recovery/);
+  assert.equal(nativeStatus(f),conflictStatus);assert.equal(entry.reconnects,0);assert.equal(entry.members,null);
+  assert.deepEqual(entry.nativeAdds,[]);assert.equal(native.instances.length,1);assert.deepEqual(disk(),before);
+  assert.equal(f.calls.slice(calls).filter(c=>c.input).length,0,'authority checks cannot replay native/model/comment effects');
+ }finally{f.dispose();await new Promise(setImmediate);}
+});
+test('native conflict disclosure late authority JSON after disposal is inert',async()=>{
+ const native=nativeLifecycle(),f=fixture(undefined,false,native),body=deferred();
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ let disposed=false;
+ try{await f.flush();await f.open('A');const entry=native.instances[0];entry.events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges:{sid:'retained'}});await f.flush();
+ native.authorityRequest=async()=>({ok:true,status:200,json:()=>body.promise});const poll=native.poll();await new Promise(setImmediate);
+ f.dispose();disposed=true;body.resolve({...native.sessions.get('A'),principal:'other'});await poll;
+ assert.equal(entry.reconnects,0);assert.equal(entry.disposed,true);assert.equal(native.active,0);
+ }finally{body.resolve(native.sessions.get('A'));if(!disposed)f.dispose();await new Promise(setImmediate);}
+});
+for(const authority of ['unavailable','revoked']) test(`native operation evidence captures owned conflict after authority ${authority} without disclosure`,async()=>{
+ const native=nativeLifecycle(),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ const legacyKey='workagent:native-recovery:fixture-owner:A:1';const legacy=JSON.stringify({principal:'owner',unitID:'A',reason:'old',localChanges:{sid:'old-unknown'}});f.storage.setItem(legacyKey,legacy);
+ let disposed=false;
+ try{
+  await f.flush();await f.open('A');const callback=native.instances[0].events.get('conflict');
+  native.authorityRequest=async()=>({ok:false,status:authority==='revoked'?403:503});await native.poll();await f.flush();
+  const supplied={unitID:'A',reason:'permission_rejected',localChanges:{awaitingChangeset:{sid:'unacknowledged-'+authority,reqId:1}}};
+  callback(supplied);await f.flush();
+  const entries=()=>Array.from({length:f.storage.length},(_,i)=>f.storage.key(i)).filter(k=>k.startsWith('workagent:native-operation-evidence:')).map(k=>f.storage.getItem(k));
+  assert.equal(entries().length,1,'conflict must remain retained despite unavailable authority');
+  assert.equal(JSON.parse(entries()[0]).event,JSON.stringify(supplied));assert.equal(f.storage.getItem(legacyKey),legacy);
+  assert.doesNotMatch(f.panel.text(),/Download retained recovery/);assert.match(f.panel.text(),/hidden until current authority/);
+  const before=entries();f.dispose();disposed=true;callback({...supplied,reason:'late-after-dispose'});await new Promise(setImmediate);assert.deepEqual(entries(),before);
+ }finally{if(!disposed)f.dispose();await new Promise(setImmediate);}
+});
+test('native operation evidence readback failure remains downloadable memory-only without clearing legacy bytes',async()=>{
+ const native=nativeLifecycle(),f=fixture(undefined,false,native);
+ f.works.A={id:'A',kind:'native-sheet',title:'A',status:'ready',access:{role:'owner',revision:1}};
+ try{await f.flush();await f.open('A');const original=f.storage.getItem;
+ f.storage.getItem=k=>k.startsWith('workagent:native-operation-evidence:')?null:original(k);
+ native.instances[0].events.get('conflict')({unitID:'A',reason:'permission_rejected',localChanges:{sid:'memory-only',reqId:1}});await f.flush();
+ assert.match(f.panel.text(),/memory only|unverified/);assert.match(f.panel.text(),/Download retained recovery/);assert.match(f.panel.text(),/Inspection only/);
+ }finally{f.dispose();await new Promise(setImmediate);}
 });
 for (const changed of ['unit', 'principal', 'binding', 'epoch']) test(`native session lifecycle: fresh ${changed} remounts through App while revoked source remains fenced`, async () => {
   const native = nativeLifecycle(), f = fixture(undefined, false, native);
   for (const id of ['A', 'B']) f.works[id] = { id, kind: 'native-sheet', title: id, status: 'ready', access: { role: 'owner', revision: 1 } };
-  const recoveryKey = 'workagent:native-recovery:fixture-owner:A:1'; f.storage.setItem(recoveryKey, 'retained A operations');
+  const recoveryKey = 'workagent:native-recovery:fixture-owner:A:1'; const retained=JSON.stringify({principal:'owner',unitID:'A',reason:'old',localChanges:{sid:'old'}}); f.storage.setItem(recoveryKey, retained);
   try {
     await f.flush(); await f.open('A'); assert.equal(native.instances.length, 1);
     const old = native.instances[0]; assert.match(f.panel.text(), /Download retained recovery/);
@@ -577,7 +646,7 @@ for (const changed of ['unit', 'principal', 'binding', 'epoch']) test(`native se
     assert.match(f.panel.text(), /synced/); assert.doesNotMatch(f.panel.text(), /Access changed/);
     // A different principal/epoch/binding or unit must not inherit recovery state.
     if (changed !== 'principal') assert.doesNotMatch(f.panel.text(), /Download retained recovery/);
-    assert.equal(f.storage.getItem(recoveryKey), 'retained A operations');
+    assert.equal(f.storage.getItem(recoveryKey), retained);
     native.instances[1].pending = true; await f.open(changed === 'unit' ? 'A' : 'B');
     assert.equal(native.instances.length, 2, 'pending work is not released by a new key');
     assert.equal(native.instances[1].disposed, false);
