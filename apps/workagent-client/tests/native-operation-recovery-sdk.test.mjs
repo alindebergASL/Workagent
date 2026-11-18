@@ -33,10 +33,11 @@ for (const mode of ['conflict', 'outbound']) test(mode === 'conflict'
   }
   Inject(Injector)(FixturePlugin, undefined, 1);
   const sends = [], submissions = [];
-  let acknowledge;
+  let acknowledge, socketCount = 0;
   const replies = new Subject();
   class MockSocketService {
     async createSocket() {
+      socketCount++;
       return { memberID: member.memberID, open$: of(new Event('open')), message$: replies.asObservable(),
         close$: NEVER, error$: NEVER, close() {}, async send(request) {
           const {cmd, data, routeKey} = request;
@@ -65,18 +66,25 @@ for (const mode of ['conflict', 'outbound']) test(mode === 'conflict'
   }
   // Use collaborative undo and mention services; keep the headless core local authz provider.
   const u = new Univer({ locales: { enUS: {} }, override:[IUndoRedoService,IMentionIOService].map(id=>[id,null]) });
-  t.after(() => { u.dispose(); replies.complete(); });
   u.registerPlugin(FixturePlugin);
   u.registerPlugin(UniverSheetsPlugin);
   u.registerPlugin(UniverCollaborationPlugin);
   let entity;
   const disk = new Map();
-  const recovery = nativeOperationRecovery({principal:member.userID,unitID,epoch:1}, () => ({get length(){return disk.size;},key:i=>[...disk.keys()][i]??null,getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,v)}), () => true);
+  const scope = {principal:member.userID,unitID,epoch:1};
+  const storage = () => ({get length(){return disk.size;},key:i=>[...disk.keys()][i]??null,getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,v)});
+  const recovery = nativeOperationRecovery(scope, storage, () => true);
   const inspection = nativeOutboundInspection(unitID, member.userID, () => entity && ({
     entity, member: entity.session.getMemberID(), status: entity.state.status, pending: entity.hasWritePending(),
     revision: injector.get(RevisionService).getCurrentRevOfUnit(unitID),
   }), json => recovery.retainOutbound(json));
-  t.after(() => { inspection.dispose(); recovery.dispose(); });
+  let observer, disposed = false;
+  function disposeEditor() {
+    if (disposed) return;
+    disposed = true;
+    observer?.dispose(); inspection.dispose(); recovery.dispose(); u.dispose(); replies.complete();
+  }
+  t.after(disposeEditor);
   u.registerPlugin(UniverCollaborationClientPlugin, { socketService: MockSocketService, override:[[IAuthzIoService,null],...nativeCursorSessionOverride,...inspection.override], collabWebSocketUrl:'ws://fixture.invalid', enableCollaboration:true, enableAuthServer:false, sendChangesetTimeout:10, changesetAckTimeout:200 });
   const book = u.createUnit(UniverInstanceType.UNIVER_SHEET, {id:unitID, name:'Fixture', rev:1, sheetOrder:[tab], sheets:{[tab]:{id:tab,name:'Sheet 1',rowCount:8,columnCount:8,cellData:{}}}});
   injector.get(UserManagerService).setCurrentUser(member);
@@ -87,12 +95,11 @@ for (const mode of ['conflict', 'outbound']) test(mode === 'conflict'
   await controller.readyForCollab(unitID);
   entity = controller.getCollabEntity(unitID) ?? await wait(controller.getCollabEntity$(unitID), 'entity');
   await wait(entity.status$.pipe(filter(s => s === CollaborationStatus.SYNCED)), 'initial SYNCED');
-  const observer = nativeCollaborationClient(injector, unitID).subscribe({
+  observer = nativeCollaborationClient(injector, unitID).subscribe({
     status() { inspection.available(); }, resend() {}, conflict: event => recovery.capture(event),
   });
-  t.after(() => observer.dispose());
   assert.equal(recovery.exportJSON(), null);
-  if (mode !== 'conflict') {
+  if (mode === 'outbound') {
     for (const copy of [false, true]) await t.test(copy ? 'copy while awaiting' : 'sync without saving', async () => {
     const previous = submissions.length, head = injector.get(RevisionService).getCurrentRevOfUnit(unitID);
     const scalar = copy ? 38 : 37;
@@ -150,6 +157,60 @@ for (const mode of ['conflict', 'outbound']) test(mode === 'conflict'
       assert.equal(submissions.length,previous+1); assert.deepEqual(disk,before);
       assert.equal(http.mock.callCount()+ws.mock.callCount(),0);
       assert.deepEqual(inspectorLengths,[], 'full changeset lengths serialized on the inspector stack');
+    });
+    await t.test('explicit pre-ACK copy survives editor disposal without reconnect (mocked transport)', async t => {
+      const priorStorage = new Map(disk), priorSubmissions = submissions.length;
+      const head = injector.get(RevisionService).getCurrentRevOfUnit(unitID);
+      const start = sends.length;
+      const ack = t.mock.fn();
+      const listener = session.event$.pipe(filter(event => event.eventID === E.CHANGESET_ACK)).subscribe(ack);
+      t.after(() => listener.unsubscribe());
+      const range = {startRow:0,endRow:0,startColumn:0,endColumn:0};
+      injector.get(SheetsSelectionsService).setSelections(unitID, tab, [{range,primary:null,style:null}]);
+      assert.equal(await injector.get(ICommandService).executeCommand(SetRangeValuesCommand.id, {
+        unitId:unitID, subUnitId:tab, range, value:{v:47,t:2},
+      }), true);
+      await wait(entity.status$.pipe(filter(s=>s===CollaborationStatus.AWAITING)), 'pre-disposal AWAITING');
+      const token = inspection.available();
+      assert.equal(typeof token, 'symbol');
+      assert.deepEqual(disk, priorStorage);
+      inspection.save(token);
+      assert.equal(entity.hasWritePending(), true);
+      assert.equal(entity.state.status, CollaborationStatus.AWAITING);
+      disposeEditor(); // The mock ACK is withheld. Only the per-test storage is reused below.
+      assert.equal(recovery.exportJSON(), null);
+
+      let authorized = false;
+      const reader = nativeOperationRecovery(scope, storage, () => authorized);
+      t.after(() => reader.dispose());
+      assert.equal(reader.exportJSON(), null);
+      authorized = true;
+      assert.equal(reader.exportJSON({...scope, epoch:scope.epoch + 1}), null);
+      const exported = JSON.parse(reader.exportJSON());
+      assert.deepEqual(exported.scope, scope);
+      assert.equal(exported.inspectionOnly, true);
+      assert.equal(exported.records.length, priorStorage.size + 1);
+      const previousBytes = new Set(priorStorage.values());
+      const newRecords = exported.records.filter(record => !previousBytes.has(record.serialized));
+      assert.equal(newRecords.length, 1);
+      const [record] = newRecords;
+      const cs = submissions[priorSubmissions];
+      assert.deepEqual(new Set(disk.values()), new Set([...previousBytes, record.serialized]));
+      assert.equal(record.verified, true);
+      assert.ok(cs.sid);
+      assert.deepEqual([cs.unitID,cs.userID,cs.reqId,cs.baseRev], [unitID,member.userID,priorSubmissions+1,head]);
+      assert.equal(cs.mutations.length, 1);
+      assert.equal(cs.mutations[0].id, SetRangeValuesMutation.id);
+      assert.deepEqual(cs.mutations[0].params.cellValue, {0:{0:{v:47,t:2}}});
+      assert.deepEqual(JSON.parse(record.serialized), {
+        version:1, scope, id:record.id, evidenceType:'outbound-observation', event:JSON.stringify(cs),
+      });
+      await new Promise(resolve => setTimeout(resolve, 250)); // Past the mock's 200 ms ACK timeout.
+      assert.deepEqual(sends.slice(start).filter(([cmd]) => cmd !== CombCmd.LEAVE), [[CombCmd.INGEST,E.SUBMIT_CHANGESET]]);
+      assert.equal(submissions.length, priorSubmissions + 1);
+      assert.equal(ack.mock.callCount(), 0);
+      assert.equal(socketCount, 1);
+      assert.equal(http.mock.callCount() + ws.mock.callCount(), 0);
     });
     return;
   }
