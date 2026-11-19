@@ -3,7 +3,7 @@
 // no network/listener, SQLite/PG, live inference or browser qualification.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Readable } from 'node:stream';
@@ -18,7 +18,8 @@ const request=(commandId='ask',expectedIntentRevision=0)=>({commandId,kind:'cont
 const patch=value=>JSON.stringify({cells:[{sheetId:TAB,row:0,column:0,value}]});
 async function setup(){const s=await server();s.agent=new NativeAgent(s.authority,s.service,s.db);s.agent.enabled=true;return s;}
 async function job(s){await s.agent.admit('owner',UNIT,request());return s.workspace.claim('owner');}
-async function value(s,v,who='owner',extra={}){const r=await s.service.submitChangeset({changeset:{unitID:UNIT,type:2,userID:who,memberID:who,sid:`agent-fixture-${who}`,reqId:s.head,baseRev:s.head,revision:s.head+1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:UNIT,subUnitId:TAB,cellValue:{0:{0:{v,...extra}}}})}]}},{userID:who,memberID:who});assert.equal(r.status,'committed');return r;}
+async function value(s,v,who='owner',extra={}){return values(s,{0:{0:{v,...extra}}},who);}
+async function values(s,cellValue,who='owner'){const r=await s.service.submitChangeset({changeset:{unitID:UNIT,type:2,userID:who,memberID:who,sid:`agent-fixture-${who}`,reqId:s.head,baseRev:s.head,revision:s.head+1,mutations:[{id:'sheet.mutation.set-range-values',data:JSON.stringify({unitId:UNIT,subUnitId:TAB,cellValue})}]}},{userID:who,memberID:who});assert.equal(r.status,'committed');return r;}
 async function inspect(s){let v;await s.agent.inspect('owner',UNIT,1,x=>v=x);return v;}
 async function fixture(fn){const s=await setup();try{await fn(s);}finally{await s.dispose();}}
 
@@ -80,6 +81,60 @@ test('actual DSH host/dispatcher consumes native read and retains peer-stale pro
   const events=(await host.inspect(stored)).events,results=events.filter(e=>e.type==='tool/result');assert.equal(results.length,2);assert.match(JSON.stringify(results[0]),/nativeBasis/);assert.match(JSON.stringify(results[0]),/11/);assert.match(JSON.stringify(results[1]),/proposed/);
   assert.equal((await inspect(s)).proposals[0].review,'stale');assert.equal((await s.data()).sheets[TAB].cellData[0][0].v,22);assert.equal(s.head,3);assert.equal((await s.store.read(x=>x.works[UNIT])).book,undefined);
  }finally{await dispatch.close();await host.close();}
+}));
+
+for (const count of [1,129]) test(`a reopened native follow-up includes the corrected value in its first provider input without replaying the old proposal (stored cells: ${count})`, {timeout:25000},t=>fixture(async s=>{
+  const cells={};
+  for(let i=0;i<count;i++) (cells[Math.floor(i/10)]??={})[i%10]={v:i===0?11:i};
+  await values(s,cells);
+  const first=await job(s), read=await s.agent.read('owner',first);
+  await s.agent.propose('owner',first,'old-call',patch(33),read.basis);
+  const history=[{id:'old-answer',role:'assistant',text:'A1 was 11.'}];
+  await s.workspace.checkpoint('owner',first,'completed',{messages:history});
+  await s.workspace.finish('owner',first,history,'ready');
+  await value(s,23,'peer');
+  s.agent=new NativeAgent(s.authority,s.service,s.db);
+  const reads=t.mock.method(s.agent,'read');
+  const prompts=[];
+  class Capture extends LlmAdapter {
+    async *stream(options){
+      prompts.push(options.messages.findLast(m=>m.role==='user').content.map(c=>c.text).join('\n'));
+      const block={type:'text',text:'Fixture captured the input.'};
+      yield {type:'block-start',index:0,blockType:'text'};
+      yield {type:'text-delta',index:0,text:block.text};
+      yield {type:'block-end',index:0,block};
+      yield {type:'finish',reason:{kind:'stop'}};
+    }
+  }
+  const root=await mkdtemp(join(tmpdir(),'native-followup-'));
+  const host=await bootHost({stateRoot:root,workspace:s.workspace,principal:'owner',provider:new Capture(),nativeAgent:s.agent});
+  const dispatch=createDispatcher({workspace:s.workspace,principal:'owner',host});
+  try{
+    const before=await inspect(s), bookBefore=await s.data();
+    await s.agent.admit('owner',UNIT,{...request('followup',1),text:'What is twice the current A1? Answer only.'});
+    dispatch.wake();await dispatch.idle();
+    assert.equal(prompts.length,1);
+    assert.match(prompts[0],/A1 was 11/);
+    const snapshot=prompts[0].split('\n').filter(line=>line.startsWith('{')).map(line=>JSON.parse(line)).find(data=>data.nativeBasis);
+    assert.ok(snapshot,'first provider request needs the current native sheet alongside older conversation');
+    assert.equal(snapshot.nativeBasis.unitID,UNIT);
+    assert.equal(snapshot.nativeBasis.nativeRevision,3);
+    assert.equal(reads.mock.callCount(),1,'initial context uses one native read');
+    if(count===1){
+      assert.equal(snapshot.book.sheets[TAB].cellData[0][0].v,23);
+    }else{
+      assert.equal(snapshot.workbookComplete,false);
+      assert.equal(snapshot.sheetId,TAB);
+      assert.deepEqual(snapshot.cells[0],{address:'A1',cell:{t:2,v:23}});
+      assert.ok(snapshot.cells.length<count);
+      assert.equal(snapshot.cells.some(c=>c.address==='I13'),false);
+      assert.equal(snapshot.nextCursor,undefined);
+      assert.match(prompts[0],/read_sheet for cells outside this page/);
+    }
+    assert.deepEqual((await inspect(s)).proposals,before.proposals);
+    assert.deepEqual(await s.data(),bookBefore);
+    assert.equal(s.head,3);
+  }finally{await dispatch.close();await host.close();await rm(root,{recursive:true,force:true});}
 }));
 
 test('production constructor and authenticated scoped HTTP consume host binding; ordinary route, peer and wrong epoch refuse', {timeout:25000},async()=>{
