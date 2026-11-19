@@ -90,7 +90,7 @@ async function admissionFixture() {
   async function send(submission) {
     const { draft } = submission, sourceIds = [];
     if (draft.sourceText.trim()) sourceIds.push((await api('/sources', { commandId: submission.sourceCommandId, name: draft.sourceName, content: draft.sourceText, synthetic: true })).id);
-    return api('/work/commands', { commandId: submission.commandId, kind: 'start', text: draft.prompt, sourceIds });
+    return api('/work/commands', { commandId: submission.commandId, kind: 'start', ...(submission.startKind ? { startKind: submission.startKind } : {}), text: draft.prompt, sourceIds });
   }
   return { ws, send };
 }
@@ -174,4 +174,21 @@ test('malformed/unsupported composer and pending storage is refused without over
     assert.throws(() => drafts.submission('doc', good, 0, () => assert.fail('new ID')), /invalid_pending_send/);
     assert.equal(disk.getItem('workagent-composer:doc:send'), raw); assert.deepEqual(drafts.read('doc'), good);
   }
+});
+
+test('landing retries the exact stored start across reload, including a pending pre-conversation command', async () => {
+  const { ws, send } = await admissionFixture(), disk = storage();
+  const legacy = { commandId: 'legacy', sourceCommandId: 'legacy-source', draft: validDraft };
+  const first = await send(legacy);
+  disk.setItem('workagent-composer:new:send', JSON.stringify(legacy));
+  const drafts = new ComposerDrafts(disk);
+  assert.deepEqual(await send(drafts.submission(null, validDraft, undefined, () => assert.fail('unexpected new ID'))), first);
+  drafts.accepted(null, legacy.commandId);
+  let id = 0;
+  const fresh = drafts.submission(null, validDraft, undefined, () => 'fresh-' + ++id);
+  const thread = await send(fresh);
+  const retry = new ComposerDrafts(disk).pending(null);
+  assert.equal(retry.startKind, 'conversation');
+  assert.deepEqual(await send(retry), thread);
+  assert.deepEqual((await ws.list('owner')).map(w => w.kind).sort(), ['conversation', 'sheet']);
 });

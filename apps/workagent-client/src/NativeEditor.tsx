@@ -9,7 +9,7 @@ import { conditionalCorePreset, NativeConditionalPlugin, installConditionalStruc
 import { CONDITIONAL_SCOPE, conditionalRules, validateConditionalRules } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { createElement, useEffect, useRef, useState, type ComponentType } from 'react';
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
-import { adjustRangeOnMutation, CalculationMode, ComponentManager, IMessageService, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SetRangeValuesCommand, SheetInterceptorService, UniverSheetsCorePreset, type ISetRangeValuesCommandParams, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
+import { adjustRangeOnMutation, CalculationMode, ComponentManager, IMessageService, FormulaCalculationSessionService, FormulaExecutedStateType, InsertColMutation, InsertRowMutation, MoveColsMutation, MoveRowsMutation, RemoveColMutation, RemoveRowMutation, SetRangeValuesCommand, SetRangeValuesMutation, SheetInterceptorService, UniverSheetsCorePreset, type ISetRangeValuesCommandParams, type ISetRangeValuesMutationParams, type MutationsAffectRange } from '@univerjs/preset-sheets-core';
 import { UniverSheetsDataValidationPreset } from '@univerjs/preset-sheets-data-validation';
 import UniverSheetsDataValidationEnUS from '@univerjs/preset-sheets-data-validation/locales/en-US';
 import '@univerjs/preset-sheets-data-validation/lib/index.css';
@@ -19,7 +19,7 @@ import { isHumanSheetMutation, pendingCell } from './drafts';
 import { installValidationSettlement } from './validation-settlement';
 import { installEditorFocus } from './editor-focus';
 import type { FormatEdits } from '../../../packages/workagent-contract/index.mjs';
-import { CanceledError, LocaleService, CellValueType, CommandType, ICommandService, isICellData, type IWorkbookData, type ICellData } from '@univerjs/core';
+import { CanceledError, LocaleService, CellValueType, CommandType, ICommandService, ObjectMatrix, isICellData, type IWorkbookData, type ICellData } from '@univerjs/core';
 import '@univerjs/preset-sheets-core/lib/index.css';
 export type SheetSelection = { workId: string; sheetId: string; sheetName: string; rangeLabel: string; range: { startRow: number; endRow: number; startColumn: number; endColumn: number } };
 export type EditorHandle = { charts?: ChartController; formatEdits?: () => FormatEdits | undefined; save: () => IWorkbookData; commit: () => Promise<IWorkbookData>; isEditing: () => boolean; selection: () => SheetSelection; selectionEpoch: () => number; exportCsv: () => Promise<CsvResult> };
@@ -311,24 +311,76 @@ export function NativeEditor({ book, version, formatEdits, humanCells, onReady, 
     };
     notifyReady({ charts: chartController, formatEdits: formatting, save: snapshot, isEditing: () => chartController.editing || workbook.isCellEditing() || validation.gate.pending || conditionalEditing(), commit, selection, selectionEpoch: () => selectionEpoch, exportCsv: async () => {
       const sheetId = workbook.getActiveSheet().getSheetId();
-      await commit();
+      const committed = await commit();
       if (workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed while finishing the edit. Retry CSV export.');
       const generation = edits;
       const formula = univerAPI.getFormula();
-      let forced = false, completed = false;
-      const start = formula.calculationStart(force => { forced = force; completed = false; });
-      const end = formula.calculationEnd(state => { completed = state === FormulaExecutedStateType.SUCCESS; });
-      try {
-        formula.executeCalculation();
-        await formula.onCalculationResultApplied(10000);
+      const hasFormulas = (saved: IWorkbookData) => Object.values(saved.sheets[sheetId].cellData ?? {}).some(row => (Object.values(row ?? {}) as (ICellData | null)[]).some(cell => cell?.f || cell?.si));
+      type SheetValues = ISetRangeValuesMutationParams['cellValue'];
+      const exportSnapshot = (values?: SheetValues) => {
         if (disposed || edits !== generation || workbook.isCellEditing() || workbook.getActiveSheet().getSheetId() !== sheetId) throw new Error('The sheet changed during calculation. Retry CSV export.');
         const saved = structuredClone(workbook.save());
-        const formulas = Object.values(saved.sheets[sheetId].cellData ?? {}).some(row => (Object.values(row ?? {}) as (ICellData | null)[]).some(cell => cell?.f || cell?.si));
-        // The SDK waiter can also resolve for a stopped session or its no-start
-        // watchdog. Neither establishes freshness of formula caches.
-        if (formulas && (!forced || !completed)) throw new Error('Formula calculation could not be verified. Retry CSV export.');
+        new ObjectMatrix(saved.sheets[sheetId].cellData).forValue((row, column, cell) => {
+          if (!cell?.f && !cell?.si) return;
+          const result = values?.[row]?.[column];
+          if (!values || (result?.v ?? null) !== (cell.v ?? null) || result?.t !== cell.t) {
+            throw new Error('Formula calculation could not be verified. Retry CSV export.');
+          }
+        });
         return serializeCsv(saved, sheetId);
-      } finally { start.dispose(); end.dispose(); }
+      };
+      if (!hasFormulas(committed)) {
+        formula.executeCalculation();
+        await formula.onCalculationResultApplied(10000);
+        return exportSnapshot();
+      }
+
+      // The facade waiter can resolve for an opening calculation still running at commit.
+      // Only the next forced session may supply the engine and sheet receipts.
+      const sessions = univer.__getInjector().get(FormulaCalculationSessionService);
+      const expected = sessions.state.id + 1, deadline = performance.now() + 10000;
+      let forced = false, success = false;
+      let emittedValues: SheetValues, appliedValues: SheetValues;
+      const fresh = () => {
+        const state = sessions.state;
+        return forced && success && state.id === expected && state.started && !state.stopped
+          && emittedValues !== undefined && emittedValues === appliedValues
+          && state.completed && state.resultEmitted && state.resultApplied && performance.now() < deadline;
+      };
+      let finish!: (verified: boolean) => void;
+      const proof = new Promise<boolean>(resolve => { finish = resolve; });
+      const start = formula.calculationStart(force => {
+        forced = !forced && force && sessions.state.started && sessions.state.id === expected;
+        if (!forced) finish(false);
+      });
+      const end = formula.calculationEnd(state => {
+        if (!forced || sessions.state.id !== expected) return;
+        success = state === FormulaExecutedStateType.SUCCESS;
+        if (!success || fresh()) finish(success);
+      });
+      const applied = sessions.state$.subscribe(state => {
+        if (state.id > expected || (state.id === expected && state.stopped)) finish(false);
+        else if (fresh()) finish(true);
+      });
+      // Univer 1.4 marks SHEET applied on the first tab. Its per-tab mutation
+      // uses the same cell matrix as the emitted result, even after merging formats.
+      const result = sessions.resultApplied$.subscribe(receipt => {
+        if (!forced || sessions.state.id !== expected) return;
+        emittedValues = receipt.unitData[book.id]?.[sheetId];
+        if (fresh()) finish(true);
+      });
+      const mutation = injector.get(ICommandService).onCommandExecuted((command, options) => {
+        if (!forced || sessions.state.id !== expected || command.id !== SetRangeValuesMutation.id || !options?.applyFormulaCalculationResult) return;
+        const params = command.params as ISetRangeValuesMutationParams;
+        if (params.unitId !== book.id || params.subUnitId !== sheetId) return;
+        appliedValues = params.cellValue;
+        if (fresh()) finish(true);
+      });
+      const timeout = setTimeout(() => finish(false), deadline - performance.now());
+      try {
+        formula.executeCalculation();
+        return exportSnapshot(await proof && fresh() ? appliedValues : undefined);
+      } finally { clearTimeout(timeout); mutation.dispose(); result.unsubscribe(); applied.unsubscribe(); start.dispose(); end.dispose(); }
     } });
     const changing = univerAPI.addEvent(univerAPI.Event.SheetEditChanging, event => {
       chartController.invalidate();

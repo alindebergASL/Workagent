@@ -57,7 +57,7 @@ async function execute(f, step, { selection, policyOverride } = {}) {
   const fetchImpl = async (_url, request) => {
     order.push('fetch'); const wire = JSON.parse(request.body); wires.push(wire);
     assert.ok(Buffer.byteLength(request.body) <= (policyOverride ?? policy).maxRequestBytes);
-    assert.deepEqual(wire.tools.map(t => t.function.name).sort(), ['edit_sheet', 'read_sheet']);
+    assert.deepEqual(wire.tools.map(t => t.function.name).sort(), ['create_decision_brief', 'create_document', 'create_quote_comparison', 'create_sheet', 'edit_sheet', 'load_decision_brief', 'read_sheet']);
     const n = wires.length, tool = await step(n, wire);
     const delta = tool ? { tool_calls: [{ index: 0, id: `fixture-call-${n}`, function: { name: tool[0], arguments: JSON.stringify(tool[1]) } }] }
       : { content: 'Fixture lifecycle finished; this is not a real-model answer or calculation.' };
@@ -172,9 +172,12 @@ test('actual byte guard blocks the next fixture call before reservation/dispatch
   const f = await setup(), w = await f.workspace.get('owner', f.workId);
   w.book.sheets.sheet1.cellData = { 0: { 0: { v: '雪"\\'.repeat(12000) } } };
   await f.workspace.save('owner', f.workId, { commandId: 'seed', book: w.book, contentRevision: 1, permissionRevision: 1 });
+  // The first serialized request must fit. Adding the escaped read_sheet result
+  // must take the next request over this fixture's ceiling before reservation.
   const result = await execute(f, n => { assert.equal(n, 1, 'oversized next call must never reach fixture fetch'); return read(); },
-    { policyOverride: { ...policy, maxRequestBytes: 8000 } });
+    { policyOverride: { ...policy, maxRequestBytes: 16 * 1024 } });
   assert.equal(result.wires.length, 1); assert.equal(result.reserves.length, 1); assert.equal(result.receipts.length, 1);
+  assert.deepEqual(result.order, ['reserve', 'dispatch', 'fetch', 'retain']);
   assert.equal(result.receipts[0].outcome, 'received');
   assert.equal(result.current.status, 'blocked'); assert.equal(result.current.errorCode, 'request_too_large');
   assert.equal(result.current.contentRevision, 2); assert.equal(result.job.status, 'blocked');

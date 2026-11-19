@@ -501,3 +501,20 @@ for(const format of ['bold','italic','paragraph'])test(`Google delivery: actual 
     const saved=await editor.handle.commit();assert.throws(()=>prepareGoogleDocDelivery(saved),e=>e.code==='google_plain_text_required');
   }finally{editor.dispose();}
 });
+
+test('Open document on a saved creation receipt opens its populated native work and preserves the source composer', async () => {
+  const app = consumerFixture('./csv-app.test.mjs', 'mount,disk,server');
+  const api = app.server(() => assert.fail('opening the receipt must only read'));
+  const { book, ...base } = api.works.old;
+  api.works.brief = { ...base, id: 'brief', kind: 'document', document: blankDocument('brief', 'Packing brief', 'Pack three crates.') };
+  api.works.old.messages = [{ id: 'receipt', role: 'assistant', text: 'Created document: Packing brief', createdWorkId: 'brief' }];
+  const view = app.mount(app.disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old'); await view.message('Unsent source note');
+    await view.click('Open document');
+    await view.until(() => view.doc()?.document.id === 'brief');
+    assert.equal(view.doc().document.body.dataStream, 'Pack three crates.\r\n');
+    await view.open('old');
+    assert.equal(view.messageValue(), 'Unsent source note');
+  } finally { view.unmount(); }
+});

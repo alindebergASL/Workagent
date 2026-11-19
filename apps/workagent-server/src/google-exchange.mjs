@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { workKind } from '../../../packages/workagent-contract/document.mjs';
 import { Fault, id, revision } from '../../../packages/workagent-contract/index.mjs';
 import { authorize, digest, dedup, event, preconditions, same } from './workspace.mjs';
 import { createSimulatedGoogleAdapter, prepareGoogleDocDelivery, GoogleAdapterError } from './google-adapter.mjs';
@@ -33,6 +34,7 @@ export class GoogleExchange {
     const c = connection(s, principal);
     if (!c.account || c.generation !== input.connectionGeneration) throw new Fault('google_connection_changed', 409);
     const w = this.workspace.access(s, principal, input.workId);
+    if (!['sheet', 'document'].includes(workKind(w))) throw new Fault('artifact_required', 400);
     if (w.contentRevision !== input.contentRevision || s.permissionRevision !== input.permissionRevision) throw new Fault('google_work_changed', 409);
     return { c, w };
   }

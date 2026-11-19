@@ -102,3 +102,19 @@ test('native rich text and unfinished formula recovery serialize without mutatin
   const recovery = pendingCell(book, 's', 0, 0, text.toPlainText(), text.getData());
   assert.equal(recovery.sheets.s.cellData[0][0].p.body.dataStream, 'Pending correction\r\n');
 });
+
+test('job-created typed cells reopen in the native SDK with leading equals kept literal', async () => {
+  const path = join(await mkdtemp(join(tmpdir(), 'created-sheet-')), 'workspace.json');
+  await writeFile(path, JSON.stringify(initialState('owner')));
+  const ws = new Workspace(new FileFixtureStore(path));
+  await ws.command('owner', { commandId: 'start', kind: 'start', text: 'Create a sheet.', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const { workId } = await ws.createJobSheet('owner', job.id, job.sessionId, 'one', { title: 'Inventory', rows: [['=A2+2', false, 0, '0012']] });
+  const opened = native((await ws.get('owner', workId)).book);
+  try {
+    const cells = opened.book.save().sheets.sheet1.cellData[0];
+    assert.deepEqual([0, 1, 2, 3].map(i => [cells[i].t, cells[i].v]), [[1, '=A2+2'], [3, 0], [2, 0], [1, '0012']]);
+    assert.equal(cells[0].f, undefined);
+  } finally { opened.univer.dispose(); }
+});

@@ -19,8 +19,8 @@ import { FileFixtureStore } from '../../workagent-server/tests/support/file-fixt
 const require = createRequire(import.meta.resolve('@univerjs/preset-sheets-core'));
 const core = require('@univerjs/core');
 const { FUniver } = require('@univerjs/core/facade');
-const { UniverSheetsPlugin } = require('@univerjs/sheets');
-const { UniverFormulaEnginePlugin } = require('@univerjs/engine-formula');
+const { SetRangeValuesMutation, UniverSheetsPlugin } = require('@univerjs/sheets');
+const { CalculateFormulaService, FormulaCalculationSessionService, FormulaExecutedStateType, UniverFormulaEnginePlugin } = require('@univerjs/engine-formula');
 const { UniverSheetsFormulaPlugin, CalculationMode } = require('@univerjs/sheets-formula');
 require('@univerjs/sheets/facade'); require('@univerjs/engine-formula/facade'); require('@univerjs/sheets-formula/facade');
 function engine(formula = {}) {
@@ -36,6 +36,37 @@ function engine(formula = {}) {
     async dispose() { await delay(1100); univer.dispose(); } };
 }
 const cell = (book, row, col = 1) => book.sheets.sheet1.cellData[row][col];
+test('native quote totals recalculate after edits to shared quantity and offer terms', async () => {
+  const path = join(await mkdtemp(join(tmpdir(), 'native-quotes-')), 'workspace.json');
+  await writeFile(path, JSON.stringify(initialState('owner')));
+  const ws = new Workspace(new FileFixtureStore(path));
+  await ws.command('owner', { kind: 'start', startKind: 'conversation', commandId: 'ask', text: 'Keep parcel quotes.', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const receipt = await ws.createJobQuoteComparison('owner', job.id, job.sessionId, 'quote', {
+    title: 'Parcel quotes', quantity: 20, offers: [{ name: 'Rowan', unitPrice: 7, flatFee: 18 }, { name: '=Kite', unitPrice: 8, flatFee: 0 }],
+  });
+  const child = await ws.get('owner', receipt.workId);
+  const e = engine(), book = e.api.createWorkbook(child.book, { skipAutoRender: true });
+  const totals = () => {
+    const saved = book.save();
+    return [2, 3].map(row => cell(saved, row, 3).v);
+  };
+  try {
+    await e.settle();
+    assert.deepEqual(totals(), [158, 160]);
+    const sheet = book.getActiveSheet();
+    sheet.getRange('B1').setValue(10);
+    await e.settle();
+    assert.deepEqual(totals(), [88, 80]);
+    sheet.getRange('B3:C3').setValues([[7.35, 10.55]]);
+    await e.settle();
+    assert.deepEqual(totals(), [84.05, 80]);
+    assert.equal(cell(book.save(), 3, 0).v, '=Kite');
+    assert.equal(cell(book.save(), 3, 0).f, undefined);
+  } finally { await e.dispose(); }
+});
+
 function fixture() {
   const book = blankWorkbook('cache-regression');
   book.styles = { human: { bg: { rgb: '#f0cafe' }, n: { pattern: '0.00' } } };
@@ -160,28 +191,163 @@ test('actual editor export commits pending input before real calculation; refuse
     await assert.rejects(() => view.handle.exportCsv(), /Finish the current cell edit/);
   } finally { await view.dispose(); }
 });
+test('CSV needs the selected later tab to apply its own forced result', async () => {
+  const editing = { active: false, apply: workbook => workbook.getSheetBySheetId('sheet1').getRange('B2').setValue(180) };
+  const view = mountEditor(fixture(), editing);
+  const workbook = view.e.api.getActiveWorkbook(), formula = view.e.api.getFormula();
+  const sessions = formula._injector.get(FormulaCalculationSessionService);
+  const commands = formula._injector.get(core.ICommandService);
+  const mutations = [], ends = [];
+  let refuseSummary = false;
+  const isApply = (command, options) => command.id === SetRangeValuesMutation.id && options.applyFormulaCalculationResult;
+  const before = commands.beforeCommandExecuted((command, options) => {
+    if (isApply(command, options) && refuseSummary && command.params.subUnitId === 'summary') {
+      mutations.push([sessions.state.id, 'refused', 'summary', command.params.cellValue[0][0].v]);
+      throw new core.CanceledError();
+    }
+  });
+  const after = commands.onCommandExecuted((command, options) => {
+    if (isApply(command, options)) mutations.push([sessions.state.id, 'applied', command.params.subUnitId]);
+  });
+  const end = formula.calculationEnd(state => ends.push([sessions.state.id, state]));
+  try {
+    await view.e.settle();
+    const prior = sessions.state.id;
+    assert.ok(mutations.some(([id, action, sheet]) => id === prior && action === 'applied' && sheet === 'summary'));
+    workbook.setActiveSheet('summary');
+    assert.equal(workbook.save().sheets.summary.cellData[0][0].v, 421);
+    editing.active = true;
+    refuseSummary = true;
+    const [blocked] = await Promise.allSettled([view.handle.exportCsv()]);
+    assert.deepEqual(mutations.filter(([id]) => id === prior + 1), [
+      [prior + 1, 'applied', 'sheet1'], [prior + 1, 'refused', 'summary', 301],
+    ]);
+    assert.deepEqual(ends.at(-1), [prior + 1, FormulaExecutedStateType.SUCCESS]);
+    assert.equal(sessions.state.resultApplied, true);
+    assert.equal(cell(workbook.save(), 4).v, 300);
+    assert.equal(workbook.save().sheets.summary.cellData[0][0].v, 421);
+    assert.equal(blocked.status, 'rejected', `stale CSV exported: ${blocked.value?.csv}`);
+    assert.match(blocked.reason.message, /could not be verified/);
+
+    refuseSummary = false;
+    const exported = await view.handle.exportCsv();
+    assert.deepEqual(mutations.filter(([id]) => id === prior + 2), [
+      [prior + 2, 'applied', 'sheet1'], [prior + 2, 'applied', 'summary'],
+    ]);
+    assert.equal(workbook.save().sheets.summary.cellData[0][0].v, 301);
+    assert.equal(exported.sheetName, 'Summary');
+    assert.deepEqual(parseCsv(Buffer.from(exported.csv)).rows, [['301']]);
+  } finally { before.dispose(); after.dispose(); end.dispose(); await view.dispose(); }
+});
+
+test('a completed selected-tab mutation cannot certify a formula cell that Univer skipped', async () => {
+  const book = fixture(), summary = book.sheets.summary.cellData[0];
+  summary[1] = { f: '=A1*2', v: 99999, t: 2 };
+  const view = mountEditor(book), workbook = view.e.api.getActiveWorkbook();
+  const formula = view.e.api.getFormula(), commands = formula._injector.get(core.ICommandService);
+  const sessions = formula._injector.get(FormulaCalculationSessionService);
+  const isSummaryApply = (command, options) => command.id === SetRangeValuesMutation.id
+    && options.applyFormulaCalculationResult && command.params.subUnitId === 'summary';
+  const before = commands.beforeCommandExecuted((command, options) => {
+    if (!isSummaryApply(command, options)) return;
+    // Exercise the SDK's per-cell stale-source guard inside the real handler.
+    command.params.sourceFormulaData = { 0: { 1: { f: '=A1*3' } } };
+  });
+  const receipts = [];
+  const after = commands.onCommandExecuted((command, options) => {
+    if (isSummaryApply(command, options)) receipts.push([sessions.state.id, command.params.cellValue[0][1].v]);
+  });
+  try {
+    await view.e.settle();
+    workbook.setActiveSheet('summary');
+    const expected = sessions.state.id + 1;
+    await assert.rejects(view.handle.exportCsv(), /could not be verified/);
+    assert.deepEqual(receipts.at(-1), [expected, 842]);
+    const row = workbook.save().sheets.summary.cellData[0];
+    assert.equal(row[0].v, 421);
+    assert.equal(row[1].v, 99999);
+  } finally { before.dispose(); after.dispose(); await view.dispose(); }
+});
+
+test('post-edit CSV waits for the forced session when the opening calculation finishes first', async t => {
+  const opening = Promise.withResolvers(), resume = Promise.withResolvers();
+  const step = CalculateFormulaService.prototype._executeStep;
+  t.mock.method(CalculateFormulaService.prototype, '_executeStep', async function (...args) {
+    opening.resolve();
+    await resume.promise;
+    return step.apply(this, args);
+  }, { times: 1 });
+
+  const view = mountEditor(fixture(), { active: true, wait: opening.promise,
+    apply: workbook => workbook.getActiveSheet().getRange('B2').setValue(180) });
+  const formula = view.e.api.getFormula(), events = [];
+  const start = formula.calculationStart(force => events.push(['start', force]));
+  const end = formula.calculationEnd(state => events.push(['end', state]));
+  const execute = formula.executeCalculation.bind(formula);
+  t.mock.method(formula, 'executeCalculation', () => {
+    events.push(['request']);
+    execute();
+    resume.resolve();
+  });
+  view.e.api.getFormula = () => formula;
+  try {
+    const result = await view.handle.exportCsv();
+    assert.deepEqual(events, [['start', true], ['request'], ['end', FormulaExecutedStateType.SUCCESS],
+      ['start', true], ['end', FormulaExecutedStateType.SUCCESS]]);
+    const rows = parseCsv(Buffer.from(result.csv)).rows;
+    assert.equal(rows[1][1], '180'); assert.equal(rows[3][1], '150');
+  } finally { resume.resolve(); start.dispose(); end.dispose(); await view.dispose(); }
+});
+
+test('a superseding applied session between forced success and CSV serialization invalidates the export', async t => {
+  const view = mountEditor(fixture());
+  try {
+    await view.e.settle();
+    const formula = view.e.api.getFormula(), sessions = formula._injector.get(FormulaCalculationSessionService);
+    const expected = sessions.state.id + 1, subscribe = formula.calculationEnd.bind(formula);
+    t.mock.method(formula, 'calculationEnd', callback => subscribe(state => {
+      callback(state);
+      // Keep both terminal states successful. Only their identities distinguish them.
+      assert.equal(state, FormulaExecutedStateType.SUCCESS);
+      assert.equal(sessions.state.id, expected);
+      sessions.start();
+      sessions.markResultEmitted({ unitData: {}, unitOtherData: {} }, false);
+      sessions.markCompleted(FormulaExecutedStateType.SUCCESS);
+    }));
+    view.e.api.getFormula = () => formula;
+    await assert.rejects(view.handle.exportCsv(), /could not be verified/);
+    assert.equal(sessions.state.id, expected + 1);
+    assert.equal(sessions.state.resultApplied, true);
+  } finally { await view.dispose(); }
+});
+
 test('export refuses a human change during calculation and an unknown result is never zero', async () => {
   const view = mountEditor(fixture());
   try {
     await view.e.settle();
-    const formula = view.e.api.getFormula(), realWait = formula.onCalculationResultApplied.bind(formula);
-    let release; const gate = new Promise(resolve => { release = resolve; });
-    formula.onCalculationResultApplied = async (...args) => { await realWait(...args); await gate; };
-    view.e.api.getFormula = () => formula;
-    const exporting = view.handle.exportCsv();
-    await delay(30); view.e.api.getActiveWorkbook().getActiveSheet().getRange('B2').setValue(77); release();
-    await assert.rejects(() => exporting, /changed during calculation/);
+    const formula = view.e.api.getFormula(), started = Promise.withResolvers();
+    const start = formula.calculationStart(() => started.resolve());
+    try {
+      const exporting = view.handle.exportCsv();
+      await started.promise;
+      view.e.api.getActiveWorkbook().getActiveSheet().getRange('B2').setValue(77);
+      await assert.rejects(exporting, /changed during calculation/);
+    } finally { start.dispose(); }
   } finally { await view.dispose(); }
 });
 
-test('native waiter watchdog cannot turn an unverified cached formula into an export', async () => {
-  const view = mountEditor(fixture());
+test('absent forced start blocks cached formulas and still permits a literal-only tab', async () => {
+  const book = fixture();
+  book.sheets.summary.cellData = { 0: { 0: { v: '=1+1', t: 1 } } };
+  const view = mountEditor(book);
   try {
     await view.e.settle(); const formula = view.e.api.getFormula();
-    // Reproduce the SDK waiter’s documented-by-implementation no-start path.
-    // All waiting is real; the trigger alone is withheld as a failure fixture.
+    // Leave the previous session successful and applied, then withhold the new trigger.
     formula.executeCalculation = () => {}; view.e.api.getFormula = () => formula;
     await assert.rejects(() => view.handle.exportCsv(), /could not be verified/);
+    view.e.api.getActiveWorkbook().setActiveSheet('summary');
+    const literal = await view.handle.exportCsv();
+    assert.deepEqual(parseCsv(Buffer.from(literal.csv)).rows, [["'=1+1"]]);
   } finally { await view.dispose(); }
 });
 

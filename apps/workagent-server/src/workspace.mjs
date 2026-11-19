@@ -1,10 +1,11 @@
 import { conditionalAt, conditionalCells } from '../../../packages/workagent-contract/conditional-formatting.mjs';
 import { chartDefinitionChanges } from '../../../packages/workagent-contract/sheet-charts.mjs';
 import { controlCells, controlAt } from '../../../packages/workagent-contract/sheet-controls.mjs';
-import { blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
+import { DOCUMENT_LIMIT, blankDocument, validateDocument, requireSheet, workKind, workTitle } from '../../../packages/workagent-contract/document.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { Fault, id, text, revision, blankWorkbook, validateWorkbook, validateFormatEdits, validatePatch, applyPatch, anchor } from '../../../packages/workagent-contract/index.mjs';
 import { bindSelection } from './selection.mjs';
+import { quoteComparisonCells } from './quote-comparison.mjs';
 export const digest = data => createHash('sha256').update(JSON.stringify(canonical(data))).digest('hex');
 function canonical(x) { return Array.isArray(x) ? x.map(canonical) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, canonical(x[k])])) : x; }
 export function authorize(s, principal) { if (!s.enabled || s.owner !== principal) throw new Fault('access_denied', 403); }
@@ -34,6 +35,49 @@ export function commitEditorPatch(s, w, patch, expected, kind = 'agent_changed')
   w.book = applyPatch(w.book, patch); w.contentRevision++; event(s, w, kind);
   return { status: 'applied', expected: preconditions(s, w) };
 }
+function sheetCellsFromRows(rows) {
+  const width = rows?.[0]?.length;
+  if (!Array.isArray(rows) || !rows.length || rows.length > 200 || !width || width > 26 || rows.length * width > 2000) throw new Fault('invalid_sheet_rows', 400);
+  const cells = {};
+  let bytes = 0, populated = false;
+  for (const [rowIndex, row] of rows.entries()) {
+    if (!Array.isArray(row) || row.length !== width) throw new Fault('invalid_sheet_rows', 400);
+    for (const [column, value] of row.entries()) {
+      if (value === null) continue;
+      let cell;
+      if (typeof value === 'string') {
+        if (value.length > 20000 || (bytes += Buffer.byteLength(value)) > 200000) throw new Fault('sheet_text_limit', 400);
+        cell = { v: value, t: 1 };
+      } else if (Number.isFinite(value)) cell = { v: value, t: 2 };
+      else if (typeof value === 'boolean') cell = { v: Number(value), t: 3 };
+      else throw new Fault('invalid_cell', 400);
+      (cells[rowIndex] ??= {})[column] = cell;
+      if (value !== '') populated = true;
+    }
+  }
+  if (!populated) throw new Fault('empty_sheet', 400);
+  return cells;
+}
+function createArtifact(s, kind, title, payload, eventKind) {
+  const workId = randomUUID();
+  const artifact = kind === 'document'
+    ? { kind, document: validateDocument(blankDocument(workId, title, payload)), humanDocument: false }
+    : { book: blankWorkbook(workId, title) };
+  if (kind === 'sheet' && payload) {
+    artifact.book.sheets.sheet1.cellData = payload;
+    artifact.book = validateWorkbook(artifact.book);
+  }
+  const w = { id: workId, ...artifact, contentRevision: 1, intentRevision: 0, cancellationEpoch: 0,
+    messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'ready' };
+  s.works[workId] = w;
+  event(s, w, eventKind);
+  return { workId, contentRevision: 1 };
+}
+const creationTools = {
+  document: { kind: 'document', fields: ['title', 'content'], payload: args => text(args.content, DOCUMENT_LIMIT) },
+  sheet: { kind: 'sheet', fields: ['title', 'rows'], payload: args => sheetCellsFromRows(args.rows) },
+  'quote-comparison': { kind: 'sheet', fields: ['title', 'quantity', 'offers'], payload: quoteComparisonCells },
+};
 export class Workspace {
   constructor(store, { peers = [], nativeEnabled = false } = {}) {
     this.store = store; this.nativeEnabled = nativeEnabled;
@@ -67,6 +111,7 @@ export class Workspace {
     id(input.commandId); id(input.peer); revision(input.accessRevision);
     return this.store.transaction(s => {
       authorize(s, principal); const w = work(s, workId, true);
+      if (w.kind === 'conversation') throw new Fault('artifact_required', 400);
       if (!this.peers.has(input.peer) || input.peer === s.owner) throw new Fault('peer_not_configured', 400);
       return dedup(s, input.commandId, { operation: 'share', workId, ...input }, () => {
         if ((w.accessRevision ?? 0) !== input.accessRevision) throw new Fault('sharing_conflict');
@@ -83,10 +128,46 @@ export class Workspace {
     return this.store.transaction(s => {
       authorize(s, principal);
       return dedup(s, input.commandId, { operation: input.kind === 'document' ? 'blank-document' : 'blank-sheet', ...input }, () => {
-        const workId = randomUUID();
-        const w = { id: workId, ...(input.kind === 'document' ? { kind: 'document', document: blankDocument(workId, input.title.trim()), humanDocument: false } : { book: blankWorkbook(workId, input.title.trim()) }), contentRevision: 1, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'ready' };
-        s.works[workId] = w; event(s, w, 'human_created');
-        return { workId, contentRevision: 1 };
+        return createArtifact(s, input.kind, input.title.trim(), '', 'human_created');
+      });
+    });
+  }
+  async createJobDocument(principal, jobId, sessionId, callId, args, signal, invocation) {
+    return this.#createJobArtifact('document', principal, jobId, sessionId, callId, args, signal, invocation);
+  }
+  async createJobSheet(principal, jobId, sessionId, callId, args, signal) {
+    return this.#createJobArtifact('sheet', principal, jobId, sessionId, callId, args, signal);
+  }
+  async createJobQuoteComparison(principal, jobId, sessionId, callId, args, signal) {
+    return this.#createJobArtifact('quote-comparison', principal, jobId, sessionId, callId, args, signal);
+  }
+  async #createJobArtifact(tool, principal, jobId, sessionId, callId, args, signal, invocation) {
+    const { kind, fields, payload } = creationTools[tool];
+    if (!args || Object.keys(args).some(k => !fields.includes(k))) throw new Fault(`invalid_${kind}_arguments`, 400);
+    const title = text(args.title, 200);
+    if (typeof callId !== 'string' || !callId) throw new Fault('native_call_not_bound');
+    const operation = `create-${kind}`;
+    const commandId = digest({ session: sessionId, operation: 'create-artifact', callId });
+    return this.store.transaction(s => {
+      authorize(s, principal);
+      signal?.throwIfAborted();
+      const job = s.jobs[id(jobId)];
+      if (!job || job.kind || job.sessionId !== sessionId || job.status !== 'running' || job.phase !== 'execution_started') throw new Fault('job_not_running');
+      const source = work(s, job.workId);
+      if (!same(job.expected, intentConditions(s, source))) throw new Fault('work_superseded');
+      const content = payload(args);
+      // The shared native call key detects cross-tool reuse. Hash the selected
+      // tool and its original inputs, including any composing skill invocation.
+      const command = { operation: `create-${tool}`, jobId, ...args, title, ...(invocation && { invocation }) };
+      // An in-flight retry may already have a receipt under the earlier per-tool key.
+      const priorKey = digest({ session: sessionId, operation, callId });
+      const otherOperation = kind === 'sheet' ? 'create-document' : 'create-sheet';
+      if (!s.commands[priorKey] && s.commands[digest({ session: sessionId, operation: otherOperation, callId })]) throw new Fault('command_conflict');
+      return dedup(s, s.commands[priorKey] ? priorKey : commandId, command, () => {
+        const created = createArtifact(s, kind, title, content, 'agent_created');
+        source.messages.push({ id: commandId, role: 'assistant', text: `Created ${kind}: ${title}`, createdWorkKind: kind, createdWorkId: created.workId });
+        event(s, source, `${kind}_created`);
+        return { ...created, kind, title };
       });
     });
   }
@@ -121,6 +202,7 @@ export class Workspace {
   }
   async admitCommand(principal, input, nativeAgent) {
     id(input.commandId); if (!['start', 'continue', 'cancel'].includes(input.kind)) throw new Fault('invalid_command', 400);
+    if (input.startKind !== undefined && (input.startKind !== 'conversation' || input.kind !== 'start' || input.workId !== undefined || input.selection !== undefined)) throw new Fault('invalid_command', 400);
     if (input.kind !== 'cancel') text(input.text);
     if (!Array.isArray(input.sourceIds) || input.sourceIds.length > 10) throw new Fault('invalid_sources', 400);
     return this.store.transaction(s => {
@@ -135,7 +217,9 @@ export class Workspace {
       const result = dedup(s, input.commandId, input, () => {
         let w;
         if (input.kind === 'start') {
-          const workId = randomUUID(); w = { id: workId, contentRevision: 0, intentRevision: 0, cancellationEpoch: 0, book: blankWorkbook(workId), messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'queued' }; s.works[workId] = w;
+          const workId = randomUUID();
+          const initial = input.startKind === 'conversation' ? { kind: 'conversation', title: Array.from(input.text.trim()).slice(0, 80).join('') } : { book: blankWorkbook(workId) };
+          w = { id: workId, ...initial, contentRevision: 0, intentRevision: 0, cancellationEpoch: 0, messages: [], proposals: [], humanCells: [], sourceIds: [], status: 'queued' }; s.works[workId] = w;
         } else {
           w = work(s, input.workId, native); revision(input.expectedIntentRevision);
           if (native) { w.intentRevision ??= 0; w.cancellationEpoch ??= 0; w.messages ??= []; w.sourceIds ??= []; }
@@ -146,7 +230,11 @@ export class Workspace {
         for (const j of Object.values(s.jobs)) if (j.workId === w.id && j.kind !== 'maintenance' && j.status === 'queued') j.status = 'superseded';
         if (input.kind === 'cancel') { w.cancellationEpoch++; w.status = Object.values(s.jobs).some(j => j.workId === w.id && j.kind !== 'maintenance' && j.status === 'running') ? 'cancellation_requested' : 'stopped'; }
         else {
-          w.messages.push({ id: input.commandId, role: 'user', text: input.text, ...(selection?.kind === 'document' ? { selection: structuredClone(selection) } : {}) }); w.status = 'queued'; delete w.errorCode;
+          const attachments = [...new Set(input.sourceIds)].map(sourceId => {
+            const { id, name, revision } = s.sources[sourceId];
+            return { id, name, ...(revision === undefined ? {} : { revision }) };
+          });
+          w.messages.push({ id: input.commandId, role: 'user', text: input.text, ...(attachments.length ? { attachments } : {}), ...(selection?.kind === 'document' ? { selection: structuredClone(selection) } : {}) }); w.status = 'queued'; delete w.errorCode;
           s.jobs[input.commandId] = { id: input.commandId, ...(native ? { kind: 'native-agent', principal } : {}), workId: w.id, text: input.text, ...(selection ? { selection } : {}), status: 'queued', phase: 'admitted', expected: preconditions(s, w), sessionId: randomUUID(), requestIds: [] };
         }
         event(s, w, input.kind); return { workId: w.id, commandId: input.commandId, intentRevision: w.intentRevision };
@@ -166,7 +254,7 @@ export class Workspace {
       const w = this.access(s, principal, workId, true);
       // Re-check live ACL and its generation before returning any stored result.
       if (principal !== s.owner && input.accessRevision !== (w.accessRevision ?? 0)) throw new Fault('access_changed', 403);
-      if ((workKind(w) === 'document') !== !!document) throw new Fault('artifact_type_mismatch', 400);
+      if (workKind(w) !== (document ? 'document' : 'sheet')) throw new Fault('artifact_type_mismatch', 400);
       if ((document ?? book).id !== w.id) throw new Fault('workbook_identity', 400);
       return dedup(s, input.commandId, { workId, ...input }, () => {
         if (w.contentRevision !== input.contentRevision || s.permissionRevision !== input.permissionRevision) throw new Fault('save_conflict');

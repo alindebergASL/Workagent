@@ -1,8 +1,8 @@
-import type { Work } from './types';
+import type { SavedWork } from './types';
 import type { SheetSelection } from './NativeEditor';
 import type { DocumentCapture } from './DocumentEditor';
 import type { DocumentSelection } from '../../../packages/workagent-contract/document.mjs';
-export type ProductBatch = { kind: 'reset' | 'events'; cursor: number; events: { eventId: number }[]; works: { id: string; title: string; status: string }[]; snapshots: Work[] };
+export type ProductBatch = { kind: 'reset' | 'events'; cursor: number; events: { eventId: number }[]; works: { id: string; title: string; status: string }[]; snapshots: SavedWork[] };
 // One committed product cursor, unrelated to DSH's native session log.
 export class ProductCursor {
   after: number | undefined;
@@ -30,7 +30,7 @@ export class ApiError extends Error {
     super(code); this.path = path; this.status = status; this.code = code;
   }
 }
-export type Submission = { commandId: string; sourceCommandId: string; draft: ComposerDraft; intentRevision?: number; selection?: SelectionContext };
+export type Submission = { startKind?: 'conversation'; commandId: string; sourceCommandId: string; draft: ComposerDraft; intentRevision?: number; selection?: SelectionContext };
 const empty = (): ComposerDraft => ({ prompt: '', sourceName: 'Pasted data', sourceText: '' });
 function validSelection(s: any, workId: string | null, attached: boolean): boolean {
   if (!s || typeof s !== 'object' || Array.isArray(s) || typeof s.workId !== 'string' || s.workId !== workId || !Number.isSafeInteger(s.contentRevision) || s.contentRevision < 0) return false;
@@ -71,7 +71,8 @@ export class ComposerDrafts {
     let s; try { s = JSON.parse(raw); } catch { throw new Error('invalid_pending_send'); }
     const validId = (v: unknown) => typeof v === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(v) && !['__proto__', 'constructor', 'prototype'].includes(v);
     if (!s || !validId(s.commandId) || !validId(s.sourceCommandId) || !validDraft(s.draft, workId)
-      || Object.keys(s).some(k => !['commandId', 'sourceCommandId', 'draft', 'intentRevision', 'selection'].includes(k))
+      || Object.keys(s).some(k => !['commandId', 'sourceCommandId', 'draft', 'intentRevision', 'selection', 'startKind'].includes(k))
+      || (s.startKind !== undefined && (workId !== null || s.startKind !== 'conversation'))
       || (workId !== null && (!Number.isSafeInteger(s.intentRevision) || s.intentRevision < 0))
       || (s.selection !== undefined && !validSelection(s.selection, workId, false))
       || (!!s.draft.selection !== !!s.selection) || (s.selection && s.selection.kind !== s.draft.selection.kind)) throw new Error('invalid_pending_send');
@@ -87,7 +88,7 @@ export class ComposerDrafts {
   submission(workId: string | null, draft: ComposerDraft, intentRevision: number | undefined, makeId: () => string, selection?: SelectionContext): Submission {
     const old = this.pending(workId);
     if (old) { if (JSON.stringify(old.draft) !== JSON.stringify(draft)) throw new Error('unresolved_send'); return old; }
-    const next = { commandId: makeId(), sourceCommandId: makeId(), draft, intentRevision, ...(selection ? { selection } : {}) };
+    const next: Submission = { ...(workId === null ? { startKind: 'conversation' } : {}), commandId: makeId(), sourceCommandId: makeId(), draft, intentRevision, ...(selection ? { selection } : {}) };
     this.storage.setItem(`${this.key(workId)}:send`, JSON.stringify(next)); this.attempts.set(this.key(workId), next); return next;
   }
   accepted(workId: string | null, commandId: string) {

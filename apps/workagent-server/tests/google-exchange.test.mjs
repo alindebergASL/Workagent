@@ -152,3 +152,12 @@ test('receipt admission timestamps survive JSONB-style reordering, tied clocks a
   await f.store.transaction(s=>{delete s.googleSimulation.operations.zz_reserved.createdAt;});
   const legacy=(await f.restart().state('owner',b.workId)).receipts.find(r=>r.operationId==='zz_reserved');assert.equal(legacy.createdAt,undefined);assert.equal(legacy.recordedAt,undefined);assert.equal(legacy.outcome,'not_started');
 });
+
+test('conversation context refuses Google sheet preview before adapter access', async t => {
+  const f = integrationFixture(t), b = await setup(f, 'sheet');
+  const { workId } = await f.workspace.command('owner', { kind: 'start', startKind: 'conversation', commandId: 'ask', text: 'Hello', sourceIds: [] });
+  const before = f.pg.committed();
+  await assert.rejects(f.exchange.previewSheet('owner', { ...b, workId, contentRevision: 0, spreadsheetId: 'synthetic_sheet', ranges }), /artifact_required/);
+  assert.equal(f.sim.events.length, 0);
+  assert.deepEqual(f.pg.committed(), before);
+});

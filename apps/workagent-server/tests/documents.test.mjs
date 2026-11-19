@@ -1,7 +1,7 @@
 // In-memory transaction fixtures; no PostgreSQL, HTTP or model calls.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Workspace } from '../src/workspace.mjs';
+import { Workspace, digest } from '../src/workspace.mjs';
 import { initialState } from '../src/store.mjs';
 import { blankDocument } from '../../../packages/workagent-contract/document.mjs';
 import { titleDocument } from './support/title-document.mjs';
@@ -297,4 +297,199 @@ test('rename checks current authorization and keeps stale grants, intent and sto
     await assert.rejects(ws.renameDocument('owner', workId, input), /access_denied/);
     await assert.rejects(ws.decide('owner', workId, result.proposalId, { commandId: 'accept-revoked', decision: 'accept', expected: current.expected }), /access_denied/);
   }
+});
+
+test('start-work creation is bound to the active owner job at commit time', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  const { workId } = await ws.command('owner', { commandId: 'ask', kind: 'start', text: 'Create a new packing brief.', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const args = { title: 'Packing brief', content: 'Pack two crates.' };
+  const create = (principal, session, callId, input = args) => ws.createJobDocument(principal, job.id, session, callId, input);
+  await assert.rejects(create('peer', job.sessionId, 'first'), /access_denied/);
+  await assert.rejects(create('owner', 'other-session', 'first'), /job_not_running/);
+  await assert.rejects(create('owner', job.sessionId, 'first', { ...args, content: '\u0001' }), /invalid_document_text/);
+  const made = await create('owner', job.sessionId, 'first');
+  const source = await ws.get('owner', workId);
+  assert.equal(source.book.id, workId);
+  assert.equal(source.contentRevision, 0);
+  assert.equal(source.messages.at(-1).createdWorkId, made.workId);
+  await ws.command('owner', { commandId: 'stop', kind: 'cancel', workId, expectedIntentRevision: 1, sourceIds: [] });
+  await assert.rejects(create('owner', job.sessionId, 'second'), /work_superseded/);
+  assert.equal((await ws.list('owner')).length, 2);
+});
+
+test('job sheet validates the rectangle and owner session and deduplicates creation across tool kinds', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store, { peers: [{ id: 'peer', name: 'Peer' }] });
+  const { workId } = await ws.command('owner', { commandId: 'start', kind: 'start', text: 'Create inventory.', sourceIds: [] });
+  await ws.share('owner', workId, { commandId: 'share-source', peer: 'peer', role: 'editor', accessRevision: 0 });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const args = { title: 'Inventory', rows: [[false]] };
+  const create = (principal, session, input = args) => ws.createJobSheet(principal, job.id, session, 'one', input);
+  const before = structuredClone(store.state);
+  await assert.rejects(create('peer', job.sessionId), /access_denied/);
+  await assert.rejects(create('owner', 'other-session'), /job_not_running/);
+  for (const key of ['owner', 'workId', 'kind', 'sheetId', 'expected']) {
+    await assert.rejects(create('owner', job.sessionId, { ...args, [key]: workId }), /invalid_sheet_arguments/);
+  }
+  for (const rows of [null, [], [1], [[]], [[1], [2, 3]], [Array(27).fill(1)], Array(201).fill([1]),
+    Array(100).fill(Array(21).fill(1)), [[{}]], [[[1]]], [[NaN]], [[Infinity]], [[undefined]], [[{ f: '=1' }]],
+    [[null, '']], [['x'.repeat(20001)]], [Array(10).fill('雪'.repeat(7000))]]) {
+    await assert.rejects(create('owner', job.sessionId, { ...args, rows }), e => e instanceof Fault && e.status === 400);
+  }
+  assert.deepEqual(store.state, before);
+  const doc = await ws.createJobDocument('owner', job.id, job.sessionId, 'one', { title: args.title, content: 'Labels' });
+  const afterDoc = structuredClone(store.state);
+  await assert.rejects(create('owner', job.sessionId), /command_conflict/);
+  assert.deepEqual(await ws.createJobDocument('owner', job.id, job.sessionId, 'one', { title: args.title, content: 'Labels' }), doc);
+  assert.deepEqual(store.state, afterDoc);
+  const sheet = await ws.createJobSheet('owner', job.id, job.sessionId, 'two', args);
+  const afterSheet = structuredClone(store.state);
+  await assert.rejects(ws.createJobDocument('owner', job.id, job.sessionId, 'two', { title: args.title, content: 'Labels' }), /command_conflict/);
+  assert.deepEqual(await ws.createJobSheet('owner', job.id, job.sessionId, 'two', args), sheet);
+  assert.deepEqual(store.state, afterSheet);
+  assert.deepEqual(store.state.works[workId].messages.filter(m => m.createdWorkId).map(m => m.createdWorkId), [doc.workId, sheet.workId]);
+  assert.deepEqual((await ws.list('peer')).map(w => w.id), [workId]);
+  assert.deepEqual((await ws.get('peer', workId)).messages, []);
+  await assert.rejects(ws.get('peer', sheet.workId), /access_denied/);
+  await ws.command('owner', { commandId: 'stop', kind: 'cancel', workId, expectedIntentRevision: 1, sourceIds: [] });
+  await assert.rejects(create('owner', job.sessionId), /work_superseded/);
+  assert.equal((await ws.list('owner')).length, 3);
+});
+
+test('quote creation binds the typed inputs, parent and receipt across file-store reopen', async () => {
+  const path = join(await mkdtemp(join(tmpdir(), 'quote-comparison-')), 'workspace.json');
+  await writeFile(path, JSON.stringify(initialState('owner')));
+  const ws = new Workspace(new FileFixtureStore(path));
+  const { workId } = await ws.createBlank('owner', { kind: 'document', commandId: 'source', title: 'Dispatch notes' });
+  const document = blankDocument(workId, 'Dispatch notes', 'Rowan and Kite quoted for 20 parcels.');
+  await ws.save('owner', workId, { commandId: 'human', document, contentRevision: 1, permissionRevision: 1 });
+  await ws.command('owner', { commandId: 'compare', kind: 'continue', workId, expectedIntentRevision: 0, text: 'Keep an ongoing comparison.', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const args = { title: 'Weekly parcel quotes', quantity: 20, offers: [
+    { name: 'Rowan', unitPrice: 7, flatFee: 18 }, { name: 'Kite', unitPrice: 8, flatFee: 0 }, { name: '=2+2', unitPrice: 0.29, flatFee: 0.05 },
+  ] };
+  const create = (workspace, input = args, callId = 'call') => workspace.createJobQuoteComparison('owner', job.id, job.sessionId, callId, input);
+  await assert.rejects(ws.createJobQuoteComparison('other', job.id, job.sessionId, 'call', args), /access_denied/);
+  await assert.rejects(ws.createJobQuoteComparison('owner', job.id, 'other-session', 'call', args), /job_not_running/);
+  const receipt = await create(ws);
+  const reopened = new Workspace(new FileFixtureStore(path));
+  const child = await reopened.get('owner', receipt.workId);
+  assert.deepEqual(receipt, { workId: child.id, title: child.book.name, kind: 'sheet', contentRevision: 1 });
+  const cells = child.book.sheets.sheet1.cellData;
+  assert.equal(cells[0][1].v, 20);
+  assert.deepEqual([2, 3, 4].map(i => [cells[i][0].v, cells[i][3].v]), [['Rowan', 158], ['Kite', 160], ['=2+2', 5.85]]);
+  assert.deepEqual(cells[4][0], { t: 1, v: '=2+2' });
+  assert.equal(cells[4][3].f, '=ROUND($B$1*B5+C5,2)');
+  cells[2][0].v = 'Rowan Logistics';
+  await reopened.save('owner', child.id, { commandId: 'correct-name', book: child.book, contentRevision: 1, permissionRevision: 1 });
+  assert.deepEqual(await create(reopened), receipt);
+  await assert.rejects(create(reopened, { ...args, quantity: 21 }), /command_conflict/);
+  const direct = (key) => reopened.createJobSheet('owner', job.id, job.sessionId, key, { title: args.title, rows: [['=B3*C3']] });
+  await assert.rejects(direct('call'), /command_conflict/);
+  const parent = await reopened.get('owner', workId);
+  assert.deepEqual(parent.document, document);
+  assert.deepEqual(parent.messages.filter(m => m.createdWorkId).map(m => m.createdWorkId), [child.id]);
+  assert.equal((await reopened.get('owner', child.id)).book.sheets.sheet1.cellData[2][0].v, 'Rowan Logistics');
+  assert.equal((await reopened.list('owner')).length, 2);
+  const literal = await direct('direct-first');
+  await assert.rejects(create(reopened, args, 'direct-first'), /command_conflict/);
+  assert.deepEqual((await reopened.get('owner', literal.workId)).book.sheets.sheet1.cellData[0][0], { t: 1, v: '=B3*C3' });
+  await reopened.command('owner', { commandId: 'stop', kind: 'cancel', workId, expectedIntentRevision: 1, sourceIds: [] });
+  await assert.rejects(create(reopened), /work_superseded/);
+});
+
+test('invalid quote terms fail atomically before any child, link or receipt', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  await ws.command('owner', { commandId: 'ask', kind: 'start', startKind: 'conversation', text: 'Compare quotes.', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const before = structuredClone(store.state);
+  const offer = { name: 'Rowan', unitPrice: 7, flatFee: 18 }, args = { title: 'Rates', quantity: 20, offers: [offer, offer] };
+  const invalid = [
+    { rows: [['=1']] }, { workId: 'other' }, { title: '' }, { quantity: 0 }, { quantity: 1.5 }, { quantity: 1000001 },
+    { offers: [] }, { offers: Array(51).fill(offer) },
+    ...[null, { ...offer, formula: '=MIN(A1:A2)' }, { ...offer, unitPrice: '=1+2' }, { ...offer, name: ' ' },
+      { ...offer, unitPrice: 0.001 }, { ...offer, flatFee: -1 }, { ...offer, flatFee: NaN },
+      { name: 'Kite', unitPrice: 8 }, { ...offer, unitPrice: 1000001 }].map(bad => ({ offers: [offer, bad] })),
+  ];
+  for (const extra of invalid) {
+    await assert.rejects(ws.createJobQuoteComparison('owner', job.id, job.sessionId, 'same', { ...args, ...extra }), /invalid_/);
+  }
+  assert.deepEqual(store.state, before);
+  for (const kind of ['native-agent', 'maintenance']) {
+    await store.transaction(s => { s.jobs[job.id].kind = kind; });
+    const scoped = structuredClone(store.state);
+    await assert.rejects(ws.createJobQuoteComparison('owner', job.id, job.sessionId, 'same', args), /job_not_running/);
+    assert.deepEqual(store.state, scoped);
+  }
+});
+
+test('reopened requests retain only the canonical source metadata attached on each turn', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  const make = (name) => ws.source('owner', { commandId: name, name, content: 'private source body', synthetic: true });
+  const a = await make('Inventory'), b = await make('Labels');
+  const start = { commandId: 'ask', kind: 'start', startKind: 'conversation', text: 'Review inventory', sourceIds: [a.id, a.id] };
+  const { workId } = await ws.command('owner', start);
+  await store.transaction(s => { s.sources[a.id].name = 'Updated inventory'; s.sources[a.id].revision = 2; });
+  await ws.command('owner', start);
+  const next = { commandId: 'again', kind: 'continue', workId, expectedIntentRevision: 1, text: 'Compare labels', sourceIds: [b.id, a.id] };
+  await ws.command('owner', next);
+  await ws.command('owner', { ...next, commandId: 'last', expectedIntentRevision: 2, text: 'Thanks', sourceIds: [] });
+  const reopened = await new Workspace(store).get('owner', workId);
+  assert.deepEqual(reopened.messages.map(m => m.attachments ?? []), [
+    [{ id: a.id, name: 'Inventory', revision: 1 }],
+    [{ id: b.id, name: 'Labels', revision: 1 }, { id: a.id, name: 'Updated inventory', revision: 2 }], [],
+  ]);
+});
+
+test('existing per-tool creation receipt also prevents a second artifact for the same native call', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  const { workId } = await ws.command('owner', { kind: 'start', startKind: 'conversation', commandId: 'ask', text: 'Make a note', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const args = { title: 'Note', content: 'Remember this.' }, callId = 'call';
+  const create = () => ws.createJobDocument('owner', job.id, job.sessionId, callId, args);
+  const receipt = await create();
+  const key = operation => digest({ session: job.sessionId, operation, callId });
+  await store.transaction(s => {
+    const old = key('create-document'), current = key('create-artifact');
+    s.commands[old] = s.commands[current]; delete s.commands[current];
+    s.works[workId].messages.find(m => m.createdWorkId === receipt.workId).id = old;
+  });
+  const before = structuredClone(store.state);
+  assert.deepEqual(await create(), receipt);
+  await assert.rejects(ws.createJobSheet('owner', job.id, job.sessionId, callId, { title: 'Table', rows: [[1]] }), /command_conflict/);
+  assert.deepEqual(store.state, before);
+});
+
+test('dual legacy receipts replay each matching payload without changing state', async () => {
+  const store = new MemoryStore(initialState('owner')), ws = new Workspace(store);
+  const { workId } = await ws.command('owner', { kind: 'start', startKind: 'conversation', commandId: 'ask', text: 'Make a note and table', sourceIds: [] });
+  const job = await ws.claim('owner');
+  await ws.checkpoint('owner', job, 'execution_started');
+  const doc = { title: 'Note', content: 'First draft' }, sheet = { title: 'Table', rows: [[1]] };
+  const createDoc = (callId, args) => ws.createJobDocument('owner', job.id, job.sessionId, callId, args);
+  const createSheet = (callId, args) => ws.createJobSheet('owner', job.id, job.sessionId, callId, args);
+  const docReceipt = await createDoc('doc-seed', doc), sheetReceipt = await createSheet('sheet-seed', sheet);
+  assert.notEqual(docReceipt.workId, sheetReceipt.workId);
+  // Model the historical layout in this fixture: one session/call, two per-kind keys.
+  await store.transaction(s => {
+    for (const [seed, kind, receipt] of [['doc-seed', 'document', docReceipt], ['sheet-seed', 'sheet', sheetReceipt]]) {
+      const current = digest({ session: job.sessionId, operation: 'create-artifact', callId: seed });
+      const legacy = digest({ session: job.sessionId, operation: 'create-' + kind, callId: 'same-call' });
+      s.commands[legacy] = s.commands[current]; delete s.commands[current];
+      s.works[workId].messages.find(m => m.createdWorkId === receipt.workId).id = legacy;
+    }
+  });
+  const before = structuredClone(store.state);
+  assert.deepEqual(await createDoc('same-call', doc), docReceipt);
+  assert.deepEqual(store.state, before);
+  assert.deepEqual(await createSheet('same-call', sheet), sheetReceipt);
+  assert.deepEqual(store.state, before);
+  await assert.rejects(createDoc('same-call', { ...doc, content: 'Changed' }), /command_conflict/);
+  await assert.rejects(createSheet('same-call', { ...sheet, rows: [[2]] }), /command_conflict/);
+  assert.deepEqual(store.state, before);
 });

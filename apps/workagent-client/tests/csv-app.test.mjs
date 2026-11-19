@@ -783,7 +783,7 @@ test('review regression: foreign draft at ACK keeps exact retry until its owning
 // Keep tests below the prefix consumed by native-document App fixtures.
 for (const [errorCode, status, message] of [
   ['request_too_large', 'blocked', 'This request reached a technical size limit before the next model call was sent. Your saved work is safe. Send a narrower request to continue.'],
-  ['execution_interrupted_check_receipt', 'interrupted', 'Work was interrupted. Your saved sheet is safe. The operator must check any uncertain model request before retrying.'],
+  ['execution_interrupted_check_receipt', 'interrupted', 'Work was interrupted. Your request is saved. The operator must check any uncertain model request before retrying.'],
 ]) test(`App displays ${errorCode} accurately without replaying the command`, async () => {
   const api = server(() => assert.fail('rendering an error must not submit a command'));
   Object.assign(api.works.old, { status, errorCode });
@@ -1330,3 +1330,85 @@ for (const outcome of ['read', 'editor', 'denied', 'stale metadata', 'stale sess
     } finally { gate.resolve(response(session())); view.unmount(); }
   });
 }
+
+test('Open sheet on a creation receipt navigates to the exact saved workbook', async () => {
+  const api = server(() => assert.fail('opening a receipt must only read'));
+  api.works.old.messages = [{ id: 'receipt', role: 'assistant', text: 'Created sheet: Inventory', createdWorkKind: 'sheet', createdWorkId: 'imported' }];
+  api.works.imported.book.sheets.sheet1.cellData = { 0: { 0: { v: '=1+1', t: 1 } } };
+  const view = mount(disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old'); await view.message('Unsent source note');
+    await view.click('Open sheet');
+    await view.until(() => view.native()?.book.id === 'imported');
+    assert.deepEqual(view.native().book.sheets.sheet1.cellData[0][0], { v: '=1+1', t: 1 });
+    await view.open('old');
+    assert.equal(view.messageValue(), 'Unsent source note');
+  } finally { view.unmount(); }
+});
+
+test('owner sends directly from landing, reopens a conversation without an editor and continues in chat', async () => {
+  const { Workspace } = await import('../../workagent-server/src/workspace.mjs');
+  const { initialState } = await import('../../workagent-server/src/store.mjs');
+  let state = initialState('owner');
+  const ws = new Workspace({ read: fn => structuredClone(fn(state)), transaction(fn) {
+    const next = structuredClone(state), result = fn(next); state = next; return structuredClone(result);
+  } });
+  const inputs = [], replies = ['Six crates.', 'Yes.'];
+  const api = server(async (path, input, works) => {
+    assert.equal(path, '/api/work/commands');
+    inputs.push(input);
+    const result = await ws.command('owner', input), job = await ws.claim('owner');
+    await ws.finish('owner', job, [{ id: 'reply-' + inputs.length, role: 'assistant', text: replies[inputs.length - 1] }], 'ready');
+    works[result.workId] = await ws.get('owner', result.workId);
+    return result;
+  });
+  const storage = disk();
+  let view = mount(storage, api.fetch);
+  try {
+    await view.flush(); await view.message('How many crates? No file please.'); await view.send();
+    await view.until(() => view.text().includes('Six crates.'));
+    assert.equal(inputs[0].startKind, 'conversation');
+    const [thread] = await ws.list('owner');
+    assert.equal(thread.kind, 'conversation');
+    assert.equal(view.native(), undefined); assert.equal(view.doc(), undefined);
+    assert.equal(view.elements().find(n => n.props['aria-controls'] === 'conversation').props['aria-pressed'], true);
+    view.unmount(); view = mount(storage, api.fetch); await view.flush(); await view.open(thread.id);
+    assert.match(view.text(), /How many crates/);
+    await view.message('Are they packed?'); await view.send(); await view.until(() => view.text().includes('Yes.'));
+    assert.equal(inputs[1].kind, 'continue'); assert.equal(inputs[1].workId, thread.id);
+    assert.equal((await ws.list('owner')).length, 1);
+    assert.equal(view.native(), undefined); assert.equal(view.doc(), undefined);
+  } finally { view.unmount(); }
+});
+
+test('reopening a conversation shows attachment names and revisions on their original requests', async () => {
+  const api = server(() => assert.fail('history is read-only'));
+  const { book, ...base } = api.works.old;
+  api.works.old = { ...base, kind: 'conversation', title: 'Attachments', messages: [
+    { id: 'a', role: 'user', text: 'First request', attachments: [{ id: 'one', name: 'Inventory', revision: 1 }] },
+    { id: 'b', role: 'user', text: 'Second request', attachments: [{ id: 'two', name: 'Packing list', revision: 7 }] },
+    { id: 'c', role: 'user', text: 'Older request' },
+  ] };
+  const view = mount(disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old');
+    const articles = view.elements().filter(n => n.type === 'article').map(n => renderToStaticMarkup(n));
+    assert.match(articles[0], /Inventory.*revision 1.*<code>one<\/code>/i); assert.doesNotMatch(articles[0], /Packing list/);
+    assert.match(articles[1], /Packing list.*revision 7.*<code>two<\/code>/i); assert.doesNotMatch(articles[1], /Inventory/);
+    assert.doesNotMatch(articles[2], /Attached|Inventory|Packing list/i);
+  } finally { view.unmount(); }
+});
+
+test('interrupted conversation shows the retained request and uncertain outcome without claiming a sheet', async () => {
+  const api = server(() => assert.fail('interruption must not resend'));
+  const { book, ...base } = api.works.old;
+  api.works.old = { ...base, kind: 'conversation', title: 'Question', messages: [{ id: 'q', role: 'user', text: 'How many?' }],
+    status: 'interrupted', errorCode: 'execution_interrupted_check_receipt' };
+  const view = mount(disk(), api.fetch);
+  try {
+    await view.flush(); await view.open('old');
+    assert.match(view.text(), /How many\?/); assert.match(view.text(), /interrupted.*uncertain model request before retrying/i);
+    assert.doesNotMatch(view.text(), /your saved sheet/i);
+    assert.equal(api.calls.some(c => c.input), false);
+  } finally { view.unmount(); }
+});

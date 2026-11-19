@@ -2,7 +2,7 @@ import { Fault, id, text } from './index.mjs';
 export const DOCUMENT_LIMIT = 200000;
 export const DOCUMENT_POLICY = 'UTF-8 text / Markdown source, kept literally as editable paragraphs. Markdown syntax is not rendered. UTF-8 BOM is omitted from editable text. Line endings normalize to LF on export; the original bytes remain downloadable. Text / Markdown export omits native formatting, list markers, list structure and page layout. Use Word export to retain supported lists.';
 export const workKind = w => w.kind ?? 'sheet';
-export const workTitle = w => workKind(w) === 'document' ? w.document.title : w.book.name;
+export const workTitle = w => w.kind === 'conversation' ? w.title : workKind(w) === 'document' ? w.document.title : w.book.name;
 export function requireSheet(w) { if (workKind(w) !== 'sheet') throw new Fault('sheet_required', 400); return w; }
 export function blankDocument(workId, title = 'Untitled document', content = '') {
   if (typeof content !== 'string' || content.length > DOCUMENT_LIMIT || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(content)) throw new Fault('invalid_document_text', 400);
