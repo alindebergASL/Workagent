@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { Readable } from 'node:stream';
 import { join } from 'node:path';
 import { LlmAdapter } from '@deepseek-ai/dsh-llm';
 import { bootHost } from '../src/host.mjs';
@@ -156,7 +157,7 @@ test('actual DSH mixed-provider document loop keeps metadata outside snapshots, 
   } finally { await dispatch.close(); await host.close(); }
 });
 
-async function runDocumentFixture({ human = false, kind = 'document', prompt = 'Change only the title.', attach, steps, answer = 'Synthetic title test completed; inspect tool results for outcome.' }) {
+async function runDocumentFixture({ human = false, kind = 'document', prompt = 'Change only the title.', attach, steps, openPublicResponse, recoverBeforeFinish = false, answer = 'Synthetic title test completed; inspect tool results for outcome.' }) {
   const root = await mkdtemp(join(tmpdir(), 'document-title-host-')), path = join(root, 'workspace.json');
   await writeFile(path, JSON.stringify(initialState('owner')));
   const store = new FileFixtureStore(path), workspace = new Workspace(store);
@@ -179,16 +180,16 @@ async function runDocumentFixture({ human = false, kind = 'document', prompt = '
     async *stream(options) {
       const wire = requestBody(options, policy), index = this.calls.push(wire) - 1;
       const step = await steps[index]?.({ wire, messages: options.messages, workspace, store, workId, original, host, results });
-      const block = step ? { type: 'tool-call', id: step.id ?? `title-call-${index}`, name: step.name, arguments: JSON.stringify(step.args ?? {}) } : { type: 'text', text: answer };
+      const block = step ? { type: 'tool-call', id: step.id ?? `title-call-${index}`, name: step.name, arguments: JSON.stringify(step.args ?? {}) } : { type: 'text', text: typeof answer === 'function' ? answer(wire) : answer };
       yield { type: 'block-start', index: 0, blockType: block.type };
       yield block.type === 'tool-call' ? { type: 'tool-call-delta', index: 0, id: block.id, name: block.name, argumentsDelta: block.arguments } : { type: 'text-delta', index: 0, text: block.text };
       yield { type: 'block-end', index: 0, block }; yield { type: 'finish', reason: { kind: step ? 'tool-calls' : 'stop' } };
     }
   }
   const provider = new TitleProvider();
-  host = await bootHost({ stateRoot: root, workspace, principal: 'owner', provider });
+  host = await bootHost({ stateRoot: root, workspace, principal: 'owner', provider, openPublicResponse });
   host.ctx.on('tools/result', (exec, result) => { results.push({ name: exec.name, callId: exec.callId, error: result.isError, text: result.content.filter(c => c.type === 'text').map(c => c.text).join('\n') }); });
-  let error;
+  let error, native;
   try {
     if (!conversation) {
       const sourceIds = await attach?.(workspace, workId) ?? [];
@@ -198,9 +199,14 @@ async function runDocumentFixture({ human = false, kind = 'document', prompt = '
     const job = await workspace.claim('owner');
     try {
       const messages = await host.run(job);
-      await workspace.finish('owner', job, messages, messages.outcome.status, messages.outcome.errorCode);
+      if (recoverBeforeFinish) {
+        await host.close();
+        host = await bootHost({ stateRoot: root, workspace, principal: 'owner', provider, openPublicResponse });
+        native = await host.inspect(job);
+        await workspace.recover('owner', host.inspect);
+      } else await workspace.finish('owner', job, messages, messages.outcome.status, messages.outcome.errorCode);
     } catch (e) { error = e; }
-    return { workspace, store, workId, original, calls: provider.calls, mutations, results, error, state: JSON.parse(await readFile(path, 'utf8')) };
+    return { workspace, store, workId, original, calls: provider.calls, mutations, results, error, native, state: JSON.parse(await readFile(path, 'utf8')) };
   } finally { await host.close(); }
 }
 const readTitle = () => ({ name: 'read_document' });
@@ -616,6 +622,208 @@ test('decision brief with only open questions keeps its human edits when a stale
   assert.equal((await r.workspace.list('owner')).length, 2);
 });
 
+function publicFixture(data, statusCode = 200, headers = {}) {
+  return Object.assign(Readable.from([Buffer.from(JSON.stringify(data))]), { statusCode, headers: { 'content-type': 'application/json', ...headers } });
+}
+const bergen = { name: 'Bergen', admin1: 'Vestland', country: 'Norway', latitude: 60.39, longitude: 5.32 };
+
+test('conversation: native DSH executes calculate, public search and current weather and returns identified results to chat', async () => {
+  const requests = [], time = new Date().toISOString().slice(0, 16);
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Calculate (17+3)*1.25, look up "glacial valleys" and get current weather in Bergen, Vestland. No file.',
+    openPublicResponse(url, signal) {
+      assert.ok(signal instanceof AbortSignal);
+      requests.push(url.href);
+      switch (url.host) {
+        case 'en.wikipedia.org': return publicFixture({ pages: [{ id: 777, title: 'Synthetic valley', excerpt: 'Synthetic <span>search</span> result.' }] });
+        case 'geocoding-api.open-meteo.com': return publicFixture({ results: [bergen, { ...bergen, admin1: 'Other' }] });
+        case 'api.open-meteo.com': return publicFixture({ utc_offset_seconds: 0, current: { temperature_2m: 7.5, weather_code: 3, time }, current_units: { temperature_2m: '°C' } });
+        default: assert.fail('unexpected endpoint');
+      }
+    }, steps: [
+      () => ({ name: 'calculate', id: 'math', args: { expression: '(17+3)*1.25' } }),
+      () => ({ name: 'lookup_public', id: 'search', args: { query: 'glacial valleys' } }),
+      () => ({ name: 'current_weather', id: 'weather', args: { location: 'Bergen', region: 'Vestland' } }),
+    ], answer: wire => {
+      const [math, search, weather] = wire.messages.filter(m => m.role === 'tool').map(m => JSON.parse(m.content));
+      return `${math.value}; ${search.results[0].excerpt} ${search.results[0].url}; ${weather.location.name}: ${weather.temperatureC} °C at ${weather.validAt} (${weather.sourceUrl})`;
+    } });
+  assert.ifError(r.error);
+  assert.deepEqual(requests, ['https://en.wikipedia.org/w/rest.php/v1/search/page?q=glacial+valleys&limit=3', 'https://geocoding-api.open-meteo.com/v1/search?name=Bergen&count=8&language=en&format=json', 'https://api.open-meteo.com/v1/forecast?latitude=60.39&longitude=5.32&current=temperature_2m%2Cweather_code&timezone=GMT']);
+  assert.deepEqual(r.results.map(t => [t.name, t.callId, !!t.error]), [['calculate','math',false],['lookup_public','search',false],['current_weather','weather',false]]);
+  assert.deepEqual(r.calls.at(-1).messages.filter(m => m.role === 'tool').map(m => m.tool_call_id), ['math','search','weather']);
+  assert.equal((await r.workspace.list('owner')).length, 1);
+  const saved = await r.workspace.get('owner', r.workId);
+  assert.equal(saved.status, 'ready');
+  const text = saved.messages.at(-1).text;
+  assert.ok(text.includes('Calculation: (17+3)*1.25 = 25'));
+  assert.ok(text.includes('Synthetic valley: “Synthetic search result.”\nhttps://en.wikipedia.org/?curid=777'));
+  assert.ok(text.includes(`Bergen, Vestland, Norway, 7.5 °C at ${time}Z`));
+  assert.ok(text.includes(requests[2]));
+});
+
+test('Wikipedia lookup accepts the exact user-quoted span but sends only the authorized phrase', async () => {
+  const opens = [];
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up "volcanic plug" on English Wikipedia. No file.',
+    steps: [() => ({ name: 'lookup_public', args: { query: '"volcanic plug"' } })],
+    openPublicResponse(url) {
+      opens.push(url.href);
+      return publicFixture({ pages: [{ id: 41, title: 'Fixture plug', excerpt: 'A volcanic landform.' }] });
+    }, answer: 'Unsupported model detail.' });
+  assert.ifError(r.error);
+  assert.deepEqual(opens, ['https://en.wikipedia.org/w/rest.php/v1/search/page?q=volcanic+plug&limit=3']);
+  const saved = await r.workspace.get('owner', r.workId);
+  assert.equal(saved.status, 'ready');
+  assert.match(saved.messages.at(-1).text, /Fixture plug: “A volcanic landform\.”\nhttps:\/\/en\.wikipedia\.org\/\?curid=41/);
+  assert.doesNotMatch(saved.messages.at(-1).text, /Unsupported model detail/);
+});
+
+test('Wikipedia lookup saves excerpts and their links, not unsupported additions from the provider', async () => {
+  const pages = [
+    { id: 401, title: 'Fixture lantern', excerpt: 'The fixture lantern has a <span>striped</span> lens.' },
+    { id: 402, title: 'Lantern register', excerpt: 'The register lists 17 designs.' },
+    { id: 403, title: 'Lantern catalogue' },
+  ];
+  const extra = 'Ada designed it in 1904. https://example.invalid/biography';
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up "fixture lantern". No file.',
+    openPublicResponse: () => publicFixture({ pages }),
+    steps: [() => ({ name: 'lookup_public', args: { query: 'fixture lantern' } })],
+    answer: wire => {
+      const { results } = JSON.parse(wire.messages.findLast(m => m.role === 'tool').content);
+      return `${results[0].excerpt} ${extra} ${results[0].url}`;
+    } });
+  assert.ifError(r.error);
+  const saved = await r.workspace.get('owner', r.workId);
+  assert.equal(saved.status, 'ready');
+  const text = saved.messages.filter(m => m.role === 'assistant').map(m => m.text).join('\n');
+  assert.doesNotMatch(text, /1904|Ada|example\.invalid/);
+  assert.match(text, /The fixture lantern has a striped lens\.[\s\S]*?curid=401/);
+  assert.match(text, /The register lists 17 designs\.[\s\S]*?curid=402/);
+  assert.ok(text.includes('Lantern catalogue: (no excerpt returned)\nhttps://en.wikipedia.org/?curid=403'));
+  assert.equal(r.calls.length, 2, 'no extra verification or repair request');
+  assert.equal((await r.workspace.list('owner')).length, 1);
+});
+
+test('lost lookup finish recovers the excerpt without rewriting the provider journal or replaying the search', async () => {
+  const raw = 'Extra personal detail not in the excerpt.';
+  let reads = 0;
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up anemometer.', recoverBeforeFinish: true,
+    steps: [() => ({ name: 'lookup_public', args: { query: 'anemometer' } })], answer: raw,
+    openPublicResponse() { reads++; return publicFixture({ pages: [{ id: 17, title: 'Fixture gauge', excerpt: 'A wind gauge.' }] }); } });
+  assert.ifError(r.error);
+  assert.ok(r.native.events.some(e => e.type === 'assistant/message' && e.data.message.content.some(c => c.text === raw)));
+  const saved = await r.workspace.get('owner', r.workId);
+  assert.equal(saved.status, 'ready');
+  assert.deepEqual(saved.messages.filter(m => m.role === 'assistant'), r.native.messages);
+  assert.equal(r.native.messages.length, 1);
+  assert.ok(r.native.messages[0].text.includes('Fixture gauge: “A wind gauge.”\nhttps://en.wikipedia.org/?curid=17'));
+  assert.ok(!r.native.messages[0].text.includes(raw));
+  assert.equal(reads, 1);
+  assert.equal(r.calls.length, 2);
+});
+
+for (const mode of ['empty', 'failed', 'skipped']) test(`Wikipedia lookup without evidence (${mode}) never saves a guess`, async () => {
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up quartz.',
+    openPublicResponse: () => publicFixture({ pages: [] }, mode === 'failed' ? 503 : 200),
+    steps: mode === 'skipped' ? [] : [() => ({ name: 'lookup_public', args: { query: 'quartz' } })],
+    answer: 'Invented result. https://example.invalid/fake' });
+  assert.ifError(r.error);
+  const saved = await r.workspace.get('owner', r.workId);
+  assert.match(saved.messages.at(-1).text, mode === 'empty' ? /no results/i : /no .*result|unavailable/i);
+  assert.doesNotMatch(saved.messages.at(-1).text, /Invented|https?:/);
+});
+
+test('conversation: a forecast-only turn exposes no current-weather tool and rejects a changed day before transport', async () => {
+  const location = 'Fixturetown', calls = [];
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: `Forecast in ${location} for tomorrow?`,
+    openPublicResponse(url) {
+      calls.push(url.href);
+      if (url.hostname === 'geocoding-api.open-meteo.com') return publicFixture({ results: [{ name: location, latitude: 0, longitude: 0 }] });
+      assert.equal(url.hostname, 'api.open-meteo.com');
+      const now = Date.now();
+      return publicFixture({ timezone: 'GMT', daily_units: { temperature_2m_min: '°C', temperature_2m_max: '°C' },
+        daily: { time: [now, now + 86400000].map(t => new Date(t).toISOString().slice(0, 10)), temperature_2m_min: [1, 2], temperature_2m_max: [3, 4] } });
+    }, steps: [() => ({ name: 'daily_forecast', args: { location, day: 'today' } }),
+      () => { assert.deepEqual(calls, []); return { name: 'daily_forecast', args: { location, day: 'tomorrow' } }; }],
+    answer: wire => JSON.parse(wire.messages.findLast(m => m.role === 'tool').content).source });
+  assert.ifError(r.error);
+  const tools = r.calls[0].tools.map(t => t.function.name);
+  assert.ok(tools.includes('daily_forecast') && !tools.includes('current_weather') && !tools.includes('lookup_public'));
+  assert.match(r.results[0].text, /ask_user_to_confirm_exact_public_terms/);
+  assert.equal(calls.length, 2);
+  assert.equal((await r.workspace.get('owner', r.workId)).messages.at(-1).text, 'Open-Meteo daily forecast');
+});
+
+test('conversation: native DSH rejects private-source terms, invalid arithmetic, redirects and stale weather', async () => {
+  const requests = [];
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up valleys and current weather in Bergen. No file.',
+    attach: async workspace => [(await workspace.source('owner', { commandId: 'private', name: 'Notes', content: 'Confidential Alpine Project', synthetic: true })).id],
+    openPublicResponse(url) {
+      requests.push(url.href);
+      if (url.host === 'en.wikipedia.org') return publicFixture({}, 302, { location: 'https://other.invalid/' });
+      if (url.host === 'geocoding-api.open-meteo.com') return publicFixture({ results: [bergen] });
+      return publicFixture({ utc_offset_seconds: 0, current: { time: '2000-01-01T00:00', temperature_2m: 5, weather_code: 0 }, current_units: { temperature_2m: '°C' } });
+    }, steps: [
+      () => ({ name: 'lookup_public', args: { query: 'Confidential Alpine Project' } }),
+      () => ({ name: 'calculate', args: { expression: 'Math.random()' } }),
+      () => ({ name: 'lookup_public', args: { query: 'valleys' } }),
+      () => ({ name: 'current_weather', args: { location: 'Bergen' } }),
+    ], answer: 'No current conditions available.' });
+  assert.ifError(r.error);
+  assert.equal(requests.length, 3);
+  assert.ok(requests.every(url => !/other\.invalid|Confidential/.test(url)));
+  for (const [i, reason] of ['ask_user_to_confirm_exact_public_terms', 'invalid_arithmetic_expression', 'public_source_unavailable', 'weather_not_current'].entries()) {
+    assert.equal(r.results[i].error, true);
+    assert.ok(r.calls[i+1].messages.findLast(m => m.role === 'tool').content.includes(reason));
+  }
+});
+
+test('conversation: private context in mixed or no-lookup turns cannot become outbound terms', async () => {
+  for (const prompt of ['Look up tides for our private Copper Finch project.', 'Summarize the Copper Finch project without a lookup.',
+    'Do not look up Copper Finch.', 'Look up tides. Actually, do not search.']) {
+    const opens = [];
+    const r = await runDocumentFixture({ kind: 'conversation', prompt,
+      openPublicResponse(url) { opens.push(url.href); return publicFixture({ pages: [], results: [] }); },
+      steps: [() => ({ name: 'lookup_public', args: { query: 'Copper Finch' } }),
+        () => ({ name: 'current_weather', args: { location: 'Copper Finch' } })] });
+    assert.ifError(r.error);
+    assert.deepEqual(opens, []);
+    const tools = r.calls[0].tools.map(t => t.function.name);
+    assert.ok(!tools.includes('lookup_public') && !tools.includes('current_weather') && !tools.includes('daily_forecast'));
+  }
+});
+
+test('conversation: authorization binds exact topic and weather qualifier to their own operations', async () => {
+  const opens = [];
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Look up "tidal bore" and current weather in Bergen, Norway.',
+    openPublicResponse(url) { opens.push(url.href); return publicFixture({ pages: [], results: [] }); },
+    steps: [() => ({ name: 'lookup_public', args: { query: 'Bergen' } }),
+      () => ({ name: 'lookup_public', args: { query: 'tidal' } }),
+      () => ({ name: 'current_weather', args: { location: 'tidal bore' } }),
+      () => ({ name: 'current_weather', args: { location: 'Bergen' } }),
+      () => ({ name: 'current_weather', args: { location: 'Bergen', region: 'tidal bore' } })] });
+  assert.ifError(r.error);
+  assert.deepEqual(opens, []);
+  assert.equal(r.results.length, 5);
+  assert.ok(r.results.every(t => t.error && t.text.includes('ask_user_to_confirm_exact_public_terms')));
+});
+
+test('conversation: authorization is rechecked between geocoding and fetching conditions', async () => {
+  const requests = []; let revoke;
+  const r = await runDocumentFixture({ kind: 'conversation', prompt: 'Weather in Bergen?',
+    steps: [({store}) => {
+      revoke = () => store.transaction(s => { s.permissionRevision++; });
+      return { name: 'current_weather', args: {location: 'Bergen'} };
+    }], openPublicResponse: async url => {
+      requests.push(url.host);
+      await revoke();
+      return publicFixture({ results: [bergen] });
+    } });
+  assert.deepEqual(requests, ['geocoding-api.open-meteo.com']);
+  assert.equal(r.results[0].error, true);
+  assert.match(r.results[0].text, /work_superseded/);
+  assert.equal(r.calls.length, 1, 'no follow-up with revoked data');
+});
+
 test('scripted conversation retains a no-file answer, then links a comparison and a shift handover', async () => {
   const root = await mkdtemp(join(tmpdir(), 'conversation-')), path = join(root, 'workspace.json');
   await writeFile(path, JSON.stringify(initialState('owner')));
@@ -675,7 +883,7 @@ test('scripted conversation retains a no-file answer, then links a comparison an
       }
     }
     assert.equal(wires.length, 5);
-    for (const wire of wires) assert.deepEqual(wire.tools.map(t => t.function.name).sort(), ['create_decision_brief', 'create_document', 'create_quote_comparison', 'create_sheet', 'load_decision_brief']);
+    for (const wire of wires) assert.deepEqual(wire.tools.map(t => t.function.name).sort(), ['calculate', 'create_decision_brief', 'create_document', 'create_quote_comparison', 'create_sheet', 'load_decision_brief']);
     assert.equal((await reopened.list('owner')).length, 3);
   } finally { await dispatch.close(); await host.close(); }
 });
